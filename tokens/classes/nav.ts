@@ -35,7 +35,7 @@ export const NAV_CLASSES = Object.freeze({
   NAV_FLAG_WRAPPER: `${_B_NAV}-flag-wrapper`,
   // Sub-class modifiers (used by AppNav delegated event handler)
   NAV_BACK: 'back',
-  NAV_SCROLL_UP: 'scroll-up',
+  NAV_SELECTED_WORK: 'selected-work',
   NAV_SCROLL_DOWN: 'scroll-down',
   NAV_ACTIVE: _K_ACTIVE,
 })

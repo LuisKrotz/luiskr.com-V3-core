@@ -83,13 +83,15 @@
 
     &-item {
       @extend .ttl-xs;
+      @extend %LK_LINK;
 
       color: var(--color-white-raw);
       text-decoration: none;
       line-height: to-rem($space-3xl);
       opacity: 0.85;
-      transition: opacity 0.2s;
-      cursor: pointer;
+      transition:
+        opacity 0.2s,
+        border-bottom-color 0.3s ease;
 
       &:hover,
       &:focus {
@@ -98,7 +100,7 @@
 
       &.router-link-active {
         opacity: 1;
-        text-decoration: underline;
+        border-bottom-color: var(--color-accent);
       }
     }
 
@@ -194,19 +196,13 @@ $_B_AFP: 'awards-footer-progress';
 
   &-link {
     @extend .ttl-xs;
+    @extend %LK_LINK;
 
     color: var(--color-white-raw);
-    text-decoration: underline;
-    text-underline-offset: to-rem($space-2xs);
-    transition: opacity 0.2s ease;
+    text-decoration: none;
     cursor: pointer;
     font-weight: 400;
     font-size: to-rem($space-md);
-
-    &:hover,
-    &:focus {
-      opacity: 1;
-    }
   }
 
   // Docs-portal entry — sits above the source credit: English link title
@@ -225,12 +221,15 @@ $_B_AFP: 'awards-footer-progress';
     font-size: to-rem($space-md);
 
     &-link {
+      @extend %LK_LINK;
+
       color: var(--color-white-raw);
-      text-decoration: underline;
-      text-underline-offset: to-rem($space-2xs);
+      text-decoration: none;
       cursor: pointer;
       opacity: 0.85;
-      transition: opacity 0.2s ease;
+      transition:
+        opacity 0.2s ease,
+        border-bottom-color 0.3s ease;
 
       &:hover,
       &:focus {

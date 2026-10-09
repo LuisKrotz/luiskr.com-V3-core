@@ -256,6 +256,18 @@
   }
 }
 
+// ── Liquid warp (draw-text[warp]) ─────────────────────────────────────────
+// Chars keep their spans after the reveal; inline transforms are written by
+// JS per pointer frame. This transition is what makes it liquid: the short
+// ease smooths each write and the --i-scaled delay lets the wave trail the
+// cursor instead of snapping in unison. Only in --done (post-reveal), so it
+// never fights the char-draw keyframes.
+.draw-text--warp.draw-text--done .draw-text__char {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--i, 0) * 12ms);
+  transform-origin: center bottom;
+}
+
 // ── Reduced Motion Override ────────────────────────────────────────────────
 :host-context(html.reduced-motion) .draw-text__char,
 :host-context(html.reduced-motion) .draw-text a:hover .draw-text__word,

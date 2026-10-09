@@ -124,6 +124,37 @@
     box-shadow: var(--shadow-card-featured);
   }
 
+  // Living tile edge — a hairline gradient ring (mask-composite cuts the
+  // fill to border-width only) with a soft sheen slowly traveling the
+  // perimeter. Transform-free: background-position drifts on a long loop,
+  // cheap enough to run on every tile at once.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: to-rem($space-hairline);
+    background: linear-gradient(
+      120deg,
+      transparent 32%,
+      var(--border-item-hover) 45%,
+      var(--color-accent-contrast) 50%,
+      var(--border-item-hover) 55%,
+      transparent 68%
+    );
+    background-size: 300% 300%;
+    -webkit-mask:
+      linear-gradient(var(--color-white-raw) 0 0) content-box,
+      linear-gradient(var(--color-white-raw) 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(var(--color-white-raw) 0 0) content-box,
+      linear-gradient(var(--color-white-raw) 0 0);
+    mask-composite: exclude;
+    animation: mosaic-border-sheen 9s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
   &:is(:hover, :focus-visible) {
     transform: translateY(-#{to-rem($space-sm)}) scale(1.015);
     box-shadow: var(--shadow-card-hover);
@@ -144,6 +175,29 @@
   &:focus-visible {
     @include focus-ring;
   }
+}
+
+// Sheen drifts diagonally across the ring — alternate loop, slow and
+// low-contrast, so the grid shimmers without flickering.
+@keyframes mosaic-border-sheen {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-mosaic-item::after {
+    animation: none;
+  }
+}
+
+// Shadow DOM: mirror the store-driven html.reduced-motion flag.
+:host-context(html.reduced-motion) .home-mosaic-item::after {
+  animation: none;
 }
 
 // ── Cover image area ─────────────────────────────────────────────────────────

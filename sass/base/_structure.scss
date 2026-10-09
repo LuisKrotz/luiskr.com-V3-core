@@ -53,6 +53,28 @@
   --menu-ink: #0f5270; // 7.6:1 on --menu-bg — AAA for the small menu labels too
   --menu-ink-2: #5cb9d8;
 
+  // Animated page backdrop (light theme) — two oversized soft washes echoing
+  // the menu's water palette; body::before drifts them on a slow loop so the
+  // bright field reads as a living degradê rather than flat white. Kept far
+  // below text contrast (AAA audit measures --bg-primary, this never paints
+  // over text surfaces directly — body content stays on the flat field).
+  --bg-glow:
+    radial-gradient(
+      ellipse 55% 45% at 18% 22%,
+      color-mix(in srgb, var(--menu-bg) 70%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 82% 78%,
+      color-mix(in srgb, var(--menu-ink-2) 14%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 40% 55% at 55% 45%,
+      color-mix(in srgb, var(--bg-secondary) 85%, transparent) 0%,
+      transparent 70%
+    );
+
   // Card shadow tokens — light theme: elevated shadows show card lift clearly
   // with a subtle hairline shadow border
   --shadow-card: 0 0 0 0.0625rem rgba(0, 0, 0, 0.06), 0 0.125rem 0.75rem rgba(0, 0, 0, 0.1);
@@ -196,6 +218,13 @@ html.dark-mode {
     rgba(40, 244, 255, 0.015) 50%,
     transparent 80%
   );
+
+  // Dark variant of the animated page backdrop — deep-water glows matching
+  // the filament palette, kept just above --bg-primary so the field shifts
+  // without lighting the canvas.
+  --bg-glow:
+    radial-gradient(ellipse 55% 45% at 18% 22%, rgba(95, 218, 255, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 82% 78%, rgba(40, 244, 255, 0.025) 0%, transparent 70%);
   --metallic-hairline: linear-gradient(
     90deg,
     transparent 0%,
@@ -266,6 +295,36 @@ body {
   word-break: normal;
   overflow-wrap: normal; // never split a word across lines — wrap entire words only
   hyphens: none; // no automatic hyphenation
+
+  // The animated degradê backdrop: a fixed, oversized wash layer behind all
+  // content (z-index -1 keeps it above the body's own background but below
+  // every child). Transform-only animation → pure compositor, no repaints.
+  // The -25% inset oversizes the layer so the drift never exposes an edge.
+  &::before {
+    content: '';
+    position: fixed;
+    inset: -25%;
+    z-index: -1;
+    background: var(--bg-glow);
+    animation: body-glow-drift 46s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+}
+
+// Slow drift path — three poses on alternate so the loop reads as an
+// endless wander rather than a ping-pong between two corners.
+@keyframes body-glow-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(2.5%, -2%, 0) scale(1.06);
+  }
+
+  100% {
+    transform: translate3d(-2%, 2.5%, 0) scale(1.03);
+  }
 }
 
 // App mount point — fills the viewport.

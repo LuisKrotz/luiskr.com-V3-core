@@ -61,3 +61,76 @@
   --skel-bg-3: var(--skel-bg-1);
   --skel-ink: var(--color-white-raw);
 }
+
+// ═══ Inline text-link underline — drawn at rest, wipes through on hover ═══
+// The resting line is the link element's own border-bottom: border-color is
+// one of the few properties :visited is allowed to restyle (pseudo-elements
+// and backgrounds always paint as :link), so visited links keep the same
+// underline but in the muted --grey token. On hover/focus the border fades
+// out and a ::after hairline takes over at the exact same offset, wiping
+// out to the right and regrowing from the left in a continuous loop —
+// transform-only so the cycle stays on the compositor. Block-level links
+// (stacked footer rows) should add `width: fit-content` so the line hugs
+// the text instead of spanning the column.
+@keyframes lk-link-line-cycle {
+  0% {
+    transform: scaleX(1);
+    transform-origin: right center;
+  }
+  42% {
+    transform: scaleX(0);
+    transform-origin: right center;
+  }
+  50% {
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+  92%,
+  100% {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+
+%LK_LINK {
+  position: relative;
+  border-bottom: to-rem($space-hairline) solid currentColor;
+  transition: border-bottom-color 0.3s ease;
+  cursor: pointer;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: calc(-1 * to-rem($space-hairline));
+    height: to-rem($space-hairline);
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    pointer-events: none;
+  }
+
+  &:visited {
+    border-bottom-color: var(--grey);
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-bottom-color: transparent;
+
+    &::after {
+      animation: lk-link-line-cycle 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:hover,
+    &:focus-visible {
+      border-bottom-color: currentColor;
+
+      &::after {
+        animation: none;
+      }
+    }
+  }
+}

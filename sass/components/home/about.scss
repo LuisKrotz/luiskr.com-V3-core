@@ -145,6 +145,29 @@
       object-fit: cover;
       border-radius: var(--radius-full);
       display: block;
+      will-change: transform;
+    }
+
+    // Glitch on hover — hard steps() jumps between horizontal clip slices,
+    // pixel jitter and hue/saturation bursts. Mostly clean frames so the
+    // effect reads as interference, not constant distortion. A chromatic
+    // drop-shadow pair fakes the RGB split using the themed accent ink.
+    &:hover &-img,
+    &:focus-visible &-img {
+      animation: about-glitch 1.1s steps(1, end) infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &:hover &-img,
+      &:focus-visible &-img {
+        animation: none;
+      }
+    }
+
+    // Shadow DOM: mirror the store-driven reduced-motion flag.
+    :host-context(html.reduced-motion) &:hover &-img,
+    :host-context(html.reduced-motion) &:focus-visible &-img {
+      animation: none;
     }
 
     // Skeleton shimmer while loading
@@ -251,18 +274,10 @@
       }
 
       a {
+        @extend %LK_LINK;
+
         color: inherit;
-        text-decoration: underline;
-        transition: opacity 0.3s ease-in;
-
-        &:hover,
-        &:focus {
-          opacity: 0.5;
-        }
-
-        &:visited {
-          text-decoration: line-through;
-        }
+        text-decoration: none;
       }
     }
   }
@@ -390,6 +405,66 @@
   }
 }
 
+// Glitch keyframes — irregular bursts: clean frames dominate, slices of the
+// image jump with translate + hue/saturate spikes, then settle. steps(1,end)
+// keeps each frame hard-edged (no interpolation = digital, not motion blur).
+@keyframes about-glitch {
+  0%,
+  100% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+    filter: none;
+  }
+
+  8% {
+    clip-path: inset(12% 0 74% 0);
+    transform: translate(to-rem(-$space-2xs), to-rem($space-3xs));
+    filter: hue-rotate(60deg) saturate(3);
+  }
+
+  16% {
+    clip-path: inset(58% 0 22% 0);
+    transform: translate(to-rem($space-2xs), to-rem(-$space-3xs));
+    filter: hue-rotate(-45deg);
+  }
+
+  24% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+    filter: none;
+  }
+
+  48% {
+    clip-path: inset(38% 0 44% 0);
+    transform: translate(to-rem(-$space-3xs), 0);
+    filter: contrast(1.6) hue-rotate(120deg);
+  }
+
+  56% {
+    clip-path: inset(80% 0 6% 0);
+    transform: translate(to-rem($space-3xs), to-rem($space-3xs));
+    filter: saturate(4) hue-rotate(-90deg);
+  }
+
+  64% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+    filter: none;
+  }
+
+  82% {
+    clip-path: inset(24% 0 58% 0);
+    transform: translate(to-rem($space-2xs), to-rem(-$space-2xs));
+    filter: hue-rotate(180deg) saturate(2.5);
+  }
+
+  90% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0);
+    filter: none;
+  }
+}
+
 // ── Awards footer (below Contact, same dark background) ──────────────────────
 .about-aw-ft {
   @extend %SKEL_DARK_SURFACE;
@@ -443,16 +518,11 @@
 
   &-item {
     @extend .ttl-xs;
+    @extend %LK_LINK;
 
     color: var(--white);
     text-decoration: none;
     line-height: to-rem($space-3xl);
-    transition: opacity 0.2s;
-
-    &:hover,
-    &:focus {
-      opacity: 0.5;
-    }
   }
 
   &-sep {

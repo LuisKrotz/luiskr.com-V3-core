@@ -37,7 +37,7 @@ export const SECTION_UI_KEYS = Object.freeze({
  * contract immutable at runtime.
  */
 export const NAV_UI_KEYS = Object.freeze({
-  SCROLL_UP: 'scrollup',
+  SELECTED_WORK: 'featured',
   PREFERENCES: 'preferences',
   LANGUAGE: 'language',
   MENU: 'menu',

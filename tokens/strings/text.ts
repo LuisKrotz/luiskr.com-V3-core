@@ -10,8 +10,7 @@
  * (zero-hardcoding rule).
  */
 export const NAV_TEXT = Object.freeze({
-  SCROLL_UP: 'Back to Top',
-  SCROLL_UP_ALT: 'Scroll up',
+  SELECTED_WORK: 'Selected work',
   CONTACT: 'Contact',
   RELATED: 'Related',
   ABOUT: 'About',

@@ -17,4 +17,5 @@ export const DRAW_TEXT_CLASSES = Object.freeze({
   DRAW_TEXT_VISIBLE: `${_B_DRAW_TEXT}--visible`,
   DRAW_TEXT_DONE: `${_B_DRAW_TEXT}--done`,
   DRAW_TEXT_PENDING: `${_B_DRAW_TEXT}--pending`,
+  DRAW_TEXT_WARP: `${_B_DRAW_TEXT}--warp`,
 })
