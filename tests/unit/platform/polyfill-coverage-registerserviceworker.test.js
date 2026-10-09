@@ -114,5 +114,10 @@ describe('registerServiceWorker', () => {
     getRegistrations.mockRejectedValueOnce(new Error('denied'))
     expect(() => registerServiceWorker({ PROD: false })).not.toThrow()
     await Promise.resolve()
+
+    // No navigator at all (worker/node-like contexts) — still a clean no-op.
+    _saveKey('navigator')
+    delete globalThis.navigator
+    expect(() => registerServiceWorker({ PROD: false })).not.toThrow()
   })
 })
