@@ -38,6 +38,7 @@ export const SP_CLASSES = Object.freeze({
   SP_PANEL_BODY: `${_B_SPP}-body`,
   SP_PANEL_COLLAPSED: `${_B_SPP}--collapsed`,
   SP_CANVAS: `${_B_SP}-canvas`,
+  SP_FALLBACK: `${_B_SP}-fallback`,
 
   // ── Collapsible groups ────────────────────────────────────────────────────
   SP_GROUP: `${_B_SPP}-group`,
