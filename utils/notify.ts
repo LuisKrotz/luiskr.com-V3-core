@@ -24,6 +24,7 @@ import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { appText } from '@core/locale/ui-text.js'
+import { devError } from '@core/devlog.js'
 
 /** Options accepted by `notify`/`notifyError`/`notifyLoadFailed`. */
 export interface NotifyOpts {
@@ -205,7 +206,11 @@ export const notifyLoadFailed = (opts: NotifyOpts = {}): Promise<'native' | 'toa
 export const initGlobalErrorHandlers = (): boolean => {
   if (typeof window === TYPE_STRINGS.UNDEFINED || _globalBound) return false
 
-  const onFailure = () => {
+  const onFailure = (event: Event) => {
+    // The user only ever sees the generic string — the real reason lands in
+    // the devlog ring buffer (`__lkDevLog()`) so a report can name the fault.
+    devError('Unhandled failure:', (event as PromiseRejectionEvent).reason ?? event)
+
     notifyError()
   }
 

@@ -91,4 +91,28 @@ describe('registerServiceWorker', () => {
     // the shared window and would re-fire register().
     expect(registerMock).not.toHaveBeenCalled()
   })
+
+  test('unregisters stale workers outside production and tolerates denial', async () => {
+    const { registerServiceWorker } = await import('@/registerServiceWorker.js')
+    const unregister = jest.fn(async () => true)
+    const getRegistrations = jest.fn(async () => [{ unregister }])
+
+    // The module reads the global `navigator`, which this env keeps distinct
+    // from window.navigator — stub the global.
+    _saveKey('serviceWorker', globalThis.navigator)
+    Object.defineProperty(globalThis.navigator, 'serviceWorker', {
+      value: { getRegistrations },
+      configurable: true,
+    })
+
+    registerServiceWorker({ PROD: false })
+    await Promise.resolve()
+
+    expect(unregister).toHaveBeenCalled()
+    expect(registerMock).not.toHaveBeenCalled()
+
+    getRegistrations.mockRejectedValueOnce(new Error('denied'))
+    expect(() => registerServiceWorker({ PROD: false })).not.toThrow()
+    await Promise.resolve()
+  })
 })
