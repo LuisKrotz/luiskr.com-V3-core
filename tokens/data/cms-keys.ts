@@ -16,6 +16,7 @@ import {
   _K_PREFERENCES_MODAL,
   _K_RELATED,
   _K_SOURCE_CODE,
+  _K_STAR_FIELD,
 } from '../base.js'
 
 /**
@@ -37,6 +38,7 @@ export const CMS_KEYS = Object.freeze({
   PORTFOLIOLIST: 'portfoliolist',
   MEDIA: _K_MEDIA,
   EARTH_PLAYGROUND: _K_EARTH_PLAYGROUND,
+  STAR_FIELD: _K_STAR_FIELD,
   SOURCE_CODE: _K_SOURCE_CODE,
   PREFERENCES_MODAL: _K_PREFERENCES_MODAL,
 })

@@ -1,0 +1,67 @@
+/**
+ * @file tokens/classes/starfield.js
+ * @description Star-field experiment class tokens (`sf-*` block) —
+ * token group.
+ */
+
+import { _B_SF } from '../base.js'
+
+/**
+ * Frozen sf class-name map — sole declaration site for these tokens; consumers read members
+ * and never re-declare the strings (zero-hardcoding rules 4–5). Object.freeze makes the
+ * token contract immutable at runtime.
+ */
+export const SF_CLASSES = Object.freeze({
+  // ── Loader overlay (mirrors the sp-loader contract) ──────────────────────
+  SF_LOADER: `${_B_SF}-loader`,
+  SF_LOADER_GLOW: `${_B_SF}-loader-glow`,
+  SF_LOADER_CONTENT: `${_B_SF}-loader-content`,
+  SF_LOADER_SPINNER: `${_B_SF}-loader-spinner`,
+  SF_LOADER_TITLE: `${_B_SF}-loader-title`,
+  SF_LOADER_MSG: `${_B_SF}-loader-msg`,
+  SF_LOADER_BAR: `${_B_SF}-loader-bar`,
+  SF_LOADER_BAR_FILL: `${_B_SF}-loader-bar-fill`,
+  SF_LOADER_PERCENT: `${_B_SF}-loader-percent`,
+  SF_LOADER_VAL: `${_B_SF}-loader-val`,
+  SF_LOADER_SYM: `${_B_SF}-loader-sym`,
+
+  // ── Stage + HUD ──────────────────────────────────────────────────────────
+  SF_CANVAS: `${_B_SF}-canvas`,
+  SF_FALLBACK: `${_B_SF}-fallback`,
+  SF_HUD: `${_B_SF}-hud`,
+  SF_HINT: `${_B_SF}-hint`,
+  SF_LIVE: `${_B_SF}-live`,
+
+  // ── Body navigator drawer (the keyboard/AT access path) ──────────────────
+  SF_NAV: `${_B_SF}-nav`,
+  SF_NAV_OPEN: `${_B_SF}-nav--open`,
+  SF_NAV_TOGGLE: `${_B_SF}-nav-toggle`,
+  SF_NAV_PANEL: `${_B_SF}-nav-panel`,
+  SF_NAV_HEADING: `${_B_SF}-nav-heading`,
+  SF_NAV_GROUP: `${_B_SF}-nav-group`,
+  SF_NAV_GROUP_TITLE: `${_B_SF}-nav-group-title`,
+  SF_NAV_LIST: `${_B_SF}-nav-list`,
+  SF_NAV_ITEM: `${_B_SF}-nav-item`,
+  SF_NAV_ITEM_ACTIVE: `${_B_SF}-nav-item--active`,
+
+  // ── Info panel (lazy-loaded body dossier) ────────────────────────────────
+  SF_PANEL: `${_B_SF}-panel`,
+  SF_PANEL_OPEN: `${_B_SF}-panel--open`,
+  SF_PANEL_HEAD: `${_B_SF}-panel-head`,
+  SF_PANEL_TITLE: `${_B_SF}-panel-title`,
+  SF_PANEL_TAG: `${_B_SF}-panel-tag`,
+  SF_PANEL_CLOSE: `${_B_SF}-panel-close`,
+  SF_PANEL_BODY: `${_B_SF}-panel-body`,
+  SF_PANEL_TAGLINE: `${_B_SF}-panel-tagline`,
+  SF_PANEL_HISTORY: `${_B_SF}-panel-history`,
+  SF_FACTS: `${_B_SF}-facts`,
+  SF_FACT: `${_B_SF}-fact`,
+  SF_FACT_KEY: `${_B_SF}-fact-key`,
+  SF_FACT_VAL: `${_B_SF}-fact-val`,
+  SF_PANEL_SOURCE: `${_B_SF}-panel-source`,
+  SF_PANEL_LOADING: `${_B_SF}-panel-loading`,
+
+  // ── Actions ──────────────────────────────────────────────────────────────
+  SF_ACTIONS: `${_B_SF}-actions`,
+  SF_BTN: `${_B_SF}-btn`,
+})

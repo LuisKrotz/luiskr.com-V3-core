@@ -20,6 +20,7 @@ export const ROUTE_NAMES = Object.freeze({
   ADMIN_LOGIN: 'Admin Login',
   CMS_DASHBOARD: 'CMS Dashboard',
   EARTH_PLAYGROUND: 'Earth Playground',
+  STAR_FIELD: 'Star Field',
   DOCS: 'In-depth project docs',
 })
 

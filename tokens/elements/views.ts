@@ -17,5 +17,6 @@ export const VIEW_TAGS = Object.freeze({
   VIEW_ADMIN_LOGIN: 'view-admin-login',
   VIEW_CMS_DASHBOARD: 'view-cms-dashboard',
   VIEW_SPACE_PLAYGROUND: 'view-space-playground',
+  VIEW_STAR_FIELD: 'view-star-field',
   VIEW_DOCS: 'view-docs',
 })

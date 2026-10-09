@@ -26,5 +26,6 @@ export const TRANSLATION_KEYS = Object.freeze({
   NOT_FOUND: _B_NOT_FOUND,
   ABOUT: _B_ABOUT,
   EARTH_PLAYGROUND: 'earth-playground',
+  STAR_FIELD: 'star-field',
   DOCS: _B_DOCS,
 })

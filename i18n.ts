@@ -83,6 +83,8 @@ export interface LangSlugMap {
   terms: string
   /** Earth playground segment. */
   earthPlayground: string
+  /** Star-field experiment segment. */
+  starField: string
 }
 
 /**

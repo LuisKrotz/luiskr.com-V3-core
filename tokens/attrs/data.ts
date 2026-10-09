@@ -62,6 +62,8 @@ export const DATA_ATTRS = Object.freeze({
   DATA_APP_WRAPPER: `${_DATA}app-wrapper`,
   /** `data-path` — manifest path stamped on docs tree/grid buttons. */
   DATA_PATH: `${_DATA}path`,
+  /** `data-body` — star-field body id bound by navigator rows + pick meshes. */
+  DATA_BODY: `${_DATA}body`,
   /** Marks a docs-content box whose delegated link handler is attached. */
   DATA_WIRED: `${_DATA}wired`,
 })

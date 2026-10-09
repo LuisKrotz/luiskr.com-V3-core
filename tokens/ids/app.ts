@@ -15,4 +15,6 @@ export const APP_IDS = Object.freeze({
   MAIN: 'main',
   MAIN_CONTENT: 'main-content',
   VIEW_OUTLET: _K_VIEW_OUTLET,
+  /** Star-field navigator drawer — aria-controls target for its toggle. */
+  SF_NAV_PANEL: 'sf-nav-panel',
 })

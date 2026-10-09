@@ -65,6 +65,8 @@ export * from './tokens/routes.js'
 // ─── Playground defaults ─────────────────────────────────────────────────────
 export * from './tokens/playground.js'
 
+export * from './tokens/starfield.js'
+
 // ─── Data layer: translation keys, CMS keys, storage, WASM actions ───────────
 export * from './tokens/data.js'
 

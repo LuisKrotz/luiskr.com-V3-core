@@ -19,6 +19,7 @@ export interface LangSlugMap {
   gdpr: string
   terms: string
   earthPlayground: string
+  starField: string
 }
 
 /**
@@ -40,6 +41,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'gdpr',
     terms: 'terms-of-use',
     earthPlayground: 'earth-playground',
+    starField: 'star-field-experiment',
   },
   br: {
     about: 'sobre',
@@ -48,6 +50,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'lgpd',
     terms: 'termos-de-uso',
     earthPlayground: 'playground-da-terra',
+    starField: 'experimento-campo-estelar',
   },
   es: {
     about: 'acerca',
@@ -56,6 +59,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'rgpd',
     terms: 'terminos-de-uso',
     earthPlayground: 'playground-de-la-tierra',
+    starField: 'experimento-campo-estelar',
   },
   de: {
     about: 'ueber',
@@ -64,6 +68,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'dsgvo',
     terms: 'nutzungsbedingungen',
     earthPlayground: 'erde-playground',
+    starField: 'sternenfeld-experiment',
   },
   hrk: {
     about: 'iwwer-mich',
@@ -72,6 +77,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'datenschutz',
     terms: 'nutzungsbedingunge',
     earthPlayground: 'erd-playground',
+    starField: 'sternfeld-experiment',
   },
   cas: {
     about: 'sobre-mi',
@@ -80,6 +86,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'rgpd',
     terms: 'terminos-de-uso',
     earthPlayground: 'playground-de-la-tierra',
+    starField: 'experimento-campo-estelar',
   },
   riv: {
     about: 'sobre-yo',
@@ -88,6 +95,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'lgpd-gdpr',
     terms: 'termos-de-uso',
     earthPlayground: 'playground-da-terra',
+    starField: 'experimento-campo-estelar',
   },
   gn: {
     about: 'che-rehegua',
@@ -96,6 +104,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'lgpd-gdpr',
     terms: 'oipuruva-nemoarandu',
     earthPlayground: 'yvy-nembosarai',
+    starField: 'mbyja-nembosarai',
   },
   it: {
     about: 'chi-sono',
@@ -104,6 +113,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'gdpr',
     terms: 'termini-di-utilizzo',
     earthPlayground: 'playground-della-terra',
+    starField: 'esperimento-campo-stellare',
   },
   ru: {
     about: 'obo-mne',
@@ -112,6 +122,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'gdpr',
     terms: 'usloviya-ispolzovaniya',
     earthPlayground: 'zemnaya-pesochnitsa',
+    starField: 'zvezdnoe-pole',
   },
   fr: {
     about: 'a-propos',
@@ -120,6 +131,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'rgpd',
     terms: 'conditions-utilisation',
     earthPlayground: 'playground-de-la-terre',
+    starField: 'experience-champ-etoile',
   },
   tln: {
     about: 'de-mi',
@@ -128,6 +140,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'gdpr',
     terms: 'condission-de-uso',
     earthPlayground: 'playground-della-terra',
+    starField: 'esperimento-canpo-stelare',
   },
   gl: {
     about: 'sobre-min',
@@ -136,6 +149,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'rgpd',
     terms: 'termos-de-uso',
     earthPlayground: 'playground-da-terra',
+    starField: 'experimento-campo-estelar',
   },
   ca: {
     about: 'quant-a-mi',
@@ -144,6 +158,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'rgpd',
     terms: 'termes-d-us',
     earthPlayground: 'playground-de-la-terra',
+    starField: 'experiment-camp-estelar',
   },
   nl: {
     about: 'over-mij',
@@ -152,6 +167,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'avg',
     terms: 'gebruiksvoorwaarden',
     earthPlayground: 'aarde-playground',
+    starField: 'sterrenveld-experiment',
   },
   ga: {
     about: 'faoi-mhe',
@@ -160,5 +176,6 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     gdpr: 'gdpr',
     terms: 'tearmai-usaide',
     earthPlayground: 'playground-an-domhain',
+    starField: 'turgnamh-reimse-realta',
   },
 }

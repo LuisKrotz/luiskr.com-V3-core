@@ -141,6 +141,11 @@ export const _B_LANG_GLASS = 'lang-glass-follower'
  * from this single declaration (zero-hardcoding rule 9).
  */
 export const _B_DOCS = 'docs'
+/**
+ * BEM block fragment `sf` — star-field experiment class names compose from
+ * this single declaration (zero-hardcoding rule 9).
+ */
+export const _B_SF = 'sf'
 
 // ─── Composed blocks — declared once, reused by the per-component class ────
 // groups under tokens/classes/ and the selector token files.
@@ -419,6 +424,11 @@ export const _K_TERMS_OF_USE = 'terms-of-use'
  * (zero-hardcoding rule 5).
  */
 export const _K_EARTH_PLAYGROUND = 'earthPlayground'
+/**
+ * Shared key token `starField` — single source for a literal repeated across modules
+ * (zero-hardcoding rule 5).
+ */
+export const _K_STAR_FIELD = 'starField'
 /**
  * Token key "k about section" — single source for the repeated literal.
  */

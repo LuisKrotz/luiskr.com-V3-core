@@ -223,6 +223,21 @@ export function parsePath(pathname: string): RouteDescriptor {
     }
   }
 
+  // Star-field experiment
+  if (first === slugs.starField || first === ROUTE_PATHS.STAR_FIELD_SEGMENT) {
+    return {
+      name: ROUTE_NAMES.STAR_FIELD,
+      view: VIEW_TAGS.VIEW_STAR_FIELD,
+      lang,
+      path: cleanPath,
+      meta: {
+        title: `${String(appText(CMS_KEYS.STAR_FIELD))} ${CHAR_STRINGS.PIPE_SEP} ${BASE_TITLE}`,
+        translation: TRANSLATION_KEYS.STAR_FIELD,
+      },
+      params: {},
+    }
+  }
+
   // 404
   return titled(
     ROUTE_NAMES.NOT_FOUND,

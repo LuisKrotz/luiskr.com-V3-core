@@ -11,6 +11,8 @@ import '@website/views/home/Home.js'
 import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
 import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { VIEW_TAGS } from '@core/tokens/elements/views.js'
+import { LOCALES } from '@core/tokens/locales.js'
+import { LANG_SLUGS } from '@core/locale/lang-slugs.js'
 import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { SECTION_IDS } from '@core/tokens/ids/sections.js'
@@ -104,6 +106,17 @@ describe('router tails 2', () => {
     await router.push?.(ROUTE_PATHS.EARTH_PLAYGROUND).catch(() => {})
 
     expect(router.currentRoute?.view).toBe(VIEW_TAGS.VIEW_SPACE_PLAYGROUND)
+  })
+
+  test('star-field route resolves the star-field view on canonical + localized slugs', async () => {
+    await router.push?.(ROUTE_PATHS.STAR_FIELD).catch(() => {})
+
+    expect(router.currentRoute?.view).toBe(VIEW_TAGS.VIEW_STAR_FIELD)
+
+    const localized = router.match?.(`/${LOCALES.BR}/${LANG_SLUGS.br.starField}`)
+
+    expect(localized?.view).toBe(VIEW_TAGS.VIEW_STAR_FIELD)
+    expect(localized?.lang).toBe(LOCALES.BR)
   })
 
   test('playground chunk failure surfaces a toast instead of throwing', async () => {
