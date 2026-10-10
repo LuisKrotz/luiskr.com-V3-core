@@ -41,6 +41,16 @@
   will-change: auto; // release GPU layer after animation is done
 }
 
+.draw-text--done {
+  a::after,
+  a:link::after,
+  a:visited::after {
+    transform: scaleX(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 // ── Related Mosaic: animate write effect ─────────────────────────────────────
 .related-mosaic-desc .draw-text__char {
   will-change: opacity, transform;

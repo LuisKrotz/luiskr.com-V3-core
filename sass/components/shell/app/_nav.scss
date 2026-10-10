@@ -87,7 +87,7 @@
       border-radius: var(--space-hairline);
       transform: scaleX(0);
       transform-origin: left center;
-      transition: transform 0.35s ease 0.55s;
+      transition: transform 0.35s ease;
       pointer-events: none;
     }
 
@@ -130,17 +130,14 @@
       }
     }
 
-    // Plasma runs only while the line is landed — the pseudo-elements are
-    // scaleX(0) otherwise, so the animations idle instead of burning GPU.
+    // Plasma runs only while the line is landed — smooth, subtle drift
+    // without harsh opacity flickering.
     &:hover::after,
     &:focus-visible::after,
     &:active::after,
     &.router-link-exact-active::after,
     &.active::after {
-      animation:
-        #{$_B_NAV}-plasma-drift 2.6s linear infinite,
-        #{$_B_NAV}-plasma-flicker 3.7s ease-in-out infinite,
-        #{$_B_NAV}-plasma-heat 2.3s ease-in-out infinite;
+      animation: #{$_B_NAV}-plasma-drift 3.5s linear infinite;
     }
 
     &:hover::before,
@@ -148,9 +145,7 @@
     &:active::before,
     &.router-link-exact-active::before,
     &.active::before {
-      animation:
-        #{$_B_NAV}-plasma-drift 4.4s linear infinite reverse,
-        #{$_B_NAV}-plasma-flicker 2.9s ease-in-out infinite;
+      animation: #{$_B_NAV}-plasma-drift 5s linear infinite reverse;
     }
 
     @media (prefers-reduced-motion: reduce) {

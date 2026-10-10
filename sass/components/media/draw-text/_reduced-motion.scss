@@ -17,6 +17,9 @@
 }
 
 :host-context(html.reduced-motion) .draw-text a::after {
+  transform: scaleX(1);
+  opacity: 1;
+  pointer-events: auto;
   transition-delay: 0s;
 }
 
@@ -35,6 +38,9 @@
   }
 
   .draw-text a::after {
+    transform: scaleX(1);
+    opacity: 1;
+    pointer-events: auto;
     transition-delay: 0s;
   }
 }

@@ -88,9 +88,10 @@
       padding: 0 0 to-rem($space-lg);
     }
 
-    // Social/mail links are plain navigation — no underline affordance.
+    // Social/mail links display animated underline on hover.
     &-link {
       @extend .ttl-sm;
+      @extend %LK_LINK;
 
       display: block;
       width: fit-content;
