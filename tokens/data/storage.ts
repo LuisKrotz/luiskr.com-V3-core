@@ -37,4 +37,12 @@ export const CACHE_STORAGE_KEYS = Object.freeze({
    * so the login surfaces the failure instead of silently re-prompting.
    */
   CMS_AUTH_REDIRECT: 'cms_auth_redirect',
+  /**
+   * CMS OAuth-return error code (session-scoped) — written when
+   * getRedirectResult rejects after the redirect leg, so the login view
+   * can show the real Firebase code (auth/unauthorized-domain,
+   * auth/network-request-failed, …) instead of only guessing "browser
+   * blocked storage".
+   */
+  CMS_AUTH_ERROR: 'cms_auth_error',
 })

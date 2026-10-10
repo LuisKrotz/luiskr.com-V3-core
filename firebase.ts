@@ -179,6 +179,20 @@ export async function onAuthChange(callback: (_user: User | null) => void): Prom
       }
     }
   } catch (err) {
+    // The return leg actively FAILED (unauthorized domain, expired auth
+    // event, network) — persist the Firebase code so the login view can
+    // show the real diagnosis instead of the generic blocked-storage
+    // guess, and consume the redirect marker.
+    try {
+      sessionStorage.setItem(
+        CACHE_STORAGE_KEYS.CMS_AUTH_ERROR,
+        (err as { code?: string })?.code || 'auth/redirect-resolution-failed'
+      )
+      sessionStorage.removeItem(CACHE_STORAGE_KEYS.CMS_AUTH_REDIRECT)
+    } catch {
+      /* storage itself unavailable */
+    }
+
     devWarn('Redirect sign-in resolution failed', err)
   }
 
