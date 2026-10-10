@@ -7,7 +7,7 @@
 // height is set inline by JS (containerH). Transitioning it makes the about
 // section below slide smoothly when a card expands / collapses on hover.
 .home-mosaic {
-  transition: height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: height 0.52s cubic-bezier(0.22, 1, 0.36, 1);
   // Mobile: skip height transition — triggers layout recalc each frame
   @media (max-width: 768px) {
     transition: none;

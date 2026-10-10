@@ -10,7 +10,7 @@
   border-radius: inherit;
   overflow: hidden;
   // transition on height so the image area animates when card expands/collapses
-  transition: height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: height 0.52s cubic-bezier(0.22, 1, 0.36, 1);
   @media (max-width: 768px) {
     transition: none;
   }
