@@ -627,6 +627,11 @@ export const SF_COLORS = Object.freeze({
   /** Deep-field kind tints — exoplanet hosts warm, far-field DSOs cool. */
   EXOPLANET_PT: 0xffcf7a,
   DSO_PT: 0x9fb4e8,
+  /**
+   * Neutral body grey — fallback base tint for procedural surfaces when
+   * a catalog def carries no `color` (rare; satellites/loose bodies).
+   */
+  BODY_NEUTRAL: 0x8a8f9a,
   AMBIENT: 0x223044,
   EMISSIVE_SUN: 0xffd27a,
   /** White sunlight point-light at the scene origin. */
