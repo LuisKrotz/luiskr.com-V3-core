@@ -1,0 +1,80 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  carousel/_track.scss — the carousel shell plus the scroll-snap track and
+//  slides (incl. clone modifiers). Geometry is driven by carousel.js; this
+//  partial owns the chrome only. Imported by carousel.scss (manifest) —
+//  not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Carousel shell — vertical stack of track + controls.
+.#{$_B_CAROUSEL} {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-color: var(--bg-dark);
+  opacity: 0;
+  transform: translate3d(0, #{to-rem($space-xl)}, 0);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+
+  &.carousel--in-view {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transition: none;
+  }
+
+  // ── Track ──────────────────────────────────────────────────────────────
+  &-track {
+    flex: 1 0 auto;
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: stretch;
+    overflow-x: scroll;
+    padding: to-rem($space-2xl) 0 to-rem($space-md);
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; // Firefox
+    &::-webkit-scrollbar {
+      display: none;
+    } // Chrome/Safari
+
+    @include layout-768() {
+      padding: to-rem($space-5xl) 0 to-rem($space-lg);
+    }
+
+    @include layout-1024() {
+      padding: to-rem($space-3xl) 0 to-rem($space-lg);
+    }
+
+    @include layout-1440() {
+      padding: to-rem($space-4xl) 0 to-rem($space-lg);
+    }
+
+    @include layout-1920() {
+      padding: to-rem($space-5xl) 0 to-rem($space-lg);
+    }
+
+    @include layout-2560() {
+      padding: to-rem($space-5xl) 0 to-rem($space-xl);
+    }
+  }
+
+  &-slide {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    display: flex;
+    align-items: stretch;
+    overflow: visible;
+
+    &--clone {
+      pointer-events: none;
+      user-select: none;
+    }
+  }
+}

@@ -1,0 +1,53 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  app/_skeleton.scss — skeleton placeholder surfaces: the shimmer sweep
+//  keyframes and the .skeleton block/round/media variants painted from
+//  the --skel-bg-* tokens while real content loads.
+//  Imported by app.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Skeleton shimmer ───────────────────────────────────────────────────────
+// Uses project palette greys, lighter tones, subtler animation.
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// Skeleton placeholder shimmer surface (the base visual — animation is the skeleton-shimmer keyframes).
+.skeleton {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  background: var(--skel-bg-1);
+  border-radius: var(--space-xs);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, var(--skel-bg-2) 50%, transparent 100%);
+    transform: translateX(-100%);
+    animation: skeleton-shimmer 2.4s ease-in-out infinite;
+    will-change: transform;
+    pointer-events: none;
+  }
+
+  &--block {
+    display: block;
+  }
+  &--round {
+    border-radius: 50%;
+  }
+
+  // Image-placeholder skeleton: fill the render-placeholder SVG slot
+  &--media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}

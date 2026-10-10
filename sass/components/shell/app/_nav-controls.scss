@@ -1,0 +1,91 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  app/_nav-controls.scss — nav right-side controls: the WebGL burger
+//  canvas + CSS hamburger fallback, the always-visible mobile strip, and
+//  the 4-column language-dialog variant shared with preferences.
+//  Imported by app.scss (manifest) — uses $_B_NAV defined there.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Nav layout ──────────────────────────────────────────────────────────────
+// A single menu for every breakpoint: logo on the left, burger on the right,
+// everything else lives inside the fullscreen menu modal.
+
+// ── Burger button (WebGL canvas) ──────────────────────────────────────────
+.#{$_B_NAV}-burger-canvas {
+  width: var(--space-2xl);
+  height: var(--space-2xl);
+  cursor: pointer;
+  display: block;
+  border-radius: var(--radius-sm);
+
+  &.is-fallback {
+    display: none;
+  }
+}
+
+// ── Burger button wrapper ───────────────────────────────────────────────────
+.#{$_B_NAV}-burger-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// ── Burger button fallback (CSS-based hamburger icon) ───────────────────
+.#{$_B_NAV}-burger-fallback {
+  @extend %RESETBTN;
+
+  display: none;
+  width: var(--space-2xl);
+  height: var(--space-2xl);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-xs);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  padding: 0;
+
+  &:before,
+  &:after,
+  .#{$_B_NAV}-burger-line {
+    content: '';
+    display: block;
+    width: var(--space-lg);
+    height: var(--space-2xs);
+    background: var(--text-primary);
+    border-radius: var(--radius-2xs);
+  }
+
+  // Make fallback distinct from animated version - simpler, cleaner lines
+  .#{$_B_NAV}-burger-line {
+    height: var(--space-3xs);
+  }
+
+  .#{$_B_NAV}-burger-wrap:has(.#{$_B_NAV}-burger-canvas.is-fallback) & {
+    display: flex;
+  }
+}
+
+// ── Burger strip (always visible) ───────────────────────────────────────────
+.#{$_B_NAV}-mobile-strip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+// ── Language dialog variant (4-column option grid) ───────────────────────────
+.pref-options--4 {
+  grid-template-columns: repeat(4, 1fr);
+
+  @media (max-width: $bk-540) {
+    // 540px
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// Language dialog shell (shared with preferences modal).
+.lang-dialog {
+  max-width: to-rem(480);
+}

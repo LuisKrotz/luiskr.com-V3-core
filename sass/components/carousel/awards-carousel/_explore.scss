@@ -1,0 +1,235 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  awards-carousel/_explore.scss — the explore-more/archive variant — ~60% active card, inactive cards peeking, card styling, active-only label.
+//  Imported by awards-carousel.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════════════════
+//  VARIANT: explore more (archive cards)
+// ════════════════════════════════════════════════════════════════════════════
+
+// Layout: carousel width is controlled by home.scss (61% on desktop, 100% mobile).
+// Inside that, the active card fills ~60% of the carousel width.
+// Adjacent cards peek from both sides.
+// Labels hidden on inactive, fade in on active.
+
+// Explore variant — alternate sizing/density.
+.aw-c--explore {
+  position: relative;
+
+  // ── Controls: vertically centered on the image area ──────────────────────
+
+  // ── Track ──────────────────────────────────────────────────────────────────
+  .aw-c-track {
+    gap: to-rem($space-lg);
+    padding: 0;
+    box-sizing: border-box;
+    width: 100%;
+
+    @include layout-768() {
+      gap: to-rem($space-xl);
+    }
+    @include layout-1440() {
+      gap: to-rem($space-2xl);
+    }
+  }
+
+  // ── Slide widths: ~60% of the carousel container ──────────────────────────
+  .aw-c-slide {
+    width: 85%;
+    flex-basis: 85%;
+    max-width: 85%;
+    box-sizing: border-box;
+    // Padding so the card shadow isn't clipped by the track overflow
+    padding: to-rem($space-sm);
+
+    @include layout-540() {
+      width: 70%;
+      flex-basis: 70%;
+      max-width: 70%;
+    }
+    @include layout-768() {
+      width: 62%;
+      flex-basis: 62%;
+      max-width: 62%;
+    }
+    @include layout-1024() {
+      width: 60%;
+      flex-basis: 60%;
+      max-width: 60%;
+    }
+    @include layout-1440() {
+      width: 60%;
+      flex-basis: 60%;
+      max-width: 60%;
+    }
+    @include layout-2560() {
+      width: 58%;
+      flex-basis: 58%;
+      max-width: 58%;
+    }
+  }
+
+  // ── Card styling ──────────────────────────────────────────────────────────
+  .aw-c-card {
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    border-radius: to-rem($space-lg);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    &-cover {
+      width: 100%;
+      overflow: visible; // allow reflection to show below
+      background: var(--grey-2);
+      flex-shrink: 0;
+
+      &-img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: opacity 0.3s ease;
+
+        .aw-c-card:hover &,
+        .aw-c-card:focus & {
+          opacity: 0.9;
+        }
+      }
+
+      // Reflected image below the main cover
+      &-reflection {
+        width: 100%;
+        height: auto;
+        max-height: to-rem($space-3xl);
+        display: block;
+        transform: scaleY(-1);
+        object-fit: cover;
+        object-position: bottom;
+        pointer-events: none;
+        -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), transparent);
+        mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), transparent);
+      }
+
+      &--skel {
+        padding-top: 56.25%;
+        background: linear-gradient(
+          90deg,
+          var(--skel-bg-1) 25%,
+          var(--skel-bg-2) 50%,
+          var(--skel-bg-3) 75%
+        );
+        background-size: 200% 100%;
+        animation: skeleton-shimmer 2.4s ease-in-out infinite;
+      }
+    }
+
+    // ── Label: hidden on non-active slides, fades in on active ──────────────
+    &-label {
+      padding: to-rem($space-md) to-rem($space-lg) to-rem($space-sm);
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity 0.4s ease,
+        visibility 0.4s;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+
+      &-title {
+        @extend .ttl-md;
+
+        font-weight: 200;
+        text-transform: uppercase;
+        padding-top: to-rem($space-md);
+        padding-bottom: to-rem($space-lg);
+      }
+
+      &-desc {
+        @extend .txt-sm;
+
+        font-weight: 100;
+        opacity: 0.7;
+      }
+    }
+
+    // "Click to open" — centered, corner-border animation.
+    // Sits outside label div, always at the bottom of the card.
+    &-action {
+      @extend %RESETBTN;
+      @extend .ttl-xs;
+
+      position: relative;
+      display: block;
+      text-align: center;
+      text-transform: uppercase;
+      padding: to-rem($space-xs) to-rem($space-lg);
+      color: var(--text-muted-on-dark);
+      font-weight: 700;
+      white-space: nowrap;
+      transition: color 0.2s ease;
+      margin: 0 auto to-rem($space-md);
+      margin-top: auto; // pushes to bottom of card
+      width: fit-content;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        width: to-rem($space-md);
+        height: to-rem($space-md);
+        transition:
+          width 0.25s ease,
+          height 0.25s ease;
+      }
+
+      &::before {
+        top: 0;
+        left: 0;
+        border-top: 1px solid var(--grey);
+        border-left: 1px solid var(--grey);
+      }
+
+      &::after {
+        bottom: 0;
+        right: 0;
+        border-bottom: 1px solid var(--grey);
+        border-right: 1px solid var(--grey);
+      }
+
+      &:hover,
+      &:focus {
+        color: var(--black);
+      }
+
+      &:hover::before,
+      &:focus::before,
+      &:hover::after,
+      &:focus::after {
+        width: calc(100% - #{to-rem($space-xs)});
+        height: calc(100% - #{to-rem($space-xs)});
+      }
+    }
+  }
+
+  // Active slide: label + action fade in
+  .aw-c-slide--active .aw-c-card-label {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  // Action button appears after the description animation finishes
+  .aw-c-slide--active .aw-c-card-action {
+    animation: action-appear 0.4s ease-out forwards;
+    animation-delay: var(--action-delay, 0ms);
+  }
+}

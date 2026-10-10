@@ -1,0 +1,191 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  structure/_document.scss — document base — html/body resets, the body-glow-drift backdrop keyframes, #app mount, element resets, app-root, modal scroll-lock.
+//  Imported by _structure.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Page base styles (html then html.dark-mode overrides above).
+html {
+  color-scheme: light;
+  background-color: var(--bg-primary);
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll; // always show scrollbar to prevent layout shift on navigation
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  // Native browser scrollbar theme — inherits from color-scheme
+  scrollbar-color: var(--border-color) transparent;
+  scrollbar-width: thin;
+}
+
+// Scroll-lock applied while a modal is open (JS toggles this class).
+html.modal-open {
+  overflow-y: hidden; // hide background scrollbar when any modal is open
+}
+
+// Document body base: bg-primary fill, text-primary ink, primary font.
+body {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  // An unbreakable title word (long compound locales) must never push the
+  // page wider than the viewport — clip it at the body edge so no
+  // horizontal scrollbar appears and full-bleed backgrounds stay aligned.
+  overflow-x: hidden;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+
+  // Never break words mid-character anywhere in the site.
+  // Words always wrap whole to the next line.
+  word-break: normal;
+  overflow-wrap: normal; // never split a word across lines — wrap entire words only
+  hyphens: none; // no automatic hyphenation
+
+  // The animated degradê backdrop: a fixed, oversized wash layer behind all
+  // content (z-index -1 keeps it above the body's own background but below
+  // every child). Transform-only animation → pure compositor, no repaints.
+  // The -25% inset oversizes the layer so the drift never exposes an edge.
+  &::before {
+    content: '';
+    position: fixed;
+    inset: -25%;
+    z-index: -1;
+    background: var(--bg-glow);
+    animation: body-glow-drift 46s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+}
+
+// Slow drift path — three poses on alternate so the loop reads as an
+// endless wander rather than a ping-pong between two corners.
+@keyframes body-glow-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(2.5%, -2%, 0) scale(1.06);
+  }
+
+  100% {
+    transform: translate3d(-2%, 2.5%, 0) scale(1.03);
+  }
+}
+
+// App mount point — fills the viewport.
+#app {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  width: 100%;
+  min-height: 100vh;
+}
+
+q,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+a,
+label,
+ul,
+ol,
+figure,
+video,
+image,
+iframe,
+picture,
+blockquote {
+  margin: 0;
+  padding: 0;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+button {
+  @extend %RESETBTN;
+}
+
+app-root,
+view-home,
+view-project,
+view-legal,
+view-not-found,
+view-admin-login,
+view-cms-dashboard,
+app-nav,
+home-mosaic,
+about-section,
+contact-section,
+awards-mentions,
+awards-carousel,
+custom-carousel,
+preferences-modal,
+lang-dialog,
+cookie-banner,
+portfolio-related,
+media-figure,
+media-expanded {
+  display: block;
+}
+
+draw-text {
+  display: inline;
+}
+
+// Routed content host (#main).
+main {
+  // Clearance for the fixed cookie banner — without it the banner covers
+  // the page bottom (legal footer unreachable) until consent is answered.
+  padding-bottom: var(--cookie-banner-h);
+
+  .modal-open & {
+    position: fixed;
+    top: var(
+      --modal-top,
+      0px
+    ); // Set via JS before class toggle — prevents iOS Safari scroll-to-top
+    width: 100%;
+    left: 0;
+  }
+}
+
+#main {
+  min-height: 100vh;
+}
+
+// Section markers the nav's scroll tracker measures (#about/#contact offsets).
+#home,
+#about,
+#contact {
+  position: relative;
+  width: 100%;
+}
+
+// Home section top anchor.
+#home {
+  @include layout-1024() {
+    min-height: 100vh;
+  }
+}

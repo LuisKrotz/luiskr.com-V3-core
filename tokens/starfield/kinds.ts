@@ -16,6 +16,17 @@ export const SF_GROUPS = Object.freeze({
   MILKY_WAY: 'milkyWay',
   NEBULAE: 'nebulae',
   GALAXIES: 'galaxies',
+  /**
+   * Local Group dwarf + satellite galaxies — the ~30 small companions
+   * orbiting the Milky Way and Andromeda (SagDEG, LMC/SMC, the faint
+   * spheroidals, and the M31 subgroup).
+   */
+  LOCAL_GROUP: 'localGroup',
+  /**
+   * Cosmic-hierarchy boundary structures — Interstellar Neighborhood,
+   * Local Group volume, superclusters, and the observable-universe rim.
+   */
+  HIERARCHY: 'hierarchy',
 })
 
 /**
@@ -30,7 +41,16 @@ export const SF_KINDS = Object.freeze({
   BLACK_HOLE: 'blackHole',
   SYSTEM: 'system',
   NEBULA: 'nebula',
+  /** Star clusters (open/globular) — sprite recipe shared with nebulae. */
+  CLUSTER: 'cluster',
   GALAXY: 'galaxy',
+  /**
+   * Dwarf spheroidal/irregular galaxies — seeded elliptical point clouds
+   * (unresolved smudges, no photographic disc to fake).
+   */
+  DWARF_GALAXY: 'dwarfGalaxy',
+  /** Cosmic-hierarchy boundary shells + speckle volumes. */
+  STRUCTURE: 'structure',
 })
 
 /**

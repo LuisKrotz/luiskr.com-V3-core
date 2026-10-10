@@ -24,4 +24,8 @@ export const THEME_CSS_PROPS = Object.freeze({
   COLOR_ACCENT: '--color-accent',
   COLOR_ACCENT_CONTRAST: '--color-accent-contrast',
   FOCUS_RING: '--focus-ring',
+  BURN_CORE: '--burn-core',
+  BURN_MID: '--burn-mid',
+  BURN_EDGE: '--burn-edge',
+  BURN_SCORCH: '--burn-scorch',
 })

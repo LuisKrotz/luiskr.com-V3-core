@@ -1,0 +1,57 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  home-mosaic/_cta.scss — the card CTA button: corner-bracket chrome that
+//  expands to a full frame on hover/focus.
+//  Imported by home-mosaic.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Always white — cards always have a dark background so contrast is
+// guaranteed in both light and dark mode.
+.home-mosaic-btn {
+  @extend %RESETBTN;
+  @extend %TTL_XS;
+  position: relative;
+  display: inline-block;
+  text-align: center;
+  text-transform: uppercase;
+  padding: var(--space-xs) var(--space-lg);
+  color: var(--color-white-raw);
+  font-weight: 700;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-lg);
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: var(--space-sm);
+    height: var(--space-sm);
+    transition:
+      width 0.25s ease,
+      height 0.25s ease;
+  }
+  &::before {
+    top: 0;
+    left: 0;
+    border-top: var(--space-hairline) solid rgba($color-white, 0.65);
+    border-left: var(--space-hairline) solid rgba($color-white, 0.65);
+  }
+  &::after {
+    bottom: 0;
+    right: 0;
+    border-bottom: var(--space-hairline) solid rgba($color-white, 0.65);
+    border-right: var(--space-hairline) solid rgba($color-white, 0.65);
+  }
+
+  &:hover,
+  &:focus {
+    opacity: 0.75;
+    &::before,
+    &::after {
+      width: calc(100% - var(--space-2xs));
+      height: calc(100% - var(--space-2xs));
+    }
+  }
+}

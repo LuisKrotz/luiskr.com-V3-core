@@ -1,0 +1,48 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  carousel/_fallback.scss — the below-threshold horizontal fallback strip
+//  (no carousel controls) plus the shadow-scoped keyboard focus ring.
+//  Imported by carousel.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+.#{$_B_CAROUSEL} {
+  // ── Fallback (below threshold) ─────────────────────────────────────────
+  &-fallback {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--bg-dark);
+    overflow-x: auto;
+    scrollbar-width: none; // Firefox
+    &::-webkit-scrollbar {
+      display: none; // Chrome/Safari
+    }
+
+    display: block;
+    white-space: nowrap;
+    > * {
+      display: inline-block;
+    }
+
+    // Two items that fit without carousel controls form one intrinsic-width
+    // group centered in the available row. Without this modifier the generic
+    // nowrap fallback starts at the left edge (visible on Nathalia Bond's two
+    // tall homepage captures).
+    &--side {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: to-rem($space-lg);
+      overflow-x: visible;
+      white-space: normal;
+
+      > * {
+        display: block;
+        flex: 0 1 auto;
+      }
+    }
+  }
+}
+
+// Keyboard focus ring on this shadow root's tabbable elements — the file
+// doesn't import _structure (which emits it globally), so include the
+// shared scope explicitly.
+@include focus-ring-scope;

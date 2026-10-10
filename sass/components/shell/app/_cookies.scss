@@ -1,0 +1,140 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  app/_cookies.scss — the cookie-consent banner: fixed bottom bar with
+//  backdrop blur, info link, and the accept/refuse buttons' animated
+//  corner brackets. Always-dark surface (raw white text tokens).
+//  Imported by app.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Cookie consent banner: fixed bottom bar.
+.cookies {
+  @extend %MAXAREA;
+
+  font-family: var(--font-primary);
+  font-weight: 300;
+
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-cookies);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-md);
+  background: rgba($color-black, 0.94);
+  -webkit-backdrop-filter: blur(var(--space-lg));
+  backdrop-filter: blur(var(--space-lg));
+  border-top: var(--space-hairline) solid rgba($color-white, 0.15);
+  color: var(--color-white-raw); // Banner bg is always dark — raw white text token
+  font-size: var(--space-lg);
+  line-height: 1.5;
+  box-shadow: 0 calc(-1 * var(--space-2xs)) var(--space-xl) rgba($color-black, 0.2);
+
+  // Mobile: no backdrop-filter — extremely expensive on mobile GPUs.
+  // Solid background looks identical and costs nothing.
+  @media (max-width: $bk-768) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba($color-black, 0.98);
+  }
+
+  @include layout-768() {
+    padding-top: var(--space-lg);
+    padding-bottom: var(--space-lg);
+    font-size: var(--space-lg);
+  }
+
+  &-info {
+    flex: 1;
+    min-width: to-rem(260);
+    padding: 0;
+    margin: 0;
+    opacity: 0.9;
+    font-weight: 300;
+
+    a {
+      @extend %LK_LINK;
+
+      color: inherit;
+      text-decoration: none;
+      opacity: 0.8;
+      transition:
+        opacity 0.2s ease,
+        border-bottom-color 0.3s ease;
+
+      &:hover,
+      &:focus-visible {
+        opacity: 1;
+      }
+    }
+  }
+
+  &-buttons {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-shrink: 0;
+
+    &-accept,
+    &-refuse {
+      @extend %RESETBTN;
+      @extend %TTL_BASE;
+      @extend %TTL_XS;
+
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: var(--space-pixel);
+      cursor: pointer;
+      position: relative;
+      padding: var(--space-xs) var(--space-lg);
+      color: rgba($color-white, 0.7); // Always light on always-dark banner bg
+      background: transparent;
+      transition:
+        color 0.2s ease,
+        background 0.2s ease;
+      white-space: nowrap;
+
+      // Animated corner borders
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        width: var(--space-xs);
+        height: var(--space-xs);
+        transition:
+          width 0.2s ease,
+          height 0.2s ease;
+      }
+
+      &::before {
+        top: 0;
+        left: 0;
+        border-top: var(--space-hairline) solid currentColor;
+        border-left: var(--space-hairline) solid currentColor;
+      }
+
+      &::after {
+        bottom: 0;
+        right: 0;
+        border-bottom: var(--space-hairline) solid currentColor;
+        border-right: var(--space-hairline) solid currentColor;
+      }
+
+      &:hover,
+      &:focus {
+        color: $color-white;
+
+        &::before,
+        &::after {
+          width: calc(100% - var(--space-2xs));
+          height: calc(100% - var(--space-2xs));
+        }
+      }
+    }
+  }
+}

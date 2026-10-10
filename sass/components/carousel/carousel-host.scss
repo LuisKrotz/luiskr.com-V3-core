@@ -112,29 +112,29 @@
   // rules can't reach it. We must redeclare the same vars here, inside the
   // carousel Shadow Root, where they can reach nested <media-figure> elements.
   media-figure {
-    --mf-w: calc(90vw - #{to-rem($space-xl * 2)});
-    --mf-h: calc(70vh - #{to-rem($space-xl * 2)});
-    --mf-h: calc(70dvh - #{to-rem($space-xl * 2)});
+    --mf-w: calc(90vw - #{calc(var(--space-xl) * 2)});
+    --mf-h: calc(70vh - #{calc(var(--space-xl) * 2)});
+    --mf-h: calc(70dvh - #{calc(var(--space-xl) * 2)});
 
     @include layout-768() {
-      --mf-w: calc(90vw - #{to-rem($space-2xl * 2)});
-      --mf-h: calc(70vh - #{to-rem($space-2xl * 2)});
-      --mf-h: calc(70dvh - #{to-rem($space-2xl * 2)});
+      --mf-w: calc(90vw - #{calc(var(--space-2xl) * 2)});
+      --mf-h: calc(70vh - #{calc(var(--space-2xl) * 2)});
+      --mf-h: calc(70dvh - #{calc(var(--space-2xl) * 2)});
     }
 
     @include layout-1024() {
-      --mf-w: #{to-rem($space-6xl)};
-      --mf-h: #{to-rem($space-7xl)};
+      --mf-w: var(--space-6xl);
+      --mf-h: var(--space-7xl);
     }
 
     @include layout-1440() {
-      --mf-w: #{to-rem($space-7xl)};
-      --mf-h: #{to-rem($space-8xl)};
+      --mf-w: var(--space-7xl);
+      --mf-h: var(--space-8xl);
     }
 
     @include layout-2560() {
-      --mf-w: #{to-rem($space-8xl)};
-      --mf-h: #{to-rem($space-9xl)};
+      --mf-w: var(--space-8xl);
+      --mf-h: var(--space-9xl);
     }
   }
 
@@ -143,36 +143,36 @@
   // --mf-max-w mirrors it for any max-width consumer.
   &.landscape media-figure {
     @include layout-1024() {
-      --mf-w: calc(100vw - #{to-rem($space-3xl)});
-      --mf-max-w: calc(100vw - #{to-rem($space-3xl)});
+      --mf-w: calc(100vw - var(--space-3xl));
+      --mf-max-w: calc(100vw - var(--space-3xl));
     }
 
     @include layout-1280() {
-      --mf-w: calc(100vw - #{to-rem($space-4xl)});
-      --mf-max-w: calc(100vw - #{to-rem($space-4xl)});
+      --mf-w: calc(100vw - var(--space-4xl));
+      --mf-max-w: calc(100vw - var(--space-4xl));
     }
 
     @include layout-1440() {
-      --mf-w: calc(100vw - #{to-rem($space-7xl)});
-      --mf-max-w: calc(100vw - #{to-rem($space-7xl)});
+      --mf-w: calc(100vw - var(--space-7xl));
+      --mf-max-w: calc(100vw - var(--space-7xl));
     }
 
     @include layout-1920() {
-      --mf-w: calc(100vw - #{to-rem($space-6xl)});
-      --mf-max-w: calc(100vw - #{to-rem($space-6xl)});
+      --mf-w: calc(100vw - var(--space-6xl));
+      --mf-max-w: calc(100vw - var(--space-6xl));
     }
   }
 
   // small variant
   &.small media-figure {
     @include layout-1440() {
-      --mf-w: #{to-rem($space-6xl)};
-      --mf-h: #{to-rem($space-8xl)};
+      --mf-w: var(--space-6xl);
+      --mf-h: var(--space-8xl);
     }
 
     @include layout-2560() {
-      --mf-w: #{to-rem($space-7xl)};
-      --mf-h: #{to-rem($space-9xl)};
+      --mf-w: var(--space-7xl);
+      --mf-h: var(--space-9xl);
     }
   }
 }

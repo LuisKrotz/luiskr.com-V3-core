@@ -1,0 +1,72 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  modal/_scroll-lock.scss — scroll-lock rules — html.modal-open overflow locks, the dialog.modal-above fullscreen layer, and the .modal-open page state (nav hidden, modal titlebar shown).
+//  Imported by modal.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Scroll-lock while any modal is open (JS adds .modal-open to <html>/<body>).
+html.modal-open,
+html.modal-open body,
+html:has(.modal-open),
+html:has(.modal-open) body,
+html:has(dialog[open].modal-above),
+html:has(dialog[open].modal-above) body {
+  overflow: hidden;
+}
+
+// The expand dialog: fixed fullscreen layer above everything (media expand view).
+dialog.modal-above,
+.modal-above {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  border: none;
+  padding: 0;
+  margin: 0;
+  z-index: 9999;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  background: var(--bg-dark);
+  color: inherit;
+
+  &::backdrop {
+    background: var(--bg-dark);
+    position: fixed;
+    inset: 0;
+  }
+}
+
+// Page state when a modal is open.
+.modal-open {
+  // Lock page scroll behind the modal
+  body {
+    overflow: hidden;
+  }
+
+  .modal-below {
+    top: 0;
+    left: 0;
+    width: 100%;
+    position: fixed;
+  }
+
+  // Hide regular nav links in modal context
+  .nav .nav-link {
+    display: none;
+  }
+
+  // Show modal title bar instead
+  .modal-titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

@@ -16,8 +16,13 @@ export const ATTR_VALUES = Object.freeze({
   BLOCK: 'block',
   FLEX: 'flex',
   AUTO: 'auto',
+  HIDDEN: 'hidden',
+  VISIBLE: 'visible',
   SMOOTH: 'smooth',
   INSTANT: 'instant',
   DELAY_25: '25',
   NEGATIVE_TABINDEX: '-1',
+  /** URL scheme prefix check + img loading/audio-video preload values. */
+  HTTP: 'http',
+  LAZY: 'lazy',
 })

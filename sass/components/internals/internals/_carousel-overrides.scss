@@ -1,0 +1,86 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  internals/_carousel-overrides.scss — internals items rendered inside
+//  a .carousel track: symmetric item padding restoration, slide-loading
+//  state, the no-WebGL carousel fallback, and the .project section reset.
+//  Imported by internals.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Carousel context overrides
+// Each .internal-extra-item is the sole child of its .carousel-slide, so
+// :first-of-type and :last-of-type both match every item — zeroing out the
+// padding on both sides. Restore symmetric padding here so items have visible
+// gaps between them in the carousel track.
+// ─────────────────────────────────────────────────────────────────────────────
+.carousel .internal-extra-item {
+  @include layout-1024() {
+    // Desktop clearance: ≥24px margin on each side of the item — combined
+    // with the item padding this keeps every media box (and its
+    // click-to-open affordance) visually separated from neighbours.
+    margin-inline: to-rem(24);
+  }
+
+  &:first-of-type {
+    padding-left: var(--space-lg);
+  }
+  &:last-of-type {
+    padding-right: var(--space-lg);
+  }
+
+  @include layout-768() {
+    &:first-of-type {
+      padding-left: var(--space-xl);
+    }
+    &:last-of-type {
+      padding-right: var(--space-xl);
+    }
+  }
+
+  @include layout-1440() {
+    &:first-of-type {
+      padding-left: var(--space-2xl);
+    }
+    &:last-of-type {
+      padding-right: var(--space-2xl);
+    }
+  }
+
+  @include layout-1920() {
+    &:first-of-type {
+      padding-left: var(--space-3xl);
+    }
+    &:last-of-type {
+      padding-right: var(--space-3xl);
+    }
+  }
+}
+
+// Non-visible carousel slide placeholder: centre the loading spinner
+.carousel-slide--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────
+// Single landscape image (not in carousel — carousel-fallback)
+// Must have the same MAXAREA lateral padding as all other grid content.
+// ─────────────────────────────────────────────────────────────────────────────────
+.carousel-fallback {
+  @extend %SKEL_DARK_SURFACE;
+
+  padding: var(--space-2xl) 0;
+  background-color: var(--bg-dark);
+}
+
+.carousel-fallback .internal-extra-item.landscape {
+  @extend %MAXAREA;
+
+  box-sizing: border-box;
+}
+
+// Parallax effect removed: sections render with full opacity and normal layout flow
+.project section {
+  opacity: 1;
+  transform: none;
+}

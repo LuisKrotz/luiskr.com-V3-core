@@ -1,0 +1,45 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  draw-text/_reduced-motion.scss — reduced-motion overrides (both the
+//  html.reduced-motion store flag via :host-context and the media query)
+//  plus the shadow-scoped keyboard focus ring.
+//  Imported by draw-text.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+:host-context(html.reduced-motion) .draw-text__char,
+:host-context(html.reduced-motion) .draw-text a:hover .draw-text__word,
+:host-context(html.reduced-motion) .draw-text a:focus-visible .draw-text__word,
+:host-context(html.reduced-motion) .draw-text a:active .draw-text__word,
+:host-context(html.reduced-motion) .draw-text__word {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  animation: none;
+}
+
+:host-context(html.reduced-motion) .draw-text a::after {
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-text__char,
+  .draw-text a:hover .draw-text__word,
+  .draw-text a:focus-visible .draw-text__word,
+  .draw-text a:active .draw-text__word,
+  :host-context(button:hover) .draw-text__word,
+  :host-context(button:focus-visible) .draw-text__word,
+  :host-context(button:active) .draw-text__word {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    animation: none;
+  }
+
+  .draw-text a::after {
+    transition-delay: 0s;
+  }
+}
+
+// Keyboard focus ring on this shadow root's tabbable elements — the file
+// doesn't import _structure (which emits it globally), so include the
+// shared scope explicitly.
+@include focus-ring-scope;

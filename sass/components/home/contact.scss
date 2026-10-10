@@ -62,13 +62,6 @@
 
     color: inherit;
 
-    &-link {
-      @extend %LK_LINK;
-
-      color: inherit;
-      text-decoration: none;
-    }
-
     // '·' between links — hidden on mobile where the links stack vertically
     // (a separator would hang on its own line); appears ≥768px inline row.
     &-separator {
@@ -95,6 +88,7 @@
       padding: 0 0 to-rem($space-lg);
     }
 
+    // Social/mail links are plain navigation — no underline affordance.
     &-link {
       @extend .ttl-sm;
 
@@ -103,6 +97,7 @@
       margin-inline: auto;
       line-height: to-rem($space-3xl);
       cursor: pointer;
+      text-decoration: none;
 
       @include layout-768() {
         display: inline-block;
@@ -120,17 +115,25 @@
 
     &-link {
       @extend .ttl-xs;
+      @extend %LK_LINK;
 
+      color: inherit;
+      text-decoration: none;
       display: block;
       width: fit-content;
       margin-inline: auto;
-      line-height: to-rem($space-3xl);
+      // The %LK_LINK underline is a border-bottom — keep the line box tight
+      // so it hugs the baseline like a real underline, and carry the row
+      // spacing on margins instead of an inflated line-height.
+      margin-block: to-rem($space-lg);
+      line-height: to-rem($space-xl);
       font-weight: 700;
       position: relative;
 
       @include layout-768() {
         display: inline-block;
         width: auto;
+        margin-block: 0;
       }
     }
   }

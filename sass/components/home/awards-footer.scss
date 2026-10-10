@@ -87,7 +87,11 @@
 
       color: var(--color-white-raw);
       text-decoration: none;
-      line-height: to-rem($space-3xl);
+      // The %LK_LINK underline is a border-bottom — keep the line box tight
+      // so it hugs the baseline like a real underline, and carry the row
+      // spacing on margins instead of an inflated line-height.
+      margin-block: to-rem($space-md);
+      line-height: to-rem($space-xl);
       opacity: 0.85;
       transition:
         opacity 0.2s,
@@ -192,7 +196,7 @@ $_B_AFP: 'awards-footer-progress';
   // on --bg-dark in both themes
   opacity: 0.7;
   font-weight: 400;
-  font-size: to-rem($space-md);
+  font-size: to-rem($space-lg);
 
   &-link {
     @extend .ttl-xs;
@@ -202,7 +206,7 @@ $_B_AFP: 'awards-footer-progress';
     text-decoration: none;
     cursor: pointer;
     font-weight: 400;
-    font-size: to-rem($space-md);
+    font-size: to-rem($space-lg);
   }
 
   // Docs-portal entry — sits above the source credit: English link title
@@ -218,7 +222,7 @@ $_B_AFP: 'awards-footer-progress';
     margin: to-rem($space-lg) 0 0;
     color: var(--color-white-raw);
     font-weight: 400;
-    font-size: to-rem($space-md);
+    font-size: to-rem($space-lg);
 
     &-link {
       @extend %LK_LINK;

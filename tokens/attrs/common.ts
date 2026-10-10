@@ -62,9 +62,4 @@ export const COMMON_ATTRS = Object.freeze({
   POINTER: 'pointer',
   /** `fit` — sizing/fit field name used by media layout contracts. */
   FIT: 'fit',
-  /**
-   * `warp` — DrawText liquid-warp flag: keeps per-char spans after the
-   * reveal and bends them toward the pointer on hover.
-   */
-  WARP: 'warp',
 })

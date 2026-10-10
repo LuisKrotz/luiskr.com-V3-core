@@ -1,0 +1,29 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  home-mosaic/_grid.scss — the .home-mosaic masonry container: JS-driven
+//  height transition and per-breakpoint min-heights. Imported by
+//  home-mosaic.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// height is set inline by JS (containerH). Transitioning it makes the about
+// section below slide smoothly when a card expands / collapses on hover.
+.home-mosaic {
+  transition: height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  // Mobile: skip height transition — triggers layout recalc each frame
+  @media (max-width: 768px) {
+    transition: none;
+  }
+  min-height: var(--space-9xl);
+
+  @include layout-540() {
+    min-height: var(--space-10xl);
+  }
+  @include layout-960() {
+    min-height: var(--space-9xl);
+  }
+  @include layout-1440() {
+    min-height: calc(var(--space-8xl) + var(--space-5xl));
+  }
+  @include layout-1920() {
+    min-height: var(--space-8xl);
+  }
+}

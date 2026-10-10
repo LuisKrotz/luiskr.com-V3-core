@@ -20,6 +20,8 @@ export const FORM_ATTRS = Object.freeze({
   BUTTON: 'button',
   /** `type="text"` — plain text input. */
   TEXT: 'text',
+  /** `type="search"` — filter/search input (directory browse). */
+  SEARCH: 'search',
   /** `type="checkbox"` — boolean toggles in preferences/CMS rows. */
   CHECKBOX: 'checkbox',
   /** `type="range"` — slider inputs (playground params, volume). */

@@ -134,3 +134,187 @@
     }
   }
 }
+
+// ═══ Type-ramp placeholders — the .ttl-*/.txt-* class bodies ═══
+// _fonts.scss re-emits them as the real utility classes for document
+// markup; component/partial sheets @extend the % versions so a shadow
+// stylesheet carries ONLY the type rules it actually uses instead of
+// importing the whole ~200-line ramp.
+
+/// Shared title font — every .ttl-* level.
+%TTL_BASE {
+  font-family: var(--font-primary);
+}
+
+%TTL_XXL {
+  font-weight: 100;
+  font-size: to-rem(34);
+  letter-spacing: to-rem(5);
+
+  @include layout-768() {
+    font-size: to-rem(55);
+    letter-spacing: to-rem(13);
+  }
+
+  @include layout-1024() {
+    font-size: to-rem(55);
+    letter-spacing: to-rem(13);
+  }
+
+  @include layout-1680() {
+    font-size: to-rem(89);
+    letter-spacing: to-rem(21);
+  }
+
+  @include layout-2560() {
+    font-size: to-rem(144);
+    letter-spacing: to-rem(55);
+  }
+
+  @include layout-3840() {
+    font-size: to-rem(233);
+  }
+}
+
+%TTL_XL {
+  font-weight: 100;
+  font-size: to-rem(34);
+  letter-spacing: to-rem(5);
+
+  @include layout-768() {
+    font-size: to-rem(34);
+    letter-spacing: to-rem(8);
+  }
+
+  @include layout-1024() {
+    font-size: to-rem(55);
+    letter-spacing: to-rem(13);
+  }
+
+  @include layout-2560() {
+    font-size: to-rem(89);
+    letter-spacing: to-rem(21);
+  }
+}
+
+%TTL_LG {
+  font-weight: 200;
+  font-size: to-rem(18);
+
+  @include layout-768() {
+    font-size: to-rem(21);
+  }
+
+  @include layout-1024() {
+    font-size: to-rem(34);
+  }
+
+  @include layout-1440() {
+    font-size: to-rem(55);
+  }
+
+  @include layout-1560() {
+    font-size: to-rem(55);
+  }
+}
+
+%TTL_MD {
+  font-weight: 200;
+  font-size: to-rem(21);
+  letter-spacing: to-rem(8);
+
+  @include layout-768() {
+    font-size: to-rem(34);
+  }
+}
+
+%TTL_SM {
+  font-weight: 200;
+  letter-spacing: to-rem(2);
+  font-size: to-rem(13);
+
+  @include layout-768() {
+    font-size: to-rem(21);
+    letter-spacing: to-rem(3);
+  }
+
+  @include layout-2560() {
+    font-size: to-rem(34);
+    letter-spacing: to-rem(5);
+  }
+}
+
+%TTL_XS {
+  font-weight: 200;
+  font-size: to-rem(13);
+
+  @include layout-2560() {
+    font-size: to-rem(21);
+  }
+}
+
+%TTL_XXS {
+  font-weight: 200;
+  font-size: to-rem(13);
+  text-transform: uppercase;
+
+  @include layout-2560() {
+    font-size: to-rem(13);
+  }
+}
+
+%TTL_SPECIAL {
+  font-weight: 100;
+}
+
+/// Shared body-text font — every .txt-* level.
+%TXT_BASE {
+  font-family: var(--font-primary);
+}
+
+%TXT_LG {
+  font-weight: 100;
+  font-size: to-rem(21);
+
+  @include layout-1024() {
+    font-size: to-rem(34);
+  }
+}
+
+%TXT_MD {
+  font-weight: 100;
+  font-size: to-rem(13);
+  line-height: to-rem(21);
+
+  @include layout-1680() {
+    font-size: to-rem(21);
+    line-height: to-rem(34);
+  }
+
+  @include layout-2560() {
+    font-size: to-rem(34);
+    line-height: to-rem(55);
+  }
+}
+
+%TXT_SM {
+  font-weight: 100;
+  font-size: to-rem(13);
+  line-height: to-rem(21);
+
+  @include layout-2560() {
+    font-size: to-rem(21);
+    line-height: to-rem(34);
+  }
+}
+
+%TXT_XS {
+  font-weight: 100;
+  font-size: to-rem(8);
+  line-height: to-rem(13);
+
+  @include layout-2560() {
+    font-size: to-rem(13);
+    line-height: to-rem(21);
+  }
+}

@@ -8,7 +8,7 @@ import store from '@core/store.js'
 import { IntroLoader } from '@core/utils/canvas/loaders/intro-loader.js'
 
 import '@website/components/feedback/CookieBanner.js'
-import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
+import { PREF_MUTATIONS, LANG_MUTATIONS } from '@core/tokens/events/mutations.js'
 
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
 
@@ -116,5 +116,37 @@ describe('intro-loader tails', () => {
 
     loader.container = null
     loader.finish()
+  })
+
+  test('unknown locale falls back to the English loader copy', () => {
+    sessionStorage.removeItem('lk_intro_shown')
+
+    store.commit(LANG_MUTATIONS.SET_LANG, 'xx')
+
+    const loader = new IntroLoader(document.body, jest.fn())
+
+    // Unmapped locale → the EN loader node becomes the copy source.
+    expect(loader.copy.stages.length).toBeGreaterThan(0)
+
+    store.commit(LANG_MUTATIONS.SET_LANG, 'en')
+
+    loader.destroy()
+    loader.container?.remove()
+  })
+
+  test('null msgEl + null barEl survive the update loop', async () => {
+    sessionStorage.removeItem('lk_intro_shown')
+    store.commit(PREF_MUTATIONS.SET_REDUCED_MOTION, false)
+
+    const loader = new IntroLoader(document.body, jest.fn())
+
+    loader.msgEl = null
+    loader.barEl = null
+    await flush(60)
+
+    // Survived — the loop kept ticking without the optional nodes.
+    expect(loader.animId).not.toBeNull()
+
+    loader.destroy()
   })
 })

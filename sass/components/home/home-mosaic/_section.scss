@@ -1,0 +1,48 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  home-mosaic/_section.scss — the shadow host and the .home-portfolio-section
+//  wrapper (%MAXAREA column, section title). Imported by home-mosaic.scss
+//  (manifest) — not compiled standalone. Visual styles only — geometry is
+//  computed in JS.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Shadow host — fills parent width.
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+// Section wrapper — %MAXAREA column.
+// padding-top must clear the fixed .nav (top: $space-lg + ~$space-2xl row
+// height ≈ 47px) with breathing room — 4xl (89px) keeps the title from
+// sliding under the logo/burger on every breakpoint.
+.home-portfolio-section {
+  @extend %MAXAREA;
+  width: 100%;
+  padding-top: var(--space-4xl);
+  padding-bottom: var(--space-2xl);
+  box-sizing: border-box;
+  border-top: var(--space-hairline) solid transparent;
+  border-image: var(--metallic-hairline) 1;
+  background-image: var(--filament-glow);
+
+  @include layout-768() {
+    padding-bottom: var(--space-4xl);
+  }
+
+  @include layout-1024() {
+    padding-bottom: var(--space-5xl);
+  }
+
+  .home-section-title {
+    @extend %TTL_XL;
+
+    font-family: var(--font-primary);
+    font-weight: 100;
+    text-transform: uppercase;
+    text-align: left;
+    padding-top: 0;
+    margin-bottom: var(--space-md);
+    color: var(--text-primary);
+  }
+}

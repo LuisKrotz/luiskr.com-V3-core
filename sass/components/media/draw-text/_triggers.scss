@@ -1,0 +1,49 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  draw-text/_triggers.scss — the reveal triggers: section-title mount,
+//  active carousel slide, IntersectionObserver visibility, pending/done
+//  states, and the related-mosaic write effect.
+//  Imported by draw-text.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Section titles: animate on mount (replayed via :key re-mount) ──────────
+.home-section-title .draw-text__char {
+  will-change: opacity, transform; // promote only during animation
+  animation: char-draw 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
+}
+
+// ── Inside slides: animate only when the slide becomes active ──────────────
+.aw-c-slide--active .draw-text__char {
+  will-change: opacity, transform;
+  animation: char-draw 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
+}
+
+// ── Viewport trigger: animate when scrolled into view ──────────────────────
+// .draw-text--visible is added by IntersectionObserver in the component
+.draw-text--visible .draw-text__char {
+  will-change: opacity, transform;
+  animation: char-draw 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
+}
+
+// Waiting for the viewport trigger: words rendered as plain nodes, kept invisible
+.draw-text--pending {
+  opacity: 0;
+}
+
+// Frozen state: animation complete, chars permanently visible, no re-trigger possible
+.draw-text--done .draw-text__char {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  animation: none;
+  will-change: auto; // release GPU layer after animation is done
+}
+
+// ── Related Mosaic: animate write effect ─────────────────────────────────────
+.related-mosaic-desc .draw-text__char {
+  will-change: opacity, transform;
+  animation: char-draw 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 15ms));
+}

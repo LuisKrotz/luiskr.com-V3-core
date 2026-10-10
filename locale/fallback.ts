@@ -9,15 +9,29 @@
 
 import snapshot from 'virtual:i18n-fallback'
 
+/** Per-locale boot-loader copy inlined by the Vite plugin. */
+export interface LoaderCopy {
+  /** Legacy terminal-style spec lines (English tech log). */
+  lines: string[]
+  /** Loader headline (brand mark, same across locales). */
+  title: string
+  /** Localized boot-stage messages shown under the percent. */
+  stages: string[]
+  [key: string]: unknown
+}
+
 /** Shape of the translations/<locale> DB node inlined by the Vite plugin. */
 interface FallbackSnapshot {
   APP: {
     actions: { click: string; tap: string }
     carousel: Record<string, unknown>
     statsHud: Record<string, unknown>
-    loader: { lines: string[] }
+    loader: LoaderCopy
     [key: string]: unknown
   }
+  /** locale → loader copy — inlined for ALL locales so the boot loader
+   *  localizes before the per-locale i18n chunks resolve. */
+  loaderLocales: Record<string, LoaderCopy>
   components: Record<string, unknown>
   pages: Record<string, unknown>
   [key: string]: unknown
@@ -35,6 +49,13 @@ export const FALLBACK = Object.freeze(snapshot as FallbackSnapshot)
  * carousel labels, loader lines) consumed before Firebase resolves.
  */
 export const FALLBACK_APP = FALLBACK.APP
+
+/**
+ * Boot-loader copy keyed by locale — every language is inlined so the
+ * intro loader can localize its stage messages at boot time, before the
+ * async per-locale i18n chunks land.
+ */
+export const FALLBACK_LOADERS = FALLBACK.loaderLocales
 
 /**
  * The components subtree — per-component copy fallbacks keyed by component

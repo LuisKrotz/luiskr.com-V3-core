@@ -1,0 +1,828 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  internals/_internal.scss — the .internal chrome itself: title, content
+//  column, media sizing contracts (--mf-w/--mf-h for <media-figure>),
+//  expand control, footer panel, and the note-dot-pulse keyframes.
+//  Imported by internals.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Internals chrome — project detail + legal pages: title, content column, media contracts, footer panel.
+.internal {
+  &-title {
+    @extend %TTL_BASE;
+    @extend %TTL_LG;
+    @extend %TTL_BASE;
+    @extend %TTL_SPECIAL;
+
+    padding: var(--space-4xl) var(--space-xl) var(--space-2xl);
+    text-align: center;
+
+    @include layout-1024() {
+      padding: var(--space-4xl) 0 var(--space-3xl);
+    }
+
+    @include layout-1920() {
+      padding: var(--space-5xl);
+    }
+  }
+
+  &-main {
+    @extend %SKEL_DARK_SURFACE;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    // No max-height/overflow here — the section must not clip its own padding.
+    // The 70vh constraint lives inside the media-figure Shadow DOM (figure element).
+    padding: var(--space-2xl) var(--space-xl);
+    box-sizing: border-box;
+    background-color: var(--bg-dark);
+
+    @include layout-768() {
+      padding: var(--space-3xl) var(--space-3xl);
+    }
+
+    @include layout-1024() {
+      padding: var(--space-4xl) var(--space-5xl);
+    }
+
+    @include layout-1920() {
+      padding: var(--space-5xl) var(--space-6xl);
+    }
+
+    figure {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 100%;
+      max-height: 70vh;
+      max-height: 70dvh;
+      overflow: hidden;
+      margin: 0 auto;
+      -webkit-border-radius: var(--space-md);
+      border-radius: var(--space-md);
+
+      @include layout-1024() {
+        -webkit-border-radius: var(--space-lg);
+        border-radius: var(--space-lg);
+      }
+    }
+
+    .render-placeholder {
+      display: block;
+      position: relative;
+      height: auto;
+      width: 100%;
+      max-width: 100%;
+
+      @include layout-768() {
+        width: auto;
+        max-width: 100%;
+        max-height: 70vh;
+        max-height: 70dvh;
+      }
+    }
+
+    .render-media {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+
+      &--thumb {
+        filter: blur(12px);
+        transform: scale(1.05);
+        z-index: 1;
+        // Mobile: filter:blur triggers paint every frame — extremely expensive on mobile GPU.
+        // Replace with a simple opacity dim while the hi-res loads.
+        @media (max-width: 768px) {
+          filter: none;
+          transform: none;
+          opacity: 0.4;
+        }
+      }
+
+      &--high {
+        opacity: 0;
+        z-index: 2;
+        transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+
+        &.render-media--loaded {
+          opacity: 1;
+        }
+      }
+
+      @include layout-1024() {
+        border-radius: var(--space-lg);
+      }
+    }
+  }
+
+  // Cover skeleton (before data loads)
+  .skeleton-cover {
+    background: linear-gradient(
+      90deg,
+      var(--skel-bg-1) 25%,
+      var(--skel-bg-2) 50%,
+      var(--skel-bg-3) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 2.4s ease-in-out infinite;
+    display: block;
+    @media (max-width: 768px) {
+      animation: none;
+      background: var(--skel-bg-1);
+    }
+  }
+
+  &-description {
+    @extend %MAXAREA;
+
+    margin: 0 auto;
+    padding-top: var(--space-2xl);
+    padding-bottom: var(--space-xl);
+    // Min-height matches the carousel item height, set as a CSS var by Carousel.vue
+    min-height: var(--carousel-item-height, auto);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    contain: layout style;
+
+    @include layout-768() {
+      // 1 col indent per side on 8-col grid (1/8 = 12.5%)
+      padding-top: var(--space-4xl);
+      padding-bottom: var(--space-2xl);
+      padding-left: 12.5%;
+      padding-right: 12.5%;
+    }
+
+    @include layout-1024() {
+      // 3 cols indent per side on 12-col grid (3/12 = 25%) → content in cols 4–9
+      padding-top: var(--space-4xl);
+      padding-bottom: var(--space-2xl);
+      padding-left: 25%;
+      padding-right: 25%;
+    }
+
+    @include layout-1920() {
+      padding-top: var(--space-5xl);
+      padding-bottom: var(--space-3xl);
+    }
+
+    @include layout-2560() {
+      padding-top: var(--space-6xl);
+      padding-bottom: var(--space-4xl);
+    }
+
+    .legal & {
+      // Legal pages: keep the column-indent padding so content sits in
+      // cols 4–9 (3 empty cols on each side of the 12-column grid).
+      // The .legal container is full-width (no %MAXAREA), so this
+      // 25% padding IS the only source of indentation.
+      @include layout-768() {
+        padding-top: var(--space-xl);
+        padding-bottom: var(--space-xl);
+        // 12.5% = 1.5 cols on 8-col intermediate grid
+      }
+
+      @include layout-1024() {
+        padding-top: var(--space-xl);
+        padding-bottom: var(--space-xl);
+        // 25% already applied by base rule — no override needed
+      }
+
+      @include layout-1920() {
+        padding-top: var(--space-2xl);
+        padding-bottom: var(--space-2xl);
+      }
+
+      @include layout-2560() {
+        padding-top: var(--space-3xl);
+        padding-bottom: var(--space-3xl);
+      }
+    }
+
+    &:last-of-type {
+      .legal & {
+        @include layout-1024() {
+          padding-bottom: var(--space-4xl);
+        }
+
+        @include layout-1920() {
+          padding-bottom: var(--space-5xl);
+        }
+
+        @include layout-2560() {
+          padding-bottom: var(--space-6xl);
+        }
+      }
+    }
+
+    &-text {
+      @extend %TXT_BASE;
+      @extend %TXT_MD;
+
+      font-family: var(--font-primary);
+      font-weight: 250;
+      word-break: normal;
+      overflow-wrap: break-word;
+      hyphens: none;
+      padding-bottom: var(--space-lg);
+
+      @include layout-768() {
+        padding-bottom: var(--space-lg);
+      }
+
+      @include layout-1024() {
+        padding-bottom: var(--space-xl);
+      }
+
+      a {
+        @extend %LK_LINK;
+
+        text-decoration: none;
+        color: var(--black);
+      }
+    }
+
+    p:last-of-type {
+      padding-bottom: 0;
+    }
+  }
+
+  &-extra {
+    @extend %SKEL_DARK_SURFACE;
+
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--bg-dark);
+    overflow-x: auto;
+    scroll-snap-align: center;
+
+    /* width */
+    &::-webkit-scrollbar {
+      height: var(--space-md);
+
+      @include layout-1024() {
+        height: var(--space-lg);
+      }
+
+      @include layout-2560() {
+        height: var(--space-xl);
+      }
+    }
+
+    /* Track */
+    &::-webkit-scrollbar-track {
+      background: var(--black);
+    }
+
+    /* Handle */
+    &::-webkit-scrollbar-thumb {
+      border-radius: to-rem(3);
+      background: var(--grey-3);
+    }
+
+    /* Handle on hover */
+    &::-webkit-scrollbar-thumb:hover {
+      background: var(--grey);
+    }
+
+    &-scroll {
+      padding: var(--space-2xl) var(--space-xl) calc(var(--space-2xl) - var(--space-md));
+      display: block;
+      white-space: nowrap;
+      width: max-content;
+      margin: 0 auto;
+
+      @include layout-768() {
+        padding: var(--space-5xl) var(--space-3xl) calc(var(--space-5xl) - var(--space-lg));
+      }
+
+      @include layout-1024() {
+        padding: var(--space-3xl) var(--space-3xl) calc(var(--space-3xl) - var(--space-lg));
+      }
+
+      @include layout-1440() {
+        padding: var(--space-4xl) var(--space-4xl) calc(var(--space-4xl) - var(--space-lg));
+      }
+
+      @include layout-1920() {
+        padding: var(--space-5xl) var(--space-5xl) calc(var(--space-5xl) - var(--space-lg));
+      }
+
+      @include layout-2560() {
+        padding: var(--space-5xl) var(--space-5xl) calc(var(--space-5xl) - var(--space-xl));
+      }
+    }
+
+    &-item {
+      position: relative;
+      border-radius: var(--space-md);
+      color: var(--text-muted);
+      display: inline-block;
+      width: min-content;
+      padding: 0 var(--space-lg);
+      min-height: 100%;
+      overflow: hidden;
+
+      @include layout-768() {
+        padding: 0 var(--space-xl);
+      }
+
+      @include layout-1024() {
+        border-radius: var(--space-lg);
+      }
+
+      @include layout-1440() {
+        padding: 0 var(--space-2xl);
+      }
+
+      @include layout-1920() {
+        padding: 0 var(--space-3xl);
+      }
+
+      &:first-of-type {
+        padding-left: 0;
+      }
+
+      &:last-of-type {
+        padding-right: 0;
+      }
+
+      // ── CSS Custom Properties for media-figure Shadow DOM sizing ──────────────
+      // CSS custom properties DO cross shadow boundaries — this is the only way
+      // to pass sizing context into <media-figure>'s encapsulated shadow root.
+      // media-figure.scss reads --mf-w / --mf-h / --mf-max-w to size the placeholder.
+      media-figure,
+      figure {
+        --mf-w: calc(90vw - #{calc(var(--space-xl) * 2)});
+        --mf-h: calc(70vh - #{calc(var(--space-xl) * 2)});
+        --mf-h: calc(70dvh - #{calc(var(--space-xl) * 2)});
+
+        @include layout-768() {
+          --mf-w: calc(90vw - #{calc(var(--space-2xl) * 2)});
+          --mf-h: calc(70vh - #{calc(var(--space-2xl) * 2)});
+          --mf-h: calc(70dvh - #{calc(var(--space-2xl) * 2)});
+        }
+
+        @include layout-1024() {
+          --mf-w: var(--space-6xl);
+          --mf-h: var(--space-7xl);
+        }
+
+        @include layout-1440() {
+          --mf-w: var(--space-7xl);
+          --mf-h: var(--space-8xl);
+        }
+
+        @include layout-2560() {
+          --mf-w: var(--space-8xl);
+          --mf-h: var(--space-9xl);
+        }
+      }
+
+      figure {
+        position: relative;
+        display: block;
+        width: var(--mf-w);
+        height: var(--mf-h);
+        max-width: var(--mf-max-w, none);
+        overflow: hidden;
+        border-radius: var(--space-md);
+        margin: 0;
+
+        @include layout-1024() {
+          border-radius: var(--space-lg);
+        }
+
+        .render-placeholder {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        // Skeleton slides: overlay the placeholder instead of flowing below it
+        .skeleton--media {
+          position: absolute;
+          inset: 0;
+        }
+      }
+
+      // landscape variant: the vw cap travels in --mf-w (consumed as the
+      // placeholder's max-width) so wide media can use most of the viewport;
+      // --mf-max-w mirrors it for the light-DOM figure skeleton contract.
+      &.landscape media-figure {
+        @include layout-1024() {
+          --mf-w: calc(100vw - var(--space-3xl));
+          --mf-max-w: calc(100vw - var(--space-3xl));
+        }
+
+        @include layout-1280() {
+          --mf-w: calc(100vw - var(--space-4xl));
+          --mf-max-w: calc(100vw - var(--space-4xl));
+        }
+
+        @include layout-1440() {
+          --mf-w: calc(100vw - var(--space-7xl));
+          --mf-max-w: calc(100vw - var(--space-7xl));
+        }
+
+        @include layout-1920() {
+          --mf-w: calc(100vw - var(--space-6xl));
+          --mf-max-w: calc(100vw - var(--space-6xl));
+        }
+      }
+
+      // small variant
+      &.small media-figure {
+        @include layout-1440() {
+          --mf-w: var(--space-6xl);
+          --mf-h: var(--space-8xl);
+        }
+
+        @include layout-2560() {
+          --mf-w: var(--space-7xl);
+          --mf-h: var(--space-9xl);
+        }
+      }
+
+      label {
+        @extend %TTL_BASE;
+        @extend %TTL_XS;
+
+        display: block;
+        text-transform: uppercase;
+        margin: 0;
+        font-variant: all-small-caps;
+        color: var(--color-white-raw);
+      }
+
+      &-open {
+        display: none;
+        top: 0;
+        left: 0;
+        position: fixed;
+        background: rgba($color-black, 0.9);
+        min-height: 100vh;
+        min-height: 100dvh;
+        height: auto;
+        width: 100vw;
+        z-index: 1;
+
+        img {
+          box-sizing: border-box;
+          padding: var(--space-5xl);
+          height: auto;
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  &-expand {
+    transition: opacity 0.3s ease-in;
+    cursor: pointer;
+
+    &:hover,
+    &:focus {
+      opacity: 0.95;
+    }
+  }
+
+  &-footer {
+    &-title {
+      @extend %TTL_BASE;
+      @extend %TTL_LG;
+      @extend %TTL_BASE;
+      @extend %TTL_SPECIAL;
+
+      max-width: var(--space-8xl);
+      margin: 0 auto;
+      text-align: center;
+      padding: var(--space-xl) var(--space-xl) var(--space-lg);
+
+      span {
+        display: inline-block;
+        text-align: center;
+      }
+
+      @include layout-768() {
+        padding: var(--space-3xl) var(--space-3xl) var(--space-2xl);
+      }
+
+      @include layout-1024() {
+        padding: var(--space-5xl) var(--space-5xl) var(--space-2xl);
+      }
+    }
+
+    &-related {
+      @extend %MAXAREA;
+
+      width: 100%;
+      margin: 0 auto;
+      padding-top: var(--space-xl);
+      padding-bottom: var(--space-4xl);
+
+      @include layout-768() {
+        padding-top: var(--space-2xl);
+        padding-bottom: var(--space-5xl);
+      }
+
+      @include layout-1024() {
+        padding-top: var(--space-3xl);
+        padding-bottom: var(--space-5xl);
+      }
+    }
+
+    &-items {
+      @extend %TTL_BASE;
+      @extend %TTL_XS;
+
+      // Full-bleed footer stripe spanning the whole viewport width — the
+      // links row and the legal disclaimer share the grid's max area.
+      box-sizing: border-box;
+      width: 100%;
+      margin: 0;
+      padding: var(--space-2xl);
+      text-align: center;
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+
+      @include layout-1024() {
+        padding: var(--space-xl) var(--space-5xl);
+      }
+
+      &-separator {
+        padding: 0 var(--space-md);
+        display: none;
+
+        @include layout-375() {
+          display: inline-block;
+        }
+
+        @include layout-2560() {
+          padding: 0 var(--space-lg);
+        }
+      }
+
+      // Animated hairline between the socials row and the disclaimer
+      // note — a soft sheen travels the line on a slow loop so the split
+      // reads alive rather than a static rule. The hr's own margins
+      // carry the extra breathing room requested between the two zones.
+      &-divider {
+        @extend %MAXAREA;
+
+        display: block;
+        width: 100%;
+        height: var(--space-3xs);
+        margin: var(--space-2xl) auto var(--space-xl);
+        padding: 0;
+        border: none;
+        border-radius: var(--radius-round);
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--border-color) 35%,
+          var(--color-accent) 50%,
+          var(--border-color) 65%,
+          transparent
+        );
+        background-size: 200% 100%;
+        animation: internal-footer-divider-sheen 7s ease-in-out infinite;
+
+        @media (prefers-reduced-motion: reduce) {
+          animation: none;
+        }
+
+        // Shadow DOM: the store-driven html.reduced-motion flag can't
+        // pierce the boundary — host-context mirrors the media query.
+        :host-context(html.reduced-motion) & {
+          animation: none;
+        }
+
+        @include layout-1024() {
+          margin-top: var(--space-3xl);
+        }
+      }
+
+      @keyframes internal-footer-divider-sheen {
+        0% {
+          background-position: 200% 0;
+        }
+
+        100% {
+          background-position: -100% 0;
+        }
+      }
+
+      &-link {
+        @extend %TTL_BASE;
+        @extend %TTL_SM;
+        @extend %LK_LINK;
+
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        display: block;
+        width: fit-content;
+        margin-inline: auto;
+        // The %LK_LINK underline is a border-bottom — keep the line box
+        // tight so it hugs the baseline; block spacing rides on margins.
+        margin-block: var(--space-md);
+        line-height: var(--space-xl);
+        text-transform: uppercase;
+        font-weight: 300;
+
+        @include layout-375() {
+          text-transform: initial;
+          display: inline-block;
+          width: auto;
+        }
+
+        &.router-link-active {
+          opacity: 1;
+          border-bottom-color: var(--color-accent);
+          cursor: pointer;
+        }
+      }
+
+      &-note {
+        @extend %TTL_BASE;
+        @extend %TTL_XXS;
+        @extend %MAXAREA;
+
+        // Collapsed: -note-text is justified and clamped to its first line
+        // (CSS ellipsis); -note-more renders three dots that pulse while the
+        // note is truncated — the "show more" affordance. The element is a
+        // real <button> so Enter/Space expand it (aria-expanded + :focus-visible).
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-2xs);
+        clear: both;
+        width: 100%;
+        padding: 0;
+        border: none;
+        margin: var(--space-md) auto var(--space-lg);
+        font-family: inherit;
+        font-weight: 300;
+        line-height: var(--space-xl);
+        text-align: left;
+        color: inherit;
+        background: none;
+        cursor: pointer;
+        // Mobile reads better capitalized (the authored sentence case);
+        // the uppercase treatment resumes at tablet/desktop widths.
+        text-transform: none;
+
+        @include layout-768() {
+          text-transform: uppercase;
+        }
+
+        &-text {
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 1;
+          line-clamp: 1;
+          overflow: hidden;
+          flex: 1 1 auto;
+          min-width: 0;
+          text-align: justify;
+          text-align-last: left;
+          text-decoration: underline;
+          text-decoration-color: transparent;
+          text-underline-offset: var(--space-3xs);
+          transition: text-decoration-color 0.35s ease;
+        }
+
+        // Trailing "···" affordance — a bordered pill so it reads as a
+        // control, not typographic ellipsis; hidden until JS measures real
+        // truncation (is-truncated); dots pulse in a staggered wave.
+        &-more {
+          flex: none;
+          display: inline-flex;
+          align-items: center;
+          align-self: center;
+          gap: var(--space-xs);
+          padding: var(--space-2xs) var(--space-sm);
+          border: var(--space-3xs) solid var(--border-color);
+          border-radius: var(--radius-round);
+          transform: translateY(var(--space-3xs));
+          opacity: 0;
+          transition:
+            opacity 0.3s ease,
+            transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+            border-color 0.3s ease;
+        }
+
+        &-dot {
+          width: var(--space-xs);
+          height: var(--space-xs);
+          border-radius: var(--radius-round);
+          background: currentColor;
+          animation: note-dot-pulse 2.4s ease-in-out infinite;
+
+          &:nth-child(2) {
+            animation-delay: 0.25s;
+          }
+
+          &:nth-child(3) {
+            animation-delay: 0.5s;
+          }
+        }
+
+        &.is-truncated &-more {
+          opacity: 0.85;
+          transform: translateY(0);
+        }
+
+        &.is-open {
+          display: block;
+        }
+
+        &.is-open &-text {
+          display: block;
+          overflow: visible;
+          text-decoration: none;
+        }
+
+        &.is-open &-more {
+          display: none;
+        }
+
+        &:hover,
+        &:focus-visible {
+          color: var(--color-accent-contrast);
+        }
+
+        &:hover &-text,
+        &:focus-visible &-text {
+          text-decoration-color: currentColor;
+        }
+
+        &:hover &-more,
+        &:focus-visible &-more {
+          opacity: 1;
+          border-color: var(--border-item-hover);
+        }
+
+        &:active &-more {
+          transform: translateY(0) scale(0.92);
+        }
+      }
+    }
+
+    // Docs-portal entry — a dedicated footer area below the legal links:
+    // untranslated English title, localized "English only" description.
+    &-docs {
+      @extend %TTL_BASE;
+      @extend %TTL_XS;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3xs);
+      width: 100%;
+      padding: var(--space-lg) var(--space-2xl) var(--space-xl);
+      text-align: center;
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+
+      &-link {
+        @extend %TTL_BASE;
+        @extend %TTL_XS;
+        @extend %LK_LINK;
+
+        color: inherit;
+        text-decoration: none;
+        text-transform: uppercase;
+        font-weight: 300;
+        cursor: pointer;
+      }
+
+      &-desc {
+        @extend %TTL_BASE;
+        @extend %TTL_XXS;
+
+        opacity: 0.7;
+      }
+    }
+  }
+}
+
+// Three-dot pulse for the disclaimer "more" affordance — each dot eases
+// between dim and full ink; nth-child delays stagger the wave.
+@keyframes note-dot-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}

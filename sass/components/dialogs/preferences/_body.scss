@@ -1,0 +1,268 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  preferences/_body.scss — scrollable body — pref sections/titles/descs, option grids, lang-glass follower, lang dialog variant, theme slider track + WebGL canvas, labels, option/stat buttons.
+//  Imported by preferences.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Scrollable content area of the dialog.
+.pref-body {
+  flex: 1; // Fill remaining space in the flex-column dialog
+  min-height: 0; // Allow shrinking so overflow-y:auto actually scrolls
+  padding: to-rem($space-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: to-rem($space-3xl);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+
+  // Scrollbar — themed to match modal dialog background
+  scrollbar-color: var(--border-color) transparent;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: to-rem($space-xs);
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--radius-round);
+  }
+}
+
+// A settings group (theme, switches, dev tools).
+.pref-section {
+  display: flex;
+  flex-direction: column;
+  gap: to-rem($space-md);
+}
+
+// Group heading.
+.pref-section-title {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-weight: 700;
+  font-size: to-rem(18);
+  text-transform: uppercase;
+  letter-spacing: to-rem(0.8);
+  color: var(--text-primary);
+}
+
+// Group helper text.
+.pref-section-desc {
+  margin: 0;
+  font-size: to-rem(15);
+  color: var(--text-muted);
+}
+
+// Grid of selectable options.
+.pref-options {
+  display: grid;
+  gap: to-rem($space-md);
+  position: relative;
+
+  &--4 {
+    grid-template-columns: repeat(4, 1fr);
+
+    @media (max-width: $bk-540) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  &--2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// Moving glass highlight that follows selection in the language grid.
+.lang-glass-follower {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  border-radius: to-rem($space-lg);
+  border: to-rem($space-hairline) solid var(--border-color);
+  background: transparent;
+  box-shadow: var(--shadow-card-featured);
+  transition:
+    transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.2s ease;
+  z-index: 2;
+  opacity: 0;
+}
+
+// Language dialog variant (shared shell with pref).
+.lang-dialog {
+  // 480px cap on wide screens; on narrow screens the backdrop padding
+  // already constrains width, so max-width: 100% lets it fill the grid.
+  max-width: min(to-rem(480), 100%);
+}
+
+// Theme slider block (canvas + labels + fallback buttons).
+.pref-theme-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: to-rem($space-md);
+  width: 100%;
+}
+
+// Slider row: WebGL canvas with the light/system/dark stops.
+.pref-theme-slider {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
+  touch-action: none;
+}
+
+// The WebGL theme slider canvas.
+.pref-theme-canvas {
+  width: 100%;
+  max-width: 100%;
+  height: to-rem(64);
+  border-radius: to-rem(32);
+  display: block;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &:hover,
+  &:focus-visible {
+    transform: scale(1.01);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+// light / system / dark labels under the slider.
+.pref-theme-labels {
+  display: none;
+  grid-template-columns: repeat(3, 1fr);
+  gap: to-rem($space-sm);
+  width: 100%;
+}
+
+.pref-theme-wrapper.has-fallback .pref-theme-labels,
+.pref-theme-slider:not(:has(.pref-theme-canvas:not(.is-fallback):not([style*='display: none'])))
+  + .pref-theme-labels {
+  display: grid;
+}
+
+// Fallback theme buttons when the canvas can't render.
+.pref-theme-btn {
+  @extend %RESETBTN;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: to-rem($space-xs);
+  padding: to-rem($space-sm) to-rem($space-md);
+  background: var(--bg-secondary);
+  border: to-rem($space-hairline) solid var(--border-color);
+  border-radius: to-rem($space-md);
+  color: var(--text-primary);
+  font-size: to-rem($space-lg);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--text-muted);
+    background: var(--bg-primary);
+  }
+
+  &--active {
+    border-color: var(--text-primary);
+    background: var(--bg-primary);
+    box-shadow: 0 to-rem($space-2xs) to-rem($space-sm) rgba($color-black, 0.08);
+  }
+}
+
+// One selectable preference option (language/grid/etc).
+.pref-option-btn {
+  @extend %RESETBTN;
+
+  position: relative;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: to-rem($space-xs);
+  padding: to-rem($space-xl) to-rem($space-sm);
+  background: var(--bg-secondary);
+  border: to-rem(2) solid transparent;
+  border-radius: to-rem($space-lg);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.2s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--btn-accent-fill);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--text-muted);
+    transform: translateY(to-rem(-$space-3xs)) scale(1.03);
+
+    &::before {
+      opacity: 1;
+    }
+
+    > * {
+      transform: scale(1.04);
+    }
+  }
+
+  &.active {
+    border-color: var(--text-primary);
+    background: var(--bg-primary);
+    box-shadow: var(--shadow-card);
+  }
+}
+
+// Small stat card inside the dev-tools analytics block.
+.pref-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: to-rem($space-2xs);
+  padding: to-rem($space-lg) to-rem($space-sm);
+  background: var(--bg-secondary);
+  border: to-rem(1) solid var(--border-color);
+  border-radius: to-rem($space-lg);
+  color: var(--text-primary);
+  text-align: center;
+}

@@ -1,0 +1,238 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  internals/_related.scss — the related-projects mosaic strip at the
+//  bottom of the project page: packed tile layout, the border-sheen
+//  hover keyframes, and reduced-motion + :host-context fallbacks.
+//  Imported by internals.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Mosaic Layout for Related Projects (Zero Empty Gaps) ──────────────────────
+$_B_RELATED: 'related-mosaic';
+
+// Related-projects strip at the bottom of the project page.
+.#{$_B_RELATED} {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: var(--space-3xl);
+
+  @include layout-768() {
+    gap: var(--space-lg);
+  }
+
+  &-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+    border-radius: var(--space-lg);
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+    min-height: to-rem(160);
+    aspect-ratio: 16 / 10;
+    text-decoration: none;
+    color: var(--color-white-raw);
+    background: var(--bg-secondary);
+    box-shadow: 0 var(--space-2xs) var(--space-lg) rgba($color-black, 0.15);
+    transition:
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.35s ease;
+
+    // Mobile: always full-width (base styles: flex: 1 1 100%; width: 100%; max-width: 100%)
+
+    // Tablet: enforce exactly 2 columns — 50% minus half the row gap
+    @include layout-768() {
+      flex: 0 0 calc(50% - var(--space-lg) / 2);
+      max-width: calc(50% - var(--space-lg) / 2);
+      min-height: to-rem(190);
+    }
+
+    // Desktop: standard mosaic width
+    @include layout-1024() {
+      flex: 1 1 to-rem(260);
+      max-width: to-rem(360);
+      min-height: to-rem(200);
+    }
+
+    &.router-link-active {
+      display: none;
+    }
+
+    // Living tile edge — same hairline sheen as the home mosaic: a
+    // gradient ring clipped to border-width via mask-composite, drifting
+    // on a slow alternate loop.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: var(--space-hairline);
+      background: linear-gradient(
+        120deg,
+        transparent 32%,
+        var(--border-item-hover) 45%,
+        var(--color-accent-contrast) 50%,
+        var(--border-item-hover) 55%,
+        transparent 68%
+      );
+      background-size: 300% 300%;
+      -webkit-mask:
+        linear-gradient(var(--color-white-raw) 0 0) content-box,
+        linear-gradient(var(--color-white-raw) 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(var(--color-white-raw) 0 0) content-box,
+        linear-gradient(var(--color-white-raw) 0 0);
+      mask-composite: exclude;
+      animation: related-border-sheen 9s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    // Featured items are wider ONLY on desktop (1024px+); ignored on mobile and tablet
+    &--featured {
+      @include layout-1024() {
+        flex: 2 1 to-rem(560);
+        max-width: 100%;
+        aspect-ratio: 16 / 9;
+      }
+    }
+
+    &:hover,
+    &:focus {
+      transform: translateY(#{to-rem(-$space-xs)}) scale(1.01);
+      box-shadow: var(--shadow-card-hover);
+
+      .#{$_B_RELATED}-img {
+        transform: scale(1.06);
+      }
+
+      .#{$_B_RELATED}-title {
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  &-media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  &-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  &-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.88) 0%,
+      rgba(0, 0, 0, 0.35) 50%,
+      rgba(0, 0, 0, 0.05) 100%
+    );
+    pointer-events: none;
+  }
+
+  &-info {
+    position: relative;
+    z-index: 2;
+    padding: var(--space-md) var(--space-lg) var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    text-align: left;
+    pointer-events: none;
+
+    @include layout-768() {
+      padding: var(--space-lg) var(--space-xl);
+    }
+
+    .#{$_B_RELATED}-item--featured & {
+      padding: var(--space-lg) var(--space-lg) var(--space-xl);
+
+      @include layout-768() {
+        padding: var(--space-xl) var(--space-2xl);
+      }
+    }
+  }
+
+  &-title {
+    @extend %TTL_BASE;
+    @extend %TTL_SM;
+
+    font-family: var(--font-primary);
+    font-weight: 200;
+    text-transform: uppercase;
+    letter-spacing: to-rem(0.8);
+    color: var(--color-white-raw);
+    text-shadow: 0 var(--space-2xs) var(--space-md) rgba($color-black, 0.6);
+    transition: transform 0.3s ease;
+
+    .#{$_B_RELATED}-item--featured & {
+      font-size: var(--space-lg);
+
+      @include layout-768() {
+        font-size: var(--space-xl);
+      }
+      @include layout-1024() {
+        font-size: var(--space-2xl);
+      }
+    }
+  }
+
+  &-desc {
+    @extend %TXT_BASE;
+    @extend %TXT_XS;
+
+    font-weight: 200;
+    color: var(--color-white-raw);
+    text-shadow: 0 var(--space-hairline) var(--space-sm) var(--bg-dark);
+    max-height: 0;
+    overflow: hidden;
+    margin-top: 0;
+    opacity: 0;
+    transition:
+      max-height 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      margin-top 0.25s ease,
+      opacity 0.25s ease;
+
+    .#{$_B_RELATED}-item:hover &,
+    .#{$_B_RELATED}-item:focus-within & {
+      max-height: var(--space-5xl);
+      margin-top: var(--space-2xs);
+      opacity: 1;
+    }
+  }
+}
+
+@keyframes related-border-sheen {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{$_B_RELATED}-item::after {
+    animation: none;
+  }
+}
+
+// Shadow DOM: mirror the store-driven html.reduced-motion flag.
+:host-context(html.reduced-motion) .#{$_B_RELATED}-item::after {
+  animation: none;
+}

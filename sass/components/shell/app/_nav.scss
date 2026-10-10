@@ -1,0 +1,317 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  app/_nav.scss — the nav bar itself: section links, the logo button's
+//  plasma-fire underline (filament + halo + flicker keyframes), the
+//  --on-dark variant, separators and the language pill group.
+//  Imported by app.scss (manifest) — uses $_B_NAV defined there.
+// ════════════════════════════════════════════════════════════════════════════
+
+// The nav bar itself: logo + section links left/center, burger + flag + prefs triggers right.
+.nav {
+  @extend %MAXAREA;
+  z-index: 100;
+  left: 0;
+  top: var(--space-lg);
+  position: fixed;
+  justify-content: space-between;
+  align-items: center;
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  pointer-events: auto;
+
+  &-link {
+    @extend %TTL_BASE;
+    @extend %TTL_XS;
+    @extend %RESETBTN;
+
+    font-weight: 500;
+    color: var(--grey-3);
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      opacity 0.3s ease-in,
+      color 0.2s ease;
+    position: relative;
+
+    &:hover,
+    &:focus {
+      opacity: 0.5;
+    }
+
+    &.router-link-exact-active,
+    &.active {
+      color: var(--black);
+      font-weight: 700;
+
+      &::after {
+        display: block;
+        content: '';
+        position: absolute;
+        bottom: calc(-1 * var(--space-2xs));
+        left: 0;
+        width: 100%;
+        height: var(--space-2xs);
+        border-radius: var(--space-hairline);
+        background: var(--grey);
+      }
+    }
+
+    &.selected-work {
+      cursor: n-resize;
+    }
+
+    &.scroll-down {
+      cursor: s-resize;
+    }
+  }
+
+  // Logo interaction mirrors animated content links: DrawText replays its
+  // word wrappers first, then this parent-owned underline sweeps in. Active
+  // home state keeps the line landed, matching the other active nav links.
+  // The line is a plasma-fire discharge, not a flat bar: ::after paints the
+  // white-hot filament core traveling along the track while ::before is the
+  // blurred ionized sheath glowing behind it — both run a slow drift plus an
+  // irregular brightness flicker so the edge reads as living plasma.
+  &-logo-btn {
+    opacity: 1;
+
+    &::after,
+    &::before {
+      display: block;
+      content: '';
+      position: absolute;
+      bottom: calc(-1 * var(--space-2xs));
+      left: 0;
+      width: 100%;
+      border-radius: var(--space-hairline);
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.35s ease 0.55s;
+      pointer-events: none;
+    }
+
+    &::after {
+      height: var(--space-2xs);
+      background: var(--plasma-line);
+      background-size: 280% 100%;
+      background-repeat: no-repeat;
+      box-shadow:
+        0 0 var(--space-xs) var(--plasma-glow-near),
+        0 0 var(--space-md) var(--plasma-glow-far);
+    }
+
+    &::before {
+      height: var(--space-md);
+      bottom: calc(-1 * var(--space-sm));
+      background: var(--plasma-halo);
+      background-size: 280% 100%;
+      background-repeat: no-repeat;
+      filter: blur(var(--space-2xs));
+      opacity: 0.9;
+    }
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+      opacity: 1;
+
+      &::after,
+      &::before {
+        transform: scaleX(1);
+      }
+    }
+
+    &.router-link-exact-active,
+    &.active {
+      &::after,
+      &::before {
+        transform: scaleX(1);
+      }
+    }
+
+    // Plasma runs only while the line is landed — the pseudo-elements are
+    // scaleX(0) otherwise, so the animations idle instead of burning GPU.
+    &:hover::after,
+    &:focus-visible::after,
+    &:active::after,
+    &.router-link-exact-active::after,
+    &.active::after {
+      animation:
+        #{$_B_NAV}-plasma-drift 2.6s linear infinite,
+        #{$_B_NAV}-plasma-flicker 3.7s ease-in-out infinite,
+        #{$_B_NAV}-plasma-heat 2.3s ease-in-out infinite;
+    }
+
+    &:hover::before,
+    &:focus-visible::before,
+    &:active::before,
+    &.router-link-exact-active::before,
+    &.active::before {
+      animation:
+        #{$_B_NAV}-plasma-drift 4.4s linear infinite reverse,
+        #{$_B_NAV}-plasma-flicker 2.9s ease-in-out infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &:hover::after,
+      &:focus-visible::after,
+      &:active::after,
+      &.router-link-exact-active::after,
+      &.active::after,
+      &:hover::before,
+      &:focus-visible::before,
+      &:active::before,
+      &.router-link-exact-active::before,
+      &.active::before {
+        animation: none;
+      }
+    }
+  }
+
+  // Plasma travel — the filament band slides along the track forever;
+  // transparent gradient tails make the wrap invisible (emitted at root).
+  @keyframes #{$_B_NAV}-plasma-drift {
+    from {
+      background-position-x: 200%;
+    }
+
+    to {
+      background-position-x: 0%;
+    }
+  }
+
+  // Discharge flicker — irregular opacity stops read as arc instability,
+  // not a metronome pulse. Opacity only so the halo's static blur filter
+  // is never overridden (emitted at root).
+  @keyframes #{$_B_NAV}-plasma-flicker {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    11% {
+      opacity: 0.82;
+    }
+
+    24% {
+      opacity: 0.96;
+    }
+
+    39% {
+      opacity: 0.74;
+    }
+
+    53% {
+      opacity: 1;
+    }
+
+    67% {
+      opacity: 0.87;
+    }
+
+    82% {
+      opacity: 0.93;
+    }
+  }
+
+  // Heat shimmer — brightness surges on the core only (it carries no blur
+  // to clobber); the halo keeps its own pulse rhythm (emitted at root).
+  @keyframes #{$_B_NAV}-plasma-heat {
+    0%,
+    100% {
+      filter: brightness(1);
+    }
+
+    17% {
+      filter: brightness(1.35);
+    }
+
+    34% {
+      filter: brightness(0.9);
+    }
+
+    58% {
+      filter: brightness(1.5);
+    }
+
+    76% {
+      filter: brightness(1.1);
+    }
+  }
+
+  // Nav over dark surfaces (contact section / page bottom) — swap ink for light greys
+  &--on-dark {
+    .#{$_B_NAV}-link {
+      color: var(--grey-2);
+
+      &.router-link-exact-active,
+      &.active {
+        color: var(--color-white-raw);
+      }
+    }
+
+    .#{$_B_NAV}-separator {
+      color: var(--text-muted-on-dark);
+    }
+
+    .#{$_B_NAV}-lang-btn.active {
+      color: var(--color-white-raw);
+    }
+
+    .#{$_B_NAV}-burger-fallback {
+      &:before,
+      &:after,
+      .#{$_B_NAV}-burger-line {
+        background: var(--grey-2);
+      }
+    }
+  }
+
+  &-separator {
+    @extend %TTL_BASE;
+    @extend %TTL_XS;
+
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 0 to-rem(10);
+  }
+
+  // ── Language selector pill group ─────────────────────────────────────────
+  &-lang {
+    display: flex;
+    align-items: center;
+    gap: to-rem(4);
+  }
+
+  &-lang-btn {
+    letter-spacing: 0.04em;
+    opacity: 0.45;
+    transition:
+      opacity 0.2s ease,
+      color 0.2s ease;
+
+    &:hover,
+    &:focus {
+      opacity: 1;
+    }
+
+    &.active {
+      opacity: 1;
+      font-weight: 700;
+      color: var(--black);
+
+      &::after {
+        display: block;
+        content: '';
+        position: absolute;
+        bottom: calc(-1 * var(--space-2xs));
+        left: 0;
+        width: 100%;
+        height: var(--space-2xs);
+        border-radius: var(--space-hairline);
+        background: var(--grey);
+      }
+    }
+  }
+}

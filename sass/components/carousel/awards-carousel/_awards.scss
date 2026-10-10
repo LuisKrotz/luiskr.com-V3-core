@@ -1,0 +1,112 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  awards-carousel/_awards.scss — the awards variant — dark-footer strip with 10s auto-advance timer.
+//  Imported by awards-carousel.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════════════════
+//  VARIANT: awards (dark footer, 10s timer)
+// ════════════════════════════════════════════════════════════════════════════
+.aw-c--awards {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+
+  // Controls: horizontal dot row centered under the slide. The old
+  // absolute vertical column was capped at the image height — once dots
+  // became ≥24px pointer targets (WCAG 2.5.8) the column overflowed and
+  // painted over the award text. `order` re-seats the row (rendered
+  // before the track in DOM) below the slides.
+  .aw-c-controls {
+    position: static;
+    order: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    padding: 0;
+    flex-shrink: 0;
+    margin-top: to-rem($space-sm);
+  }
+
+  // Dots — active is same size but white (scoped to awards only)
+  .aw-c-dot {
+    &::before {
+      background: color-mix(in srgb, var(--color-white-raw) 30%, transparent);
+    }
+
+    &--active::before {
+      width: $awc-dot-size;
+      background: var(--color-white-raw);
+    }
+
+    &:hover:not(&--active)::before,
+    &:focus-visible:not(&--active)::before {
+      background: color-mix(in srgb, var(--color-white-raw) 55%, transparent);
+    }
+  }
+
+  // Dot row — shows every dot, wraps on very narrow viewports
+  .aw-c-dots {
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .aw-c-track {
+    order: 1;
+    width: 100%;
+    max-width: to-rem($space-8xl);
+    min-width: 0;
+  }
+
+  .aw-c-slide {
+    width: 100%;
+    flex-basis: 100%;
+    justify-content: center;
+  }
+
+  .aw-c-award {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+    color: $color-white;
+    gap: to-rem($space-xs);
+    padding: to-rem($space-lg) to-rem($space-sm);
+    width: 100%;
+
+    &-media {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: to-rem($space-3xl);
+      width: to-rem($space-5xl);
+      height: to-rem($space-5xl);
+      flex-shrink: 0;
+    }
+
+    &-img {
+      max-width: to-rem($space-5xl);
+      max-height: to-rem($space-5xl);
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      // No filter — images display naturally
+    }
+
+    &-text {
+      @extend .txt-xs;
+
+      font-weight: 100;
+      opacity: 0.7;
+      max-width: to-rem($space-7xl);
+    }
+  }
+}
+
+// ── Action button delayed appearance ─────────────────────────────────────────

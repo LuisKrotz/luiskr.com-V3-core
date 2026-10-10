@@ -1,0 +1,248 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  structure/_skeleton-utils.scss — global skeleton utilities — the shimmer/content-in keyframes and the .skeleton variant classes (pure CSS, no JS loop), plus the keyboard focus-ring emission.
+//  Imported by _structure.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Global Skeleton Utilities ────────────────────────────────────────────────
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// Skeleton placeholder surface + shimmer — driven entirely by CSS (no JS loop; the old rAF version froze iOS).
+.skeleton {
+  &--shimmer,
+  &-cover,
+  &-placeholder {
+    position: relative;
+    overflow: hidden;
+    background: var(--skel-bg-1);
+    color: transparent;
+    user-select: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        105deg,
+        transparent 30%,
+        var(--skel-bg-2) 45%,
+        var(--skel-bg-2) 55%,
+        transparent 70%
+      );
+      transform: translateX(-100%);
+      animation: skeleton-shimmer 1.8s linear infinite;
+      will-change: transform;
+      pointer-events: none;
+    }
+  }
+
+  &--title {
+    @extend .skeleton--shimmer;
+    width: 45%;
+    max-width: to-rem(480);
+    height: to-rem(24);
+    border-radius: to-rem($space-2xs);
+    display: block;
+    margin-bottom: to-rem($space-md);
+
+    @include layout-768() {
+      height: to-rem(36);
+    }
+    @include layout-1024() {
+      height: to-rem(56);
+    }
+  }
+
+  &--hero {
+    @extend .skeleton--shimmer;
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    border-radius: to-rem($space-lg);
+    display: block;
+  }
+
+  &--media {
+    @extend .skeleton--shimmer;
+    width: 100%;
+    height: 100%;
+    min-height: to-rem(200);
+    border-radius: to-rem($space-lg);
+    display: block;
+  }
+
+  &--text-block {
+    display: flex;
+    flex-direction: column;
+    gap: to-rem($space-sm);
+    width: 100%;
+    padding: to-rem($space-xs) 0;
+  }
+
+  &--text-line {
+    @extend .skeleton--shimmer;
+    height: to-rem(18);
+    border-radius: to-rem($space-2xs);
+
+    @include layout-768() {
+      height: to-rem(21);
+    }
+  }
+
+  &--tag {
+    @extend .skeleton--shimmer;
+    display: inline-block;
+    width: to-rem(110);
+    height: to-rem(36);
+    border-radius: to-rem($space-xl);
+  }
+
+  &--title-sm {
+    @extend .skeleton--shimmer;
+    display: inline-block;
+    width: 35%;
+    height: 1em;
+    border-radius: to-rem($space-2xs);
+  }
+
+  &--title-md {
+    @extend .skeleton--shimmer;
+    display: inline-block;
+    width: 45%;
+    height: 1em;
+    border-radius: to-rem($space-2xs);
+  }
+
+  &--section-title {
+    @extend .skeleton--shimmer;
+    display: block;
+    width: 55%;
+    height: calc(var(--skel-line) * 2);
+    border-radius: to-rem($space-2xs);
+  }
+
+  &--para-full {
+    @extend .skeleton--shimmer;
+    display: block;
+    width: 100%;
+    height: calc(var(--skel-line) * 3);
+    border-radius: to-rem($space-2xs);
+  }
+
+  &--para-94 {
+    @extend .skeleton--shimmer;
+    display: block;
+    width: 94%;
+    height: calc(var(--skel-line) * 2);
+    border-radius: to-rem($space-2xs);
+  }
+
+  &--para-98 {
+    @extend .skeleton--shimmer;
+    display: block;
+    width: 98%;
+    height: calc(var(--skel-line) * 3);
+    border-radius: to-rem($space-2xs);
+  }
+
+  &--para-65 {
+    @extend .skeleton--shimmer;
+    display: block;
+    width: 65%;
+    height: calc(var(--skel-line) * 2);
+    border-radius: to-rem($space-2xs);
+  }
+
+  &--badge {
+    @extend .skeleton--shimmer;
+    display: inline-block;
+    width: to-rem($space-3xl);
+    height: to-rem($space-3xl);
+    border-radius: 50%;
+    margin: 0 to-rem($space-md);
+  }
+
+  &--footer-link {
+    @extend .skeleton--shimmer;
+    display: inline-block;
+    width: to-rem($space-3xl);
+    height: 1em;
+    border-radius: to-rem($space-hairline);
+  }
+
+  &--footer-note-1 {
+    @extend .skeleton--shimmer;
+    display: block;
+    width: 90%;
+    height: to-rem($space-lg);
+    border-radius: to-rem($space-2xs);
+    margin-top: to-rem($space-lg);
+    margin-bottom: to-rem($space-sm);
+  }
+
+  &--footer-note-2 {
+    @extend .skeleton--shimmer;
+    display: block;
+    width: 75%;
+    height: to-rem($space-lg);
+    border-radius: to-rem($space-2xs);
+  }
+
+  // WebGL glyph field: absolutely-positioned overlay above the placeholders,
+  // sized + translated inline by SkeletonWebGL. Content stays interactive.
+  &-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 2;
+
+    // While resolving, the incoming content owns the foreground: the layer
+    // sinks below it so stale placeholder geometry never paints over real
+    // data — the dissolve is only visible through still-transparent areas.
+    &--resolving {
+      z-index: -1;
+    }
+  }
+
+  // Content arriving under a resolving layer fades in while glyphs collapse.
+  // The class lands on the [data-content] wrapper (display: contents), so the
+  // animation must target its children to be visible.
+  &-content-in > * {
+    animation: skeleton-content-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+// The canvas is a direct child of the shadow root: anchor its containing
+// block to the host while a layer is active. The placeholders remain in flow
+// so their geometry can still be measured, but become transparent because the
+// WebGL canvas already paints those exact rectangles. Leaving the CSS shimmer
+// visible underneath produces two superimposed skeleton animations everywhere.
+:host(.has-skeleton-layer) {
+  position: relative;
+  // Confine the layer's stacking to this host so the resolving z-index: -1
+  // drops under this component's content only — never behind page siblings.
+  isolation: isolate;
+
+  [data-content] [class*='skeleton'] {
+    opacity: 0;
+  }
+}
+
+@keyframes skeleton-content-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// ── Keyboard focus ring ─────────────────────────────────────────────────────
+// Emitted here so it lands in the document AND inside every component shadow
+// root that imports this file — :focus-visible fires for keyboard focus only,

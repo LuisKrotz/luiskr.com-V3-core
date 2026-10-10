@@ -1,0 +1,81 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  app/_flag.scss — the nav language flag: the lang open button, the
+//  flag wrapper's WebGL-canvas vs SVG-img fallback swap, and the
+//  side-by-side split-flag variant (two country codes, edge radii).
+//  Imported by app.scss (manifest) — uses $_B_NAV defined there.
+// ════════════════════════════════════════════════════════════════════════════
+
+$_B_FLAG: 'flag';
+
+// ── Nav flag images & WebGL Canvas ────────────────────────────────────────────
+.#{$_B_NAV}-lang-open-btn {
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  &:hover,
+  &:focus-visible {
+    transform: scale(1.15);
+  }
+}
+
+.#{$_B_NAV}-flag-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:has(.#{$_B_FLAG}-canvas:not(.is-fallback):not([style*='display: none'])) {
+    .#{$_B_FLAG}-img,
+    .#{$_B_FLAG}-split {
+      display: none;
+    }
+  }
+
+  // Show SVG images when WebGL canvas has fallback
+  &:has(.#{$_B_FLAG}-canvas.is-fallback) {
+    .#{$_B_FLAG}-img,
+    .#{$_B_FLAG}-split {
+      display: block;
+    }
+  }
+
+  .#{$_B_FLAG}-canvas {
+    height: var(--space-lg);
+    width: auto;
+    display: block;
+    border-radius: var(--space-2xs);
+  }
+}
+
+.#{$_B_FLAG}-img {
+  height: var(--space-lg);
+  width: auto;
+  max-height: var(--space-lg);
+  display: block;
+  border-radius: var(--space-2xs);
+}
+
+// Split flag: two country codes side by side
+.#{$_B_FLAG}-split {
+  display: inline-flex;
+  align-items: center;
+
+  .#{$_B_FLAG}-img {
+    height: var(--space-lg);
+    width: var(--space-md);
+    max-height: var(--space-lg);
+    object-fit: cover;
+    border-radius: 0;
+
+    &:first-child {
+      border-radius: var(--space-2xs) 0 0 var(--space-2xs);
+      object-position: left center;
+    }
+
+    &:last-child {
+      border-radius: 0 var(--space-2xs) var(--space-2xs) 0;
+      object-position: right center;
+    }
+  }
+}

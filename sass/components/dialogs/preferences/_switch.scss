@@ -1,0 +1,119 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  preferences/_switch.scss — iOS-style toggle switch rows (pref-switch) — label left, pill right, checked states.
+//  Imported by preferences.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ─── Toggle Switch ─────────────────────────────────────────────────────────
+// Single row with label on left, iOS-style switch pill on right.
+// Replaces 2-button pattern for binary on/off toggles.
+
+$_B_SW: 'pref-switch';
+$_SW_W: 52; // switch pill width
+$_SW_H: 28; // switch pill height
+$_SW_KNOB: 22; // knob diameter
+$_SW_PAD: 3; // padding inside pill
+
+// One switch row (label + description + WebGL toggle).
+.#{$_B_SW}-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: to-rem($space-md);
+  padding: to-rem($space-sm) 0;
+  border-bottom: to-rem(1) solid var(--border-color);
+  cursor: pointer;
+  user-select: none;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+// Text side of a switch row.
+.#{$_B_SW}-info {
+  display: flex;
+  flex-direction: column;
+  gap: to-rem($space-2xs);
+  flex: 1;
+  min-width: 0;
+}
+
+// Switch row label.
+.#{$_B_SW}-label {
+  font-family: var(--font-primary);
+  font-weight: 600;
+  font-size: to-rem(15);
+  color: var(--text-primary);
+}
+
+// Switch row description.
+.#{$_B_SW}-desc {
+  font-size: to-rem(13);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+// The WebGL switch canvas (pill track + knob).
+.#{$_B_SW} {
+  // The pill track
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: to-rem($_SW_W);
+  height: to-rem($_SW_H);
+  background: var(--border-color);
+  border-radius: var(--radius-round);
+  position: relative;
+  transition: background 0.2s ease;
+  cursor: pointer;
+  padding: 0;
+  border: none;
+  overflow: hidden;
+
+  &-canvas {
+    width: to-rem($_SW_W);
+    height: to-rem($_SW_H);
+    border-radius: var(--radius-round);
+    display: block;
+    pointer-events: none;
+
+    &.is-fallback {
+      display: none;
+    }
+  }
+
+  &:has(.#{$_B_SW}-canvas:not(.is-fallback):not([style*='display: none'])) {
+    background: transparent;
+  }
+
+  // Fallback CSS knob when canvas has is-fallback class
+  &:has(.#{$_B_SW}-canvas.is-fallback) {
+    &::after {
+      content: '';
+      position: absolute;
+      top: to-rem($_SW_PAD);
+      left: to-rem($_SW_PAD);
+      width: to-rem($_SW_KNOB);
+      height: to-rem($_SW_KNOB);
+      border-radius: 50%;
+      background: var(--color-white-raw);
+      box-shadow: var(--shadow-card);
+      transition:
+        transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+        background 0.2s ease;
+    }
+
+    &.#{$_B_SW}--on::after {
+      transform: translateX(to-rem($_SW_W - $_SW_KNOB - $_SW_PAD * 2));
+      background: var(--bg-darkest);
+    }
+  }
+
+  // ON state
+  &--on {
+    background: var(--color-accent);
+  }
+}
+
+// Dialog footer: done button row.

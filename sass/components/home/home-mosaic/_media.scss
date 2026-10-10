@@ -1,0 +1,63 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  home-mosaic/_media.scss — the card cover area: media wrapper, image,
+//  hover title overlay gradient, and the cqw-responsive title text.
+//  Imported by home-mosaic.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// height is set inline by JS — this block only handles visuals
+.home-mosaic-media {
+  position: relative;
+  border-radius: inherit;
+  overflow: hidden;
+  // transition on height so the image area animates when card expands/collapses
+  transition: height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  @media (max-width: 768px) {
+    transition: none;
+  }
+}
+
+// Card image.
+.home-mosaic-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: inherit;
+  transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+// Gradient overlay + title shown on hover.
+.home-mosaic-title-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: var(--space-md) var(--space-lg);
+  background: linear-gradient(
+    to top,
+    rgba($color-black, 0.88) 0%,
+    rgba($color-black, 0.12) 55%,
+    transparent 100%
+  );
+}
+
+// Card title text inside the overlay.
+.home-mosaic-title {
+  @extend %TTL_SM;
+  font-family: var(--font-primary);
+  font-weight: 100;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-white-raw);
+  text-shadow: 0 var(--space-2xs) var(--space-md) rgba($color-black, 0.8);
+  margin: 0;
+  font-size: var(--space-md); // fallback: Safari < 16 / iOS < 16 (no container query support)
+  font-size: clamp(var(--space-md), 5cqw, var(--space-lg));
+
+  .home-mosaic-item--featured & {
+    font-size: var(--space-xl); // fallback: Safari < 16 / iOS < 16
+    font-size: clamp(var(--space-md), 5.5cqw, var(--space-xl));
+    letter-spacing: 0.12em;
+  }
+}

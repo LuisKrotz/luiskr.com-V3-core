@@ -32,6 +32,11 @@ export const SF_CLASSES = Object.freeze({
   SF_HINT: `${_B_SF}-hint`,
   SF_LIVE: `${_B_SF}-live`,
 
+  // ── Hover tooltip (leader line + name/distance label) ────────────────────
+  SF_TIP: `${_B_SF}-tip`,
+  SF_TIP_LINE: `${_B_SF}-tip-line`,
+  SF_TIP_LABEL: `${_B_SF}-tip-label`,
+
   // ── Body navigator drawer (the keyboard/AT access path) ──────────────────
   SF_NAV: `${_B_SF}-nav`,
   SF_NAV_OPEN: `${_B_SF}-nav--open`,
@@ -43,6 +48,9 @@ export const SF_CLASSES = Object.freeze({
   SF_NAV_LIST: `${_B_SF}-nav-list`,
   SF_NAV_ITEM: `${_B_SF}-nav-item`,
   SF_NAV_ITEM_ACTIVE: `${_B_SF}-nav-item--active`,
+  SF_NAV_ITEM_META: `${_B_SF}-nav-item-meta`,
+  SF_NAV_MORE: `${_B_SF}-nav-more`,
+  SF_NAV_SEARCH: `${_B_SF}-nav-search`,
 
   // ── Info panel (lazy-loaded body dossier) ────────────────────────────────
   SF_PANEL: `${_B_SF}-panel`,
@@ -60,6 +68,19 @@ export const SF_CLASSES = Object.freeze({
   SF_FACT_VAL: `${_B_SF}-fact-val`,
   SF_PANEL_SOURCE: `${_B_SF}-panel-source`,
   SF_PANEL_LOADING: `${_B_SF}-panel-loading`,
+  SF_PANEL_SECTIONS: `${_B_SF}-panel-sections`,
+  SF_PANEL_SEC: `${_B_SF}-panel-sec`,
+  SF_PANEL_SEC_TITLE: `${_B_SF}-panel-sec-title`,
+  SF_PANEL_SEC_BODY: `${_B_SF}-panel-sec-body`,
+  SF_PANEL_SIG: `${_B_SF}-panel-sig`,
+
+  // ── Dossier media gallery (images / video / audio) ───────────────────────
+  SF_MEDIA: `${_B_SF}-media`,
+  SF_MEDIA_FIG: `${_B_SF}-media-fig`,
+  SF_MEDIA_IMG: `${_B_SF}-media-img`,
+  SF_MEDIA_CAP: `${_B_SF}-media-cap`,
+  SF_MEDIA_VIDEO: `${_B_SF}-media-video`,
+  SF_MEDIA_AUDIO: `${_B_SF}-media-audio`,
 
   // ── Actions ──────────────────────────────────────────────────────────────
   SF_ACTIONS: `${_B_SF}-actions`,

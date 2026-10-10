@@ -1,0 +1,68 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  media-figure/_media.scss — the render-media layers — img/video paint, the video element, and the expand-modal invisible open-2 trigger.
+//  Imported by media-figure.scss (manifest) — applies INSIDE the
+//  <media-figure> shadow root; not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Media layers ──────────────────────────────────────────────────────────────
+// Two-layer progressive cross-fade:
+//   Layer 1 (--thumb): blurred thumbnail visible immediately
+//   Layer 2 (--high):  full-res, fades in when loaded via .render-media--loaded
+.render-media {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: top center;
+  box-sizing: border-box;
+
+  @include layout-1024() {
+    border-radius: to-rem($space-lg);
+  }
+
+  // Thumbnail: blurred + slightly zoomed to hide blur edge artifacts
+  &--thumb {
+    filter: blur(12px);
+    transform: scale(1.05);
+    z-index: 1;
+  }
+
+  // High-res overlay: invisible until loaded
+  &--high {
+    opacity: 0;
+    z-index: 2;
+    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity;
+
+    &.render-media--loaded {
+      opacity: 1;
+    }
+  }
+}
+
+// ── Video element ─────────────────────────────────────────────────────────────
+// Carousel / extra-item context: videos fill their slide container.
+// The :host(.internal-main-item) block above overrides this for cover media.
+video.render-media {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+
+  @include layout-1024() {
+    border-radius: to-rem($space-lg);
+  }
+}
+
+// ── Expand modal trigger buttons ──────────────────────────────────────────────
+// exp-md-open-1: styled in modal.scss with animated corner borders
+// exp-md-open-2: invisible overlay for full-figure click area
+.exp-md-open-2 {
+  display: none;
+}

@@ -1,0 +1,75 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  structure/_dark-mode.scss — html.dark-mode overrides — flips --bg-*/--text-*/--menu-*/--skel-* tokens when the dark theme class is on <html>.
+//  Imported by _structure.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+html.dark-mode {
+  color-scheme: dark;
+
+  --bg-primary: #000000;
+  --bg-secondary: #030302;
+  --bg-dark: #040404;
+  --bg-dark-alpha: #{rgba($color-black, 0.92)};
+  --bg-darker: #1e1d1d;
+  --bg-darkest: #020202;
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #b8b1ac;
+  --border-color: rgba(255, 255, 255, 0.14);
+  --color-accent-contrast: #{$cms-accent};
+  --btn-accent-fill: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(11, 12, 16, 0.92);
+
+  // Mosaic title burn palette — dark theme: a blue-white plasma fire on
+  // the accent ramp (near-white core → signature cyan → deep teal edge)
+  // with an ink-dark scorch band against the black card surface.
+  --burn-core: #d8fbff;
+  --burn-mid: #{$cms-accent};
+  --burn-edge: #{$cms-accent-hover};
+  --burn-scorch: rgba(6, 22, 26, 0.85);
+
+  // Menu inks resolve to the current monochrome field — identical rendering.
+  --menu-bg: var(--bg-darkest);
+  --menu-ink: var(--text-primary);
+  --menu-ink-2: var(--text-primary);
+
+  --filament-glow: radial-gradient(
+    circle at 50% 30%,
+    rgba(95, 218, 255, 0.05) 0%,
+    rgba(40, 244, 255, 0.015) 50%,
+    transparent 80%
+  );
+
+  // Dark variant of the animated page backdrop — deep-water glows matching
+  // the filament palette, kept just above --bg-primary so the field shifts
+  // without lighting the canvas.
+  --bg-glow:
+    radial-gradient(ellipse 55% 45% at 18% 22%, rgba(95, 218, 255, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 82% 78%, rgba(40, 244, 255, 0.025) 0%, transparent 70%);
+  --metallic-hairline: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 20%,
+    rgba(55, 167, 212, 0.45) 50%,
+    rgba(255, 255, 255, 0.25) 80%,
+    transparent 100%
+  );
+
+  // Dark mode: subtle shadow border highlights card and cover boundaries on pitch black
+  --shadow-card: 0 0 0 0.0625rem rgba(255, 255, 255, 0.12), 0 0.125rem 1rem rgba(0, 0, 0, 0.45);
+  --shadow-card-featured:
+    0 0 0 0.0625rem rgba(255, 255, 255, 0.18), 0 0.5rem 2rem rgba(0, 0, 0, 0.65);
+  --shadow-card-hover:
+    0 0 0 0.0625rem rgba(255, 255, 255, 0.28), 0 1.25rem 3.125rem rgba(0, 0, 0, 0.85);
+
+  --white: #0a0b10;
+  --black: #ffffff;
+  --grey: #b2b4b7;
+  --grey-2: #abacac;
+  --grey-3: #cbd5e1;
+
+  --skel-ink: var(--text-primary);
+  --skel-bg-1: color-mix(in srgb, var(--bg-secondary) 93%, var(--color-white-raw) 7%);
+  --skel-bg-2: color-mix(in srgb, var(--bg-secondary) 83%, var(--color-white-raw) 17%);
+  --skel-bg-3: var(--skel-bg-1);
+}

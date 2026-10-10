@@ -1,0 +1,67 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  home-mosaic/_burn.scss — the hover title combustion: burning-ink state on
+//  the overlay h2, the canvas overlay that owns the rasterized glyphs while
+//  they erode, and the rewrite slot inserted above the description (hidden
+//  spacer dup + the <draw-text> clone that rewrites the title).
+//  Imported by home-mosaic.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// While the canvas owns the title's pixels the DOM glyphs stay mounted for
+// layout/a11y but paint nothing — the displaced/burning texture IS the text.
+.home-mosaic-title--burning {
+  color: transparent;
+  text-shadow: none;
+}
+
+// Combustion canvas — absolutely positioned over the title box by JS
+// (inline left/top/width/height); never intercepts the card link's pointer.
+.home-mosaic-title-burn {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  z-index: 2;
+}
+
+// Rewrite slot above the description — the spacer dup holds the space the
+// animated clone occupies, so the panel never reflows as chars draw in.
+.home-mosaic-title-slot {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--space-2xs);
+}
+
+// Invisible spacer — same typography as the title so its box IS the slot.
+.home-mosaic-title-dup {
+  @extend %TTL_SM;
+  display: block;
+  font-family: var(--font-primary);
+  font-weight: 100;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-white-raw);
+  visibility: hidden;
+  font-size: var(--space-md); // fallback: Safari < 16 / iOS < 16
+  font-size: clamp(var(--space-md), 5cqw, var(--space-lg));
+}
+
+// The rewritten title overlays the spacer exactly.
+.home-mosaic-title-rewrite {
+  @extend %TTL_SM;
+  position: absolute;
+  inset: 0;
+  display: block;
+  font-family: var(--font-primary);
+  font-weight: 100;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-white-raw);
+  font-size: var(--space-md); // fallback: Safari < 16 / iOS < 16
+  font-size: clamp(var(--space-md), 5cqw, var(--space-lg));
+
+  // Char draw at the desc cadence — rewritten as the burn completes.
+  .draw-text__char {
+    animation: char-draw 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 8ms));
+  }
+}

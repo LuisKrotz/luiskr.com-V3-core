@@ -1,0 +1,42 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  app/_chrome.scss — shell chrome: the fixed <app-nav> mount point, the
+//  routed-view wrapper, and the open/closed display rules for the
+//  preferences + language dialogs that layer above the menu overlay.
+//  Imported by app.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── App shell nav bar ─ fixed across the top; --on-dark variant inverts to light text over dark sections (contact band).
+app-nav {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+[data-app-wrapper] {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+preferences-modal:not([open]):not(.is-open),
+lang-dialog:not([open]):not(.is-open) {
+  display: none;
+}
+
+preferences-modal[open],
+preferences-modal.is-open,
+lang-dialog[open],
+lang-dialog.is-open {
+  display: block;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 10000;
+  pointer-events: auto;
+}

@@ -12,8 +12,13 @@ import { _B_LOADER } from '../base.js'
  */
 export const LOADER_CLASSES = Object.freeze({
   INTRO_LOADER: _B_LOADER,
+  INTRO_LOADER_GLOW: `${_B_LOADER}-glow`,
+  INTRO_LOADER_CONTENT: `${_B_LOADER}-content`,
+  INTRO_LOADER_SPINNER: `${_B_LOADER}-spinner`,
   INTRO_LOADER_PERCENT: `${_B_LOADER}-percent`,
-  INTRO_LOADER_TERMINAL: `${_B_LOADER}-terminal`,
-  INTRO_LOADER_LINE: `${_B_LOADER}-line`,
+  INTRO_LOADER_TITLE: `${_B_LOADER}-title`,
+  INTRO_LOADER_MSG: `${_B_LOADER}-msg`,
+  INTRO_LOADER_BAR: `${_B_LOADER}-bar`,
+  INTRO_LOADER_BAR_FILL: `${_B_LOADER}-bar-fill`,
   INTRO_LOADER_HIDDEN: `${_B_LOADER}--hidden`,
 })

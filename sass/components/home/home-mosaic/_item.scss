@@ -1,0 +1,129 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  home-mosaic/_item.scss — the .home-mosaic-item card container: transitions,
+//  hover/focus lift, featured shadow, and the living-tile border sheen ring
+//  (mosaic-border-sheen keyframes + reduced-motion cuts).
+//  Imported by home-mosaic.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// position / top / left / width / height are ALL set inline by JS.
+.home-mosaic-item {
+  cursor: pointer;
+  border-radius: var(--space-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--color-white-raw);
+  // Always dark — photo cards look wrong on a light background
+  background: var(--bg-dark);
+  box-shadow: var(--shadow-card);
+  box-sizing: border-box;
+  container-type: inline-size; // enables cqw units for child text
+  border: none;
+
+  // Smooth transitions — JS changes inline styles, CSS animates them.
+  // Desktop: all properties (height/top/left are non-composited but tolerable
+  // at desktop GPU speeds).
+  // Mobile: only GPU-composited properties — height/top/left transitions
+  // trigger a layout recalc on EVERY frame, causing the animation freeze
+  // reported on iOS and Android.
+  transition:
+    height 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.36s ease,
+    opacity 0.3s ease,
+    filter 0.3s ease;
+
+  @media (max-width: 768px) {
+    // Drop layout-affecting properties — keep only compositor-thread properties
+    transition:
+      transform 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.3s ease;
+  }
+
+  &--featured {
+    box-shadow: var(--shadow-card-featured);
+  }
+
+  // Living tile edge — a hairline gradient ring (mask-composite cuts the
+  // fill to border-width only) with a soft sheen slowly traveling the
+  // perimeter. Transform-free: background-position drifts on a long loop,
+  // cheap enough to run on every tile at once.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: var(--space-hairline);
+    background: linear-gradient(
+      120deg,
+      transparent 32%,
+      var(--border-item-hover) 45%,
+      var(--color-accent-contrast) 50%,
+      var(--border-item-hover) 55%,
+      transparent 68%
+    );
+    background-size: 300% 300%;
+    -webkit-mask:
+      linear-gradient(var(--color-white-raw) 0 0) content-box,
+      linear-gradient(var(--color-white-raw) 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(var(--color-white-raw) 0 0) content-box,
+      linear-gradient(var(--color-white-raw) 0 0);
+    mask-composite: exclude;
+    animation: mosaic-border-sheen 9s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
+  &:is(:hover, :focus-visible) {
+    transform: translateY(calc(-1 * var(--space-sm))) scale(1.015);
+    box-shadow: var(--shadow-card-hover);
+    z-index: 10;
+    opacity: 1;
+    filter: none;
+
+    .home-mosaic-media {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .home-mosaic-img {
+      transform: scale(1.07);
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  // While the title burns, the sheen ring would read as a second
+  // competing hover effect — freeze + hide it for the burn's duration.
+  &--burning::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+// Sheen drifts diagonally across the ring — alternate loop, slow and
+// low-contrast, so the grid shimmers without flickering.
+@keyframes mosaic-border-sheen {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-mosaic-item::after {
+    animation: none;
+  }
+}
+
+// Shadow DOM: mirror the store-driven html.reduced-motion flag.
+:host-context(html.reduced-motion) .home-mosaic-item::after {
+  animation: none;
+}

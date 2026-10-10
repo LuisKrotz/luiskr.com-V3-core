@@ -1,0 +1,145 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  app/_transitions.scss — page-transition machinery: the fade/slide-*
+//  enter/leave class pairs, the global reduced-motion override (both the
+//  html.reduced-motion class and the media-query path), and the
+//  #view-outlet cross-fade driven by App._flipToView().
+//  Imported by app.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+// ── Page transitions ──────────────────────────────────────────────────────────
+// All use mode="out-in" in App.vue
+
+// Fade
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// Slide left: new page enters from right
+.slide-left-enter-active {
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+.slide-left-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+.slide-left-enter-from {
+  opacity: 0;
+  transform: translateX(to-rem(48));
+}
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(to-rem(-32));
+}
+
+// Slide right: new page enters from left
+.slide-right-enter-active {
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+.slide-right-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+.slide-right-enter-from {
+  opacity: 0;
+  transform: translateX(to-rem(-48));
+}
+.slide-right-leave-to {
+  opacity: 0;
+  transform: translateX(to-rem(32));
+}
+
+// Slide up: new page enters from bottom
+.slide-up-enter-active {
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+.slide-up-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(to-rem(48));
+}
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(to-rem(-24));
+}
+
+// Slide down: when leaving About/Legal
+.slide-down-enter-active {
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+.slide-down-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+.slide-down-enter-from {
+  opacity: 0;
+  transform: translateY(to-rem(-32));
+}
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(to-rem(32));
+}
+
+// ── Global Reduced Motion Override ─────────────────────────────────────────
+html.reduced-motion,
+html.reduced-motion *,
+html.reduced-motion *::before,
+html.reduced-motion *::after {
+  animation-duration: 0.001ms;
+  animation-iteration-count: 1;
+  transition-duration: 0.001ms;
+  transition-delay: 0.001ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.001ms;
+    transition-delay: 0.001ms;
+  }
+}
+
+// ── 3D Book Page Flip Transition ──────────────────────────────────────────────
+// ── Page cross-fade transition ───────────────────────────────────────────────
+// Outgoing view fades to opacity 0 (350ms), then incoming view fades in.
+// Driven by JS in App._flipToView(); no direction logic needed.
+#view-outlet > * {
+  transition: opacity 0.35s ease;
+}
+
+.page-fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+// Incoming view starts invisible; JS removes this class after a reflow
+// so the CSS transition drives the fade-in automatically.
+.page-fade-in {
+  opacity: 0;
+}

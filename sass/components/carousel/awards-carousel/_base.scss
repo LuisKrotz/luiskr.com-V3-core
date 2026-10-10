@@ -1,0 +1,132 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  awards-carousel/_base.scss — the .aw-c container — scroll track, WebGL arrow controls, dot/pill navigation, shared $awc-* sizing vars, and the action-appear keyframes.
+//  Imported by awards-carousel.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+/// Dot diameter — inactive nav dots are small squares.
+$awc-dot-size: to-rem($space-md);
+/// Pill length — the active dot stretches to a rounded pill.
+$awc-dot-pill: to-rem($space-xl);
+/// Adjacent-slide bleed: how much of the neighbors peeks in on both sides.
+$awc-peek: 10vw;
+
+// ── Base container ───────────────────────────────────────────────────────────
+.aw-c {
+  position: relative;
+  width: 100%;
+  opacity: 0;
+  transform: translate3d(0, 32px, 0);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+
+  &.aw-c--in-view {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  // ── Scroll track ─────────────────────────────────────────────────────────
+  &-track {
+    display: flex;
+    align-items: stretch; // equal height for all slides
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &-slide {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+
+    &--clone {
+      pointer-events: none;
+      user-select: none;
+    }
+  }
+
+  // ── Controls ─────────────────────────────────────────────────────────────
+  &-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: to-rem($space-lg);
+  }
+
+  &-spacer {
+    flex: 1;
+  }
+
+  // ── Dots ─────────────────────────────────────────────────────────────────
+  &-dots {
+    display: flex;
+    align-items: center;
+    gap: to-rem($space-xs);
+    // Windowed: 1 active center + 2 partial each side
+    max-width: calc(#{$awc-dot-pill} + #{$awc-dot-size} * 2 + #{to-rem($space-xs)} * 4);
+    overflow: hidden;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &-dot {
+    @extend %RESETBTN;
+
+    // 8px visual dot lives in ::before; the button itself is a ≥24px pointer target (WCAG 2.5.8)
+    display: block;
+    position: relative;
+    height: calc(#{$awc-dot-size} * 3);
+    width: calc(#{$awc-dot-size} * 3);
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 50% auto auto 50%;
+      translate: -50% -50%;
+      height: $awc-dot-size;
+      width: $awc-dot-size;
+      border-radius: $awc-dot-size;
+      background: var(--text-muted);
+      transition:
+        width 0.25s ease,
+        background 0.25s ease;
+    }
+
+    &--active::before {
+      width: $awc-dot-pill;
+      background: var(--text-primary);
+    }
+
+    &:hover:not(&--active)::before,
+    &:focus-visible:not(&--active)::before {
+      background: var(--text-secondary);
+    }
+  }
+}
+
+// ── Action button delayed appearance ─────────────────────────────────────────
+@keyframes action-appear {
+  from {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+}

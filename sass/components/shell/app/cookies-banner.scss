@@ -1,0 +1,18 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  app/cookies-banner.scss — CookieBanner shadow stylesheet entry
+//  (adoptedStyleSheets). Compiles only the cookie-consent banner surface
+//  so the banner's styles travel with its component chunk instead of the
+//  document entry sheet.
+//  Standalone entry — imports the compile-time base chain itself.
+// ════════════════════════════════════════════════════════════════════════════
+
+@import '../../../base/variables';
+@import '../../../base/mixins';
+@import '../../../base/placeholders';
+// NOTE: no _fonts import — the banner @extends %TTL_XS (emitted on use)
+// instead of pulling the full ~200-line class ramp.
+// NOTE: no _structure import — :root custom properties are emitted once by
+// the document app.scss and inherit into shadow roots; re-emitting them
+// here would duplicate ~700 lines of tokens per shadow sheet.
+
+@import 'cookies';

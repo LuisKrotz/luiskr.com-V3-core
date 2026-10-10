@@ -1,0 +1,26 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  app/nav-shell.scss — AppNav shadow stylesheet entry (adoptedStyleSheets).
+//  Compiles only what lives inside the <app-nav> shadow root: the nav bar,
+//  burger controls, the fullscreen menu overlay, and the language flag.
+//  Keeps the document-level app.scss manifest free of shadow-only rules so
+//  the critical sheet stays small, and lets this chunk travel with the
+//  nav component instead of the page entry.
+//  Standalone entry — imports the compile-time base chain itself.
+// ════════════════════════════════════════════════════════════════════════════
+
+@import '../../../base/variables';
+@import '../../../base/mixins';
+@import '../../../base/placeholders';
+// NOTE: no _fonts import — partials @extend the %TTL_* placeholders (emitted
+// on use) instead of pulling the full ~200-line class ramp; no markup inside
+// this shadow uses .ttl-*/.txt-* classes directly.
+// NOTE: no _structure import — :root custom properties are emitted once by
+// the document app.scss and inherit into shadow roots; re-emitting them
+// here would duplicate ~700 lines of tokens per shadow sheet.
+
+$_B_NAV: 'nav';
+
+@import 'nav';
+@import 'nav-controls';
+@import 'menu-overlay';
+@import 'flag';

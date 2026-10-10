@@ -1,0 +1,118 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  preferences/_dialog.scss — the preferences dialog shell — :host open/closed display, backdrop, genie-zoom panel (--genie-x/y origin), header + title, reduced-motion.
+//  Imported by preferences.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Preferences Modal Dialog
+// ─────────────────────────────────────────────────────────────────────────────
+
+:host {
+  display: none;
+}
+
+:host([open]),
+:host(.is-open) {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+}
+
+// Backdrop: fullscreen dim/blur layer behind the dialog; the genie zoom uses --genie-x/y as transform origin.
+.pref-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // Simple uniform padding — box-sizing:border-box ensures width:100% accounts
+  // for this padding so the dialog always fits within the viewport and
+  // flexbox centering works symmetrically on all viewport sizes.
+  padding: to-rem($space-xl);
+  // Light veil: the menu animation behind must stay readable
+  background: rgba($color-black, 0.28);
+  -webkit-backdrop-filter: blur(to-rem($space-xs));
+  backdrop-filter: blur(to-rem($space-xs));
+  outline: none;
+  overflow: hidden;
+  transition: opacity 0.55s ease;
+
+  // Genie: the dialog zooms from / to the control that opened it.
+  // transform-origin is set inline (--genie-x/--genie-y, relative to the dialog box).
+  &--enter,
+  &--leave {
+    opacity: 0;
+  }
+
+  &--enter .pref-dialog,
+  &--leave .pref-dialog {
+    transform: scale(0.04) translateY(to-rem($space-xl));
+    opacity: 0;
+    filter: blur(to-rem($space-xs));
+  }
+
+  &--leave,
+  &--leave .pref-dialog {
+    pointer-events: none;
+  }
+}
+
+// The dialog card itself — scales from its trigger point via the genie custom properties.
+.pref-dialog {
+  width: 100%;
+  box-sizing: border-box;
+  // The backdrop padding constrains the width to grid; 610px cap prevents
+  // the dialog from stretching too wide on large viewports.
+  max-width: to-rem($space-8xl);
+  max-height: calc(88vh);
+  max-height: calc(88dvh);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: to-rem(1) solid var(--border-color);
+  border-radius: to-rem($space-xl);
+  box-shadow: 0 to-rem(24) to-rem(48) to-rem(-12) rgba($color-black, 0.35);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform-origin: var(--genie-x, 50%) var(--genie-y, 50%);
+  will-change: transform, opacity;
+  transition:
+    transform 0.72s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.48s cubic-bezier(0.32, 0.72, 0, 1),
+    filter 0.6s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pref-backdrop,
+  .pref-dialog {
+    transition: none;
+  }
+}
+
+// Dialog top row: title + circular close button.
+.pref-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: to-rem($space-xl) to-rem($space-2xl);
+  border-bottom: to-rem(1) solid var(--border-color);
+}
+
+// Dialog heading.
+.pref-title {
+  @extend .ttl-sm;
+
+  margin: 0;
+  font-family: var(--font-primary);
+  font-weight: 700;
+  letter-spacing: to-rem(-0.2);
+  color: inherit;
+}

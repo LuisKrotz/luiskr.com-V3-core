@@ -223,7 +223,9 @@ export function parsePath(pathname: string): RouteDescriptor {
     }
   }
 
-  // Star-field experiment
+  // Star-field experiment — optional body segment deep-links straight
+  // to a catalog object (/star-field-experiment/mars); the component
+  // validates it against the catalog and ignores unknown ids.
   if (first === slugs.starField || first === ROUTE_PATHS.STAR_FIELD_SEGMENT) {
     return {
       name: ROUTE_NAMES.STAR_FIELD,
@@ -234,7 +236,7 @@ export function parsePath(pathname: string): RouteDescriptor {
         title: `${String(appText(CMS_KEYS.STAR_FIELD))} ${CHAR_STRINGS.PIPE_SEP} ${BASE_TITLE}`,
         translation: TRANSLATION_KEYS.STAR_FIELD,
       },
-      params: {},
+      params: pathSegments[1] ? { body: pathSegments[1] } : {},
     }
   }
 

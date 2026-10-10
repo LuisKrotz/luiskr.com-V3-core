@@ -1,0 +1,45 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  modal/_pref-close.scss — the circular WebGL pref-close button inside the expand modal (canvas icon + fallback).
+//  Imported by modal.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Circular close button inside the expand modal (smaller than the pref dialog's).
+.#{$_B_PREF_CLOSE}-btn {
+  @extend %RESETBTN;
+
+  -webkit-appearance: none;
+
+  appearance: none;
+  flex-shrink: 0;
+  width: to-rem($space-3xl);
+  height: to-rem($space-3xl);
+  border-radius: var(--radius-round);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: none;
+
+  &::before,
+  &::after {
+    content: none;
+    border: none;
+  }
+
+  .#{$_B_PREF_CLOSE}-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-round);
+    display: block;
+    pointer-events: none;
+  }
+}

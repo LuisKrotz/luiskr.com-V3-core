@@ -1,0 +1,52 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  app/_keyframes.scss — shared motion keyframes: slide-in/out (toast
+//  lateral travel), slide-in/out-bottom, and the SVG stroke `dash` march
+//  used by loader/indicator glyphs across the shell.
+//  Imported by app.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+@keyframes slide-in {
+  from {
+    transform: translate3d(200%, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(200%, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-bottom {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slide-out-bottom {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 10;
+  }
+}

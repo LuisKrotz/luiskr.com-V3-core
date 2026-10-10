@@ -1,6 +1,8 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  intro-loader.scss — the boot loader overlay: a fixed fullscreen dark layer
-//  with the decoding spec-sheet lines, fading out once the app is ready.
+//  intro-loader.scss — the boot loader overlay, same visual language as the
+//  experiments' loaders (star-field / docs): fixed dark veil with a radial
+//  glow, spinning ring, big percent counter, brand title, a localized stage
+//  readout, and a thin progress bar. Lifts away once boot finishes.
 // ════════════════════════════════════════════════════════════════════════════
 
 @import '../../base/variables';
@@ -8,6 +10,12 @@
 @import '../../base/placeholders';
 
 $_B_LOADER: 'intro-loader';
+
+@keyframes intro-loader-spin {
+  to {
+    rotate: 360deg;
+  }
+}
 
 // Fullscreen dark veil over the whole boot — z-index 100000 sits above every
 // layer including dialogs. The exit transition fades + scales 1→1.05: the
@@ -19,12 +27,8 @@ $_B_LOADER: 'intro-loader';
   width: 100vw;
   height: 100vh;
   height: 100dvh;
-  background: var(--bg-dark);
+  background: var(--bg-darkest);
   z-index: 100000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
   transition:
     opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
@@ -41,41 +45,91 @@ $_B_LOADER: 'intro-loader';
     pointer-events: none;
   }
 
+  // Radial glow behind the content — same treatment as the experiment
+  // loaders: a dim electric halo sinking into the dark.
+  &-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle at center,
+      rgba($color-blue, 0.35) 0%,
+      rgba($color-black, 0.9) 60%,
+      rgba($color-black, 1) 100%
+    );
+  }
+
+  &-content {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  // Slow orbital ring — the shared experiments spinner.
+  &-spinner {
+    width: to-rem($space-8xl);
+    height: to-rem($space-8xl);
+    border-radius: var(--radius-round);
+    border: 1px solid rgba($color-white, 0.1);
+    border-top-color: rgba($color-white, 0.8);
+    animation: intro-loader-spin 8s linear infinite;
+    margin-bottom: to-rem($space-3xl);
+  }
+
   // The boot percentage — deliberately the only heavy weight on the site
   // (900 vs the usual 100–300) so it reads as a HUD numeral; tabular-nums
   // keeps digits fixed-width so the counter doesn't jitter as it climbs.
   &-percent {
-    @extend .ttl-xl;
+    @extend %TTL_XL;
 
-    font-size: to-rem($space-4xl);
     font-weight: 900;
-    color: var(--color-white-raw);
-    letter-spacing: to-rem($space-2xs);
+    color: rgba($color-white, 0.9);
+    letter-spacing: 0.1em;
     text-shadow: 0 0 to-rem($space-md) var(--shadow-ambient);
     margin-bottom: to-rem($space-lg);
     font-variant-numeric: tabular-nums;
   }
 
-  // Monospace "spec sheet" column under the percent — decoding log lines
-  // (the 0/1 binary visuals described in the design notes).
-  &-terminal {
-    font-family: monospace;
-    font-size: to-rem($space-sm);
-    color: var(--text-muted-on-dark);
-    line-height: 1.6;
-    max-width: to-rem(360);
-    width: 90%;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    gap: to-rem($space-2xs);
+  // Brand line under the counter — same register as the experiment titles.
+  &-title {
+    @extend %TTL_XS;
+
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba($color-white, 0.4);
+    margin-bottom: to-rem($space-xs);
   }
 
-  &-line {
-    opacity: 0.9;
-    white-space: nowrap;
+  // Localized boot-stage readout under the title.
+  &-msg {
+    @extend %TXT_XS;
+
+    font-family: var(--font-mono, monospace);
+    letter-spacing: 0.1em;
+    color: rgba($color-white, 0.8);
+    height: to-rem($space-lg);
+    line-height: to-rem($space-lg);
+  }
+
+  // Thin progress bar under the stage line.
+  &-bar {
+    width: to-rem($space-10xl);
+    height: to-rem($space-2xs);
+    margin-top: to-rem($space-xl);
+    border-radius: var(--radius-round);
+    background: rgba($color-white, 0.12);
     overflow: hidden;
-    text-overflow: ellipsis;
+  }
+
+  &-bar-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: var(--radius-round);
+    background: rgba($color-white, 0.85);
+    transition: width 0.3s ease-out;
   }
 }
 

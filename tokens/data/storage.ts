@@ -28,4 +28,6 @@ export const CACHE_STORAGE_KEYS = Object.freeze({
   SESSION_FB_CACHE_PREFIX: 'fb_cache_',
   /** Docs 3D-scene camera pose + rotation-off flag (session-scoped). */
   DOCS_SCENE_STATE: 'docs_scene_state',
+  /** Boot loader shown-once flag (session-scoped). */
+  INTRO_SHOWN: 'lk_intro_shown',
 })

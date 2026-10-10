@@ -1,0 +1,230 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  structure/_tokens.scss — the :root token publication — every SCSS token as a CSS custom property (colors, theme surfaces, menu inks, shadows, skeleton, spacing, radii, z-index, fonts, plasma). THE layer where $ vars become var()s.
+//  Imported by _structure.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+:root {
+  // Base raw colors
+  --color-white-raw: #{$color-white};
+  --color-black-raw: #{$color-black};
+  --color-grey-raw: #{$color-grey};
+  --color-grey-2-raw: #{$color-grey-2};
+  --color-grey-3-raw: #{$color-grey-3};
+  --color-blue-raw: #{$color-blue};
+
+  // CMS brand tokens — exposed as CSS vars so component SCSS files can use them
+  // without referencing $cms-* SCSS variables (which are _structure.scss-only).
+  --color-accent: #{$cms-accent};
+  --color-accent-hover: #{$cms-accent-hover};
+  --color-accent-contrast: #{$cms-accent-contrast};
+  // Keyboard focus ring ink — tracks the theme-aware control accent
+  // (deep teal in light mode, signature cyan in dark via the override
+  // below), so Tab affordance matches the project palette in both themes.
+  --focus-ring: var(--color-accent-contrast);
+  --bg-darkest: #{$cms-bg-darkest};
+
+  // Mosaic title burn palette — light theme: an airy paper-fire (pale
+  // core → warm mid → soft edge) with a gentler scorch so the char band
+  // doesn't read as pitch on the light card surface.
+  --burn-core: #ffe9b8;
+  --burn-mid: #ffb36b;
+  --burn-edge: #e07f3e;
+  --burn-scorch: rgba(72, 52, 34, 0.55);
+
+  // Light theme default tokens
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f7f7;
+  --bg-dark: #262626; // Current dark areas in light mode
+  --bg-darker: #161616; // Deep black blocks in light mode
+  --text-primary: #262626; // Main text
+  --text-secondary: #515151; // Muted text
+  --text-muted: #545454; // 7:1 on white AND --bg-secondary (WCAG AAA)
+  // Muted ink for always-dark surfaces (contact band, modals, photo
+  // overlays, loaders): 7.6:1 on --bg-dark in both themes.
+  --text-muted-on-dark: #b8b8b8;
+  --border-color: #e2e2e2;
+  --border-item: transparent;
+  --border-item-hover: rgba(255, 255, 255, 0.22);
+  --border-item-featured: rgba(255, 255, 255, 0.16);
+  --btn-accent-fill: rgba(0, 0, 0, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.94);
+
+  // Fullscreen menu — light mode reads as water: pale foam surface with
+  // deep→light blue inks feeding the contour-field shader and items.
+  --menu-bg: #eaf4f9;
+  --menu-ink: #0f5270; // 7.6:1 on --menu-bg — AAA for the small menu labels too
+  --menu-ink-2: #5cb9d8;
+
+  // Animated page backdrop (light theme) — two oversized soft washes echoing
+  // the menu's water palette; body::before drifts them on a slow loop so the
+  // bright field reads as a living degradê rather than flat white. Kept far
+  // below text contrast (AAA audit measures --bg-primary, this never paints
+  // over text surfaces directly — body content stays on the flat field).
+  --bg-glow:
+    radial-gradient(
+      ellipse 55% 45% at 18% 22%,
+      color-mix(in srgb, var(--menu-bg) 70%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 82% 78%,
+      color-mix(in srgb, var(--menu-ink-2) 14%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 40% 55% at 55% 45%,
+      color-mix(in srgb, var(--bg-secondary) 85%, transparent) 0%,
+      transparent 70%
+    );
+
+  // Card shadow tokens — light theme: elevated shadows show card lift clearly
+  // with a subtle hairline shadow border
+  --shadow-card: 0 0 0 0.0625rem rgba(0, 0, 0, 0.06), 0 0.125rem 0.75rem rgba(0, 0, 0, 0.1);
+  --shadow-card-featured: 0 0 0 0.0625rem rgba(0, 0, 0, 0.1), 0 0.5rem 1.75rem rgba(0, 0, 0, 0.22);
+  --shadow-card-hover: 0 0 0 0.0625rem rgba(0, 0, 0, 0.15), 0 1.25rem 3.125rem rgba(0, 0, 0, 0.45);
+
+  --white: #ffffff;
+  --black: #262626;
+  --grey: #a79e9e;
+  --grey-2: #f0f0f0;
+  --grey-3: #515151;
+  --blue: #{$color-blue};
+
+  // Skeleton shades sit close to real surfaces; dark containers redeclare
+  // them via %SKEL_DARK_SURFACE so tiles lift the local dark tone.
+  --skel-ink: var(--text-primary);
+  --skel-bg-1: color-mix(in srgb, var(--bg-secondary) 93%, var(--bg-dark) 7%);
+  --skel-bg-2: color-mix(in srgb, var(--bg-secondary) 83%, var(--bg-dark) 17%);
+  --skel-bg-3: var(--skel-bg-1);
+  // One line box of the element the skeleton stands in for (resolves at the usage site)
+  --skel-line: 1lh;
+
+  // Spacing tokens (Fibonacci scale) — emitted as rem lengths so
+  // var(--space-*) is a directly usable <length> in any component sheet
+  // without pulling the SCSS token file at compile time.
+  --space-none: #{$space-none};
+  --space-hairline: #{to-rem($space-hairline)};
+  --space-pixel: #{to-rem($space-pixel)};
+  --space-3xs: #{to-rem($space-3xs)};
+  --space-2xs: #{to-rem($space-2xs)};
+  --space-xs: #{to-rem($space-xs)};
+  --space-sm: #{to-rem($space-sm)};
+  --space-md: #{to-rem($space-md)};
+  --space-lg: #{to-rem($space-lg)};
+  --space-xl: #{to-rem($space-xl)};
+  --space-2xl: #{to-rem($space-2xl)};
+  --space-3xl: #{to-rem($space-3xl)};
+  --space-4xl: #{to-rem($space-4xl)};
+  --space-5xl: #{to-rem($space-5xl)};
+  --space-6xl: #{to-rem($space-6xl)};
+  --space-7xl: #{to-rem($space-7xl)};
+  --space-8xl: #{to-rem($space-8xl)};
+  --space-9xl: #{to-rem($space-9xl)};
+  --space-10xl: #{to-rem($space-10xl)};
+
+  // Border radius tokens
+  --radius-none: 0;
+  --radius-hairline: #{to-rem($space-hairline)};
+  --radius-2xs: #{to-rem($space-2xs)};
+  --radius-xs: #{to-rem($space-xs)};
+  --radius-sm: #{to-rem($space-sm)};
+  --radius-md: #{to-rem($space-md)};
+  --radius-lg: #{to-rem($space-lg)};
+  --radius-xl: #{to-rem($space-xl)};
+  --radius-full: 50%;
+  --radius-round: 9999px;
+
+  // Z-index layering system \u2014 exposed from $z-* SCSS tokens
+  --z-overlay: #{$z-overlay};
+  --z-hud: #{$z-hud};
+  --z-modal: #{$z-modal};
+  --z-cookies: #{$z-cookies};
+  --z-nav: #{$z-nav};
+  --z-top: #{$z-top};
+
+  // Consent-banner live height — CookieBanner writes the real px value on
+  // documentElement while visible and removes it when dismissed; the 0px
+  // default keeps `main` unpadded when no banner is up.
+  --cookie-banner-h: 0px;
+
+  // Font stacks
+  --font-mono: #{$font-mono};
+  --font-primary: 'Raleway', sans-serif;
+
+  /* Abbreviated CSS custom property mappings for optimized footprint */
+  /* --bg-primary -> --bg-1 */
+  --bg-1: var(--bg-primary);
+  /* --bg-secondary -> --bg-2 */
+  --bg-2: var(--bg-secondary);
+  /* --bg-dark -> --bg-d */
+  --bg-d: var(--bg-dark);
+  /* --bg-darker -> --bg-dr */
+  --bg-dr: var(--bg-darker);
+  /* --text-primary -> --tx-1 */
+  --tx-1: var(--text-primary);
+  /* --text-secondary -> --tx-2 */
+  --tx-2: var(--text-secondary);
+  /* --text-muted -> --tx-m */
+  --tx-m: var(--text-muted);
+  /* --border-color -> --bd-c */
+  --bd-c: var(--border-color);
+  /* --space-xs -> --sp-xs */
+  --sp-xs: var(--space-xs);
+  /* --space-sm -> --sp-sm */
+  --sp-sm: var(--space-sm);
+  /* --space-md -> --sp-md */
+  --sp-md: var(--space-md);
+  /* --space-lg -> --sp-lg */
+  --sp-lg: var(--space-lg);
+  /* --space-xl -> --sp-xl */
+  --sp-xl: var(--space-xl);
+  /* --radius-sm -> --r-sm */
+  --r-sm: var(--radius-sm);
+  /* --radius-md -> --r-md */
+  --r-md: var(--radius-md);
+  --filament-glow: none;
+  --metallic-hairline: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 20%,
+    rgba(55, 167, 212, 0.45) 50%,
+    rgba(255, 255, 255, 0.25) 80%,
+    transparent 100%
+  );
+
+  // Plasma-fire underline (nav logo) — an electric-blue filament band with
+  // a white-hot discharge core riding the filament palette; identical on
+  // both themes so it is declared once here rather than per theme.
+  // --plasma-line: the sharp core band — transparent tails let the travel
+  // keyframe loop seamlessly; the tight white/cyan spike is the discharge.
+  --plasma-line: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(55, 167, 212, 0.1) 14%,
+    rgba(95, 218, 255, 0.75) 30%,
+    rgba(190, 235, 255, 0.95) 40%,
+    rgba(255, 255, 255, 1) 45%,
+    rgba(190, 235, 255, 0.95) 50%,
+    rgba(40, 244, 255, 0.7) 62%,
+    rgba(55, 167, 212, 0.1) 82%,
+    transparent 100%
+  );
+  // --plasma-halo: the same band at lower alpha + wider feet — blurred
+  // behind the core it reads as the discharge's ionized sheath.
+  --plasma-halo: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(55, 167, 212, 0.08) 10%,
+    rgba(95, 218, 255, 0.4) 28%,
+    rgba(140, 220, 255, 0.55) 42%,
+    rgba(95, 218, 255, 0.45) 58%,
+    rgba(40, 244, 255, 0.35) 70%,
+    rgba(55, 167, 212, 0.08) 88%,
+    transparent 100%
+  );
+  // Discharge glow cast around the line — paired box-shadow stops.
+  --plasma-glow-near: rgba(95, 218, 255, 0.55);
+  --plasma-glow-far: rgba(55, 167, 212, 0.3);
+}
+
+// Dark theme token overrides — flips all --bg-*/--text-*/--menu-* vars when .dark-mode is on <html>.

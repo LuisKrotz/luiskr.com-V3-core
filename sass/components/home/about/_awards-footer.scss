@@ -1,0 +1,74 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  about/_awards-footer.scss — the awards footer band below Contact — dark surface skeleton tokens, compact awards carousel slot, and the legal-links row.
+//  Imported by about.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Awards footer (below Contact, same dark background) ──────────────────────
+.about-aw-ft {
+  @extend %SKEL_DARK_SURFACE;
+
+  background: var(--bg-dark);
+  color: $color-white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: to-rem($space-2xl) to-rem($space-lg) to-rem($space-3xl);
+
+  @include layout-768() {
+    padding: to-rem($space-2xl) to-rem($space-4xl) to-rem($space-3xl);
+  }
+  @include layout-2560() {
+    padding: to-rem($space-3xl) to-rem($space-5xl) to-rem($space-4xl);
+  }
+
+  // The awards carousel itself — limit max width so it feels compact & centred
+  .aw-c--awards {
+    max-width: to-rem($space-8xl);
+    width: 100%;
+  }
+
+  // Legal links row: same border + padding as .contact-social
+  &-skel {
+    display: flex;
+    justify-content: center;
+    padding: to-rem($space-xl) 0;
+  }
+}
+
+// Awards links row.
+.about-awards-links {
+  @extend .ttl-xs;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
+  color: var(--white);
+  width: 100%;
+  padding: to-rem($space-lg) to-rem($space-lg) 0;
+  border-top: to-rem($space-hairline) solid var(--grey);
+  margin-top: to-rem($space-lg);
+
+  @include layout-768() {
+    padding: to-rem($space-lg) to-rem($space-4xl) 0;
+  }
+
+  &-item {
+    @extend .ttl-xs;
+    @extend %LK_LINK;
+
+    color: var(--white);
+    text-decoration: none;
+    // The %LK_LINK underline is a border-bottom — keep the line box tight
+    // so it hugs the baseline like a real underline, and carry the row
+    // spacing on margins instead of an inflated line-height.
+    margin-block: to-rem($space-md);
+    line-height: to-rem($space-xl);
+  }
+
+  &-sep {
+    padding: 0 to-rem($space-md);
+    font-weight: 200;
+  }
+}

@@ -1,0 +1,188 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  awards-carousel/_selected.scss — the selected-work variant — near-full-viewport slides with adjacent peek, cover image, and the active-only label.
+//  Imported by awards-carousel.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════════════════
+//  VARIANT: selected work
+// ════════════════════════════════════════════════════════════════════════════
+.aw-c--selected {
+  position: relative;
+
+  // ── Slide widths: slightly narrower than viewport so adjacent slides peek ──
+  // The section has no lateral padding (home.scss zeros it),
+  // so 88vw slides → ~6vw peeking in from each side.
+  // Gap between slides gives visual breathing room.
+  .aw-c-track {
+    gap: to-rem($space-xl);
+
+    @include layout-768() {
+      gap: to-rem($space-2xl);
+    }
+    @include layout-1440() {
+      gap: to-rem($space-3xl);
+    }
+  }
+
+  .aw-c-slide {
+    width: 88vw;
+    flex-basis: 88vw;
+    box-sizing: border-box;
+    position: relative;
+
+    @include layout-768() {
+      width: 82vw;
+      flex-basis: 82vw;
+    }
+    @include layout-1024() {
+      width: 78vw;
+      flex-basis: 78vw;
+    }
+    @include layout-1440() {
+      width: 72vw;
+      flex-basis: 72vw;
+    }
+    @include layout-2560() {
+      width: 66vw;
+      flex-basis: 66vw;
+    }
+  }
+
+  // ── Cover image ──────────────────────────────────────────────────────────
+  // Uses a CSS custom property --cover-max-h set by JS to fit the viewport.
+  .aw-c-cover {
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    max-height: var(--cover-max-h, 80vh);
+    overflow: hidden;
+    background: var(--grey-2);
+    flex-shrink: 0;
+
+    &-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+
+    &--skel {
+      aspect-ratio: 16 / 7;
+      max-height: var(--cover-max-h, 80vh);
+
+      background: linear-gradient(
+        90deg,
+        var(--skel-bg-1) 25%,
+        var(--skel-bg-2) 50%,
+        var(--skel-bg-3) 75%
+      );
+      background-size: 200% 100%;
+      animation: skeleton-shimmer 2.4s ease-in-out infinite;
+    }
+  }
+
+  // ── Label: hidden on adjacent, fades in only on active slide ─────────────
+  // No %MAXAREA — the label sits inside the slide, so text aligns with the
+  // slide's left edge. The archive title is aligned separately.
+  .aw-c-label {
+    padding: to-rem($space-sm) 0 to-rem($space-xl);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.4s ease,
+      visibility 0.4s;
+    pointer-events: none;
+
+    &-title {
+      @extend .ttl-md;
+
+      font-weight: 200;
+      text-transform: uppercase;
+      padding-bottom: to-rem($space-lg);
+    }
+
+    &-desc {
+      @extend .txt-md;
+
+      font-weight: 300;
+    }
+
+    // "Click to open" — centered, corner-border animation on hover
+    &-action {
+      @extend %RESETBTN;
+      @extend .ttl-xs;
+
+      position: relative;
+      display: block;
+      text-align: center;
+      text-transform: uppercase;
+      padding: to-rem($space-xs) to-rem($space-lg);
+      color: var(--text-muted-on-dark);
+      font-weight: 700;
+      white-space: nowrap;
+      transition: color 0.2s ease;
+      margin: to-rem($space-xl) auto 0;
+      width: fit-content;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        width: to-rem($space-md);
+        height: to-rem($space-md);
+        transition:
+          width 0.25s ease,
+          height 0.25s ease;
+      }
+
+      &::before {
+        top: 0;
+        left: 0;
+        border-top: 1px solid var(--grey);
+        border-left: 1px solid var(--grey);
+      }
+
+      &::after {
+        bottom: 0;
+        right: 0;
+        border-bottom: 1px solid var(--grey);
+        border-right: 1px solid var(--grey);
+      }
+
+      &:hover,
+      &:focus {
+        color: var(--black);
+      }
+
+      &:hover::before,
+      &:focus::before,
+      &:hover::after,
+      &:focus::after {
+        width: calc(100% - #{to-rem($space-xs)});
+        height: calc(100% - #{to-rem($space-xs)});
+      }
+    }
+  }
+
+  .aw-c-slide--active .aw-c-label {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  // Action button appears after the description animation finishes
+  .aw-c-slide--active .aw-c-label-action {
+    animation: action-appear 0.4s ease-out forwards;
+    animation-delay: var(--action-delay, 0ms);
+  }
+
+  // home-item-link fills the full slide
+  .home-item-link {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+}

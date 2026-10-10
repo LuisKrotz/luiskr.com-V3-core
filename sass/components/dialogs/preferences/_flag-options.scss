@@ -1,0 +1,86 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  preferences/_flag-options.scss — option row iconography — flag canvas/img + split flag + option label/sub-label.
+//  Imported by preferences.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+$_B_FLAG: 'flag';
+
+// Icon inside an option button.
+.pref-option-icon {
+  font-size: to-rem($space-2xl);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:has(.#{$_B_FLAG}-canvas:not(.is-fallback):not([style*='display: none'])) {
+    .#{$_B_FLAG}-img,
+    .#{$_B_FLAG}-split {
+      display: none;
+    }
+  }
+
+  // Show SVG images when WebGL canvas has fallback
+  &:has(.#{$_B_FLAG}-canvas.is-fallback) {
+    .#{$_B_FLAG}-img,
+    .#{$_B_FLAG}-split {
+      display: block;
+    }
+  }
+}
+
+// Flag images & WebGL Canvas — SVG from local repo
+.#{$_B_FLAG}-img {
+  height: to-rem(44);
+  width: auto;
+  display: block;
+  border-radius: to-rem(3);
+  box-shadow: 0 to-rem($space-hairline) to-rem($space-xs) rgba($color-black, 0.25);
+}
+
+// Flag WebGL canvas in the language options.
+.#{$_B_FLAG}-canvas {
+  height: to-rem(44);
+  width: auto;
+  display: block;
+  border-radius: to-rem(3);
+  box-shadow: 0 to-rem($space-hairline) to-rem($space-xs) rgba($color-black, 0.25);
+  pointer-events: none;
+}
+
+// Split flag: two country flags side by side with a thin dividing line
+.flag-split {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  position: relative;
+
+  .flag-img {
+    height: to-rem(44);
+    width: to-rem(33); // force equal width so both flags share space evenly
+    object-fit: cover;
+    border-radius: 0;
+
+    &:first-child {
+      border-radius: to-rem(3) 0 0 to-rem(3);
+      object-position: left center;
+    }
+    &:last-child {
+      border-radius: 0 to-rem(3) to-rem(3) 0;
+      object-position: right center;
+    }
+  }
+}
+
+// Option label text.
+.pref-option-label {
+  font-family: var(--font-primary);
+  font-weight: 700;
+  font-size: to-rem(16);
+}
+
+// Option sub-label (locale name/description).
+.pref-option-sub {
+  font-size: to-rem(13);
+  color: var(--text-muted);
+}
