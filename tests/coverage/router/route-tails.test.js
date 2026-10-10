@@ -8,6 +8,7 @@ import { jest } from '@jest/globals'
 import store from '@core/store.js'
 import router from '@core/router/router.js'
 import { ROUTE_STRINGS } from '@core/tokens/strings/routes.js'
+import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { VIEW_TAGS } from '@core/tokens/elements/views.js'
 import { handleNavigation, syncDocumentHead } from '@core/router/navigate.js'
 import { parsePath } from '@core/router/parse-path.js'
@@ -47,6 +48,13 @@ describe('route tails', () => {
     expect(r.name).toBeTruthy()
 
     store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, null)
+  })
+
+  test('parsePath — star-field body segment deep-links feed params.body', () => {
+    const r = parsePath(`${ROUTE_PATHS.STAR_FIELD}/sun`)
+
+    expect(r.view).toBe(VIEW_TAGS.VIEW_STAR_FIELD)
+    expect(r.params.body).toBe('sun')
   })
 
   test('updateRobotsMeta — create, reuse, remove, absent arms', () => {

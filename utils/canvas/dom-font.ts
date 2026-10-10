@@ -15,6 +15,7 @@
  */
 
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
+import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
 /**
  * Pushes the font axes the `ctx.font` shorthand cannot express — stretch,
@@ -101,9 +102,8 @@ export function canvasTransformText(text: string, transform: string): string {
  * @param onReady Callback fired once fonts are usable.
  */
 export function whenFontsReady(onReady: () => void): void {
-  const fonts = (
-    typeof document !== 'undefined' ? document : undefined
-  )?.fonts as FontFaceSet | undefined
+  const fonts = (typeof document !== TYPE_STRINGS.UNDEFINED ? document : undefined)?.fonts as
+    FontFaceSet | undefined
 
   if (fonts?.ready?.then) {
     fonts.ready.then(onReady)
