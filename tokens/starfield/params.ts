@@ -381,6 +381,20 @@ export const SF_SPIRAL = Object.freeze({
   VOLUMETRIC_THICK: 0.45,
   VOLUMETRIC_HALO: 0,
   VOLUMETRIC_COUNT: 100000,
+  /**
+   * Volumetric dust lanes — the Great Rift. Large soft dark points laid
+   * along the arm gaps with NORMAL blending so they absorb the lit disc
+   * behind them; additive blending can't darken, so dust gets its own
+   * cloud at a fraction of the star budget.
+   */
+  DUST_COUNT: 3200,
+  /** Dust point size (world units) — fat soft occluders, not pinpricks. */
+  DUST_PX: 14,
+  /** Dust alpha — high enough to visibly rift the band, low enough to keep it translucent. */
+  DUST_OPACITY: 0.55,
+  /** Lane bands sit at these radius fractions of the disc. */
+  DUST_R_MIN: 0.18,
+  DUST_R_MAX: 0.85,
   ARMS: 4,
   WIND: 5.2,
   THIN: 0.08,
