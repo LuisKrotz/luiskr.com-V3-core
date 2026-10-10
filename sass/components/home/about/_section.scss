@@ -79,6 +79,7 @@
       // Cols: 1=pic, 2=gap, 3=text-1, 4=gap, 5=text-2
       grid-template-columns: 2fr 1fr 5fr 1fr 5fr;
       grid-template-rows: auto;
+      align-items: start;
       gap: 0;
       padding-bottom: to-rem($space-5xl);
     }
@@ -90,6 +91,7 @@
 
   &-profile-picture {
     flex-shrink: 0;
+    align-self: start;
     position: relative; // anchors the glitch overlay canvas
     // Mobile / 768px: fixed square size driven by space tokens
     width: to-rem($space-5xl);

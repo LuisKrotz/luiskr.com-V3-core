@@ -366,16 +366,16 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
     }
   }
 
-  // The flag lands WITH the label — hidden while draw-text writes the
-  // letters, then fades in on the same --draw-ms tick the underline
-  // sweeps in on (instead of popping ahead of the drawn type).
+  // The flag lands WITH the label — it starts fading in as the item's
+  // draw-text chars begin, so it settles alongside the text instead of
+  // popping ahead of it or waiting for the underline sweep.
   .#{$_B_NAV}-flag-wrapper {
     opacity: 0;
     transition: opacity 0.4s ease;
 
     .#{$_B_NAV}-menu-modal--open & {
       opacity: 1;
-      transition-delay: var(--draw-ms, 0.6s);
+      transition-delay: var(--offset-ms, 0ms);
     }
 
     .#{$_B_NAV}-menu-modal--settled & {

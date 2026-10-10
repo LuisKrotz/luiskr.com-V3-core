@@ -15,4 +15,8 @@ export const MENU_CSS_PROPS = Object.freeze({
   // Per-item ms until the label's letters finish drawing — the item
   // underline's transition-delay keys off it.
   DRAW_MS: '--draw-ms',
+  // Per-item ms until the label's letters START drawing — the language
+  // flag fades in alongside the first chars instead of waiting for the
+  // underline sweep, so the flag lands with the text rather than ahead.
+  OFFSET_MS: '--offset-ms',
 })
