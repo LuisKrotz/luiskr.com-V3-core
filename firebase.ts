@@ -131,6 +131,15 @@ export async function signInWithGoogle(): Promise<UserCredential | void> {
 
     if (code && AUTH_REDIRECT_FALLBACK_CODES.includes(code)) {
       devWarn('Popup sign-in unavailable, falling back to redirect', code)
+
+      // Mark the redirect leg so the login can tell "returned but no
+      // session" (blocked cross-site storage) apart from a fresh visit.
+      try {
+        sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_REDIRECT, '1')
+      } catch {
+        /* storage itself may be the blocker — the redirect still runs */
+      }
+
       return await signInWithRedirect(auth, provider)
     }
 
@@ -158,7 +167,17 @@ export async function onAuthChange(callback: (_user: User | null) => void): Prom
   const { getRedirectResult, onAuthStateChanged } = await import('firebase/auth')
 
   try {
-    await getRedirectResult(auth)
+    const result = await getRedirectResult(auth)
+
+    // A completed redirect consumed the marker — clear it so a later
+    // sign-out doesn't re-report a failure that never happened.
+    if (result?.user) {
+      try {
+        sessionStorage.removeItem(CACHE_STORAGE_KEYS.CMS_AUTH_REDIRECT)
+      } catch {
+        /* ignore */
+      }
+    }
   } catch (err) {
     devWarn('Redirect sign-in resolution failed', err)
   }
