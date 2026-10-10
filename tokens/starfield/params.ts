@@ -230,25 +230,44 @@ export const SF_BELT = Object.freeze({
 export const SF_STRUCTURE = Object.freeze({
   /** Shell sphere tessellation — low, it is a boundary hint not a body. */
   SEGMENTS: 48,
-  /** Shell rim brightness at grazing angles — the fresnel term only
-   *  lights the silhouette, so this can be higher than a fill opacity
-   *  without ever stacking into a sky film. */
-  SHELL_OPACITY: 0.5,
+  /** Shell rim brightness at grazing angles — kept low because additive
+   *  rims still stack into a visible film when the camera sits inside a
+   *  huge boundary (e.g. interstellar-neighborhood). */
+  SHELL_OPACITY: 0.18,
   /** Fresnel exponent — higher tightens the rim to a hairline bubble
    *  edge; lower spreads a broad halo inward. */
-  SHELL_RIM: 3.2,
+  SHELL_RIM: 4.0,
+  /**
+   * Shell fade-in band (× radius) — the camera must pull back to at least
+   * FADE_IN·r before the boundary becomes visible, ramping to full at
+   * FADE_OUT·r. This hides the inside of every hierarchy bubble while the
+   * viewer is deep within it (the giant cream-ball / soap-bubble bug).
+   */
+  FADE_IN: 1.25,
+  FADE_OUT: 1.7,
   /** Member-galaxy speckle count inside cluster/supercluster volumes. */
   SPECKLE_COUNT: 1400,
   /**
    * Speckle size (world units) — small enough that thousands of members
    * read as a point field at cosmic zoom, not an additive fog.
    */
-  SPECKLE_PX: 5,
-  SPECKLE_OPACITY: 0.55,
+  SPECKLE_PX: 2,
+  SPECKLE_OPACITY: 0.35,
   /** Per-speckle brightness floor — jitters up to 1.0 like a galaxy field. */
   SPECKLE_DIM: 0.35,
   /** Speckle radius fraction of the shell — members keep off the skin. */
   SPECKLE_FILL: 0.82,
+  /**
+   * Speckle volume flattening — galaxy clusters and superclusters are
+   *  flattened filament/sheet-like collections, not uniform spheres. The Y
+   *  axis is squashed by this factor to break the "disco ball" look.
+   */
+  SPECKLE_FLATTEN: 0.25,
+  /**
+   * Speckle radial concentration — lower exponents push members toward the
+   *  center (dense core + sparse outskirts); 1.0 is uniform volume.
+   */
+  SPECKLE_CONCENTRATE: 0.55,
 })
 
 /**
@@ -352,6 +371,16 @@ export const SF_SPIRAL = Object.freeze({
   MOBILE_DIVISOR: 4,
   /** Viewport width (px) below which the mobile divisor applies. */
   MOBILE_WIDTH: 900,
+  /**
+   * Volumetric galaxies (the Milky Way) are viewed from inside — keep
+   * the particle layer faint and thin so it reads as a stellar disc/band
+   * instead of an opaque glowing ball that fills half the screen.
+   */
+  VOLUMETRIC_OPACITY: 0.18,
+  VOLUMETRIC_PX: 1.0,
+  VOLUMETRIC_THICK: 0.45,
+  VOLUMETRIC_HALO: 0,
+  VOLUMETRIC_COUNT: 100000,
   ARMS: 4,
   WIND: 5.2,
   THIN: 0.08,
