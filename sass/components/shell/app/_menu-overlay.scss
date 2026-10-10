@@ -366,24 +366,33 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
     }
   }
 
-  // The flag lands WITH the label — it starts fading in as the item's
-  // draw-text chars begin, so it settles alongside the text instead of
-  // popping ahead of it or waiting for the underline sweep.
+  // The flag lands WITH the label — it fades in on the item's draw-text
+  // offset. This must be an ANIMATION, not a transition: the items are
+  // inserted after --open is already on the modal, so a transition never
+  // replays (element mounts at opacity 1 → flag beat the text every
+  // open). Animations run on insertion, so the offset delay actually
+  // takes.
+  @keyframes nav-flag-in {
+    to {
+      opacity: 1;
+    }
+  }
+
   .#{$_B_NAV}-flag-wrapper {
     opacity: 0;
-    transition: opacity 0.4s ease;
 
     .#{$_B_NAV}-menu-modal--open & {
-      opacity: 1;
-      transition-delay: var(--offset-ms, 0ms);
+      animation: nav-flag-in 0.4s ease var(--offset-ms, 0ms) forwards;
     }
 
     .#{$_B_NAV}-menu-modal--settled & {
-      transition-delay: 0s;
+      animation: none;
+      opacity: 1;
     }
 
     .#{$_B_NAV}-menu-modal--closing & {
-      transition-delay: 0s;
+      animation: none;
+      opacity: 0;
     }
   }
 }

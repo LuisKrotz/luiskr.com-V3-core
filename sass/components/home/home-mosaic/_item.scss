@@ -25,11 +25,14 @@
   // Mobile: only GPU-composited properties — height/top/left transitions
   // trigger a layout recalc on EVERY frame, causing the animation freeze
   // reported on iOS and Android.
+  // cubic-bezier(0.3, 0.9, 0.35, 1) — a softer attack than the old
+  // ease-out-quint (0.22,1,0.36): the card eases IN before settling so
+  // the expansion reads as a smooth bloom instead of a snap.
   transition:
-    height 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-    top 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-    left 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.6s cubic-bezier(0.3, 0.9, 0.35, 1),
+    top 0.6s cubic-bezier(0.3, 0.9, 0.35, 1),
+    left 0.6s cubic-bezier(0.3, 0.9, 0.35, 1),
+    transform 0.5s cubic-bezier(0.3, 0.9, 0.35, 1),
     box-shadow 0.42s ease,
     opacity 0.35s ease,
     filter 0.35s ease;

@@ -73,7 +73,11 @@
 // `width: fit-content` so the line hugs the text instead of spanning the column.
 %LK_LINK {
   position: relative;
-  border-bottom: to-rem($space-hairline) solid currentColor;
+  // The underline is hover-only — the hairline track is always reserved
+  // (transparent border) so no layout shift, and the ::after sweep is
+  // the ONLY visible line: the old visible→transparent border swap was
+  // the first-hover blink.
+  border-bottom: to-rem($space-hairline) solid transparent;
   transition: border-bottom-color 0.3s ease;
   cursor: pointer;
 
@@ -91,13 +95,11 @@
   }
 
   &:visited {
-    border-bottom-color: var(--grey);
+    border-bottom-color: transparent;
   }
 
   &:hover,
   &:focus-visible {
-    border-bottom-color: transparent;
-
     &::after {
       transform: scaleX(1);
     }

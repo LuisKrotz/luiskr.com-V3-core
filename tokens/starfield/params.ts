@@ -18,10 +18,11 @@ export const SF_CAMERA = Object.freeze({
    * precise to ~NEAR×1e6, so NEAR=0.5 keeps the ratio inside that bound.
    */
   FAR: 200000,
-  /** Home/overview pose — pulled back far enough to read the whole chart. */
+  /** Home/overview pose — frames the shrunken solar tier (Neptune at
+   *  ~21 units) with the neighborhood shell still in frame. */
   HOME_X: 0,
-  HOME_Y: 90,
-  HOME_Z: 260,
+  HOME_Y: 30,
+  HOME_Z: 90,
   TARGET_X: 0,
   TARGET_Y: 0,
   TARGET_Z: 0,
@@ -107,12 +108,23 @@ export const SF_SCALE = Object.freeze({
    * Neighborhood-band placement — authored bodies closer than ~3 000 ly
    * collapse to sub-unit chart radii under the exaggerated solar system,
    * so near stars/nebulae keep their true galactic direction but ride a
-   * legibility band that starts past Pluto's orbit (INNER) and widens
-   * monotonically with real distance for another BAND units before the
-   * honest compressed radius takes over.
+   * legibility band between INNER and INNER+BAND units before the
+   * honest compressed radius takes over. The inner edge sits ~10× past
+   * the shrunken solar tier (~30 units) so the Sun's system floats in a
+   * real void instead of a crowded star field.
    */
-  NEIGHBORHOOD_INNER: 150,
-  NEIGHBORHOOD_BAND: 150,
+  NEIGHBORHOOD_INNER: 300,
+  NEIGHBORHOOD_BAND: 300,
+  /**
+   * Solar-tier legibility shrink — the catalog authors AU-scale bodies
+   * at diagram size (Sun radius 12 = a 1 200-ly body at the galactic
+   * tier — larger than honestly-scaled dwarf spheroidals, the "Sun
+   * bigger than a galaxy" offense). Multiplied into every SOLAR def's
+   * radius/orbit/belt/satellite sizes so the whole system lands inside
+   * ~30 units: still diagram-exaggerated, now smaller than the least
+   * dwarf galaxy.
+   */
+  SOLAR_SCALE: 0.2,
 })
 
 /**
@@ -282,13 +294,24 @@ export const SF_KEYS = Object.freeze({
 
 /**
  * Detail level-of-detail — secondary geometry (atmosphere shells, ring
- * discs, satellite companions, orbit guides) renders only while the
+ * discs, satellite companions) renders only while the
  * camera is within `PAD + size * SCALE` of the body's anchor, so distant
  * bodies draw as a single primitive like a streaming game world.
  */
 export const SF_LOD = Object.freeze({
-  PAD: 80,
+  PAD: 40,
   SCALE: 12,
+  /**
+   * Deep-tier reveal — while the camera sits inside the local bubble
+   * (this many chart units from the solar barycenter) black holes,
+   * external galaxies, dwarf galaxies and hierarchy shells do not draw
+   * at all: from the Sun's neighborhood the galactic centre is a radio
+   * point source, not a resolvable object. The volumetric Milky Way disc
+   * is exempt — it is the sky band the camera is embedded in. The value
+   * sits just past the neighborhood band edge (300 + 300) so one zoom
+   * tier out of home reveals the galactic hierarchy.
+   */
+  DEEP_REVEAL: 620,
 })
 
 /**
@@ -351,7 +374,7 @@ export const SF_DETAIL = Object.freeze({
    * this subtends only a few pixels at the home camera, so an invisible
    * proxy bubble of this radius rides inside its mesh for raycasts.
    */
-  PICK_MIN: 5,
+  PICK_MIN: 2,
   /** Photo-disc diameter as a multiple of the catalog radius. */
   GALAXY_DISC: 2.2,
 })
@@ -381,6 +404,17 @@ export const SF_SPIRAL = Object.freeze({
   VOLUMETRIC_THICK: 0.45,
   VOLUMETRIC_HALO: 0,
   VOLUMETRIC_COUNT: 100000,
+  /**
+   * Rotating inner-disc fraction (× radius) — volumetric galaxies split
+   * their particle fill at this radius: the inner region carries the
+   * `spin` revolution around the galactic centre while the outer disc
+   * (which contains the carved heliocentric bubble) stays put so the
+   * Sun's exclusion zone never sweeps stars through the solar system.
+   * Real galactic rotation is differential anyway — inner material laps
+   * the rim, so a spinning core inside a still outer disc is the honest
+   * read. 0.3 keeps the rotors well inside the Sun's 0.51 ring.
+   */
+  INNER_SPIN_R: 0.3,
   /**
    * Volumetric dust lanes — the Great Rift. Large soft dark points laid
    * along the arm gaps with NORMAL blending so they absorb the lit disc
@@ -436,9 +470,10 @@ export const SF_SPIRAL = Object.freeze({
    * `spiralDisc.bubble` galaxy's particle fill around the solar system —
    * keeps random disc stars from overlapping the Sun/planet meshes while
    * staying far smaller than the ~267-unit galactocentric gap, so the
-   * Sun still reads as embedded in the disc.
+   * Sun still reads as embedded in the disc. Sized past the shrunken
+   * Kuiper edge (~30 units under SOLAR_SCALE) with margin.
    */
-  SUN_BUBBLE: 30,
+  SUN_BUBBLE: 42,
 })
 
 /**
@@ -613,7 +648,6 @@ export const SF_COLORS = Object.freeze({
   SHELL_SUPER: 0x7a68a8,
   SHELL_UNIVERSE: 0x9a8fb8,
   SPECKLE: 0x8fa8d8,
-  ORBIT_LINE: 0x4a5568,
   /** Small-body belts — rocky rubble grey-brown, Kuiper ice blue-white. */
   ASTEROID_BELT: 0x9a8d7c,
   KUIPER_BELT: 0xa8c4e0,
@@ -652,16 +686,6 @@ export const SF_SCENE = Object.freeze({
    * beyond it or the panorama would clip through the boundary).
    */
   SKYBOX_RADIUS: 64000,
-  ORBIT_SEGMENTS: 128,
-  /** Guide-ring base opacity — the edge-on fade scales this per frame. */
-  ORBIT_OPACITY: 0.35,
-  /**
-   * Edge-on gain for orbit guides — opacity = base × min(1, edge·gain),
-   * where `edge` is |normal·viewDir| (1 face-on → 0 edge-on). ~2 keeps
-   * rings near-full until ~30° tilt, then fades them out so a guide
-   * never renders as a hard straight line through the body.
-   */
-  ORBIT_EDGE_GAIN: 2,
   SPHERE_SEGMENTS: 48,
   RING_SEGMENTS: 96,
   /**

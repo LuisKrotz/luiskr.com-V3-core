@@ -41,15 +41,8 @@
   will-change: auto; // release GPU layer after animation is done
 }
 
-.draw-text--done {
-  a::after,
-  a:link::after,
-  a:visited::after {
-    transform: scaleX(1);
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
+// Done state keeps the underline hover-only — the ::after stays a hover
+// sweep, never a resting line (the old scaleX(1) here drew it forever).
 
 // ── Related Mosaic: animate write effect ─────────────────────────────────────
 .related-mosaic-desc .draw-text__char {

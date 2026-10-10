@@ -29,12 +29,14 @@
       content: '';
       position: absolute;
       inset: 0;
+      // Crisp sweep line — the broad gradient feathered the surface and
+      // read as blur over the placeholder rows.
       background: linear-gradient(
         105deg,
-        transparent 30%,
-        var(--skel-bg-2) 45%,
-        var(--skel-bg-2) 55%,
-        transparent 70%
+        transparent 38%,
+        var(--skel-bg-2) 46%,
+        var(--skel-bg-2) 52%,
+        transparent 60%
       );
       transform: translateX(-100%);
       animation: skeleton-shimmer 1.8s linear infinite;

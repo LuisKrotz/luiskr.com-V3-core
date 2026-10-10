@@ -16,10 +16,12 @@
   animation: none;
 }
 
-:host-context(html.reduced-motion) .draw-text a::after {
+// Underline stays hover-only under reduced motion — no resting line.
+:host-context(html.reduced-motion) .draw-text a:hover::after,
+:host-context(html.reduced-motion) .draw-text a:focus-visible::after,
+:host-context(html.reduced-motion) .draw-text a:active::after {
   transform: scaleX(1);
   opacity: 1;
-  pointer-events: auto;
   transition-delay: 0s;
 }
 
@@ -37,10 +39,11 @@
     animation: none;
   }
 
-  .draw-text a::after {
+  .draw-text a:hover::after,
+  .draw-text a:focus-visible::after,
+  .draw-text a:active::after {
     transform: scaleX(1);
     opacity: 1;
-    pointer-events: auto;
     transition-delay: 0s;
   }
 }

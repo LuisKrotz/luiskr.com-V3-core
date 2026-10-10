@@ -53,9 +53,9 @@
   // color is the only link ink :visited is allowed to change). A parent
   // pseudo-element draws the underline because native text-decoration skips
   // the inline-block word spans and otherwise paints only beneath whitespace.
-  // The line is drawn at rest; hover/focus wipes it out to the right and
-  // regrows it from the left in a loop — the same cycle %LK_LINK runs on
-  // plain links outside this shadow root.
+  // The underline is HOVER-ONLY — the ::after sweeps in on hover/focus and
+  // never rests visible, matching %LK_LINK on plain links outside this
+  // shadow root.
   a,
   a:link,
   a:visited {
@@ -85,6 +85,7 @@
     &:focus-visible::after,
     &:active::after {
       opacity: 1;
+      transform: scaleX(1);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -92,6 +93,7 @@
       &:focus-visible::after,
       &:active::after {
         opacity: 1;
+        transform: scaleX(1);
       }
     }
   }

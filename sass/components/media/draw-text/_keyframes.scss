@@ -5,20 +5,13 @@
 //  Imported by draw-text.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
-// Desktop: sharp scale + rise reveal. No blur filter so glyphs stay
-// crisp throughout the animation rather than smearing.
+// Desktop: sharp pop-in — the glyph is either hidden or fully formed;
+// the old squash + half-opacity mid-states made mid-draw text read as
+// blurred rather than drawn.
 @keyframes char-draw {
   0% {
     opacity: 0;
-    transform: translateY(0.12em) scaleY(0.3);
-  }
-  30% {
-    opacity: 0.5;
-    transform: translateY(0.04em) scaleY(0.85);
-  }
-  60% {
-    opacity: 0.85;
-    transform: translateY(0.01em) scaleY(0.97);
+    transform: translateY(0.12em);
   }
   100% {
     opacity: 1;
