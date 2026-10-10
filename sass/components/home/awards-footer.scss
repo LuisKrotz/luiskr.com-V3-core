@@ -87,6 +87,9 @@
 
       color: var(--color-white-raw);
       text-decoration: none;
+      // Home-footer legal links (Privacy, LGPD, Terms) rest without an
+      // underline; the LK_LINK pseudo-element still sweeps in on hover.
+      border-bottom-color: transparent;
       // The %LK_LINK underline is a border-bottom — keep the line box tight
       // so it hugs the baseline like a real underline, and carry the row
       // spacing on margins instead of an inflated line-height.

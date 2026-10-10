@@ -62,36 +62,15 @@
   --skel-ink: var(--color-white-raw);
 }
 
-// ═══ Inline text-link underline — drawn at rest, wipes through on hover ═══
+// ═══ Inline text-link underline — drawn at rest, sweeps in on hover ═══
 // The resting line is the link element's own border-bottom: border-color is
 // one of the few properties :visited is allowed to restyle (pseudo-elements
 // and backgrounds always paint as :link), so visited links keep the same
 // underline but in the muted --grey token. On hover/focus the border fades
-// out and a ::after hairline takes over at the exact same offset, wiping
-// out to the right and regrowing from the left in a continuous loop —
-// transform-only so the cycle stays on the compositor. Block-level links
-// (stacked footer rows) should add `width: fit-content` so the line hugs
-// the text instead of spanning the column.
-@keyframes lk-link-line-cycle {
-  0% {
-    transform: scaleX(1);
-    transform-origin: right center;
-  }
-  42% {
-    transform: scaleX(0);
-    transform-origin: right center;
-  }
-  50% {
-    transform: scaleX(0);
-    transform-origin: left center;
-  }
-  92%,
-  100% {
-    transform: scaleX(1);
-    transform-origin: left center;
-  }
-}
-
+// out and a ::after hairline takes over at the exact same offset, growing
+// from left to right once via transform — no looping animation, so the first
+// hover no longer blinks. Block-level links (stacked footer rows) should add
+// `width: fit-content` so the line hugs the text instead of spanning the column.
 %LK_LINK {
   position: relative;
   border-bottom: to-rem($space-hairline) solid currentColor;
@@ -107,6 +86,7 @@
     background: currentColor;
     transform: scaleX(0);
     transform-origin: left center;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     pointer-events: none;
   }
 
@@ -119,7 +99,7 @@
     border-bottom-color: transparent;
 
     &::after {
-      animation: lk-link-line-cycle 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+      transform: scaleX(1);
     }
   }
 
@@ -129,7 +109,7 @@
       border-bottom-color: currentColor;
 
       &::after {
-        animation: none;
+        transform: scaleX(0);
       }
     }
   }
