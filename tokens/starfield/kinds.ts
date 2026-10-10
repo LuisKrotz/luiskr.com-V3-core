@@ -51,6 +51,12 @@ export const SF_KINDS = Object.freeze({
   DWARF_GALAXY: 'dwarfGalaxy',
   /** Cosmic-hierarchy boundary shells + speckle volumes. */
   STRUCTURE: 'structure',
+  /**
+   * Small-body annulus (asteroid belt, Kuiper belt) — a seeded Points
+   * disc between `belt.inner`/`belt.outer`; not raycast-pickable, the
+   * navigator still flies to it for the dossier.
+   */
+  BELT: 'belt',
 })
 
 /**

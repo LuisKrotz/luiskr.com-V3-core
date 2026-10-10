@@ -129,23 +129,51 @@ export const SF_BH = Object.freeze({
   DISC_INNER: 1.6,
   DISC_OUTER: 4.2,
   /** Orbiting plasma particles inside the disc and their point size. */
-  SWIRL_COUNT: 1400,
+  SWIRL_COUNT: 2600,
   SWIRL_PX: 1.4,
   /** Bipolar jet: half-length and base radius (× radius). */
   JET_LEN: 9,
   JET_WIDTH: 0.55,
   /** Jet tip radius (× radius) — keeps the beam collimated. */
   JET_TIP: 0.06,
-  /** Jet opacity — additive faint so it reads as relativistic plasma. */
-  JET_OPACITY: 0.34,
-  /** Warm glow sprite behind the hole (× radius) and its opacity. */
-  GLOW_SCALE: 11,
-  GLOW_OPACITY: 0.55,
+  /**
+   * Jet opacity — a whisper, not a lightsaber. Sgr A*'s outflow is
+   * radio-faint optically; at chart scale the beams only hint the disc
+   * poles. Vertex fade multiplies it to nothing by mid-beam.
+   */
+  JET_OPACITY: 0.1,
+  /**
+   * Warm glow sprite behind the hole (× radius) and its opacity — kept
+   * tight so the additive stack (disc + photon + jets + glow) doesn't
+   * wash the whole frame to cream at fly-in distance.
+   */
+  GLOW_SCALE: 6,
+  GLOW_OPACITY: 0.32,
   /** Photon-ring torus tube thickness (× radius) and opacity. */
   PHOTON_TUBE: 0.07,
   PHOTON_OPACITY: 0.95,
   /** Smooth accretion annulus opacity under the particle swirl. */
   DISC_OPACITY: 0.5,
+  /** Ring tessellation of the accretion annulus mesh. */
+  DISC_SEGMENTS: 128,
+  /**
+   * Dust-lane math (disc node shader) — two detuned ring harmonics
+   * multiply into irregular dark absorption bands. `LANE_FLOOR` keeps
+   * the lanes translucent instead of cutting solid black; `LANE_AMP`
+   * is the modulation depth around it.
+   */
+  DISC_LANE_FLOOR: 0.62,
+  DISC_LANE_AMP: 0.38,
+  /** Lane harmonic frequencies — angular/radial for wave A and B. */
+  DISC_LANE_ANG_A: 5.0,
+  DISC_LANE_RAD_A: 0.9,
+  DISC_LANE_RAD_B: 2.3,
+  DISC_LANE_ANG_B: 2.0,
+  /** Radial heat exponent — ISCO edge blinding, rim fading to dust. */
+  DISC_CORE_EXP: 1.6,
+  /** Alpha envelope — floor keeps the outer dust faintly lit. */
+  DISC_A_FLOOR: 0.25,
+  DISC_A_AMP: 0.75,
   /** Swirl vertical puff (× radius) and inner-thickness bias. */
   SWIRL_PUFF: 0.12,
   SWIRL_BIAS: 0.4,
@@ -159,6 +187,38 @@ export const SF_BH = Object.freeze({
   SWIRL_EDGE_R: 0.65,
   SWIRL_EDGE_G: 0.52,
   SWIRL_EDGE_B: 0.18,
+})
+
+/**
+ * Small-body belts (asteroid + Kuiper) — the seeded Points annulus each
+ * `kind: belt` catalog entry renders. Radii live on the def itself
+ * (belt.inner/belt.outer); these tokens own particle size, opacity and
+ * the default vertical half-thickness fraction.
+ */
+export const SF_BELT = Object.freeze({
+  /** Particle sprite size in px — small enough to read as rubble. */
+  PX: 1.1,
+  /** Overall belt opacity — translucent so orbits read through it. */
+  OPACITY: 0.85,
+  /**
+   * Default vertical half-thickness as a fraction of the annulus width
+   * when the def omits `belt.puff` — real belts are thin but not flat.
+   */
+  PUFF: 0.16,
+  /**
+   * Per-particle brightness variation — vertex colors jitter ±this so
+   * the annulus reads as mixed albedos (dark C-types vs bright S-types)
+   * rather than a uniform dotted ring.
+   */
+  ALBEDO_JITTER: 0.45,
+  /**
+   * Kirkwood-style gap frequency for the asteroid belt — the density
+   * modulation `sin(r·GAP_FREQ)` carves resonance lanes; the Kuiper belt
+   * passes a def-level 0 to keep its smooth classical disc.
+   */
+  GAP_FREQ: 1.9,
+  /** Gap depth — fraction of particles rejected inside a lane (0–1). */
+  GAP_DEPTH: 0.55,
 })
 
 /**
@@ -238,9 +298,16 @@ export const SF_DETAIL = Object.freeze({
   RING_INNER: 1.24,
   RING_OUTER: 2.28,
   /** Additive halo sprite diameter as a multiple of the star's radius. */
-  HALO_SCALE: 5.5,
+  HALO_SCALE: 4.6,
   /** Halo sprite opacity — kept under 1 so the limb stays crisp. */
-  HALO_OPACITY: 0.65,
+  HALO_OPACITY: 0.55,
+  /**
+   * Fresnel exponent on the luminous-sphere shader — how tightly the rim
+   * hugs the limb. ~2.2 keeps a bright core with a hot narrow bloom;
+   * satellites use the looser value so their small discs stay soft.
+   */
+  STAR_RIM_FALLOFF: 2.2,
+  SAT_RIM_FALLOFF: 1.5,
   /** Earth's cloud shell rides this multiple above the surface sphere. */
   CLOUD_SCALE: 1.018,
   CLOUD_OPACITY: 0.55,
@@ -504,6 +571,9 @@ export const SF_COLORS = Object.freeze({
   SHELL_UNIVERSE: 0x9a8fb8,
   SPECKLE: 0x8fa8d8,
   ORBIT_LINE: 0x4a5568,
+  /** Small-body belts — rocky rubble grey-brown, Kuiper ice blue-white. */
+  ASTEROID_BELT: 0x9a8d7c,
+  KUIPER_BELT: 0xa8c4e0,
   LABEL: 0xe6ecf5,
   /** Star-cloud spectral ramp — B-V index stops for the real HYG field. */
   STAR_BLUE: 0x9fb8ff,
@@ -518,6 +588,8 @@ export const SF_COLORS = Object.freeze({
   EMISSIVE_SUN: 0xffd27a,
   /** White sunlight point-light at the scene origin. */
   SUN_LIGHT: 0xffffff,
+  /** Photosphere limb tint — hot near-white that melts into the halo. */
+  STAR_RIM: 0xfff3d6,
   /** Glow ramp stops — canvas gradient needs literal rgba strings. */
   GLOW_INNER: 'rgba(255,255,255,1)',
   GLOW_MID: 'rgba(255,255,255,0.55)',
@@ -533,6 +605,15 @@ export const SF_SCENE = Object.freeze({
    */
   SKYBOX_RADIUS: 64000,
   ORBIT_SEGMENTS: 128,
+  /** Guide-ring base opacity — the edge-on fade scales this per frame. */
+  ORBIT_OPACITY: 0.35,
+  /**
+   * Edge-on gain for orbit guides — opacity = base × min(1, edge·gain),
+   * where `edge` is |normal·viewDir| (1 face-on → 0 edge-on). ~2 keeps
+   * rings near-full until ~30° tilt, then fades them out so a guide
+   * never renders as a hard straight line through the body.
+   */
+  ORBIT_EDGE_GAIN: 2,
   SPHERE_SEGMENTS: 48,
   RING_SEGMENTS: 96,
   /**
