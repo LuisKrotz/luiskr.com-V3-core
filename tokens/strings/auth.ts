@@ -24,6 +24,12 @@ export const AUTH_STRINGS = Object.freeze({
   ERR_AUTH_INIT_TIMEOUT: 'auth/auth-init-timeout',
   ERR_REDIRECT_EVENT_TIMEOUT: 'auth/redirect-event-timeout',
   ERR_NO_REDIRECT_EVENT: 'auth/no-redirect-event',
+  // Marker inside an auth/internal-error message when the project
+  // enforces Firebase App Check — the SDK wraps the backend 401's JSON
+  // ("Firebase App Check token is invalid") inside the generic code.
+  APPCHECK_MARKER: 'App Check',
+  // App Check provider selector for VITE_FIREBASE_APPCHECK_PROVIDER.
+  APPCHECK_PROVIDER_ENTERPRISE: 'enterprise',
 })
 
 /**

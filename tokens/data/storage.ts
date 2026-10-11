@@ -53,4 +53,12 @@ export const CACHE_STORAGE_KEYS = Object.freeze({
    * of only the synthetic no-redirect-event inference.
    */
   CMS_AUTH_POPUP_ERROR: 'cms_auth_popup_error',
+  /**
+   * CMS popup-leg error detail (session-scoped) — the full error message
+   * that accompanied CMS_AUTH_POPUP_ERROR. Firebase wraps backend
+   * rejections inside auth/internal-error (e.g. the 401 "Firebase App
+   * Check token is invalid" from createAuthUri), so the message carries
+   * the real cause that the bare code hides.
+   */
+  CMS_AUTH_POPUP_DETAIL: 'cms_auth_popup_detail',
 })

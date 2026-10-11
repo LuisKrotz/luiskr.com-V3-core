@@ -116,6 +116,44 @@ describe('firebase — bootstrap & lazy loaders', () => {
     jest.restoreAllMocks()
   })
 
+  test('signInWithGoogle persists the popup-leg detail alongside the code', async () => {
+    const { signInWithPopup } = await import('firebase/auth')
+
+    sessionStorage.removeItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_DETAIL)
+    signInWithPopup.mockRejectedValueOnce({
+      code: AUTH_STRINGS.ERR_INTERNAL,
+      message: 'helper iframe never answered',
+    })
+
+    await firebase.signInWithGoogle()
+
+    expect(sessionStorage.getItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_DETAIL)).toBe(
+      'helper iframe never answered'
+    )
+
+    sessionStorage.removeItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_DETAIL)
+  })
+
+  test('an internal-error wrapping a backend rejection skips the redirect fallback', async () => {
+    const { signInWithPopup, signInWithRedirect } = await import('firebase/auth')
+
+    const before = signInWithRedirect.mock.calls.length
+
+    // App-Check-enforced 401 → the redirect leg would hit the same wall,
+    // so the error must surface immediately instead of navigating away.
+    signInWithPopup.mockRejectedValueOnce({
+      code: AUTH_STRINGS.ERR_INTERNAL,
+      message: '{"error":{"code":401,"message":"Firebase App Check token is invalid."}}',
+    })
+
+    await expect(firebase.signInWithGoogle()).rejects.toEqual({
+      code: AUTH_STRINGS.ERR_INTERNAL,
+      message: '{"error":{"code":401,"message":"Firebase App Check token is invalid."}}',
+    })
+
+    expect(signInWithRedirect.mock.calls.length).toBe(before)
+  })
+
   test('signInWithGoogle redirects for every popup-environment code', async () => {
     const { signInWithPopup, signInWithRedirect } = await import('firebase/auth')
 

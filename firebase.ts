@@ -104,6 +104,61 @@ const firebaseConfig = {
  */
 export const app = initializeApp(firebaseConfig)
 
+// Dynamic App Check loader — the project enforces App Check on Identity
+// Toolkit, so without a token every auth endpoint (createAuthUri,
+// signInWith*) 401s and the SDK reports the opaque auth/internal-error.
+/** In-flight app-check init — concurrent callers share one import. */
+let _appCheckPromise: Promise<unknown> | null = null
+
+/**
+ * Lazily initializes Firebase App Check once, gated by env config:
+ * VITE_FIREBASE_APPCHECK_SITE_KEY carries the reCAPTCHA site key
+ * (v3 by default, Enterprise when VITE_FIREBASE_APPCHECK_PROVIDER is
+ * 'enterprise'), and VITE_FIREBASE_APPCHECK_DEBUG supplies the
+ * console-issued debug token so localhost dev can mint valid tokens.
+ * With no site key configured the init is a no-op — the 401 cause then
+ * surfaces through the recorded popup detail instead of hanging.
+ * @returns The AppCheck instance, or null when unconfigured/failed.
+ */
+const ensureAppCheck = () => {
+  if (!_appCheckPromise) {
+    _appCheckPromise = import('firebase/app-check')
+      .then(({ initializeAppCheck, ReCaptchaV3Provider, ReCaptchaEnterpriseProvider }) => {
+        const env = import.meta.env as Record<string, string> | undefined
+        const siteKey = env?.VITE_FIREBASE_APPCHECK_SITE_KEY
+
+        if (!siteKey) return null
+
+        const debugToken = env?.VITE_FIREBASE_APPCHECK_DEBUG
+
+        if (debugToken && typeof self !== TYPE_STRINGS.UNDEFINED) {
+          ;(self as { FIREBASE_APPCHECK_DEBUG_TOKEN?: string }).FIREBASE_APPCHECK_DEBUG_TOKEN =
+            debugToken
+        }
+
+        const provider =
+          env?.VITE_FIREBASE_APPCHECK_PROVIDER === AUTH_STRINGS.APPCHECK_PROVIDER_ENTERPRISE
+            ? new ReCaptchaEnterpriseProvider(siteKey)
+            : new ReCaptchaV3Provider(siteKey)
+
+        return initializeAppCheck(app, {
+          provider,
+          isTokenAutoRefreshEnabled: true,
+        })
+      })
+      .catch((err) => {
+        // A failed init must not poison later calls — drop the cache and
+        // let the auth path proceed unprotected rather than deadlocking.
+        devWarn('App Check init failed', err)
+        _appCheckPromise = null
+
+        return null
+      })
+  }
+
+  return _appCheckPromise
+}
+
 // Dynamic Auth loader (loaded only for Admin/CMS)
 /** Memoized Auth instance — populated on first getAuthInstance() call. */
 let _authInstance: Auth | null = null
@@ -118,10 +173,12 @@ let _authPromise: Promise<Auth> | null = null
 export async function getAuthInstance() {
   if (_authInstance) return _authInstance
   if (!_authPromise) {
-    _authPromise = import('firebase/auth').then(({ getAuth }) => {
-      _authInstance = getAuth(app)
-      return _authInstance
-    })
+    _authPromise = ensureAppCheck()
+      .then(() => import('firebase/auth'))
+      .then(({ getAuth }) => {
+        _authInstance = getAuth(app)
+        return _authInstance
+      })
     // A rejected chunk/getAuth must not poison every later call — drop the
     // cached promise so the next attempt re-imports.
     _authPromise.catch(() => {
@@ -145,10 +202,12 @@ let _dbPromise: Promise<Database> | null = null
 export async function getDbInstance() {
   if (_dbInstance) return _dbInstance
   if (!_dbPromise) {
-    _dbPromise = import('firebase/database').then(({ getDatabase }) => {
-      _dbInstance = getDatabase(app)
-      return _dbInstance
-    })
+    _dbPromise = ensureAppCheck()
+      .then(() => import('firebase/database'))
+      .then(({ getDatabase }) => {
+        _dbInstance = getDatabase(app)
+        return _dbInstance
+      })
   }
   return await _dbPromise
 }
@@ -172,18 +231,26 @@ export async function signInWithGoogle(): Promise<UserCredential | void> {
   try {
     return await signInWithPopup(auth, provider)
   } catch (err) {
-    const code = (err as { code?: string })?.code
+    const e = err as { code?: string; message?: string }
+    const code = e?.code
+    const detail = e?.message || ATTR_VALUES.EMPTY
 
-    if (code && AUTH_REDIRECT_FALLBACK_CODES.includes(code)) {
+    // auth/internal-error also wraps backend rejections (App-Check
+    // 401s, config failures) — a redirect round-trip would hit the same
+    // wall, so only fall back for genuinely environmental failures.
+    const backendRejection = detail.includes(AUTH_STRINGS.APPCHECK_MARKER)
+
+    if (code && AUTH_REDIRECT_FALLBACK_CODES.includes(code) && !backendRejection) {
       devWarn('Popup sign-in unavailable, falling back to redirect', code)
 
       // Mark the redirect leg so the login can tell "returned but no
       // session" (blocked cross-site storage) apart from a fresh visit —
-      // and preserve the REAL popup-leg code so the view names the
-      // original failure rather than guessing.
+      // and preserve the REAL popup-leg code + detail so the view names
+      // the original failure rather than guessing.
       try {
         sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_REDIRECT, '1')
         sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_ERROR, code)
+        sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_DETAIL, detail)
       } catch {
         /* storage itself may be the blocker — the redirect still runs */
       }
