@@ -49,6 +49,30 @@ describe('dom-font tails', () => {
     expect(ctx.fillStyle).toBe(FULL_STYLE.color)
   })
 
+  test('percentage font-stretch maps to the nearest canvas keyword', () => {
+    const ctx = { font: CHAR_STRINGS.EMPTY, fillStyle: CHAR_STRINGS.EMPTY, fontStretch: CHAR_STRINGS.EMPTY }
+
+    syncCanvasFont(ctx, { ...FULL_STYLE, fontStretch: '100%' })
+    expect(ctx.fontStretch).toBe('normal')
+
+    syncCanvasFont(ctx, { ...FULL_STYLE, fontStretch: '87.5%' })
+    expect(ctx.fontStretch).toBe('semi-condensed')
+
+    syncCanvasFont(ctx, { ...FULL_STYLE, fontStretch: '140%' })
+    expect(ctx.fontStretch).toBe('extra-expanded')
+
+    syncCanvasFont(ctx, { ...FULL_STYLE, fontStretch: '10%' })
+    expect(ctx.fontStretch).toBe('ultra-condensed')
+  })
+
+  test('a malformed percentage font-stretch passes through untouched', () => {
+    const ctx = { font: CHAR_STRINGS.EMPTY, fillStyle: CHAR_STRINGS.EMPTY, fontStretch: CHAR_STRINGS.EMPTY }
+
+    syncCanvasFont(ctx, { ...FULL_STYLE, fontStretch: 'abc%' })
+
+    expect(ctx.fontStretch).toBe('abc%')
+  })
+
   test('guarded axes stay unset on contexts that lack the property', () => {
     const ctx = { font: CHAR_STRINGS.EMPTY, fillStyle: CHAR_STRINGS.EMPTY }
 

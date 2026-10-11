@@ -15,7 +15,54 @@
  */
 
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
+import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+
+/**
+ * CSS Fonts 4 keyword↔percentage ladder for `font-stretch`. The 2D
+ * context's `fontStretch` is keyword-enum only (percentages throw a
+ * console error and are ignored in Chrome) while computed style reports
+ * percentages — so `normal` arrives as `100%` and must be mapped back.
+ */
+const _STRETCH_LADDER: ReadonlyArray<[number, string]> = [
+  [50, 'ultra-condensed'],
+  [62.5, 'extra-condensed'],
+  [75, 'condensed'],
+  [87.5, 'semi-condensed'],
+  [100, 'normal'],
+  [112.5, 'semi-expanded'],
+  [125, 'expanded'],
+  [150, 'extra-expanded'],
+  [200, 'ultra-expanded'],
+]
+
+/**
+ * Normalizes a computed `font-stretch` for the canvas enum: keyword
+ * values pass through, percentages map to the nearest ladder keyword.
+ * @param value The computed font-stretch (keyword or percentage).
+ * @returns A value the CanvasFontStretch enum accepts.
+ */
+function canvasFontStretch(value: string): string {
+  if (!value.endsWith(CHAR_STRINGS.PERCENT)) return value
+
+  const pct = parseFloat(value)
+
+  if (Number.isNaN(pct)) return value
+
+  let best = _STRETCH_LADDER[0][1]
+  let bestDist = Math.abs(pct - _STRETCH_LADDER[0][0])
+
+  for (const [anchor, keyword] of _STRETCH_LADDER) {
+    const dist = Math.abs(pct - anchor)
+
+    if (dist < bestDist) {
+      bestDist = dist
+      best = keyword
+    }
+  }
+
+  return best
+}
 
 /**
  * Pushes the font axes the `ctx.font` shorthand cannot express — stretch,
@@ -37,7 +84,7 @@ export function applyFontExtras(ctx: CanvasRenderingContext2D, st: CSSStyleDecla
   }
 
   if (st.fontStretch && c.fontStretch !== undefined) {
-    c.fontStretch = st.fontStretch as typeof c.fontStretch
+    c.fontStretch = canvasFontStretch(st.fontStretch) as typeof c.fontStretch
   }
   if (st.fontVariantCaps && c.fontVariantCaps !== undefined) {
     c.fontVariantCaps = st.fontVariantCaps as typeof c.fontVariantCaps
