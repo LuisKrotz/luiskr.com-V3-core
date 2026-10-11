@@ -30,6 +30,8 @@ export const AUTH_STRINGS = Object.freeze({
   APPCHECK_MARKER: 'App Check',
   // App Check provider selector for VITE_FIREBASE_APPCHECK_PROVIDER.
   APPCHECK_PROVIDER_ENTERPRISE: 'enterprise',
+  // OAuth provider id the diagnostic createAuthUri probe asks about.
+  PROVIDER_GOOGLE: 'google.com',
 })
 
 /**
@@ -81,3 +83,16 @@ export const AUTH_SELF_HOSTS: readonly string[] = Object.freeze([
   'luiskr-com.web.app',
   'luiskr-com.firebaseapp.com',
 ])
+
+/**
+ * Auth endpoint URLs — the Identity Toolkit REST surface. createAuthUri
+ * is the read-only call the `__/auth/handler` page makes to build the
+ * provider URL; the diagnostic probe re-issues it after an opaque
+ * auth/internal-error to recover the real server-side rejection reason
+ * (the SDK rebuilds relayed event errors by code only and drops the
+ * nested message).
+ */
+export const AUTH_URLS = Object.freeze({
+  CREATE_AUTH_URI: 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuthUri',
+  HANDLER_PATH: '/__/auth/handler',
+})

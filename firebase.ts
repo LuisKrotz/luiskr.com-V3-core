@@ -18,7 +18,9 @@ import {
   AUTH_REDIRECT_FALLBACK_CODES,
   AUTH_SELF_HOSTS,
   AUTH_STRINGS,
+  AUTH_URLS,
 } from '@core/tokens/strings/auth.js'
+import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { initializeApp } from 'firebase/app'
 import type { Auth, User, Unsubscribe, UserCredential } from 'firebase/auth'
@@ -237,12 +239,34 @@ export async function signInWithGoogle(): Promise<UserCredential | void> {
   } catch (err) {
     const e = err as { code?: string; message?: string }
     const code = e?.code
-    const detail = e?.message || ATTR_VALUES.EMPTY
+    let detail = e?.message || ATTR_VALUES.EMPTY
 
-    // auth/internal-error also wraps backend rejections (App-Check
-    // 401s, config failures) — a redirect round-trip would hit the same
-    // wall, so only fall back for genuinely environmental failures.
-    const backendRejection = detail.includes(AUTH_STRINGS.APPCHECK_MARKER)
+    // auth/internal-error wraps backend rejections (App-Check 401s,
+    // config failures), but the SDK rebuilds relayed event errors by
+    // code only — the nested server message is discarded before the
+    // error reaches us. Re-probe createAuthUri (the same read-only call
+    // the handler page makes) to recover the real rejection reason; a
+    // recovered server message means the redirect leg would hit the
+    // same wall, so no redirect fallback is attempted.
+    let backendRejection = false
+    if (code === AUTH_STRINGS.ERR_INTERNAL) {
+      const serverMessage = await probeAuthBackend()
+
+      if (serverMessage) {
+        detail = serverMessage
+        backendRejection = true
+      }
+    }
+    backendRejection ||= detail.includes(AUTH_STRINGS.APPCHECK_MARKER)
+
+    // Persist the real cause either way — the redirect path embeds it
+    // in the view copy, and the direct-throw path reads it back to
+    // name the backend rejection instead of the opaque wrapper.
+    try {
+      sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_DETAIL, detail)
+    } catch {
+      /* storage itself may be the blocker */
+    }
 
     if (code && AUTH_REDIRECT_FALLBACK_CODES.includes(code) && !backendRejection) {
       devWarn('Popup sign-in unavailable, falling back to redirect', code)
@@ -254,7 +278,6 @@ export async function signInWithGoogle(): Promise<UserCredential | void> {
       try {
         sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_REDIRECT, '1')
         sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_ERROR, code)
-        sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_DETAIL, detail)
       } catch {
         /* storage itself may be the blocker — the redirect still runs */
       }
@@ -263,6 +286,42 @@ export async function signInWithGoogle(): Promise<UserCredential | void> {
     }
 
     throw err
+  }
+}
+
+/**
+ * Re-probes Identity Toolkit's read-only createAuthUri endpoint after an
+ * opaque auth/internal-error. The `__/auth/handler` page made this exact
+ * call to build the provider URL and got rejected — but the SDK rebuilds
+ * the relayed event error by code alone (`_createError(auth, code)`),
+ * dropping the nested server message ("Firebase App Check token is
+ * invalid.", …). Re-issuing the call directly returns the real reason.
+ * POST only creates no server state: it resolves which providers apply.
+ * @returns The server's error message, or empty when the probe can't run
+ *   or the endpoint unexpectedly accepts the request.
+ */
+const probeAuthBackend = async (): Promise<string> => {
+  const apiKey = firebaseConfig.apiKey
+
+  if (!apiKey || typeof fetch !== TYPE_STRINGS.FUNCTION) return ATTR_VALUES.EMPTY
+
+  try {
+    const res = await fetch(`${AUTH_URLS.CREATE_AUTH_URI}?key=${apiKey}`, {
+      method: NET_STRINGS.METHOD_POST,
+      headers: { [NET_STRINGS.HEADER_CONTENT_TYPE]: NET_STRINGS.MIME_JSON },
+      body: JSON.stringify({
+        providerId: AUTH_STRINGS.PROVIDER_GOOGLE,
+        continueUri:
+          typeof window !== TYPE_STRINGS.UNDEFINED
+            ? `https://${firebaseConfig.authDomain}${AUTH_URLS.HANDLER_PATH}`
+            : ATTR_VALUES.EMPTY,
+      }),
+    })
+    const body = (await res.json()) as { error?: { message?: string } }
+
+    return res.ok ? ATTR_VALUES.EMPTY : body?.error?.message || ATTR_VALUES.EMPTY
+  } catch {
+    return ATTR_VALUES.EMPTY
   }
 }
 

@@ -24,6 +24,7 @@ export const NET_STRINGS = Object.freeze({
   HEADER_FILE_PATH: 'x-file-path',
   HEADER_CONTENT_TYPE: 'content-type',
   MIME_OCTET_STREAM: 'application/octet-stream',
+  MIME_JSON: 'application/json',
   JOB_RUNNING: 'running',
   JOB_UPLOADING: 'uploading',
 })

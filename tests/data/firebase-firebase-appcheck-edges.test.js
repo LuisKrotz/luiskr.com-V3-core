@@ -116,6 +116,33 @@ describe('firebase — app-check edges', () => {
     expect(mockInitAppCheck).toHaveBeenCalled()
   })
 
+  test('the internal-error backend probe returns empty when no api key resolves', async () => {
+    const origAtob = globalThis.atob
+    const origFetch = globalThis.fetch
+    const fetchSpy = jest.fn()
+
+    globalThis.atob = undefined
+    globalThis.fetch = fetchSpy
+
+    try {
+      const fresh = await freshFirebase({})
+      const { signInWithPopup, signInWithRedirect } = await import('firebase/auth')
+      const before = signInWithRedirect.mock.calls.length
+
+      signInWithPopup.mockRejectedValueOnce({ code: AUTH_STRINGS.ERR_INTERNAL })
+
+      await fresh.signInWithGoogle()
+
+      // No key → the probe skips the network entirely; the error keeps
+      // its normal redirect-fallback path.
+      expect(fetchSpy).not.toHaveBeenCalled()
+      expect(signInWithRedirect.mock.calls.length).toBe(before + 1)
+    } finally {
+      globalThis.atob = origAtob
+      globalThis.fetch = origFetch
+    }
+  })
+
   test('a failed App Check init warns, returns null, and the next call retries', async () => {
     const fresh = await freshFirebase({ VITE_FIREBASE_APPCHECK_SITE_KEY: 'site-key-4' })
 

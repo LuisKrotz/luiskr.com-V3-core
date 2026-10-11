@@ -4,12 +4,23 @@
  */
 import { describe, test, expect, jest } from '@jest/globals'
 import { APP_IDS } from '@core/tokens/ids/app.js'
-import { AUTH_STRINGS } from '@core/tokens/strings/auth.js'
+import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
+import { AUTH_STRINGS, AUTH_URLS } from '@core/tokens/strings/auth.js'
 import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
+import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
 const mockAuth = { currentUser: null, marker: 'auth-instance' }
 const mockDb = { marker: 'db-instance' }
+
+/**
+ * probeAuthBackend re-issues the createAuthUri REST call after an opaque
+ * auth/internal-error — stub fetch globally so tests never hit the
+ * network. The default ok:true response makes the probe return empty
+ * (no server message → the redirect fallback stays eligible).
+ */
+const fetchMock = jest.fn(async () => ({ ok: true, json: async () => ({}) }))
+globalThis.fetch = fetchMock
 
 jest.unstable_mockModule('firebase/auth', () => ({
   getAuth: jest.fn(() => mockAuth),
@@ -151,6 +162,140 @@ describe('firebase — bootstrap & lazy loaders', () => {
       message: '{"error":{"code":401,"message":"Firebase App Check token is invalid."}}',
     })
 
+    expect(signInWithRedirect.mock.calls.length).toBe(before)
+  })
+
+  test('an internal-error probes the backend, persists the real server cause, and skips redirect', async () => {
+    const { signInWithPopup, signInWithRedirect } = await import('firebase/auth')
+
+    const before = signInWithRedirect.mock.calls.length
+
+    sessionStorage.removeItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_DETAIL)
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: { message: 'Firebase App Check token is invalid.' } }),
+    })
+    signInWithPopup.mockRejectedValueOnce({ code: AUTH_STRINGS.ERR_INTERNAL })
+
+    await expect(firebase.signInWithGoogle()).rejects.toEqual({
+      code: AUTH_STRINGS.ERR_INTERNAL,
+    })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining(AUTH_URLS.CREATE_AUTH_URI),
+      expect.objectContaining({ method: NET_STRINGS.METHOD_POST })
+    )
+    expect(sessionStorage.getItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_DETAIL)).toBe(
+      'Firebase App Check token is invalid.'
+    )
+    expect(signInWithRedirect.mock.calls.length).toBe(before)
+
+    sessionStorage.removeItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_DETAIL)
+  })
+
+  test('probe responses without a usable server message still redirect', async () => {
+    const { signInWithPopup, signInWithRedirect } = await import('firebase/auth')
+
+    const before = signInWithRedirect.mock.calls.length
+
+    // res.ok → the endpoint accepted the probe: nothing to report.
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+    signInWithPopup.mockRejectedValueOnce({ code: AUTH_STRINGS.ERR_INTERNAL })
+    await firebase.signInWithGoogle()
+
+    // Non-ok body without error.message → still no recovered cause.
+    fetchMock.mockResolvedValueOnce({ ok: false, json: async () => ({}) })
+    signInWithPopup.mockRejectedValueOnce({ code: AUTH_STRINGS.ERR_INTERNAL })
+    await firebase.signInWithGoogle()
+
+    expect(signInWithRedirect.mock.calls.length).toBe(before + 2)
+  })
+
+  test('probe transport failures still redirect — fetch throw and bad json', async () => {
+    const { signInWithPopup, signInWithRedirect } = await import('firebase/auth')
+
+    const before = signInWithRedirect.mock.calls.length
+
+    fetchMock.mockRejectedValueOnce(new Error('offline'))
+    signInWithPopup.mockRejectedValueOnce({ code: AUTH_STRINGS.ERR_INTERNAL })
+    await firebase.signInWithGoogle()
+
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      json: async () => {
+        throw new Error('not json')
+      },
+    })
+    signInWithPopup.mockRejectedValueOnce({ code: AUTH_STRINGS.ERR_INTERNAL })
+    await firebase.signInWithGoogle()
+
+    expect(signInWithRedirect.mock.calls.length).toBe(before + 2)
+  })
+
+  test('the probe skips entirely when fetch is unavailable', async () => {
+    const { signInWithPopup, signInWithRedirect } = await import('firebase/auth')
+
+    const before = signInWithRedirect.mock.calls.length
+    const fetchCalls = fetchMock.mock.calls.length
+
+    globalThis.fetch = undefined
+
+    try {
+      signInWithPopup.mockRejectedValueOnce({ code: AUTH_STRINGS.ERR_INTERNAL })
+      await firebase.signInWithGoogle()
+    } finally {
+      globalThis.fetch = fetchMock
+    }
+
+    expect(fetchMock.mock.calls.length).toBe(fetchCalls)
+    expect(signInWithRedirect.mock.calls.length).toBe(before + 1)
+  })
+
+  test('the probe builds the handler continueUri when a window exists', async () => {
+    const { signInWithPopup } = await import('firebase/auth')
+
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: { message: 'denied' } }),
+    })
+    signInWithPopup.mockRejectedValueOnce({ code: AUTH_STRINGS.ERR_INTERNAL })
+
+    await expect(firebase.signInWithGoogle()).rejects.toEqual({
+      code: AUTH_STRINGS.ERR_INTERNAL,
+    })
+
+    const body = JSON.parse(fetchMock.mock.calls.at(-1)[1].body)
+    expect(body.continueUri).toContain(AUTH_URLS.HANDLER_PATH)
+    expect(body.providerId).toBe(AUTH_STRINGS.PROVIDER_GOOGLE)
+  })
+
+  test('the probe sends an empty continueUri when no window exists', async () => {
+    const { signInWithPopup } = await import('firebase/auth')
+
+    const origWindow = globalThis.window
+
+    delete globalThis.window
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+    signInWithPopup.mockRejectedValueOnce({ code: AUTH_STRINGS.ERR_INTERNAL })
+
+    try {
+      await firebase.signInWithGoogle()
+
+      const body = JSON.parse(fetchMock.mock.calls.at(-1)[1].body)
+      expect(body.continueUri).toBe(ATTR_VALUES.EMPTY)
+    } finally {
+      globalThis.window = origWindow
+    }
+  })
+
+  test('an error without a code or message rethrows unchanged', async () => {
+    const { signInWithPopup, signInWithRedirect } = await import('firebase/auth')
+
+    const before = signInWithRedirect.mock.calls.length
+
+    signInWithPopup.mockRejectedValueOnce({})
+
+    await expect(firebase.signInWithGoogle()).rejects.toEqual({})
     expect(signInWithRedirect.mock.calls.length).toBe(before)
   })
 
