@@ -45,4 +45,12 @@ export const CACHE_STORAGE_KEYS = Object.freeze({
    * blocked storage".
    */
   CMS_AUTH_ERROR: 'cms_auth_error',
+  /**
+   * CMS popup-leg error code (session-scoped) — the real Firebase code
+   * that made signInWithPopup fail and triggered the redirect fallback
+   * (e.g. auth/web-storage-unsupported). Persisted across the redirect
+   * navigation so the login view can name the ORIGINAL failure instead
+   * of only the synthetic no-redirect-event inference.
+   */
+  CMS_AUTH_POPUP_ERROR: 'cms_auth_popup_error',
 })

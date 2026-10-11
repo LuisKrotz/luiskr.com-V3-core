@@ -5,6 +5,7 @@
 import { describe, test, expect, jest } from '@jest/globals'
 import { APP_IDS } from '@core/tokens/ids/app.js'
 import { AUTH_STRINGS } from '@core/tokens/strings/auth.js'
+import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
 const mockAuth = { currentUser: null, marker: 'auth-instance' }
@@ -83,6 +84,36 @@ describe('firebase — bootstrap & lazy loaders', () => {
 
     expect(signInWithRedirect).toHaveBeenCalled()
     expect(res).toBeUndefined()
+  })
+
+  test('signInWithGoogle preserves the popup-leg code for the login view', async () => {
+    const { signInWithPopup } = await import('firebase/auth')
+
+    sessionStorage.removeItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_ERROR)
+    signInWithPopup.mockRejectedValueOnce({ code: AUTH_STRINGS.ERR_INTERNAL })
+
+    await firebase.signInWithGoogle()
+
+    expect(sessionStorage.getItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_ERROR)).toBe(
+      AUTH_STRINGS.ERR_INTERNAL
+    )
+
+    sessionStorage.removeItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_ERROR)
+  })
+
+  test('signInWithGoogle still redirects when sessionStorage is unavailable', async () => {
+    const { signInWithPopup, signInWithRedirect } = await import('firebase/auth')
+
+    jest.spyOn(window.Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('storage-blocked')
+    })
+
+    signInWithPopup.mockRejectedValueOnce({ code: AUTH_STRINGS.ERR_INTERNAL })
+
+    await expect(firebase.signInWithGoogle()).resolves.toBeUndefined()
+    expect(signInWithRedirect).toHaveBeenCalled()
+
+    jest.restoreAllMocks()
   })
 
   test('signInWithGoogle redirects for every popup-environment code', async () => {

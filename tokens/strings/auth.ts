@@ -51,3 +51,27 @@ export const AUTH_REDIRECT_FALLBACK_CODES: readonly string[] = Object.freeze([
   AUTH_STRINGS.ERR_STORAGE_UNSUPPORTED,
   AUTH_STRINGS.ERR_ENV_UNSUPPORTED,
 ])
+
+/**
+ * The project's default Firebase authDomain — hosts the `/__/auth/*`
+ * helper (popup handler + storage-relay iframe). Used whenever the app
+ * itself can't serve the helper same-origin (http dev, non-https hosts).
+ */
+export const AUTH_DOMAIN_DEFAULT = 'luiskr-com.firebaseapp.com'
+
+/**
+ * Hosts that serve `/__/auth/*` themselves — Firebase Hosting exposes the
+ * auth helper on every connected domain, so when the app runs on one of
+ * these over https the authDomain can point at the app's own host. That
+ * makes the helper iframe same-ORIGIN: its web-storage event relay stops
+ * being third-party data and survives the partitioning/blocking that
+ * silently kills the firebaseapp.com relay.
+ * NOTE: www.luiskr.com is deliberately absent — the host doesn't resolve.
+ */
+export const AUTH_SELF_HOSTS: readonly string[] = Object.freeze([
+  'localhost',
+  '127.0.0.1',
+  'luiskr.com',
+  'luiskr-com.web.app',
+  'luiskr-com.firebaseapp.com',
+])

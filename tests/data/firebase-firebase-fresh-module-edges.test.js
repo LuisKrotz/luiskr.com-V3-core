@@ -69,4 +69,72 @@ describe('firebase — fresh module edges', () => {
 
     globalThis.__VITE_ENV__ = origEnv
   })
+
+  test('getAuthDomain prefers the build-time env override', async () => {
+    const origEnv = globalThis.__VITE_ENV__
+
+    globalThis.__VITE_ENV__ = { VITE_FIREBASE_AUTH_DOMAIN: 'auth.example.com' }
+    jest.resetModules()
+
+    const fresh = await import('@core/firebase.js')
+
+    expect(fresh.app.config.authDomain).toBe('auth.example.com')
+
+    globalThis.__VITE_ENV__ = origEnv
+  })
+
+  test('getAuthDomain self-hosts on an https authorized domain', async () => {
+    const { protocol, hostname, host } = window.location
+
+    Object.defineProperty(window.location, 'protocol', { value: 'https:', configurable: true })
+    Object.defineProperty(window.location, 'hostname', { value: 'luiskr.com', configurable: true })
+    Object.defineProperty(window.location, 'host', { value: 'luiskr.com', configurable: true })
+    jest.resetModules()
+
+    const fresh = await import('@core/firebase.js')
+
+    expect(fresh.app.config.authDomain).toBe('luiskr.com')
+
+    Object.defineProperty(window.location, 'protocol', { value: protocol, configurable: true })
+    Object.defineProperty(window.location, 'hostname', { value: hostname, configurable: true })
+    Object.defineProperty(window.location, 'host', { value: host, configurable: true })
+  })
+
+  test('getAuthDomain self-hosts with the port on https localhost', async () => {
+    const { protocol, host } = window.location
+
+    Object.defineProperty(window.location, 'protocol', { value: 'https:', configurable: true })
+    Object.defineProperty(window.location, 'host', { value: 'localhost:5173', configurable: true })
+    jest.resetModules()
+
+    const fresh = await import('@core/firebase.js')
+
+    expect(fresh.app.config.authDomain).toBe('localhost:5173')
+
+    Object.defineProperty(window.location, 'protocol', { value: protocol, configurable: true })
+    Object.defineProperty(window.location, 'host', { value: host, configurable: true })
+  })
+
+  test('getAuthDomain falls back on https non-authorized hosts', async () => {
+    const { protocol, hostname, host } = window.location
+
+    Object.defineProperty(window.location, 'protocol', { value: 'https:', configurable: true })
+    Object.defineProperty(window.location, 'hostname', {
+      value: 'elsewhere.example',
+      configurable: true,
+    })
+    Object.defineProperty(window.location, 'host', {
+      value: 'elsewhere.example',
+      configurable: true,
+    })
+    jest.resetModules()
+
+    const fresh = await import('@core/firebase.js')
+
+    expect(fresh.app.config.authDomain).toBe('luiskr-com.firebaseapp.com')
+
+    Object.defineProperty(window.location, 'protocol', { value: protocol, configurable: true })
+    Object.defineProperty(window.location, 'hostname', { value: hostname, configurable: true })
+    Object.defineProperty(window.location, 'host', { value: host, configurable: true })
+  })
 })

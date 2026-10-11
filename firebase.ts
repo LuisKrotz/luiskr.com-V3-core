@@ -13,7 +13,12 @@
  */
 
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
-import { AUTH_REDIRECT_FALLBACK_CODES, AUTH_STRINGS } from '@core/tokens/strings/auth.js'
+import {
+  AUTH_DOMAIN_DEFAULT,
+  AUTH_REDIRECT_FALLBACK_CODES,
+  AUTH_SELF_HOSTS,
+  AUTH_STRINGS,
+} from '@core/tokens/strings/auth.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { initializeApp } from 'firebase/app'
 import type { Auth, User, Unsubscribe, UserCredential } from 'firebase/auth'
@@ -43,13 +48,48 @@ const getApiKey = () => {
 }
 
 /**
+ * Resolves the authDomain — the host that serves `/__/auth/handler` and
+ * `/__/auth/iframe`. Priority: VITE_FIREBASE_AUTH_DOMAIN env override →
+ * the app's own host when it can serve the helper over https (every
+ * Firebase-Hosting-connected domain does, and the dev server proxies the
+ * path when CMS_AUTH_HTTPS is on) → the firebaseapp.com default.
+ *
+ * Same-origin authDomain is the structural fix for the modern-browser
+ * breakage: the OAuth event relay lives in the helper iframe's web
+ * storage, which becomes first-party when the iframe shares the app's
+ * origin — third-party storage partitioning/blocking can no longer drop
+ * the event between the handler write and the iframe read. On plain http
+ * dev the https-only helper can't be same-origin, so the firebaseapp.com
+ * fallback keeps the previous behavior.
+ */
+const getAuthDomain = () => {
+  if (
+    typeof import.meta !== TYPE_STRINGS.UNDEFINED &&
+    import.meta.env &&
+    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+  ) {
+    return import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+  }
+
+  if (
+    typeof window !== TYPE_STRINGS.UNDEFINED &&
+    window.location?.protocol === 'https:' &&
+    AUTH_SELF_HOSTS.includes(window.location.hostname)
+  ) {
+    return window.location.host
+  }
+
+  return AUTH_DOMAIN_DEFAULT
+}
+
+/**
  * Firebase project configuration. apiKey resolves at runtime; the rest are
  * public project identifiers (auth domain, RTDB URL, project id, storage
  * bucket, sender id, app id, analytics measurement id).
  */
 const firebaseConfig = {
   apiKey: getApiKey(),
-  authDomain: 'luiskr-com.firebaseapp.com',
+  authDomain: getAuthDomain(),
   databaseURL: CDN_URLS.FIREBASE_DB,
   projectId: 'luiskr-com',
   storageBucket: 'luiskr-com.appspot.com',
@@ -138,9 +178,12 @@ export async function signInWithGoogle(): Promise<UserCredential | void> {
       devWarn('Popup sign-in unavailable, falling back to redirect', code)
 
       // Mark the redirect leg so the login can tell "returned but no
-      // session" (blocked cross-site storage) apart from a fresh visit.
+      // session" (blocked cross-site storage) apart from a fresh visit —
+      // and preserve the REAL popup-leg code so the view names the
+      // original failure rather than guessing.
       try {
         sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_REDIRECT, '1')
+        sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_POPUP_ERROR, code)
       } catch {
         /* storage itself may be the blocker — the redirect still runs */
       }
