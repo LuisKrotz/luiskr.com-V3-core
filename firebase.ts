@@ -122,38 +122,42 @@ let _appCheckPromise: Promise<unknown> | null = null
  */
 const ensureAppCheck = () => {
   if (!_appCheckPromise) {
-    _appCheckPromise = import('firebase/app-check')
-      .then(({ initializeAppCheck, ReCaptchaV3Provider, ReCaptchaEnterpriseProvider }) => {
-        const env = import.meta.env as Record<string, string> | undefined
-        const siteKey = env?.VITE_FIREBASE_APPCHECK_SITE_KEY
+    const env = import.meta.env as Record<string, string> | undefined
+    const siteKey = env?.VITE_FIREBASE_APPCHECK_SITE_KEY
 
-        if (!siteKey) return null
+    // No site key → resolve immediately without fetching the app-check
+    // chunk: unconfigured envs (tests, non-CMS pages) must not pay the
+    // import cost on every auth/db init.
+    _appCheckPromise = siteKey
+      ? import('firebase/app-check')
+          .then(({ initializeAppCheck, ReCaptchaV3Provider, ReCaptchaEnterpriseProvider }) => {
+            const debugToken = env?.VITE_FIREBASE_APPCHECK_DEBUG
 
-        const debugToken = env?.VITE_FIREBASE_APPCHECK_DEBUG
+            if (debugToken && typeof self !== TYPE_STRINGS.UNDEFINED) {
+              ;(self as { FIREBASE_APPCHECK_DEBUG_TOKEN?: string }).FIREBASE_APPCHECK_DEBUG_TOKEN =
+                debugToken
+            }
 
-        if (debugToken && typeof self !== TYPE_STRINGS.UNDEFINED) {
-          ;(self as { FIREBASE_APPCHECK_DEBUG_TOKEN?: string }).FIREBASE_APPCHECK_DEBUG_TOKEN =
-            debugToken
-        }
+            const provider =
+              env?.VITE_FIREBASE_APPCHECK_PROVIDER === AUTH_STRINGS.APPCHECK_PROVIDER_ENTERPRISE
+                ? new ReCaptchaEnterpriseProvider(siteKey)
+                : new ReCaptchaV3Provider(siteKey)
 
-        const provider =
-          env?.VITE_FIREBASE_APPCHECK_PROVIDER === AUTH_STRINGS.APPCHECK_PROVIDER_ENTERPRISE
-            ? new ReCaptchaEnterpriseProvider(siteKey)
-            : new ReCaptchaV3Provider(siteKey)
+            return initializeAppCheck(app, {
+              provider,
+              isTokenAutoRefreshEnabled: true,
+            })
+          })
+          .catch((err) => {
+            // A failed init must not poison later calls — drop the cache
+            // and let the auth path proceed unprotected rather than
+            // deadlocking.
+            devWarn('App Check init failed', err)
+            _appCheckPromise = null
 
-        return initializeAppCheck(app, {
-          provider,
-          isTokenAutoRefreshEnabled: true,
-        })
-      })
-      .catch((err) => {
-        // A failed init must not poison later calls — drop the cache and
-        // let the auth path proceed unprotected rather than deadlocking.
-        devWarn('App Check init failed', err)
-        _appCheckPromise = null
-
-        return null
-      })
+            return null
+          })
+      : Promise.resolve(null)
   }
 
   return _appCheckPromise
