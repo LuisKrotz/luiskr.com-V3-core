@@ -587,6 +587,10 @@ export const SF_COLORS = Object.freeze({
   TRITON: 0xc8d4dc,
   RYUGU: 0x5a5650,
   BENNU: 0x4a4642,
+  /** Halley's nucleus — icy dust, faint cyan-white. */
+  HALLEY: 0xbfd8de,
+  /** ISS truss — bright metallic white. */
+  ISS: 0xe8ecf0,
   EARTH_ICE: 0xbfd8e8,
   PROXIMA_STAR: 0xd9594c,
   PROXIMA_PLANET: 0x6f8fa8,
