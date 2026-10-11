@@ -117,8 +117,9 @@ export const SCROLL_TIMINGS = Object.freeze({
 
 /**
  * Frozen draw-text timing map (ms + observer fraction) — caps and defaults
- * for the per-character staggered reveal: `EXTRA_MS`/`MAX_MS` bound total
- * animation length regardless of string size, `WORD_MAX_DELAY`/
+ * for the per-character staggered reveal: `EXTRA_MS` is the slack after the
+ * last char's scheduled start before spans collapse (no upper clamp — an
+ * ordered document legitimately schedules items seconds out), `WORD_MAX_DELAY`/
  * `DEFAULT_DELAY` shape the per-word stagger, `OBSERVER_THRESHOLD` (0.05)
  * is the IntersectionObserver visibility fraction that triggers a draw,
  * and the `MENU_LABEL_*` triple paces nav-item labels so each item's
@@ -126,7 +127,6 @@ export const SCROLL_TIMINGS = Object.freeze({
  */
 export const DRAW_TIMINGS = Object.freeze({
   DRAW_ANIM_EXTRA_MS: 800,
-  DRAW_ANIM_MAX_MS: 2000,
   DRAW_WORD_MAX_DELAY: 120,
   DRAW_DEFAULT_DELAY: 100,
   DRAW_OBSERVER_THRESHOLD: 0.05,

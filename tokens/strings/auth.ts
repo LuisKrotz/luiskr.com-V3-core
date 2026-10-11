@@ -20,7 +20,24 @@ export const AUTH_STRINGS = Object.freeze({
   ERR_INTERNAL: 'auth/internal-error',
   ERR_STORAGE_UNSUPPORTED: 'auth/web-storage-unsupported',
   ERR_ENV_UNSUPPORTED: 'auth/operation-not-supported-in-this-environment',
+  // Return-leg failures — the OAuth event never reached the app
+  ERR_AUTH_INIT_TIMEOUT: 'auth/auth-init-timeout',
+  ERR_REDIRECT_EVENT_TIMEOUT: 'auth/redirect-event-timeout',
+  ERR_NO_REDIRECT_EVENT: 'auth/no-redirect-event',
 })
+
+/**
+ * Codes whose root cause is blocked third-party site data — the
+ * firebaseapp.com auth iframe can't store/read the OAuth event. The login
+ * view uses this set to show the "allow site data" guidance instead of the
+ * authorized-domains copy.
+ */
+export const AUTH_BLOCKED_STORAGE_CODES: readonly string[] = Object.freeze([
+  AUTH_STRINGS.ERR_AUTH_INIT_TIMEOUT,
+  AUTH_STRINGS.ERR_REDIRECT_EVENT_TIMEOUT,
+  AUTH_STRINGS.ERR_NO_REDIRECT_EVENT,
+  AUTH_STRINGS.ERR_STORAGE_UNSUPPORTED,
+])
 
 /**
  * Codes where the popup handshake cannot run in the current browser

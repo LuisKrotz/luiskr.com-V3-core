@@ -13,7 +13,7 @@
  */
 
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
-import { AUTH_REDIRECT_FALLBACK_CODES } from '@core/tokens/strings/auth.js'
+import { AUTH_REDIRECT_FALLBACK_CODES, AUTH_STRINGS } from '@core/tokens/strings/auth.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { initializeApp } from 'firebase/app'
 import type { Auth, User, Unsubscribe, UserCredential } from 'firebase/auth'
@@ -81,6 +81,11 @@ export async function getAuthInstance() {
     _authPromise = import('firebase/auth').then(({ getAuth }) => {
       _authInstance = getAuth(app)
       return _authInstance
+    })
+    // A rejected chunk/getAuth must not poison every later call — drop the
+    // cached promise so the next attempt re-imports.
+    _authPromise.catch(() => {
+      _authPromise = null
     })
   }
   return await _authPromise
@@ -154,20 +159,102 @@ export async function logoutUser() {
   return await signOut(auth)
 }
 
+/** Upper bound on Firebase auth bootstrap — the SDK's own init can hang. */
+const _AUTH_INIT_TIMEOUT_MS = 8000
+/** Upper bound on the redirect-event wait — the iframe relay can stall. */
+const _AUTH_EVENT_TIMEOUT_MS = 6000
+
+/**
+ * Persists the OAuth-return failure code for the login view and consumes
+ * the redirect marker — storage itself may be the blocker, so every write
+ * is guarded.
+ * @param code Firebase-style error code (or a synthetic `auth/*` code).
+ */
+function recordAuthFailure(code: string): void {
+  try {
+    sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_ERROR, code)
+    sessionStorage.removeItem(CACHE_STORAGE_KEYS.CMS_AUTH_REDIRECT)
+  } catch {
+    /* storage itself unavailable */
+  }
+}
+
+/**
+ * Persists an "auth failed but not via the OAuth return" signal used to
+ * distinguish a null getRedirectResult with an outstanding marker (event
+ * lost to blocked third-party storage) from a plain first visit.
+ * @param code Firebase-style error code.
+ */
+function flagAuthError(code: string): void {
+  try {
+    sessionStorage.setItem(CACHE_STORAGE_KEYS.CMS_AUTH_ERROR, code)
+  } catch {
+    /* storage itself unavailable */
+  }
+}
+
+/** Races a promise against a timeout that rejects with a synthetic auth code. */
+function raceTimeout<T>(promise: Promise<T>, ms: number, code: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_resolve, reject) =>
+      setTimeout(() => reject(Object.assign(new Error(code), { code })), ms)
+    ),
+  ])
+}
+
 /**
  * Subscribes to auth state after lazily loading firebase/auth.
  * First resolves a pending redirect sign-in (the signInWithGoogle popup
  * fallback) so the callback fires with the fresh session on return — a
  * failed redirect logs the error and falls through to the normal listener.
+ *
+ * Both the SDK init and the redirect-event wait are bounded: when
+ * third-party storage is blocked (the firebaseapp.com auth iframe can't
+ * persist/relay the OAuth event) the SDK promises never settle, which
+ * previously left the page hanging with the stale redirect marker. On a
+ * timeout or failure the real diagnosis is recorded for the login view,
+ * while a best-effort background subscribe still wires the listener so a
+ * late-arriving event can still sign in.
  * @param callback Invoked with the User (or null on sign-out) on every auth transition.
  * @returns {Promise<Function>} the SDK's unsubscribe function
  */
 export async function onAuthChange(callback: (_user: User | null) => void): Promise<Unsubscribe> {
-  const auth = await getAuthInstance()
+  let auth: Auth
+
+  try {
+    auth = await raceTimeout(
+      getAuthInstance(),
+      _AUTH_INIT_TIMEOUT_MS,
+      AUTH_STRINGS.ERR_AUTH_INIT_TIMEOUT
+    )
+  } catch (err) {
+    // Init itself stalled — the iframe relay or persistence layer is
+    // blocked. Record the diagnosis, then keep trying in the background so
+    // a late resolution still wires the listener.
+    recordAuthFailure((err as { code?: string })?.code || 'auth/auth-init-failed')
+
+    devWarn('Auth init timed out or failed', err)
+
+    getAuthInstance()
+      .then(async (readyAuth) => {
+        const { onAuthStateChanged } = await import('firebase/auth')
+
+        onAuthStateChanged(readyAuth, callback)
+      })
+      .catch((lateErr) => devWarn('Late auth subscribe failed', lateErr))
+
+    return () => {}
+  }
+
   const { getRedirectResult, onAuthStateChanged } = await import('firebase/auth')
 
   try {
-    const result = await getRedirectResult(auth)
+    const result = await raceTimeout(
+      getRedirectResult(auth),
+      _AUTH_EVENT_TIMEOUT_MS,
+      AUTH_STRINGS.ERR_REDIRECT_EVENT_TIMEOUT
+    )
 
     // A completed redirect consumed the marker — clear it so a later
     // sign-out doesn't re-report a failure that never happened.
@@ -177,21 +264,26 @@ export async function onAuthChange(callback: (_user: User | null) => void): Prom
       } catch {
         /* ignore */
       }
+    } else {
+      // Null result WITH an outstanding marker: the redirect leg ran but
+      // the OAuth event was lost — the firebaseapp.com iframe's storage is
+      // blocked (third-party site data). Without the marker the null is a
+      // plain first visit, which is not an error.
+      try {
+        if (sessionStorage.getItem(CACHE_STORAGE_KEYS.CMS_AUTH_REDIRECT)) {
+          flagAuthError(AUTH_STRINGS.ERR_NO_REDIRECT_EVENT)
+          sessionStorage.removeItem(CACHE_STORAGE_KEYS.CMS_AUTH_REDIRECT)
+        }
+      } catch {
+        /* storage itself unavailable */
+      }
     }
   } catch (err) {
     // The return leg actively FAILED (unauthorized domain, expired auth
     // event, network) — persist the Firebase code so the login view can
     // show the real diagnosis instead of the generic blocked-storage
     // guess, and consume the redirect marker.
-    try {
-      sessionStorage.setItem(
-        CACHE_STORAGE_KEYS.CMS_AUTH_ERROR,
-        (err as { code?: string })?.code || 'auth/redirect-resolution-failed'
-      )
-      sessionStorage.removeItem(CACHE_STORAGE_KEYS.CMS_AUTH_REDIRECT)
-    } catch {
-      /* storage itself unavailable */
-    }
+    recordAuthFailure((err as { code?: string })?.code || 'auth/redirect-resolution-failed')
 
     devWarn('Redirect sign-in resolution failed', err)
   }

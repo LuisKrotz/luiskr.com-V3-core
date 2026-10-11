@@ -5,16 +5,20 @@
 //  Imported by draw-text.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
+// NO will-change on char spans — promoting every char up-front creates a
+// compositor layer per span before its staggered delay even starts (legal
+// pages: hundreds of layers in one frame → dropped frames → chars landing
+// in visible clumps). The browser promotes only the chars whose animation
+// is actually running — see _mobile.scss for the same rationale.
+
 // ── Section titles: animate on mount (replayed via :key re-mount) ──────────
 .home-section-title .draw-text__char {
-  will-change: opacity, transform; // promote only during animation
   animation: char-draw 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
 }
 
 // ── Inside slides: animate only when the slide becomes active ──────────────
 .aw-c-slide--active .draw-text__char {
-  will-change: opacity, transform;
   animation: char-draw 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
 }
@@ -22,7 +26,6 @@
 // ── Viewport trigger: animate when scrolled into view ──────────────────────
 // .draw-text--visible is added by IntersectionObserver in the component
 .draw-text--visible .draw-text__char {
-  will-change: opacity, transform;
   animation: char-draw 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
 }
@@ -46,7 +49,6 @@
 
 // ── Related Mosaic: animate write effect ─────────────────────────────────────
 .related-mosaic-desc .draw-text__char {
-  will-change: opacity, transform;
   animation: char-draw 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 15ms));
 }
