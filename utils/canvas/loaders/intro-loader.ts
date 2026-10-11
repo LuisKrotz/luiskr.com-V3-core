@@ -92,6 +92,10 @@ export class IntroLoader {
 
     glow.className = LOADER_CLASSES.INTRO_LOADER_GLOW
 
+    const grid = document.createElement(HTML_TAGS.DIV)
+
+    grid.className = LOADER_CLASSES.INTRO_LOADER_GRID
+
     const content = document.createElement(HTML_TAGS.DIV)
 
     content.className = LOADER_CLASSES.INTRO_LOADER_CONTENT
@@ -99,6 +103,14 @@ export class IntroLoader {
     const spinner = document.createElement(HTML_TAGS.DIV)
 
     spinner.className = LOADER_CLASSES.INTRO_LOADER_SPINNER
+
+    const spinnerInner = document.createElement(HTML_TAGS.DIV)
+
+    spinnerInner.className = LOADER_CLASSES.INTRO_LOADER_SPINNER_INNER
+
+    const counter = document.createElement(HTML_TAGS.DIV)
+
+    counter.className = LOADER_CLASSES.INTRO_LOADER_COUNTER
 
     this.percentEl = document.createElement(HTML_TAGS.DIV)
 
@@ -124,13 +136,17 @@ export class IntroLoader {
 
     this.barEl.appendChild(fill)
 
+    counter.appendChild(this.percentEl)
+
     content.appendChild(spinner)
-    content.appendChild(this.percentEl)
+    content.appendChild(spinnerInner)
+    content.appendChild(counter)
     content.appendChild(title)
     content.appendChild(this.msgEl)
     content.appendChild(this.barEl)
 
     this.container.appendChild(glow)
+    this.container.appendChild(grid)
     this.container.appendChild(content)
 
     this.rootContainer.appendChild(this.container)

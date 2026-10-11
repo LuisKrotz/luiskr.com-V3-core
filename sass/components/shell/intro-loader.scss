@@ -11,9 +11,15 @@
 
 $_B_LOADER: 'intro-loader';
 
-@keyframes intro-loader-spin {
+@keyframes intro-loader-spin-cw {
   to {
     rotate: 360deg;
+  }
+}
+
+@keyframes intro-loader-spin-ccw {
+  to {
+    rotate: -360deg;
   }
 }
 
@@ -58,6 +64,23 @@ $_B_LOADER: 'intro-loader';
     );
   }
 
+  // Blueprint grid behind the content — same treatment as the experiment
+  // loaders: faint orthogonal lines fading out under a radial mask.
+  &-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgba($color-white, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba($color-white, 0.03) 1px, transparent 1px);
+    background-size: to-rem($space-4xl) to-rem($space-4xl);
+    -webkit-mask-image: radial-gradient(
+      ellipse 60% 60% at 50% 50%,
+      var(--bg-dark) 70%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, var(--bg-dark) 70%, transparent 100%);
+  }
+
   &-content {
     position: relative;
     height: 100%;
@@ -68,28 +91,56 @@ $_B_LOADER: 'intro-loader';
     z-index: 10;
   }
 
-  // Slow orbital ring — the shared experiments spinner.
+  // Outer orbital ring — clockwise, orbiting the counter like the
+  // experiment loaders' sp/sf spinners.
   &-spinner {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    translate: -50% calc(-50% - #{to-rem($space-4xl)});
     width: to-rem($space-8xl);
     height: to-rem($space-8xl);
     border-radius: var(--radius-round);
     border: 1px solid rgba($color-white, 0.1);
     border-top-color: rgba($color-white, 0.8);
-    animation: intro-loader-spin 8s linear infinite;
+    border-right-color: rgba($color-white, 0.3);
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+    animation: intro-loader-spin-cw 8s linear infinite;
+  }
+
+  // Inner counter-rotating ring — slower, wider, dimmer; same orbit as the
+  // outer ring so both spin around the percent counter.
+  &-spinner-inner {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    translate: -50% calc(-50% - #{to-rem($space-4xl)});
+    width: to-rem($space-9xl);
+    height: to-rem($space-9xl);
+    border-radius: var(--radius-round);
+    border: 1px solid rgba($color-white, 0.05);
+    border-bottom-color: rgba($color-white, 0.4);
+    animation: intro-loader-spin-ccw 12s linear infinite;
+  }
+
+  // Counter box centered under the orbiting rings — same 4xl footprint the
+  // experiment loaders use so both rings visually orbit the numeral.
+  &-counter {
+    width: to-rem($space-4xl);
+    height: to-rem($space-4xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: to-rem($space-3xl);
   }
 
-  // The boot percentage — deliberately the only heavy weight on the site
-  // (900 vs the usual 100–300) so it reads as a HUD numeral; tabular-nums
-  // keeps digits fixed-width so the counter doesn't jitter as it climbs.
+  // The boot percentage — HUD numeral inside the rings; tabular-nums keeps
+  // digits fixed-width so the counter doesn't jitter as it climbs.
   &-percent {
-    @extend %TTL_XL;
+    @extend %TTL_MD;
 
-    font-weight: 900;
+    font-weight: 300;
     color: rgba($color-white, 0.9);
     letter-spacing: 0.1em;
-    text-shadow: 0 0 to-rem($space-md) var(--shadow-ambient);
-    margin-bottom: to-rem($space-lg);
     font-variant-numeric: tabular-nums;
   }
 
