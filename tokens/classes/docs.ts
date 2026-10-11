@@ -41,10 +41,12 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_FRAME: `${_B_DOCS}-frame`,
   DOCS_SCENE: `${_B_DOCS}-scene`,
   DOCS_SCENE_OFF: `${_B_DOCS}-scene-off`,
+  DOCS_SCENE_HINT: `${_B_DOCS}-scene-hint`,
   DOCS_NAV_TOGGLE: `${_B_DOCS}-nav-toggle`,
   DOCS_NAV_OPEN: `${_B_DOCS}-nav-open`,
   DOCS_PROTECTED: `${_B_DOCS}-protected`,
   DOCS_MERMAID: `${_B_DOCS}-mermaid`,
+  DOCS_MERMAID_LOADING: `${_B_DOCS}-mermaid-loading`,
   DOCS_FOOTER_NOTE: `${_B_DOCS}-footer-note`,
   /** Boot loader overlay — stays up until the portal's first usable state. */
   DOCS_LOADER: `${_B_DOCS}-loader`,

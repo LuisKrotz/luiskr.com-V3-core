@@ -56,6 +56,11 @@ export const DOCS_STRINGS = Object.freeze({
   LOADER_MSG_SCENE: 'Mounting the architecture graph',
   LOADER_MSG_FILE: 'Loading the document payload',
   LOADER_MSG_READY: 'Portal online',
+  /** In-place skeleton label while a mermaid diagram renders. */
+  MERMAID_LOADING: 'Rendering diagram…',
+  /** Visible chip captioning the backdrop scene so the interactive
+   *  architecture map is obvious to a first-time viewer. */
+  SCENE_HINT: 'Architecture map — drag to orbit, click a node to navigate',
 })
 
 /**
@@ -99,15 +104,20 @@ export const DOCS_UNITS = Object.freeze({
   SCENE_Y_STEP: 4,
   SCENE_Y_WAVE: 1.5,
   /** slow backdrop motion — autorotate deg/frame-ish + node pulse.
-   *  Speeds run at 1/16 of the original values so the graph reads as a
-   *  calm ambient layer, not a spinner. */
-  SCENE_ROTATE_SPEED: 0.009375,
+   *  Speeds run far under OrbitControls' default (2.0) so the graph
+   *  reads as a calm ambient layer, not a spinner. */
+  SCENE_ROTATE_SPEED: 0.005,
   SCENE_PULSE_SPEED: 0.021875,
   SCENE_PULSE_AMP: 0.05,
-  /** node/edge alpha — kept faint so the graph stays a backdrop layer */
-  SCENE_DIR_OPACITY: 0.34,
-  SCENE_FILE_OPACITY: 0.18,
-  SCENE_LINE_OPACITY: 0.14,
+  /** node sphere radii (chart units) — sized to read at the mid-zoom
+   *  camera distance without smearing into blobs at near clip */
+  SCENE_DIR_RADIUS: 1.15,
+  SCENE_FILE_RADIUS: 0.55,
+  /** node/edge alpha — faint enough to stay a backdrop layer, strong
+   *  enough that the radial tree reads as a structure, not a smudge */
+  SCENE_DIR_OPACITY: 0.5,
+  SCENE_FILE_OPACITY: 0.28,
+  SCENE_LINE_OPACITY: 0.22,
   /** active-location highlight — the node matching the open docsPath pops
    *  to near-full alpha with a larger pulse; ancestor dirs along its path
    *  lift a notch above the base dir alpha so the branch reads. */
@@ -118,5 +128,14 @@ export const DOCS_UNITS = Object.freeze({
    *  from SCENE_INTRO_TURN radians over SCENE_INTRO_MS, then hands off to
    *  the ambient autorotate. Restored poses skip the intro entirely. */
   SCENE_INTRO_TURN: -Math.PI * 0.75,
-  SCENE_INTRO_MS: 6000,
+  SCENE_INTRO_MS: 11000,
+  /** Camera framing — distance = graphR·FIT and height = dist·LIFT.
+   *  FIT is deliberately under the full-fit ratio: deep manifests push
+   *  graphR past 100, and fitting the whole tree shrinks every ring to
+   *  a speck — framing the inner rings keeps the navigable structure
+   *  (root, buckets, first levels) legible while the outer rings bleed
+   *  off-frame (orbit/zoom still reaches them). LIFT ≈ 40° elevation
+   *  lets the concentric ring layout read as a map. */
+  SCENE_CAMERA_FIT: 1.15,
+  SCENE_CAMERA_LIFT: 0.8,
 })
