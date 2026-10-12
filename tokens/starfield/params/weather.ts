@@ -153,23 +153,28 @@ export const SF_AURORA = Object.freeze({
   WOBBLE_FREQ: 2.6,
   WOBBLE_DRIFT: 0.05,
   /**
-   * Curtain rays — high-frequency longitudinal striation breaks the
-   * ring into individual pleats; RAY_LO/HI threshold the fbm so
-   * bright rays separate against dimmer gaps.
+   * Curtain rays — the oval is striated into N ray pleats around the
+   * full 360° (a longitude sine stays continuous across the ±π seam
+   * for integer counts); RAY_JAG jitters each ray's phase with noise
+   * so they waver like hanging drapes instead of a barcode, RAY_SHARP
+   * (a power) thins the bright core of each pleat, and RAY_DRIFT walks
+   * the pattern around the oval as substorms rotate.
    */
-  RAY_FREQ: 16,
-  RAY_DRIFT: 0.4,
-  RAY_LO: 0.3,
-  RAY_HI: 0.75,
+  RAY_FREQ: 24,
+  RAY_JAG: 5,
+  RAY_SHARP: 2.4,
+  RAY_DRIFT: 0.35,
   /** Ray floor — gaps stay dimly lit, never fully dark. */
-  RAY_FLOOR: 0.2,
+  RAY_FLOOR: 0.12,
   /**
    * Arc breakup — low-frequency longitude modulation flares sections
-   * of the oval (auroral substorms brighten one sector at a time).
+   * of the oval (auroral substorms brighten one sector at a time);
+   * ARC_GAIN is the modulation contrast — high values let sectors go
+   * dark so storms never wash the whole oval flat.
    */
   ARC_FREQ: 1.4,
   ARC_DRIFT: 0.11,
-  ARC_GAIN: 0.55,
+  ARC_GAIN: 0.9,
   /** Brightness scale against the wind uniform. */
   INTENSITY: 0.9,
   /** Lower shell lift above the surface radius. */
