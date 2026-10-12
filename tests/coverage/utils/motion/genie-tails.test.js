@@ -60,4 +60,48 @@ describe('genie tails', () => {
     genieEnter(component)
     genieLeave(component, jest.fn())
   })
+
+  test('genieEnter removes the enter class after two animation frames', () => {
+    const backdrop = document.createElement(HTML_TAGS.DIV)
+    const dialog = document.createElement(HTML_TAGS.DIV)
+
+    dialog.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 300 })
+
+    const component = {
+      $: (sel) =>
+        sel.includes(PREF_CLASSES.PREF_BACKDROP)
+          ? backdrop
+          : sel.includes(PREF_CLASSES.PREF_DIALOG)
+            ? dialog
+            : null,
+    }
+
+    const frames = []
+    const originalRaf = globalThis.requestAnimationFrame
+
+    globalThis.requestAnimationFrame = (cb) => {
+      frames.push(cb)
+
+      return frames.length
+    }
+
+    store.commit(MODAL_MUTATIONS.SET_MODAL_ORIGIN, { x: 10, y: 20 })
+    store.commit(PREF_MUTATIONS.SET_REDUCED_MOTION, false)
+
+    genieEnter(component)
+
+    expect(backdrop.classList.contains(PREF_CLASSES.PREF_BACKDROP_ENTER)).toBe(true)
+    expect(frames).toHaveLength(1)
+
+    frames.shift()()
+
+    expect(backdrop.classList.contains(PREF_CLASSES.PREF_BACKDROP_ENTER)).toBe(true)
+    expect(frames).toHaveLength(1)
+
+    frames.shift()()
+
+    expect(backdrop.classList.contains(PREF_CLASSES.PREF_BACKDROP_ENTER)).toBe(false)
+
+    globalThis.requestAnimationFrame = originalRaf
+  })
 })
