@@ -42,6 +42,16 @@ export const ANIMATION_DURATIONS = Object.freeze({
   MENU_SETTLE_DURATION: 2200,
   /** Dialog genie zoom-out duration (ms) — must match .pref-backdrop--leave transition */
   DIALOG_LEAVE_DURATION: 640,
+  /**
+   * Input-arm window after a modal mounts (ms). Overlays open synchronously
+   * inside the opening gesture's dispatch, so a residual press from that
+   * same gesture — the second click of an in-place double-click, or a
+   * mouseup retargeted onto the freshly mounted surface — lands inside the
+   * overlay and fires whatever control happens to sit under the cursor.
+   * Sized under the OS double-click threshold so a deliberate click on a
+   * visible control still passes once the user has actually seen the UI.
+   */
+  MODAL_ARM_MS: 450,
   /** Space-playground loader fade-out before the node is removed (ms) — must match the CSS opacity transition */
   LOADER_FADE_MS: 800,
   /** Default smooth-scroll animation length (ms) — long enough to read the ease, short enough to not feel laggy */

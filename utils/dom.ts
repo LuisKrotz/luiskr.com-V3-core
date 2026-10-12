@@ -9,6 +9,8 @@
 import { SVG_STRINGS } from '@core/tokens/strings/svg.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { COVER_DIMENSIONS } from '@core/tokens/media/dimensions.js'
+import { MOUSE_EVENTS, POINTER_EVENTS } from '@core/tokens/events/dom.js'
+import { ANIMATION_DURATIONS } from '@core/tokens/motion/animation.js'
 
 /** Any node that can host a subtree worth scanning. */
 type DeepRoot = Document | Element | ShadowRoot
@@ -78,6 +80,78 @@ export const deepQuerySelectorAll = (
   }
 
   return results
+}
+
+/**
+ * Whether `now` still falls inside a just-mounted overlay's input-arm
+ * window. Dialogs and the menu mount synchronously during the opening
+ * gesture's dispatch, so a residual press from that same gesture — the
+ * second click of an in-place double-click, or a mouseup retargeted onto
+ * freshly mounted controls — lands inside the overlay and fires whatever
+ * happens to sit under the cursor (a language option, the dismiss
+ * backdrop). Capture-phase guards consult this before letting pointer
+ * input through; a non-positive `openedAt` disarms the window entirely.
+ * @param openedAt `performance.now()` sampled on the open transition.
+ * @param now Sample time — defaults to the shared time-origin clock.
+ * @returns True while pointer input inside the overlay should be swallowed.
+ */
+export const withinModalArmWindow = (openedAt: number, now: number = performance.now()): boolean =>
+  openedAt > 0 && now - openedAt < ANIMATION_DURATIONS.MODAL_ARM_MS
+
+/** Minimal host surface the residual-input guard needs. */
+interface ArmGuardHost extends EventTarget {
+  /** Scoped listener registration (BaseComponent.addScopedListener). */
+  addScopedListener(
+    target: EventTarget | null,
+    event: string,
+    handler: EventListenerOrEventListenerObject,
+    options?: AddEventListenerOptions | boolean
+  ): void
+}
+
+/**
+ * Attaches the residual-input guard to an overlay host — a capture-phase
+ * click/pointerdown pair on the host element itself, so a swallowed event
+ * never descends into the shadow tree toward option, backdrop, or widget
+ * handlers. The guard is inert while the overlay reports closed.
+ *
+ * Event discrimination:
+ *   - Only `MouseEvent`-typed input can be gesture residue — plain
+ *     `Event('click')` dispatches are scripted/deliberate and always pass.
+ *   - `click` carries a meaningful `detail`: 0 marks keyboard/programmatic
+ *     activation (deliberate — always passes, keeping tests' `.click()`
+ *     working); ≥2 marks a multi-click residual — stale by definition.
+ *   - pointer presses carry no click count and are armed by the time
+ *     window alone; this also covers drags started by a stale pointerdown
+ *     (e.g. the theme slider's window-tracked drag).
+ * @param host Overlay host element (also the listener owner).
+ * @param isOpen Predicate — the guard is inert while the overlay is closed.
+ * @param openedAt Clock accessor — `performance.now()` sampled at open.
+ */
+export const armResidualInputGuard = (
+  host: ArmGuardHost,
+  isOpen: () => boolean,
+  openedAt: () => number
+): void => {
+  const guard: EventListener = (e) => {
+    if (!isOpen() || !(e instanceof MouseEvent)) return
+
+    if (e.type === MOUSE_EVENTS.CLICK) {
+      if (e.detail === 0) return
+
+      if (e.detail > 1) {
+        e.stopPropagation()
+
+        return
+      }
+    }
+
+    if (withinModalArmWindow(openedAt())) e.stopPropagation()
+  }
+
+  host.addScopedListener(host, MOUSE_EVENTS.CLICK, guard, { capture: true })
+
+  host.addScopedListener(host, POINTER_EVENTS.POINTERDOWN, guard, { capture: true })
 }
 
 /**
