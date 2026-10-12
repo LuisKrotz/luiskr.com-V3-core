@@ -90,14 +90,20 @@ export const SF_WEATHER = Object.freeze({
   EYE_R: 0.05,
   EYE_DIP: 0.9,
   /**
-   * Polar snow/ice — ICE_BASE is the solstice cap edge in |lat| units
-   * (0.82 ≈ 55°N/S keeps the cap polar instead of blanketing half the
-   * globe); ICE_DECL swings the line against the solar declination so
-   * caps visibly grow into winter and retreat in summer; SNOW_GAIN is
-   * the cap's deck-brightness contribution — a fraction, not a coat.
+   * Polar snow/ice — ICE_BASE is the northern solstice cap edge in
+   * |lat| units (0.82 ≈ 55°N keeps the cap polar instead of blanketing
+   * half the globe); ICE_DECL swings the line against the solar
+   * declination so the cap visibly grows into winter and retreats in
+   * summer. The south runs a tighter, steadier footprint — ICE_S_BASE
+   * keeps it poleward of ~64°S and ICE_S_DECL halves its seasonal
+   * swing, so southern glaciation never approaches the northern
+   * winter's reach. SNOW_GAIN is the cap's deck-brightness
+   * contribution — a fraction, not a coat.
    */
   ICE_BASE: 0.82,
   ICE_DECL: 0.1,
+  ICE_S_BASE: 0.9,
+  ICE_S_DECL: 0.05,
   ICE_SOFT: 0.06,
   SNOW_GAIN: 0.45,
   /**
