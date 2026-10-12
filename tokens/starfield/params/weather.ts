@@ -64,14 +64,16 @@ export const SF_WEATHER = Object.freeze({
   EYE_R: 0.05,
   EYE_DIP: 0.9,
   /**
-   * Polar snow/ice — ICE_BASE is the summer solstice latitude where the
-   * cap edge rests; ICE_DECL swings the line against the solar
-   * declination so caps visibly grow into winter and retreat in summer.
+   * Polar snow/ice — ICE_BASE is the solstice cap edge in |lat| units
+   * (0.82 ≈ 55°N/S keeps the cap polar instead of blanketing half the
+   * globe); ICE_DECL swings the line against the solar declination so
+   * caps visibly grow into winter and retreat in summer; SNOW_GAIN is
+   * the cap's deck-brightness contribution — a fraction, not a coat.
    */
-  ICE_BASE: 0.62,
-  ICE_DECL: 0.22,
-  ICE_SOFT: 0.08,
-  SNOW_GAIN: 0.85,
+  ICE_BASE: 0.82,
+  ICE_DECL: 0.1,
+  ICE_SOFT: 0.06,
+  SNOW_GAIN: 0.45,
   /**
    * Volcanic ash — one seeded eruption site pulsing on a slow period;
    * GAIN is plume darkness, VOLC_R its radius (unit-sphere chord),
@@ -202,6 +204,14 @@ export const SF_AURORA = Object.freeze({
   NIGHT_LO: 0.3,
   NIGHT_HI: -0.25,
   DAY_FLOOR: 0.3,
+  /**
+   * Hemisphere gate — `aurora.south === false` fades the oval out
+   * across the magnetic equator so only the boreal (north) curtain
+   * shows; the giants keep both ovals. Edges are signed magnetic
+   * latitude on the unit sphere.
+   */
+  HEMI_LO: 0.05,
+  HEMI_HI: 0.3,
   /**
    * Default palette — oxygen-green curtain top over a violet-red
    * lower edge (Earth); per-body `aurora.color/colorLow` override for
