@@ -184,6 +184,16 @@ export const SF_LOD = Object.freeze({
    * tier out of home reveals the galactic hierarchy.
    */
   DEEP_REVEAL: 800,
+  /**
+   * Solar-tier collapse — beyond this heliocentric camera distance the
+   * whole planetary diagram (±150 units to the Kuiper rim) subtends too
+   * little to resolve, so every solar body hides and the Sun swaps its
+   * photosphere for the same flat point glow the neighborhood stars
+   * wear: from Proxima's range (~1 060 units) the real solar system is
+   * a single bright star, never a resolved cluster. The threshold sits
+   * well clear of the belt so normal fly-throughs never trigger it.
+   */
+  SOLAR_FAR: 450,
 })
 
 /**
