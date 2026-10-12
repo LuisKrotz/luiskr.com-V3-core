@@ -181,19 +181,35 @@ export const SF_AURORA = Object.freeze({
   WOBBLE_FREQ: 2.6,
   WOBBLE_DRIFT: 0.05,
   /**
-   * Curtain rays — the oval is striated into N ray pleats around the
-   * full 360° (a longitude sine stays continuous across the ±π seam
-   * for integer counts); RAY_JAG jitters each ray's phase with noise
-   * so they waver like hanging drapes instead of a barcode, RAY_SHARP
-   * (a power) thins the bright core of each pleat, and RAY_DRIFT walks
-   * the pattern around the oval as substorms rotate.
+   * Curtain folds — real auroral striation runs ACROSS the band
+   * (rays stand perpendicular to the arc), so the fold phase is the
+   * signed distance from the oval centerline, not longitude — from
+   * orbit this reads as woven ribbon filaments instead of radial
+   * spokes. FOLD_JAG slides the fold phase with noise along the oval
+   * so the ribbons curl and merge; FOLD_SHARP (a power) thins each
+   * filament's bright core; FOLD_DRIFT ripples the weave with time.
    */
-  RAY_FREQ: 24,
-  RAY_JAG: 5,
-  RAY_SHARP: 2.4,
-  RAY_DRIFT: 0.35,
-  /** Ray floor — gaps stay dimly lit, never fully dark. */
-  RAY_FLOOR: 0.12,
+  FOLD_FREQ: 160,
+  FOLD_JAG: 6,
+  FOLD_SHARP: 2.2,
+  FOLD_DRIFT: 0.2,
+  /** Fold floor — gaps between filaments stay dimly lit. */
+  FOLD_FLOOR: 0.18,
+  /**
+   * Secondary arc — real substorm ovals frequently run a fainter
+   * parallel arc poleward of the main one; ARC2_OFF is its latitude
+   * offset, ARC2_GAIN its relative brightness.
+   */
+  ARC2_OFF: 0.035,
+  ARC2_GAIN: 0.35,
+  /**
+   * Arc patchiness — a medium-frequency mottle multiplies the oval so
+   * segments vary in brightness irregularly (patches, torch curls)
+   * instead of a smooth one-level arc.
+   */
+  PATCH_FREQ: 3.4,
+  PATCH_GAIN: 0.55,
+  PATCH_DRIFT: 0.18,
   /**
    * Arc breakup — low-frequency longitude modulation flares sections
    * of the oval (auroral substorms brighten one sector at a time);
