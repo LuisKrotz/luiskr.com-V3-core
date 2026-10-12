@@ -59,8 +59,21 @@ export const SF_WEATHER = Object.freeze({
    * (monsoon seasonality — the band follows the sun north/south).
    */
   ITCZ_HALF: 0.14,
-  ITCZ_GAIN: 0.55,
+  ITCZ_GAIN: 0.75,
   ITCZ_WANDER: 0.3,
+  /**
+   * Convective-cell gate for the ITCZ — the band only clouds where the
+   * detail octave beats this ramp, so the convergence zone renders as
+   * a broken chain of storm puffs instead of a solid equatorial stripe.
+   */
+  ITCZ_CELL_LO: 0.42,
+  ITCZ_CELL_HI: 0.72,
+  /**
+   * Density→opacity power — thin noise haze is crushed toward zero so
+   * only genuine cloud mass renders; keeps the surface saturated under
+   * the deck.
+   */
+  DENS_POW: 1.6,
   /**
    * Hurricane vortices — N seeded tropical cyclones; R is the chord
    * radius of the storm envelope, GAIN its cover contribution, SWIRL
