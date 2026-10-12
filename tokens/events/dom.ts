@@ -46,6 +46,8 @@ export const POINTER_EVENTS = Object.freeze({
   POINTERCANCEL: 'pointercancel',
   POINTERENTER: _K_POINTERENTER,
   POINTERLEAVE: 'pointerleave',
+  POINTEROVER: 'pointerover',
+  POINTEROUT: 'pointerout',
 })
 
 /**
