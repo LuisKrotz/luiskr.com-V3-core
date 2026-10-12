@@ -153,13 +153,13 @@ export const SF_AURORA = Object.freeze({
    * Auroral oval center — |lat| on the unit sphere (~0.8 ≈ 53° from
    * the equator, the real auroral zone sits just inside the pole).
    */
-  LAT0: 0.9,
+  LAT0: 0.87,
   /**
    * Oval gaussian half-width — the emission is a thin curtain RING
    * hugging the oval; wide windows read as a smeared cap (the old
    * "green fried egg"), so this stays deliberately narrow.
    */
-  OVAL_W: 0.03,
+  OVAL_W: 0.045,
   /**
    * Oval waviness — substorm arcs buckle the ring with longitude;
    * sampled as noise on the sphere so there's no seam at ±π.
@@ -191,21 +191,13 @@ export const SF_AURORA = Object.freeze({
   ARC_DRIFT: 0.11,
   ARC_GAIN: 0.9,
   /**
-   * Brightness scale against the wind uniform — deliberately LOW:
-   * auroras are a faint atmospheric shimmer, not a second surface
-   * layer; storms multiply this through `wind` rather than the base.
+   * Brightness scale against the wind uniform — a faint shimmer that
+   * storms multiply through `wind`, visible on the dark limb without
+   * reading as a second surface layer.
    */
-  INTENSITY: 0.32,
-  /** Lower shell lift above the surface radius. */
+  INTENSITY: 0.55,
+  /** Shell lift above the surface radius — hugs the atmosphere top. */
   SHELL_SCALE: 1.02,
-  /**
-   * Curtain-top shell — a second, higher ring at reduced alpha reads
-   * as the curtains' altitude; TOP_LIFT pushes its oval slightly
-   * poleward-outward like real field-aligned curtains lean.
-   */
-  SHELL_SCALE2: 1.05,
-  TOP_FADE: 0.2,
-  TOP_LIFT: 0.025,
   /**
    * Default magnetic-axis tilt (radians) — Earth's dipole sits ~11°
    * off the spin axis; per-body `aurora.tilt` overrides (Neptune's
