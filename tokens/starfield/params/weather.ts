@@ -266,8 +266,15 @@ export const SF_CONSTELLATION = Object.freeze({
   SPEED: 7.5,
   /** Orbital plane inclination (radians, ~53° like Starlink). */
   INCLINE: 0.92,
+  /**
+   * Inclination spread (radians) — real shells fly several planes
+   * (53°, 53.2°, 70°, 97.6° for Starlink), so per-satellite jitter
+   * around the base scatters the swarm into a volume instead of
+   * tracing a single crisp ring.
+   */
+  INCLINE_SPREAD: 0.5,
   /** Altitude jitter fraction — the shell has thickness, not a line. */
-  JITTER: 0.06,
+  JITTER: 0.3,
   /** Point size vs the host body radius — glints, not balls. */
   SIZE: 0.012,
 })

@@ -57,6 +57,12 @@ export const SF_KINDS = Object.freeze({
    * navigator still flies to it for the dossier.
    */
   BELT: 'belt',
+  /**
+   * Artificial companion (ISS-class orbiters) — registered only inside
+   * a host body's `satellites` list; gives the dossier badge a real
+   * label instead of falling through to the raw kind string.
+   */
+  SATELLITE: 'satellite',
 })
 
 /**
