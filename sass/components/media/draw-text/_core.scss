@@ -53,9 +53,11 @@
   // color is the only link ink :visited is allowed to change). A parent
   // pseudo-element draws the underline because native text-decoration skips
   // the inline-block word spans and otherwise paints only beneath whitespace.
-  // The underline is HOVER-ONLY — the ::after sweeps in on hover/focus and
-  // never rests visible, matching %LK_LINK on plain links outside this
-  // shadow root.
+  // The underline stays transparent while the draw animation runs — a link
+  // line visible ahead of its glyphs reads as a stray rule across empty
+  // space. `.draw-text--done` restores the muted --grey line once every char
+  // has landed (see _triggers.scss); on hover/focus the brighter ::after
+  // sweep takes over.
   a,
   a:link,
   a:visited {
@@ -63,6 +65,8 @@
     display: inline-block;
     color: inherit;
     text-decoration: none;
+    border-bottom: to-rem($space-hairline) solid transparent;
+    transition: border-bottom-color 0.3s ease;
 
     &::after {
       content: '';
@@ -79,6 +83,12 @@
         opacity 0.3s ease;
       opacity: 0;
       pointer-events: none;
+    }
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+      border-bottom-color: transparent;
     }
 
     &:hover::after,

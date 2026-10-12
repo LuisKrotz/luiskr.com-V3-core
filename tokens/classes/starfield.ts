@@ -34,11 +34,19 @@ export const SF_CLASSES = Object.freeze({
   SF_HUD: `${_B_SF}-hud`,
   SF_HINT: `${_B_SF}-hint`,
   SF_LIVE: `${_B_SF}-live`,
+  /** Bottom-edge scale disclaimer strip (localized per locale node). */
+  SF_DISCLAIMER: `${_B_SF}-disclaimer`,
 
   // ── Hover tooltip (leader line + name/distance label) ────────────────────
   SF_TIP: `${_B_SF}-tip`,
   SF_TIP_LINE: `${_B_SF}-tip-line`,
   SF_TIP_LABEL: `${_B_SF}-tip-label`,
+  /** Edge-hint mode — marker clamped to the canvas edge; line rotates to point. */
+  SF_TIP_EDGE: `${_B_SF}-tip--edge`,
+  /** Label flips left of the marker — right-edge clamps keep it readable. */
+  SF_TIP_FLIPX: `${_B_SF}-tip--flipx`,
+  /** Label drops below the marker — top-edge clamps keep it on-canvas. */
+  SF_TIP_FLIPY: `${_B_SF}-tip--flipy`,
 
   // ── Body navigator drawer (the keyboard/AT access path) ──────────────────
   SF_NAV: `${_B_SF}-nav`,
@@ -56,6 +64,8 @@ export const SF_CLASSES = Object.freeze({
   SF_NAV_ITEM_META: `${_B_SF}-nav-item-meta`,
   SF_NAV_MORE: `${_B_SF}-nav-more`,
   SF_NAV_SEARCH: `${_B_SF}-nav-search`,
+  /** In-drawer scale disclaimer — mobile home for the honesty note. */
+  SF_NAV_DISCLAIMER: `${_B_SF}-nav-disclaimer`,
 
   // ── Info panel (lazy-loaded body dossier) ────────────────────────────────
   SF_PANEL: `${_B_SF}-panel`,
@@ -90,4 +100,15 @@ export const SF_CLASSES = Object.freeze({
   // ── Actions ──────────────────────────────────────────────────────────────
   SF_ACTIONS: `${_B_SF}-actions`,
   SF_BTN: `${_B_SF}-btn`,
+
+  // ── Instructions modal (mobile informative texts) ────────────────────────
+  SF_INSTRUCTIONS_BTN: `${_B_SF}-instructions-btn`,
+  SF_INSTRUCTIONS_MODAL: `${_B_SF}-instructions-modal`,
+  SF_INSTRUCTIONS_MODAL_OPEN: `${_B_SF}-instructions-modal--open`,
+  SF_INSTRUCTIONS_HEAD: `${_B_SF}-instructions-head`,
+  SF_INSTRUCTIONS_TITLE: `${_B_SF}-instructions-title`,
+  SF_INSTRUCTIONS_CLOSE: `${_B_SF}-instructions-close`,
+  SF_INSTRUCTIONS_BODY: `${_B_SF}-instructions-body`,
+  SF_INSTRUCTIONS_HINT: `${_B_SF}-instructions-hint`,
+  SF_INSTRUCTIONS_DISCLAIMER: `${_B_SF}-instructions-disclaimer`,
 })

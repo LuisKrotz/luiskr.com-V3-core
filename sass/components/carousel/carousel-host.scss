@@ -7,6 +7,12 @@
 @import '../../base/variables';
 @import '../../base/mixins';
 
+/// BEM block fragments — composed via interpolation so prefix strings
+/// are declared once (DRY selector rule 9).
+$_B_CAROUSEL: 'carousel';
+$_B_CAROUSEL_SLIDE: '#{$_B_CAROUSEL}-slide';
+$_B_INTERNAL_EXTRA: 'internal-extra-item';
+
 // ── Shadow host ───────────────────────────────────────────────────────────────
 :host {
   display: block;
@@ -17,14 +23,68 @@
   color: var(--text-primary);
 }
 
-// ── Carousel viewport override ────────────────────────────────────────────────
-// The .carousel opacity/transform starts at 0/translateY(32px) per carousel.scss
-// and animates to 1/none when .carousel--in-view is added by IntersectionObserver.
-// The carouselExtraStyles previously hard-coded `opacity: 1 !important` to
-// prevent the fade-in — that is WRONG. Removed. The IntersectionObserver handles it.
+// ── Ratio modifiers for landscape carousels on mobile ─────────────────────────
+.#{$_B_CAROUSEL} {
+  &--ratio-16-9 {
+    --carousel-media-height: calc((90vw - #{calc(var(--space-xl) * 2)}) * 9 / 16);
+  }
+
+  &--ratio-21-9 {
+    --carousel-media-height: calc((90vw - #{calc(var(--space-xl) * 2)}) * 9 / 21);
+  }
+
+  &--ratio-32-9 {
+    --carousel-media-height: calc((90vw - #{calc(var(--space-xl) * 2)}) * 9 / 32);
+  }
+
+  &--mixed {
+    .#{$_B_CAROUSEL_SLIDE} {
+      height: var(--carousel-media-height);
+      overflow: hidden;
+      contain: paint;
+      clip-path: inset(0);
+    }
+
+    .#{$_B_INTERNAL_EXTRA} {
+      height: var(--carousel-media-height);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      contain: paint;
+      clip-path: inset(0);
+    }
+
+    @include layout-768() {
+      .#{$_B_CAROUSEL_SLIDE} {
+        height: auto;
+        overflow: visible;
+        contain: none;
+        clip-path: none;
+      }
+
+      .#{$_B_INTERNAL_EXTRA} {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+        contain: none;
+        clip-path: none;
+      }
+    }
+  }
+
+  @include layout-768() {
+    &--ratio-16-9,
+    &--ratio-21-9,
+    &--ratio-32-9 {
+      --carousel-media-height: initial;
+    }
+  }
+}
 
 // ── Slide wrapper — must not clip content ────────────────────────────────────
-.carousel-slide {
+.#{$_B_CAROUSEL_SLIDE} {
   flex: 0 0 auto;
   scroll-snap-align: center;
   display: flex;
@@ -37,7 +97,7 @@
 // These styles mirror .internal-extra-item from internals.scss but must be
 // redeclared here because Shadow DOM isolation prevents the parent's stylesheet
 // from styling elements inside <custom-carousel>'s Shadow Root.
-.internal-extra-item {
+.#{$_B_INTERNAL_EXTRA} {
   position: relative;
   border-radius: to-rem($space-md);
   color: var(--text-muted);
@@ -72,7 +132,7 @@
   // In the carousel context, every item is the sole child of its slide,
   // so :first-of-type/:last-of-type both match — they'd zero-out padding.
   // Restore symmetric gaps between items in the carousel track.
-  .carousel & {
+  .#{$_B_CAROUSEL} & {
     &:first-of-type {
       padding-left: to-rem($space-lg);
     }
@@ -106,6 +166,102 @@
     }
   }
 
+  // ── Mixed landscape compensation pattern (mobile) ─────────────────────────
+  &.#{$_B_CAROUSEL_SLIDE}--mixed-landscape {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: var(--carousel-landscape-media-width, calc(90vw - #{calc(var(--space-xl) * 2)}));
+    max-width: calc(90vw - #{calc(var(--space-xl) * 2)});
+    overflow: hidden;
+    contain: paint;
+    clip-path: inset(0);
+
+    .#{$_B_CAROUSEL_SLIDE}-pattern {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: to-rem($space-lg);
+      right: to-rem($space-lg);
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      contain: paint;
+      clip-path: inset(0);
+
+      &--top,
+      &--bottom {
+        width: 100%;
+        max-width: 100%;
+        height: 50%;
+        object-fit: cover;
+        filter: blur(to-rem($space-md));
+        opacity: 0.6;
+        contain: paint;
+      }
+
+      &--top {
+        transform: scaleY(-1);
+      }
+
+      &--bottom {
+        transform: scaleY(-1);
+      }
+    }
+
+    media-figure {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 100%;
+      --mf-w: calc(90vw - #{calc(var(--space-xl) * 2)});
+      --mf-h: var(
+        --carousel-landscape-media-height,
+        var(--carousel-media-height, calc((90vw - #{calc(var(--space-xl) * 2)}) * 9 / 16))
+      );
+    }
+
+    @include layout-768() {
+      width: min-content;
+      max-width: none;
+      overflow: visible;
+      contain: none;
+      clip-path: none;
+
+      .#{$_B_CAROUSEL_SLIDE}-pattern {
+        display: none;
+      }
+
+      media-figure {
+        --mf-h: calc(70dvh - #{calc(var(--space-2xl) * 2)});
+      }
+    }
+
+    @include layout-1024() {
+      media-figure {
+        --mf-h: var(--space-7xl);
+      }
+    }
+
+    @include layout-1440() {
+      media-figure {
+        --mf-h: var(--space-8xl);
+      }
+    }
+
+    @include layout-2560() {
+      media-figure {
+        --mf-h: var(--space-9xl);
+      }
+    }
+  }
+
   // ── CSS Custom Properties for media-figure Shadow DOM sizing ────────────────
   // internals.scss sets these on <media-figure> in the light DOM, but when
   // <media-figure> is inside <custom-carousel>'s Shadow Root, the light DOM
@@ -113,8 +269,8 @@
   // carousel Shadow Root, where they can reach nested <media-figure> elements.
   media-figure {
     --mf-w: calc(90vw - #{calc(var(--space-xl) * 2)});
-    --mf-h: calc(70vh - #{calc(var(--space-xl) * 2)});
-    --mf-h: calc(70dvh - #{calc(var(--space-xl) * 2)});
+    --mf-h: var(--carousel-media-height, calc(70vh - #{calc(var(--space-xl) * 2)}));
+    --mf-h: var(--carousel-media-height, calc(70dvh - #{calc(var(--space-xl) * 2)}));
 
     @include layout-768() {
       --mf-w: calc(90vw - #{calc(var(--space-2xl) * 2)});

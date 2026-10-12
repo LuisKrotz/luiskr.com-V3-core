@@ -67,4 +67,6 @@ export const SF_ACTIONS = Object.freeze({
   OVERVIEW: 'overview',
   NAV_TOGGLE: 'nav-toggle',
   PANEL_CLOSE: 'panel-close',
+  INSTRUCTIONS_TOGGLE: 'instructions-toggle',
+  INSTRUCTIONS_CLOSE: 'instructions-close',
 })

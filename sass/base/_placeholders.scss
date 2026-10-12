@@ -63,20 +63,18 @@
 }
 
 // ═══ Inline text-link underline — drawn at rest, sweeps in on hover ═══
-// The resting line is the link element's own border-bottom: border-color is
-// one of the few properties :visited is allowed to restyle (pseudo-elements
-// and backgrounds always paint as :link), so visited links keep the same
-// underline but in the muted --grey token. On hover/focus the border fades
-// out and a ::after hairline takes over at the exact same offset, growing
-// from left to right once via transform — no looping animation, so the first
-// hover no longer blinks. Block-level links (stacked footer rows) should add
-// `width: fit-content` so the line hugs the text instead of spanning the column.
+// The underline draws ONLY on hover/focus: the resting border-bottom is
+// transparent so nav/footer rows stay clean, and border-color is one of
+// the few properties :visited is allowed to restyle (pseudo-elements and
+// backgrounds always paint as :link). On hover/focus the transparent
+// border hands off to a ::after hairline at the exact same offset,
+// growing left to right once via transform — no looping animation, so
+// the first hover no longer blinks. In-content prose links that need a
+// resting underline (draw-text, in-depth pages) carry their own rule.
+// Block-level links (stacked footer rows) should add `width: fit-content`
+// so the line hugs the text instead of spanning the column.
 %LK_LINK {
   position: relative;
-  // The underline is hover-only — the hairline track is always reserved
-  // (transparent border) so no layout shift, and the ::after sweep is
-  // the ONLY visible line: the old visible→transparent border swap was
-  // the first-hover blink.
   border-bottom: to-rem($space-hairline) solid transparent;
   transition: border-bottom-color 0.3s ease;
   cursor: pointer;

@@ -77,6 +77,18 @@ export const CAROUSEL_LAYOUT = Object.freeze({
   LAND_CAP_SUB_1920: 233,
   /** Max slide height (px) used when window.innerHeight is unavailable (SSR/tests) */
   MAX_HEIGHT_FALLBACK: 600,
+  /** Numeric 16:9 aspect ratio */
+  RATIO_16_9: 16 / 9,
+  /** Numeric 21:9 aspect ratio */
+  RATIO_21_9: 21 / 9,
+  /** Numeric 32:9 aspect ratio */
+  RATIO_32_9: 32 / 9,
+  /** String token key for 16:9 */
+  ASPECT_RATIO_16_9: '16:9',
+  /** String token key for 21:9 */
+  ASPECT_RATIO_21_9: '21:9',
+  /** String token key for 32:9 */
+  ASPECT_RATIO_32_9: '32:9',
 })
 
 /**

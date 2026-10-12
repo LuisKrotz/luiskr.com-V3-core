@@ -210,6 +210,11 @@ $_B_AFP: 'awards-footer-progress';
     cursor: pointer;
     font-weight: 400;
     font-size: to-rem($space-lg);
+    border-bottom-color: currentColor;
+
+    &::after {
+      transform: scaleX(1);
+    }
   }
 
   // Docs-portal entry — sits above the source credit: English link title
@@ -234,9 +239,14 @@ $_B_AFP: 'awards-footer-progress';
       text-decoration: none;
       cursor: pointer;
       opacity: 0.85;
+      border-bottom-color: currentColor;
       transition:
         opacity 0.2s ease,
         border-bottom-color 0.3s ease;
+
+      &::after {
+        transform: scaleX(1);
+      }
 
       &:hover,
       &:focus {

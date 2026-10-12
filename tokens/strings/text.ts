@@ -25,6 +25,7 @@ export const NAV_TEXT = Object.freeze({
 export const LABEL_TEXT = Object.freeze({
   LOADING: 'Loading',
   LOGOUT: 'Logout',
+  INSTRUCTIONS: 'Instructions',
 })
 
 /**

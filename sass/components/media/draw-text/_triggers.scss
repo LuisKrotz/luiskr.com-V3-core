@@ -44,8 +44,12 @@
   will-change: auto; // release GPU layer after animation is done
 }
 
-// Done state keeps the underline hover-only — the ::after stays a hover
-// sweep, never a resting line (the old scaleX(1) here drew it forever).
+// Done state restores the resting underline — the muted --grey line fades in
+// via the border-bottom-color transition only after the whole text is drawn,
+// and the ::after stays a hover sweep, never a resting line.
+.draw-text--done a {
+  border-bottom-color: var(--grey);
+}
 
 // ── Related Mosaic: animate write effect ─────────────────────────────────────
 .related-mosaic-desc .draw-text__char {
