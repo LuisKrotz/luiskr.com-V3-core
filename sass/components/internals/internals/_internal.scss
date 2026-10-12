@@ -788,11 +788,36 @@
         text-align: center;
         color: var(--text-secondary);
         line-height: var(--space-xl);
+        // Quiet colophon, not small caps — drop %TTL_XXS's uppercase and
+        // set the authorship copy in italic instead.
+        text-transform: none;
+        font-style: italic;
       }
 
       &-credit {
         max-width: var(--space-9xl);
         margin-bottom: var(--space-sm);
+      }
+
+      // Back-home affordance — sits above the authorship divider so every
+      // internal footer (project + legal) offers a way back. Styled like
+      // the footer links but kept on its own line as a real destination,
+      // not a row separator item.
+      &-home {
+        @extend %TTL_BASE;
+        @extend %TTL_XS;
+        @extend %LK_LINK;
+
+        display: block;
+        width: fit-content;
+        margin: 0 auto var(--space-xl);
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        text-transform: uppercase;
+        font-weight: 300;
+        line-height: var(--space-xl);
+        border-bottom-color: currentColor;
       }
     }
 

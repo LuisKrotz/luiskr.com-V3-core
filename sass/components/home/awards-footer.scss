@@ -279,7 +279,9 @@ $_B_AFP: 'awards-footer-progress';
     display: block;
     width: 100%;
     height: to-rem($space-3xs);
-    margin: to-rem($space-xl) auto to-rem($space-lg);
+    // Generous air above (≈120px requested → closest Fibonacci step is
+    // $space-5xl/144px) and a tight 21px gap under the authorship lines.
+    margin: to-rem($space-5xl) auto to-rem($space-xl);
     padding: 0;
     border: none;
     border-radius: var(--radius-round);
@@ -319,6 +321,10 @@ $_B_AFP: 'awards-footer-progress';
     opacity: 0.7;
     font-weight: 300;
     line-height: to-rem($space-xl);
+    // The authorship lines read as a quiet colophon, not small caps —
+    // drop %TTL_XXS's uppercase and set the copy in italic instead.
+    text-transform: none;
+    font-style: italic;
   }
 
   &-credit {

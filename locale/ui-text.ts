@@ -77,3 +77,47 @@ export const rightsText = (): string =>
     SOURCE_YEAR_TOKEN,
     String(new Date().getFullYear())
   )
+
+/**
+ * Segmented copyright line for the site footers — the same resolved
+ * `rightsText()` split around the © glyph and the year so renderers can
+ * wrap those two tokens in emphasis markup without hardcoding where the
+ * translation places them. `post` carries any suffix after the year
+ * (empty today, kept for translation freedom); when either anchor is
+ * missing the whole line lands in `pre` and renders unsegmented.
+ * @returns {pre, copy, mid, year, post} — render as
+ *   pre + <b>copy</b> + mid + <b>year</b> + post.
+ */
+export const rightsParts = (): {
+  pre: string
+  copy: string
+  mid: string
+  year: string
+  post: string
+} => {
+  const text = rightsText()
+
+  const year = String(new Date().getFullYear())
+
+  const copyIdx = text.indexOf(CHAR_STRINGS.COPYRIGHT)
+
+  const yearIdx = text.lastIndexOf(year)
+
+  if (copyIdx < 0 || yearIdx < 0) {
+    return {
+      pre: text,
+      copy: CHAR_STRINGS.EMPTY,
+      mid: CHAR_STRINGS.EMPTY,
+      year: CHAR_STRINGS.EMPTY,
+      post: CHAR_STRINGS.EMPTY,
+    }
+  }
+
+  return {
+    pre: text.slice(0, copyIdx),
+    copy: text.slice(copyIdx, copyIdx + 1),
+    mid: text.slice(copyIdx + 1, yearIdx),
+    year,
+    post: text.slice(yearIdx + year.length),
+  }
+}

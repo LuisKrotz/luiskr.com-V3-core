@@ -27,6 +27,7 @@ export const CHAR_STRINGS = Object.freeze({
   PERCENT: '%',
   PIPE_SEP: '|',
   DOT_SEP: '•',
+  COPYRIGHT: '©',
   SPACE_CHAR: ' ',
   NBSP: ' ',
   ZERO: '0',
