@@ -129,4 +129,25 @@ export const SF_STAR_CLOUD = Object.freeze({
    * clamp still bounds how close OrbitControls lets the camera get.
    */
   FLY_OFFSET: 50,
+  /**
+   * Lazy registry-body spawning — when a catalog record is selected its
+   * plain cloud point gets a real rendered body (textured star disc,
+   * procedural exoplanet, DSO speckle cloud) mounted at the record's
+   * heliocentric position on the Sun's pivot. BODY_CACHE caps the LRU
+   * set so browsing never accumulates meshes; the radius tunables size
+   * each spawned object for the fixed FLY_OFFSET standoff.
+   */
+  BODY_CACHE: 12,
+  /** Star sphere base radius (chart units) at magnitude 0. */
+  BODY_STAR_R: 2.4,
+  /** Magnitude → radius slope: dimmer stars spawn smaller discs. */
+  BODY_STAR_MAGK: 0.18,
+  /** Star sphere radius clamps (chart units). */
+  BODY_STAR_MIN_R: 0.9,
+  BODY_STAR_MAX_R: 4.4,
+  /** Exoplanet sphere radius (chart units). */
+  BODY_PLANET_R: 0.9,
+  /** DSO speckle-cloud radius + member count (galaxies/clusters). */
+  BODY_DSO_R: 7,
+  BODY_DSO_SPECKLES: 420,
 })

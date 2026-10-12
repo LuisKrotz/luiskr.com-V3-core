@@ -12,8 +12,24 @@
 
 export { SF_CAMERA, SF_MOTION, SF_APPROACH, SF_ZOOM, SF_KEYS, SF_TIP } from './params/camera.js'
 export { SF_SCALE, SF_STRUCTURE } from './params/scale.js'
-export { SF_BH, SF_BELT, SF_LOD, SF_DETAIL } from './params/bodies.js'
+export {
+  SF_BH,
+  SF_BELT,
+  SF_BELT_ROCK,
+  SF_LOD,
+  SF_DETAIL,
+  SF_SPIKE,
+  SF_NEBULA_DEPTH,
+} from './params/bodies.js'
 export { SF_SPIRAL } from './params/spiral.js'
 export { SF_WORKER, SF_STAR_CLOUD } from './params/worker.js'
 export { SF_BODY_IDS, SF_COLORS } from './params/catalog.js'
 export { SF_FALLBACK, SF_SCENE } from './params/scene.js'
+export { SF_POST } from './params/post.js'
+export {
+  SF_WEATHER,
+  SF_SOLAR_WIND,
+  SF_AURORA,
+  SF_CONSTELLATION,
+  SF_METEOR,
+} from './params/weather.js'

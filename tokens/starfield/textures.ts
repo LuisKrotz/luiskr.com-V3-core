@@ -2,32 +2,66 @@
  * @file tokens/starfield/textures.js
  * @description Public-URL paths for the Star Field experiment texture set
  * (served from `experiments/star-field/public/textures/`). Solar-system
- * maps are the Solar System Scope CC-BY set; the milky-way skybox is the
- * 8k equirect panorama; exoplanet/system bodies use procedural materials
- * (no real imagery exists). Sole declaration site — consumers import
- * members from this frozen map rather than re-declaring the literals
- * (zero-hardcoding rule).
+ * maps are the Solar System Scope CC-BY 8k set; moons/dwarfs are NASA
+ * global mosaics (NASA-3D-Resources, USGS, JPL/Dawn HAMO, Askaniy albedo
+ * maps) — every catalog body carries real imagery, no procedural flats.
+ * The milky-way skybox is the 8k equirect panorama; exoplanet/system
+ * bodies stay procedural (no real imagery exists). Sole declaration
+ * site — consumers import members from this frozen map rather than
+ * re-declaring the literals (zero-hardcoding rule).
  * @type {Readonly<Record<string, string>>}
  */
 export const SF_TEXTURES = Object.freeze({
   SKYBOX: '/experiments/star-field/textures/8k_stars_milky_way.jpg',
-  SUN: '/experiments/star-field/textures/2k_sun.jpg',
-  MERCURY: '/experiments/star-field/textures/2k_mercury.jpg',
-  VENUS_SURFACE: '/experiments/star-field/textures/2k_venus_surface.jpg',
-  VENUS_ATMOS: '/experiments/star-field/textures/2k_venus_atmosphere.jpg',
-  EARTH_DAY: '/experiments/star-field/textures/2k_earth_daymap.jpg',
-  EARTH_NIGHT: '/experiments/star-field/textures/2k_earth_nightmap.jpg',
+  SUN: '/experiments/star-field/textures/8k_sun.jpg',
+  MERCURY: '/experiments/star-field/textures/8k_mercury.jpg',
+  VENUS_SURFACE: '/experiments/star-field/textures/8k_venus_surface.jpg',
+  VENUS_ATMOS: '/experiments/star-field/textures/4k_venus_atmosphere.jpg',
+  // Earth runs the 8k SSS set — close fly-to needs real city/terrain
+  // detail; the normal map is a 4k bake from the elevation source.
+  EARTH_DAY: '/experiments/star-field/textures/8k_earth_daymap.jpg',
+  EARTH_NIGHT: '/experiments/star-field/textures/8k_earth_nightmap.jpg',
   EARTH_SPEC: '/experiments/star-field/textures/2k_earth_specular_map.jpg',
-  EARTH_NORMAL: '/experiments/star-field/textures/2k_earth_normal_map.jpg',
-  EARTH_CLOUDS: '/experiments/star-field/textures/2k_earth_clouds.jpg',
+  EARTH_NORMAL: '/experiments/star-field/textures/4k_earth_normal.jpg',
+  EARTH_CLOUDS: '/experiments/star-field/textures/8k_earth_clouds.jpg',
   EARTH_ELEVATION: '/experiments/star-field/textures/earth_elevation.png',
-  MOON: '/experiments/star-field/textures/2k_moon.jpg',
-  MARS: '/experiments/star-field/textures/2k_mars.jpg',
-  JUPITER: '/experiments/star-field/textures/2k_jupiter.jpg',
-  SATURN: '/experiments/star-field/textures/2k_saturn.jpg',
+  MOON: '/experiments/star-field/textures/8k_moon.jpg',
+  MARS: '/experiments/star-field/textures/8k_mars.jpg',
+  JUPITER: '/experiments/star-field/textures/8k_jupiter.jpg',
+  SATURN: '/experiments/star-field/textures/8k_saturn.jpg',
   SATURN_RING: '/experiments/star-field/textures/2k_saturn_ring_alpha.png',
+  // Uranus/Neptune top out at 2k on SSS — the only res distributed.
   URANUS: '/experiments/star-field/textures/2k_uranus.jpg',
   NEPTUNE: '/experiments/star-field/textures/2k_neptune.jpg',
+  /**
+   * Moons — NASA-3D-Resources equirect global mosaics (Galileo/Cassini/
+   * Voyager basemaps). 1440×720 is the highest public distribution for
+   * most of these bodies; Phobos upgrades to the 5499px USGS map.
+   */
+  IO: '/experiments/star-field/textures/4k_io.jpg',
+  EUROPA: '/experiments/star-field/textures/4k_europa.jpg',
+  GANYMEDE: '/experiments/star-field/textures/4k_ganymede.jpg',
+  CALLISTO: '/experiments/star-field/textures/4k_callisto.jpg',
+  PHOBOS: '/experiments/star-field/textures/4k_phobos.jpg',
+  DEIMOS: '/experiments/star-field/textures/4k_deimos.jpg',
+  MIMAS: '/experiments/star-field/textures/4k_mimas.jpg',
+  ENCELADUS: '/experiments/star-field/textures/4k_enceladus.jpg',
+  DIONE: '/experiments/star-field/textures/4k_dione.jpg',
+  RHEA: '/experiments/star-field/textures/4k_rhea.jpg',
+  TITAN: '/experiments/star-field/textures/4k_titan.jpg',
+  IAPETUS: '/experiments/star-field/textures/4k_iapetus.jpg',
+  TRITON: '/experiments/star-field/textures/4k_triton.jpg',
+  PLUTO: '/experiments/star-field/textures/4k_pluto.jpg',
+  /**
+   * Dwarf planets / small bodies — Ceres is the Dawn HAMO elliptical map
+   * (PIA20351, 4000px); Vesta the GeoHack Dawn mosaic; Phobos the USGS
+   * 5499px map above; Bennu the 8k OSIRIS-REx-derived albedo; Ryugu the
+   * ONC albedo map. Asteroid albedos are grayscale — honest to the data.
+   */
+  CERES: '/experiments/star-field/textures/4k_ceres.jpg',
+  VESTA: '/experiments/star-field/textures/4k_vesta.jpg',
+  RYUGU: '/experiments/star-field/textures/2k_ryugu.jpg',
+  BENNU: '/experiments/star-field/textures/8k_bennu.jpg',
   /**
    * Real-photography billboards — NASA/Hubble/ESA imagery on the
    * deep-sky bodies (nebulae, star clusters, external galaxies). All

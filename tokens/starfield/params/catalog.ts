@@ -42,11 +42,27 @@ export const SF_COLORS = Object.freeze({
   HALLEY: 0xbfd8de,
   /** ISS truss — bright metallic white. */
   ISS: 0xe8ecf0,
+  /** ISS solar arrays — the wings' burnished gold kapton over silicon. */
+  ISS_PANEL: 0xb8862f,
   EARTH_ICE: 0xbfd8e8,
   /** Earth atmosphere fresnel tints — day limb, terminator dusk, night. */
   ATMO_DAY: 0x7ab8f0,
   ATMO_DUSK: 0xe8a05c,
   ATMO_NIGHT: 0x2a4a78,
+  /**
+   * Giant-planet aurora palettes — hydrogen-dominated upper atmospheres
+   * emit UV-blue curtains instead of Earth's oxygen green: Jupiter's
+   * powerful oval reads cyan-white, Saturn's a deep blue, Neptune's a
+   * faint violet (weak far-out field, 47°-tilted dipole).
+   */
+  AURORA_JUPITER: 0x8fd8ff,
+  AURORA_JUPITER_LOW: 0xb86aff,
+  AURORA_SATURN: 0x5f9df0,
+  AURORA_SATURN_LOW: 0x3a5fd0,
+  AURORA_NEPTUNE: 0x9a78ff,
+  AURORA_NEPTUNE_LOW: 0x38c8d8,
+  AURORA_URANUS: 0x62e8d8,
+  AURORA_URANUS_LOW: 0x3a8ad0,
   PROXIMA_STAR: 0xd9594c,
   PROXIMA_PLANET: 0x6f8fa8,
   ALPHA_STAR: 0xf2e6b8,
@@ -110,6 +126,17 @@ export const SF_COLORS = Object.freeze({
   /** Small-body belts — rocky rubble grey-brown, Kuiper ice blue-white. */
   ASTEROID_BELT: 0x9a8d7c,
   KUIPER_BELT: 0xa8c4e0,
+  /**
+   * Belt hero-rock material classes — ordinary chondrite stone,
+   * carbonaceous black, nickel-iron sheen, cometary ice and regolith
+   * dust. Hero rocks pick one seeded class so the belt reads as mixed
+   * debris, not a single material.
+   */
+  ROCK_STONE: 0x8a7f70,
+  ROCK_CARBON: 0x4a463f,
+  ROCK_METAL: 0x9aa4ac,
+  ROCK_ICE: 0xcfe0ea,
+  ROCK_DUST: 0x7a6a58,
   LABEL: 0xe6ecf5,
   /** Star-cloud spectral ramp — B-V index stops for the real HYG field. */
   STAR_BLUE: 0x9fb8ff,

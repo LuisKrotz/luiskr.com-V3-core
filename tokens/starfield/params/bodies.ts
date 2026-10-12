@@ -114,6 +114,57 @@ export const SF_BELT = Object.freeze({
 })
 
 /**
+ * Belt hero rocks — seeded irregular meshes riding each belt so the
+ * annulus reads as real varied debris (ice, metal, carbon, stone, dust;
+ * fragments through large bodies) instead of uniform glowing points.
+ * Sizes are fractions of the annulus width; every rock owns a Keplerian
+ * pivot (`speed ∝ 1/√r`) plus a tumble rate, both riding the shared
+ * satPivots update.
+ */
+export const SF_BELT_ROCK = Object.freeze({
+  /** Hero rocks per belt — enough variety to read at fly-in distance. */
+  COUNT: 40,
+  /**
+   * Rock radius as a fraction of annulus width — fragments at MIN,
+   * regular bodies in the mid band, BIG_FRAC of rocks promoted to the
+   * large-body range (Ceres-class stand-ins, still far under planets).
+   */
+  SIZE_MIN: 0.005,
+  SIZE_MAX: 0.02,
+  /** Large-body fraction + their size ceiling (× annulus width). */
+  BIG_FRAC: 0.12,
+  BIG_MAX: 0.05,
+  /** Collision-fragment fraction — tetrahedral shards, smallest rocks. */
+  FRAGMENT_FRAC: 0.25,
+  /**
+   * Vertex jitter — per-axis displacement fraction (0–1) applied to
+   * every vertex, so each rock is a unique irregular potato/shard
+   * instead of a sphere or a repeated cookie-cutter lump.
+   */
+  JITTER: 0.55,
+  /** Fragments deform harder — broken shards, not rounded potatoes. */
+  JITTER_FRAG: 0.8,
+  /**
+   * Material-class mix — probabilities must sum to 1: ordinary
+   * stony (chondrite) dominates, carbonaceous + dusty bodies next,
+   * then ice and nickel-iron.
+   */
+  CLASS_STONE: 0.34,
+  CLASS_CARBON: 0.2,
+  CLASS_DUST: 0.16,
+  CLASS_ICE: 0.16,
+  /** (remainder → metal) */
+  /** Keplerian speed law — orbit angular speed ∝ 1/√(r/inner). Sits
+   *  under Mars's catalog speed so the belt sweeps slower than the
+   *  planets it lies between (honest orbital mechanics). */
+  ORBIT_SPEED: 0.16,
+  /** Tumble rates in rad/s — fragments spin fastest (collision
+   *  fragments do); asteroid rotations run minutes-to-hours. */
+  SPIN_MIN: 0.05,
+  SPIN_SPAN: 0.4,
+})
+
+/**
  * Detail level-of-detail — secondary geometry (atmosphere shells, ring
  * discs, satellite companions) renders only while the
  * camera is within `PAD + size * SCALE` of the body's anchor, so distant
@@ -260,4 +311,53 @@ export const SF_DETAIL = Object.freeze({
   PICK_PROXY: 4,
   /** Photo-disc diameter as a multiple of the catalog radius. */
   GALAXY_DISC: 2.2,
+})
+
+/**
+ * Diffraction-spike starburst — the telescope-optics cross that rides
+ * bright stars. Spikes are soft elliptical gradients (never stroked
+ * lines), seeded-rotated per star so no two crosses align. Kept as its
+ * own bag since the sprite is a separate layer from halo + corona.
+ */
+export const SF_SPIKE = Object.freeze({
+  /**
+   * Spike sprite diameter as a multiple of the star's authored radius —
+   * like the halo it tracks luminosity, not the clamped point sphere,
+   * so catalog giants throw longer crosses than dwarfs. Sits a step
+   * beyond HALO_SCALE so the spike tips pierce the glow edge.
+   */
+  SPIKE_SCALE: 4.6,
+  /** Sprite opacity — under HALO_OPACITY so it reads as optics, not gas. */
+  SPIKE_OPACITY: 0.45,
+  /**
+   * Spike ray count — 6 throws the hexagonal cross of a real segmented
+   * mirror (JWST), plus a faint second cross at SPIKE_ROT2 for depth.
+   */
+  SPIKE_RAYS: 6,
+  /** Second cross angular offset (radians fraction of a full turn). */
+  SPIKE_ROT2: 0.25,
+  /** Second cross reach multiplier vs the primary rays. */
+  SPIKE_LEN2: 0.55,
+  /** Ray ellipse minor-axis width as a fraction of the half-sprite. */
+  SPIKE_THIN: 0.05,
+  /** Center knot radius as a fraction of the half-sprite. */
+  SPIKE_CORE: 0.09,
+  /** Rotation jitter added to the seeded base angle (radians). */
+  SPIKE_JITTER: 0.12,
+})
+
+/**
+ * Nebula depth layering — a parallax echo + wide underlay glow composed
+ * under the photo sprite so a nebula reads as a volume of gas at
+ * different depths instead of one flat billboard.
+ */
+export const SF_NEBULA_DEPTH = Object.freeze({
+  /** Echo layer scale multiplier over the photo sprite. */
+  ECHO_SCALE: 1.28,
+  /** Echo layer opacity — ghost of the photo rotated off-axis. */
+  ECHO_OPACITY: 0.22,
+  /** Underlay glow scale multiplier — the wide light-field behind. */
+  UNDER_SCALE: 1.9,
+  /** Underlay glow opacity. */
+  UNDER_OPACITY: 0.18,
 })

@@ -45,7 +45,7 @@ export const SF_SPIRAL = Object.freeze({
    * lit, so this is set well above 1px for the lit core — not the sprite
    * edge — to stay resolved at galactic range.
    */
-  VOLUMETRIC_PX_SCREEN: 4.5,
+  VOLUMETRIC_PX_SCREEN: 3.0,
   /**
    * Far-field opacity gain — as the camera pulls clear of the disc the
    * fade drives opacity from VOLUMETRIC_OPACITY up to
@@ -60,7 +60,12 @@ export const SF_SPIRAL = Object.freeze({
    */
   VOLUMETRIC_ARM_JITTER: 0.3,
   VOLUMETRIC_THICK: 0.45,
-  VOLUMETRIC_HALO: 0,
+  /**
+   * Stellar-halo fraction for the embedded disc — a small spherical
+   * globular-cluster population around the core gives the third
+   * spatial level (bulge → disc → halo) the flat disc alone lacks.
+   */
+  VOLUMETRIC_HALO: 0.05,
   VOLUMETRIC_COUNT: 100000,
   /** Volumetric particle ceiling — `spiralDisc.count` may ask less. */
   VOLUMETRIC_COUNT_MAX: 500000,
@@ -221,6 +226,21 @@ export const SF_SPIRAL = Object.freeze({
    */
   DISC_SPREAD: 1.08,
   EDGE_FADE_START: 0.8,
+  /**
+   * Disc flare — the real Milky Way's gas/star disc flares outward:
+   * vertical thickness grows linearly with radius (~1 + DISC_FLARE at
+   * the rim), which is what gives the edge-on view its rising wedge
+   * instead of a constant-thickness ribbon.
+   */
+  DISC_FLARE: 0.9,
+  /**
+   * Disc warp — the outer disc bends out of the midplane (the MW's
+   * integral-sign warp, ~3 kpc at the rim). Amplitude is a fraction of
+   * disc radius applied at (r/R)² · sin(angle − warpPhase); the phase
+   * is perpendicular to the bar, matching how the real warp sits
+   * roughly orthogonal to the bar's long axis.
+   */
+  DISC_WARP: 0.05,
   THIN: 0.08,
   POINT_PX: 1.6,
   /** Arm angular jitter (rad) on photo-fallback spiral fills. */
