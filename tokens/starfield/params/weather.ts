@@ -20,17 +20,24 @@ export const SF_WEATHER = Object.freeze({
    * sized cloud banks with sub-structure).
    */
   CLOUD_FREQ: 2.8,
+  /**
+   * Detail octave — a second fbm layer at ~4× the base frequency that
+   * breaks coverage into clumpy, cauliflower-edged banks instead of
+   * smooth latitude stripes; DETAIL_GAIN is its blend weight.
+   */
+  CLOUD_DETAIL_FREQ: 4.3,
+  CLOUD_DETAIL_GAIN: 0.4,
   /** Noise-field evolution rate (scene-seconds⁻¹) — slow morph, no boil. */
   CLOUD_EVOLVE: 0.012,
   /** How much the real 8k cloud map steers procedural coverage (0..1). */
   CLOUD_STEER: 0.55,
   /**
    * Coverage ramp edges — below LO is clear sky, above HI is overcast.
-   * Earth-average coverage is ~65%: a soft, low ramp keeps the deck
-   * busy instead of a few isolated blobs.
+   * A tight ramp punches broken cloud shapes out of the field; a wide
+   * soft ramp reads as haze stripes.
    */
-  COVER_LO: 0.24,
-  COVER_HI: 0.66,
+  COVER_LO: 0.3,
+  COVER_HI: 0.58,
   /**
    * Differential rotation — air masses shear against the surface:
    * base equatorial drift plus a mid-latitude jet boost (lat-weighted
@@ -39,6 +46,12 @@ export const SF_WEATHER = Object.freeze({
    */
   JET_BASE: 0.016,
   JET_LAT: 0.02,
+  /**
+   * Latitude meander — slow noise that warps the coverage sample in the
+   * vertical direction so jet-sheared banks undulate north/south
+   * instead of ringing the globe in straight east-west stripes.
+   */
+  LAT_MEANDER: 0.16,
   /**
    * ITCZ — the equatorial convergence band where trade winds meet.
    * HALF is the band half-width (radians of latitude), GAIN its extra
