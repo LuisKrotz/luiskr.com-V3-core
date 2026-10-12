@@ -195,9 +195,15 @@ export const SF_AURORA = Object.freeze({
    * storms multiply through `wind`, visible on the dark limb without
    * reading as a second surface layer.
    */
-  INTENSITY: 0.55,
+  INTENSITY: 0.28,
   /** Shell lift above the surface radius — hugs the atmosphere top. */
   SHELL_SCALE: 1.02,
+  /**
+   * Limb-fade power — |view normal z| powered this high so the oval
+   * only glows when seen against the planet's face; at the silhouette
+   * the shell would otherwise draw arcs floating off the limb.
+   */
+  LIMB_POW: 2.2,
   /**
    * Default magnetic-axis tilt (radians) — Earth's dipole sits ~11°
    * off the spin axis; per-body `aurora.tilt` overrides (Neptune's
@@ -212,7 +218,7 @@ export const SF_AURORA = Object.freeze({
    */
   NIGHT_LO: 0.3,
   NIGHT_HI: -0.25,
-  DAY_FLOOR: 0.3,
+  DAY_FLOOR: 0.01,
   /**
    * Hemisphere gate — `aurora.south === false` fades the oval out
    * across the magnetic equator so only the boreal (north) curtain
