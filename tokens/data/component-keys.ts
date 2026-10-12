@@ -8,9 +8,11 @@ import {
   _B_CONTACT,
   _B_LANG_DIALOG,
   _K_CLOSE,
+  _K_CREDIT,
   _K_LEGAL_FOOTER,
   _K_MEDIA,
   _K_RELATED,
+  _K_RIGHTS,
   _K_SOURCE_CODE,
 } from '../base.js'
 
@@ -51,7 +53,16 @@ export const LEGAL_COMPONENT_KEYS = Object.freeze({
 export const SOURCE_COMPONENT_KEYS = Object.freeze({
   SOURCE_LABEL: `${_K_SOURCE_CODE}.label`,
   SOURCE_LINK: `${_K_SOURCE_CODE}.link`,
+  SOURCE_CREDIT: `${_K_SOURCE_CODE}.${_K_CREDIT}`,
+  SOURCE_RIGHTS: `${_K_SOURCE_CODE}.${_K_RIGHTS}`,
 })
+
+/**
+ * Placeholder inside `source-code.rights` translations — the renderers swap
+ * it for the live `new Date().getFullYear()` so the copyright line never
+ * goes stale.
+ */
+export const SOURCE_YEAR_TOKEN = '{year}'
 
 /**
  * Frozen section component key map — sole declaration site for these tokens; consumers read

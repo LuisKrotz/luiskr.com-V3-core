@@ -451,6 +451,14 @@ export const _K_MEDIA = 'media'
  */
 export const _K_SOURCE_CODE = 'source-code'
 /**
+ * Token key "k credit" — single source for the repeated literal.
+ */
+export const _K_CREDIT = 'credit'
+/**
+ * Token key "k rights" — single source for the repeated literal.
+ */
+export const _K_RIGHTS = 'rights'
+/**
  * Shared key token `view-outlet` — single source for a literal repeated across modules
  * (zero-hardcoding rule 5).
  */

@@ -4,7 +4,7 @@
  */
 import store from '@core/store.js'
 
-import { appText, componentText, routeSlugs } from '@core/locale/ui-text.js'
+import { appText, componentText, rightsText, routeSlugs } from '@core/locale/ui-text.js'
 
 import { TEST_TEXT } from '@tests/fixtures/test-constants.js'
 import '@website/components/feedback/CookieBanner.js'
@@ -19,10 +19,20 @@ describe('ui-text tails', () => {
     store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, {})
 
     expect(componentText(TEST_TEXT.MISSING_KEY)).toBeUndefined()
-    expect(typeof appText(SECTION_UI_KEYS.TITLE) === TYPE_STRINGS.STRING || appText(TEST_TEXT.MISSING_KEY) === undefined).toBe(true)
+    expect(
+      typeof appText(SECTION_UI_KEYS.TITLE) === TYPE_STRINGS.STRING ||
+        appText(TEST_TEXT.MISSING_KEY) === undefined
+    ).toBe(true)
 
     const slugs = routeSlugs({})
 
     expect(slugs).toBeTruthy()
+  })
+
+  test('rightsText substitutes the live year into the rights template', () => {
+    const text = rightsText()
+
+    expect(text).toContain(`Luis Krötz, ${new Date().getFullYear()}`)
+    expect(text).not.toContain('{year}')
   })
 })

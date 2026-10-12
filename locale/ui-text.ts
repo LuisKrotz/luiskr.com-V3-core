@@ -7,6 +7,7 @@
 
 import { LOCALES } from '@core/tokens/locales.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
+import { SOURCE_COMPONENT_KEYS, SOURCE_YEAR_TOKEN } from '@core/tokens/data/component-keys.js'
 import store from '@core/store.js'
 import { FALLBACK_APP, FALLBACK_COMPONENTS } from './fallback.js'
 import { LANG_SLUGS, type LangSlugMap } from '@core/i18n.js'
@@ -63,3 +64,16 @@ export const routeSlugs = (lang: string): LangSlugMap =>
     ...(LANG_SLUGS[lang] || LANG_SLUGS[LOCALES.EN]),
     ...((store.getters.getlang() as LangSlice | undefined)?.slugs || {}),
   }) as LangSlugMap
+
+/**
+ * Localized copyright line for the site footers — resolves
+ * `source-code.rights` through the live-then-fallback dictionaries and
+ * substitutes the `{year}` placeholder with the current calendar year so
+ * the stored translation never goes stale.
+ * @returns e.g. 'All rights reserved © Luis Krötz, 2026'
+ */
+export const rightsText = (): string =>
+  String(componentText(SOURCE_COMPONENT_KEYS.SOURCE_RIGHTS)).replace(
+    SOURCE_YEAR_TOKEN,
+    String(new Date().getFullYear())
+  )

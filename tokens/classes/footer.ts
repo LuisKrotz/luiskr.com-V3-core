@@ -18,4 +18,8 @@ export const FOOTER_CLASSES = Object.freeze({
   FOOTER_DOCS: `${_B_FOOTER_SOURCE}-docs`,
   FOOTER_DOCS_LINK: `${_B_FOOTER_SOURCE}-docs-link`,
   FOOTER_DOCS_DESC: `${_B_FOOTER_SOURCE}-docs-desc`,
+  /** Self-made credit + copyright block below the source row. */
+  FOOTER_DIVIDER: `${_B_FOOTER_SOURCE}-divider`,
+  FOOTER_CREDIT: `${_B_FOOTER_SOURCE}-credit`,
+  FOOTER_RIGHTS: `${_B_FOOTER_SOURCE}-rights`,
 })

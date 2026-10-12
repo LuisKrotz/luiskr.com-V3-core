@@ -774,6 +774,26 @@
           transform: translateY(0) scale(0.92);
         }
       }
+
+      // Authorship block — sits under the second animated divider in both
+      // loaded and skeleton socials states. Centered, muted via the
+      // theme-aware secondary ink (AAA-safe on --bg-secondary).
+      &-credit,
+      &-rights {
+        @extend %TTL_BASE;
+        @extend %TTL_XXS;
+
+        width: 100%;
+        margin: 0 auto;
+        text-align: center;
+        color: var(--text-secondary);
+        line-height: var(--space-xl);
+      }
+
+      &-credit {
+        max-width: var(--space-9xl);
+        margin-bottom: var(--space-sm);
+      }
     }
 
     // Docs-portal entry — a dedicated footer area below the legal links:
