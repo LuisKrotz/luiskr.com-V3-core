@@ -60,6 +60,31 @@ video.render-media {
   }
 }
 
+// ── Audio-language note ───────────────────────────────────────────────────────
+// Localized figcaption strip pinned to the video's bottom edge — states
+// the soundtrack language for non-English locales (videos ship English
+// audio only). A transparent→dark gradient keeps the small type legible
+// over arbitrary footage; pointer-events:none keeps the expand
+// click-catcher and the reduced-motion video controls reachable through
+// it, and z-index 2 lifts it above the media layers (thumb z-index 1).
+.media-audio-note {
+  @extend %TXT_BASE;
+  @extend %TXT_SM;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  margin: 0;
+  padding: to-rem($space-lg) to-rem($space-md) to-rem($space-xs);
+  box-sizing: border-box;
+  color: var(--color-white-raw);
+  text-align: center;
+  background: linear-gradient(to top, var(--bg-dark), transparent);
+  pointer-events: none;
+}
+
 // ── Expand modal trigger buttons ──────────────────────────────────────────────
 // exp-md-open-1: styled in modal.scss with animated corner borders
 // exp-md-open-2: invisible overlay for full-figure click area

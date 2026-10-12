@@ -58,6 +58,11 @@ export const _B_HOME_MOSAIC = 'home-mosaic'
  */
 export const _B_MEDIA_FIGURE = 'media-figure'
 /**
+ * BEM block fragment "b media audio note" — the figcaption strip noting the
+ * video's audio language; composed by the token groups below (rule 9).
+ */
+export const _B_MEDIA_AUDIO_NOTE = 'media-audio-note'
+/**
  * BEM block fragment "b lang dialog" — composed by the token groups below into full class names.
  */
 export const _B_LANG_DIALOG = 'lang-dialog'

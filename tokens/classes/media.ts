@@ -4,7 +4,12 @@
  * CLASSES importable without pulling the full registry.
  */
 
-import { _B_MEDIA_FIGURE, _B_RENDER_MEDIA, _B_RENDER_PLACEHOLDER } from '../base.js'
+import {
+  _B_MEDIA_AUDIO_NOTE,
+  _B_MEDIA_FIGURE,
+  _B_RENDER_MEDIA,
+  _B_RENDER_PLACEHOLDER,
+} from '../base.js'
 
 /**
  * Frozen media class-name map — sole declaration site for these tokens; consumers read
@@ -21,4 +26,5 @@ export const MEDIA_CLASSES = Object.freeze({
   RENDER_PLACEHOLDER_FIGURE: `${_B_RENDER_PLACEHOLDER}-figure`,
   MEDIA_FIGURE: _B_MEDIA_FIGURE,
   MEDIA_FIGURE_LOADED: `${_B_MEDIA_FIGURE}--loaded`,
+  MEDIA_AUDIO_NOTE: _B_MEDIA_AUDIO_NOTE,
 })

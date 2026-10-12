@@ -417,6 +417,31 @@
   }
 }
 
+// ── Audio-language note ───────────────────────────────────────────────────────
+// Localized figcaption strip pinned to the expanded video's bottom edge —
+// states the soundtrack language for non-English locales (videos ship
+// English audio only). Mirrors the media-figure sheet's rule: the modal
+// is its own shadow root so the class must be restyled here (component
+// portability). Absolute positioning takes it out of the video figure's
+// flex centering; pointer-events:none keeps the controls clickable.
+.media-audio-note {
+  @extend %TXT_BASE;
+  @extend %TXT_SM;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  margin: 0;
+  padding: to-rem($space-lg) to-rem($space-md) to-rem($space-xs);
+  box-sizing: border-box;
+  color: var(--color-white-raw);
+  text-align: center;
+  background: linear-gradient(to top, var(--bg-dark), transparent);
+  pointer-events: none;
+}
+
 // ── Zoom-in: scale up + fade from bottom ──────────────────────────────────
 @keyframes modal-zoom-in {
   from {
