@@ -16,4 +16,6 @@ export const SCHEMA_STRINGS = Object.freeze({
   JSON_LD_SCRIPT_ID: 'jsonld-graph',
   SCHEMA_PUBLISHED_DATE: '2021-01-01T00:00:00+00:00',
   SCHEMA_VIDEO_DURATION: 'PT1M00S',
+  SCHEMA_SHARE_IMAGE: '/assets/icons/share.png',
+  SCHEMA_ORG_LOGO: '/assets/icons/android-chrome-256x256.png',
 })

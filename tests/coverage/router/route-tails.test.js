@@ -9,6 +9,8 @@ import store from '@core/store.js'
 import router from '@core/router/router.js'
 import { ROUTE_STRINGS } from '@core/tokens/strings/routes.js'
 import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
+import { ROUTE_NAMES } from '@core/tokens/routes/names.js'
+import { SECTION_IDS } from '@core/tokens/ids/sections.js'
 import { VIEW_TAGS } from '@core/tokens/elements/views.js'
 import { handleNavigation, syncDocumentHead } from '@core/router/navigate.js'
 import { parsePath } from '@core/router/parse-path.js'
@@ -48,6 +50,14 @@ describe('route tails', () => {
     expect(r.name).toBeTruthy()
 
     store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, null)
+  })
+
+  test('parsePath — contact slug routes home with the contact scroll target', () => {
+    const r = parsePath(`/${ROUTE_STRINGS.CONTACT}`)
+
+    expect(r.name).toBe(ROUTE_NAMES.CONTACT)
+    expect(r.view).toBe(VIEW_TAGS.VIEW_HOME)
+    expect(r.meta.scrollTo).toBe(SECTION_IDS.CONTACT)
   })
 
   test('parsePath — star-field body segment deep-links feed params.body', () => {

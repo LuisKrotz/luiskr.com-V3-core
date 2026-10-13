@@ -46,8 +46,8 @@ export const generateWebsiteSchema = (): Record<string, unknown>[] => {
       legalName: 'Jacson Luis Krötz',
       name: 'Luis Krötz',
       url: NET_STRINGS.SITE_URL,
-      logo: `${NET_STRINGS.SITE_URL}/favicon/android-chrome-512x512.png`,
-      image: `${NET_STRINGS.SITE_URL}/share.png`,
+      logo: `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_ORG_LOGO}`,
+      image: `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_SHARE_IMAGE}`,
       sameAs: [SOCIAL_URLS.GITHUB, SOCIAL_URLS.LINKEDIN],
     },
     {
@@ -128,7 +128,7 @@ export const generateProjectArticleSchema = (
 
   const imageVariants = coverSrc
     ? [`${coverSrc}.jpg`, `${coverSrc}-16x9.jpg`, `${coverSrc}-4x3.jpg`, `${coverSrc}-1x1.jpg`]
-    : [`${NET_STRINGS.SITE_URL}/share.png`]
+    : [`${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_SHARE_IMAGE}`]
 
   const article: Record<string, unknown> = {
     '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
