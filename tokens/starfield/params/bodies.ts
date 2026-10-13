@@ -122,8 +122,22 @@ export const SF_BELT = Object.freeze({
  * satPivots update.
  */
 export const SF_BELT_ROCK = Object.freeze({
-  /** Hero rocks per belt — enough variety to read at fly-in distance. */
-  COUNT: 40,
+  /**
+   * Hero rocks per belt — enough variety that the annulus reads as a
+   * crowded debris field at fly-in distance, not a sparse scatter. Each
+   * rock is a seeded unique mesh, so the count is the visual density,
+   * not a texture detail.
+   */
+  COUNT: 96,
+  /**
+   * Mesh tessellation — icosahedron detail for regular rocks and
+   * tetrahedron detail for fragments. Detail 3 ≈ 1280 tris/rock:
+   * smooth enough that the crumpled silhouette reads as a real body
+   * under glancing light, cheap enough that ~200 hero rocks add under
+   * 0.3M tris per belt.
+   */
+  DETAIL: 3,
+  FRAG_DETAIL: 2,
   /**
    * Rock radius as a fraction of annulus width — fragments at MIN,
    * regular bodies in the mid band, BIG_FRAC of rocks promoted to the
@@ -145,15 +159,18 @@ export const SF_BELT_ROCK = Object.freeze({
   /** Fragments deform harder — broken shards, not rounded potatoes. */
   JITTER_FRAG: 0.8,
   /**
-   * Material-class mix — probabilities must sum to 1: ordinary
-   * stony (chondrite) dominates, carbonaceous + dusty bodies next,
-   * then ice and nickel-iron.
+   * Material-class mix — probabilities sum with the metal remainder
+   * to 1: ordinary stony (chondrite) dominates, carbonaceous +
+   * hydrated + dusty bodies next, then ice, and nickel-iron holds
+   * what remains. The class picks drive both the painted texture and
+   * the material response (metal glints, ice refracts).
    */
-  CLASS_STONE: 0.34,
-  CLASS_CARBON: 0.2,
-  CLASS_DUST: 0.16,
-  CLASS_ICE: 0.16,
-  /** (remainder → metal) */
+  CLASS_STONE: 0.3,
+  CLASS_CARBON: 0.18,
+  CLASS_HYDRO: 0.1,
+  CLASS_DUST: 0.13,
+  CLASS_ICE: 0.13,
+  /** (remainder → metal ≈ 0.16) */
   /** Keplerian speed law — orbit angular speed ∝ 1/√(r/inner). Sits
    *  under Mars's catalog speed so the belt sweeps slower than the
    *  planets it lies between (honest orbital mechanics). */
@@ -216,6 +233,9 @@ export const SF_COMET = Object.freeze({
   COMA_SCALE: 9,
   /** Coma opacity at periapsis — thins with the same factor as tails. */
   COMA_OPACITY: 0.45,
+  /** Coma brightness floor — an inactive nucleus still vents a faint
+   *  background coma; only the tails fully die. */
+  COMA_FLOOR: 0.25,
   /** Ion tail length/width as multiples of the nucleus radius. */
   ION_LEN: 32,
   ION_W: 1.7,
@@ -228,11 +248,48 @@ export const SF_COMET = Object.freeze({
   DUST_TILT: 0.24,
   DUST_OPACITY: 0.34,
   /**
-   * Apoapsis floor — tail factor never drops fully to zero (sublimation
-   * weakens but never halts), keeping a faint stub at the far end of
-   * the eccentric orbit.
+   * Periapsis window — fraction of the periapsis→apoapsis span inside
+   * which sublimation runs hard enough to grow tails. Solar flux falls
+   * as 1/r², so the thaw front collapses quickly on the outbound leg:
+   * `active = clamp(((rMin + span·ACTIVE_FRAC) − r) / (span·ACTIVE_FRAC))`
+   * raised to `GAMMA`, and the tail sprites unmount (`visible=false`)
+   * below `TAIL_OFF`. Halley sublimates measurably out to ~3 AU against
+   * an 0.59–35 AU orbit → ~9% window; 0.3 reads correctly at chart scale
+   * where the tail should die before the orbit leaves the inner system.
    */
-  TAIL_FLOOR: 0.1,
+  ACTIVE_FRAC: 0.3,
+  GAMMA: 1.5,
+  TAIL_OFF: 0.02,
+  /**
+   * Gas layer — each tail composites a second sprite whose filament
+   * texture tiles horizontally (streaks wrap at the canvas edge) so
+   * updateFx can scroll `map.offset.x` and stream gas anti-sunward.
+   * `FLOW_*` are offsets/second; the ion wind moves fastest (plasma is
+   * magnetically entrained, dust drifts). `WOBBLE_*` is the turbulence:
+   * a slow sinusoidal rotation + opacity shimmer per tail.
+   */
+  GAS_FLOW_ION: 0.28,
+  GAS_FLOW_DUST: 0.1,
+  GAS_ALPHA_ION: 0.55,
+  GAS_ALPHA_DUST: 0.5,
+  WOBBLE_AMP: 0.02,
+  WOBBLE_FREQ: 0.8,
+  FLICKER_AMP: 0.12,
+  FLICKER_FREQ: 0.9,
+  /**
+   * Filament texture — wisps drawn as sinuous horizontal streaks with
+   * knot clumps. `FILAMENT_W` is the base alpha; wander is in texture
+   * units. The gas texture is 256×64 px — long and thin, matching the
+   * tail's aspect.
+   */
+  GAS_W: 256,
+  GAS_H: 64,
+  FILAMENTS: 26,
+  FILAMENT_W: 0.1,
+  WANDER: 0.18,
+  KNOTS: 10,
+  KNOT_R: 0.06,
+  KNOT_W: 0.16,
 })
 
 /**

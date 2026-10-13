@@ -71,6 +71,15 @@ export const SF_COLORS = Object.freeze({
   ATMO_DUSK: 0xe8a05c,
   ATMO_NIGHT: 0x2a4a78,
   /**
+   * Exoplanet rim tints — TRAPPIST-1c's Venus-like CO₂ shroud (pale
+   * sulfuric amber), Proxima c's ice-giant methane cyan, Proxima b's
+   * thin warm haze over rock. Each pins `atmoColor` so the limb shell
+   * carries the right chemistry instead of Earth's blue.
+   */
+  ATMO_VENUS: 0xe8c878,
+  ATMO_ICEG: 0x9fd4ff,
+  ATMO_ROCKY: 0xc89868,
+  /**
    * Giant-planet aurora palettes — hydrogen-dominated upper atmospheres
    * emit UV-blue curtains instead of Earth's oxygen green: Jupiter's
    * powerful oval reads cyan-white, Saturn's a deep blue, Neptune's a
@@ -85,7 +94,15 @@ export const SF_COLORS = Object.freeze({
   AURORA_URANUS: 0x62e8d8,
   AURORA_URANUS_LOW: 0x3a8ad0,
   PROXIMA_STAR: 0xd9594c,
-  PROXIMA_PLANET: 0x6f8fa8,
+  /**
+   * Per-world Proxima palette — d rides inside the ice line and is a
+   * scorched lava-crust rock; b is the temperate candidate (warm
+   * weathered regolith, possibly ocean-shrouded); c is the distant
+   * mini-Neptune, blue ice over a hydrogen envelope.
+   */
+  PROXIMA_D: 0x8a5238,
+  PROXIMA_B: 0x9a7f5c,
+  PROXIMA_C: 0x6f8fa8,
   ALPHA_STAR: 0xf2e6b8,
   ALPHA_COMPANION: 0xd98a4a,
   SIRIUS: 0xcfe0ff,
@@ -113,6 +130,8 @@ export const SF_COLORS = Object.freeze({
   CRAB_NEBULA: 0x7a5ea8,
   HELIX_NEBULA: 0x8fb8d8,
   BARNARD_STAR: 0xc4584a,
+  /** Barnard b — hot rocky sub-Earth skimming a red dwarf: dark iron-rich crust. */
+  BARNARD_PLANET: 0x7a4a3c,
   EPS_ERI: 0xf0b97e,
   EPS_ERI_PLANET: 0x9aa8b4,
   TAU_CETI: 0xf6e0a8,
@@ -161,6 +180,24 @@ export const SF_COLORS = Object.freeze({
   ASTEROID_BELT: 0x9a8d7c,
   KUIPER_BELT: 0xa8c4e0,
   /**
+   * Named belt residents — Pallas' pale basaltic surface, Juno's S-type
+   * stony iron, Hygiea's carbonaceous dark, Eros' regolith tanned by
+   * solar wind.
+   */
+  PALLAS: 0xa8a49a,
+  JUNO: 0x9a8d7c,
+  HYGIEA: 0x55504a,
+  EROS: 0xa08a74,
+  /**
+   * Kuiper-belt residents — Haumea's crystalline ice crust (tumbled
+   * cigar), Makemake's methane-red tholin frost, Eris' blinding
+   * nitrogen/methane snow, Arrokoth's cold-classical rust lobes.
+   */
+  HAUMEA: 0xd8e4ea,
+  MAKEMAKE: 0xa8766a,
+  ERIS: 0xe4ecf2,
+  ARROKOTH: 0x8a5a42,
+  /**
    * Belt hero-rock material classes — ordinary chondrite stone,
    * carbonaceous black, nickel-iron sheen, cometary ice and regolith
    * dust. Hero rocks pick one seeded class so the belt reads as mixed
@@ -171,6 +208,8 @@ export const SF_COLORS = Object.freeze({
   ROCK_METAL: 0x9aa4ac,
   ROCK_ICE: 0xcfe0ea,
   ROCK_DUST: 0x7a6a58,
+  /** Hydrated clay minerals — CM-chondrite reddish mudstone. */
+  ROCK_HYDRO: 0x6a5048,
   LABEL: 0xe6ecf5,
   /** Star-cloud spectral ramp — B-V index stops for the real HYG field. */
   STAR_BLUE: 0x9fb8ff,

@@ -338,12 +338,33 @@ export const SF_PLUME = Object.freeze({
   HEIGHT: 1.9,
   /** Jet sprite width × body radius. */
   WIDTH: 0.2,
+  /**
+   * Jet cone footprint — the steady column is an open-ended tapered
+   * cylinder rooted at the vent (narrow throat, umbrella spread at the
+   * top, CylinderGeometry(rTop>rBottom)). JET_SEG is the radial
+   * tessellation — 12 keeps the silhouette round under any azimuth.
+   * A vertical alpha gradient texture feeds `map`: blazing at the vent
+   * (v=1 side) and dissolving into transparency at the rim.
+   */
+  JET_BASE_W: 0.035,
+  JET_TOP_W: 0.24,
+  JET_SEG: 12,
   /** Rising-puff cycle seconds (per-vent phase is seeded). */
   PERIOD: 3.2,
   /** Steady jet opacity at the vent base. */
   OPACITY: 0.42,
   /** Puff opacity peak at the bottom of its rise. */
   PUFF_OPACITY: 0.55,
+  /**
+   * Sunlight gate — cryovolcanic jets scatter sunlight, so a vent on
+   * the body's night side shows only a faint smudge. `dot(ventDir,
+   * sunDirLocal)` smoothsteps between LO/HI: fully dark vents keep
+   * DARK_FLOOR so the plume never pops discontinuously at the
+   * terminator.
+   */
+  SUN_LO: -0.2,
+  SUN_HI: 0.45,
+  DARK_FLOOR: 0.08,
   /**
    * Polar vent latitude band — |y| on the unit sphere above this marks
    * the tiger-stripe cluster (Enceladus vents sit ~75°S). Scattered

@@ -69,6 +69,32 @@ export const SF_KINDS = Object.freeze({
    * dust tails that stream anti-sunward and grow toward periapsis.
    */
   COMET: 'comet',
+  /**
+   * Airless small body — main-belt asteroids, NEOs and Kuiper-belt
+   * objects (Vesta, Bennu, Ryugu, Arrokoth). Renders a crumpled
+   * irregular rock with the cratered procedural surface; distinct from
+   * DWARF (hydrostatic-ish bodies like Ceres/Pluto/Eris).
+   */
+  ASTEROID: 'asteroid',
+})
+
+/**
+ * Surface-recipe hints — catalog defs may pin the procedural painter's
+ * style so a body matches its dossier description (a tidally-locked
+ * lava planet must never draw ocean bands). Absent → the seed picks
+ * within the kind's bias as before.
+ */
+export const SF_SURFACES = Object.freeze({
+  /** Cratered regolith — moons, asteroids, scorched inner worlds. */
+  ROCK: 'rock',
+  /** Bright fractured ice — Europa/Enceladus/KBO streaked surfaces. */
+  ICE: 'ice',
+  /** Banded atmosphere — gas/ice giants and mini-Neptunes. */
+  GAS: 'gas',
+  /** Dark crust split by glowing fault veins — lava worlds. */
+  LAVA: 'lava',
+  /** Deep water with island mottle + polar caps — ocean worlds. */
+  OCEAN: 'ocean',
 })
 
 /**

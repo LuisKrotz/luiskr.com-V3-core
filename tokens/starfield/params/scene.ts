@@ -39,15 +39,24 @@ export const SF_SCENE = Object.freeze({
    * beyond it or the panorama would clip through the boundary).
    */
   SKYBOX_RADIUS: 64000,
-  SPHERE_SEGMENTS: 48,
-  RING_SEGMENTS: 96,
+  /**
+   * Sphere tessellation — 128×64 ≈ 16k triangles per body, the ultra
+   * tier: at this density a planet's limb holds a smooth arc even at
+   * full-screen zoom and the terminator never facets under refraction
+   * in the fresnel shells. Catalog bodies stay resident (~150 meshes ≈
+   * 2.4M tris is trivially GPU-bound territory) while registry bodies
+   * ride the LRU spawn/evict path, so the budget holds.
+   */
+  SPHERE_SEGMENTS: 128,
+  RING_SEGMENTS: 192,
   /**
    * Icosahedron subdivision detail for irregular bodies (Phobos-class
-   * rubble moons) — detail 4 ≈ 5k triangles, matching the 48-segment
-   * sphere's vertex density so a crumpled moon stays smooth between
-   * dimples while still reading faceted at the silhouette.
+   * rubble moons, comet nuclei, asteroids) — detail 6 ≈ 82k triangles:
+   * the crumpled silhouette stays continuous under glancing light, no
+   * facet flash at the terminator. Only `def.irregular` bodies pay the
+   * density — a dozen catalog bodies at most.
    */
-  ROCK_DETAIL: 4,
+  ROCK_DETAIL: 6,
   /**
    * Fill-light intensity — kept low so the sun point light owns the
    * terminator and planets shade with real day/night contrast instead of
