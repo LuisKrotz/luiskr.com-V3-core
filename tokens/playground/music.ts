@@ -6,13 +6,18 @@
  * @type {Readonly<Record<string, string>>}
  */
 
+import { CDN_URLS } from '../media/urls.js'
+
+/** CDN root this module's assets upload under. */
+const _CDN = `${CDN_URLS.CDN_BASE}experiments/earth-playground/music`
+
 /**
- * Ambient soundtrack for the Earth Playground. Sole declaration site — consumers import members
- * from this frozen map rather than re-declaring the literals
- * (zero-hardcoding rule).
+ * Ambient soundtrack for the Earth Playground. Sole declaration site —
+ * consumers import members from this frozen map rather than
+ * re-declaring the literals (zero-hardcoding rule).
  */
 export const SP_MUSIC = Object.freeze({
-  OGG: '/experiments/earth-playground/music/Christopher_Tin_feat._Soweto_Gospel_Choir_-_Baba_Yetu.ogg',
-  MP3: '/experiments/earth-playground/music/Christopher_Tin_feat._Soweto_Gospel_Choir_-_Baba_Yetu.mp3',
+  OGG: `${_CDN}/Christopher_Tin_feat._Soweto_Gospel_Choir_-_Baba_Yetu.ogg`,
+  MP3: `${_CDN}/Christopher_Tin_feat._Soweto_Gospel_Choir_-_Baba_Yetu.mp3`,
   TITLE: 'Baba Yetu — Christopher Tin ft. Soweto Gospel Choir',
 })
