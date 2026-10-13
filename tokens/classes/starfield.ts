@@ -53,6 +53,8 @@ export const SF_CLASSES = Object.freeze({
   SF_NAV_OPEN: `${_B_SF}-nav--open`,
   SF_NAV_TOGGLE: `${_B_SF}-nav-toggle`,
   SF_NAV_PANEL: `${_B_SF}-nav-panel`,
+  /** Sticky pinned strip inside the scrolling panel (head + search). */
+  SF_NAV_PIN: `${_B_SF}-nav-pin`,
   SF_NAV_HEAD: `${_B_SF}-nav-head`,
   SF_NAV_HEADING: `${_B_SF}-nav-heading`,
   SF_NAV_CLOSE: `${_B_SF}-nav-close`,

@@ -42,6 +42,13 @@ export const SF_SCENE = Object.freeze({
   SPHERE_SEGMENTS: 48,
   RING_SEGMENTS: 96,
   /**
+   * Icosahedron subdivision detail for irregular bodies (Phobos-class
+   * rubble moons) — detail 4 ≈ 5k triangles, matching the 48-segment
+   * sphere's vertex density so a crumpled moon stays smooth between
+   * dimples while still reading faceted at the silhouette.
+   */
+  ROCK_DETAIL: 4,
+  /**
    * Fill-light intensity — kept low so the sun point light owns the
    * terminator and planets shade with real day/night contrast instead of
    * reading flat (a high ambient lifts the unlit hemisphere to nearly

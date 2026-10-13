@@ -359,7 +359,11 @@ export const SF_SPIKE = Object.freeze({
 /**
  * Nebula depth layering — a parallax echo + wide underlay glow composed
  * under the photo sprite so a nebula reads as a volume of gas at
- * different depths instead of one flat billboard.
+ * different depths instead of one flat billboard. The *_RATE/_FREQ/_WAVE
+ * members drive the ambient-life pass in updateFx: each layer swirls
+ * (SpriteMaterial.rotation is a UV-space turn, so the feathered photo
+ * churns in place rather than orbiting) and breathes opacity on detuned
+ * sines; rates are seeded from the body id so no two nebulae churn alike.
  */
 export const SF_NEBULA_DEPTH = Object.freeze({
   /** Echo layer scale multiplier over the photo sprite. */
@@ -370,4 +374,22 @@ export const SF_NEBULA_DEPTH = Object.freeze({
   UNDER_SCALE: 1.9,
   /** Underlay glow opacity. */
   UNDER_OPACITY: 0.18,
+  /**
+   * Slowest layer swirl rate (rad/scene-second) — real nebular flows
+   * move at ~10 km/s over light-year spans, so the chart suggests the
+   * churn with sub-centi-radian rotation rather than a visible spin.
+   */
+  SWIRL_MIN: 0.004,
+  /** Seeded spread added to SWIRL_MIN — per-nebula swirl variance. */
+  SWIRL_SPREAD: 0.011,
+  /** Echo counter-rotation factor — negative sign makes the ghost layer shear against the photo. */
+  ECHO_RATE: -1.7,
+  /** Underlay drift factor — the widest layer barely turns. */
+  UNDER_RATE: 0.35,
+  /** Opacity shimmer amplitude (fraction of opBase) + detuned frequency. */
+  OP_WAVE: 0.18,
+  OP_FREQ: 0.31,
+  /** Whole-sprite breathing — ±fraction scale swell like gas pressure waves. */
+  BREATHE_AMP: 0.03,
+  BREATHE_FREQ: 0.09,
 })
