@@ -139,13 +139,16 @@ export const SF_BELT_ROCK = Object.freeze({
   DETAIL: 6,
   FRAG_DETAIL: 4,
   /**
-   * Micro-relief octave — a second `vnoise` evaluation at `FINE_FREQ ×`
-   * the sampling coordinates folded in at `FINE_AMP` displacement, so
-   * rocks carry grain-scale roughness under the macro crumple instead
-   * of shading as one smooth lump between texture features.
+   * Mid/micro relief octaves — a single low-frequency noise pass makes
+   * every rock a smooth blob, so displacement stacks three octaves:
+   * the macro crumple (1×) sets the silhouette, `MID_FREQ ×` adds the
+   * lumpy potato bumps real asteroids carry, and `FINE_FREQ ×` grains
+   * the surface at regolith scale.
    */
+  MID_FREQ: 2.6,
+  MID_AMP: 0.32,
   FINE_FREQ: 6,
-  FINE_AMP: 0.16,
+  FINE_AMP: 0.22,
   /**
    * Class-texture canvas (px) — 512×256 equirect, 16× the pixel count
    * of the original 128×64 strip so crater rims and mineral veins
@@ -162,12 +165,14 @@ export const SF_BELT_ROCK = Object.freeze({
    * Rock radius as a fraction of annulus width — fragments at MIN,
    * regular bodies in the mid band, BIG_FRAC of rocks promoted to the
    * large-body range (Ceres-class stand-ins, still far under planets).
+   * Kept small: a hero rock must read as a boulder drifting past, never
+   * as a planet-scale body crossing the frame.
    */
-  SIZE_MIN: 0.005,
-  SIZE_MAX: 0.02,
+  SIZE_MIN: 0.0025,
+  SIZE_MAX: 0.011,
   /** Large-body fraction + their size ceiling (× annulus width). */
   BIG_FRAC: 0.12,
-  BIG_MAX: 0.05,
+  BIG_MAX: 0.028,
   /** Collision-fragment fraction — tetrahedral shards, smallest rocks. */
   FRAGMENT_FRAC: 0.25,
   /**
@@ -281,23 +286,20 @@ export const SF_COMET = Object.freeze({
   GAMMA: 1.5,
   TAIL_OFF: 0.02,
   /**
-   * Gas layer — each tail composites a tapered open-ended CONE whose
-   * filament texture wraps the circumference and tiles along the axis,
-   * so updateFx scrolls `map.offset.y` to stream gas anti-sunward and
-   * spins `rotation.x` for axial swirl. A true 3D volume reads
-   * correctly from every camera angle — no billboard rectangle can
-   * ever show (the old sprite gas layer drew a visible square frame).
-   * `GAS_SEG` is the radial tessellation (round silhouette), `GAS_ROWS`
-   * the axial segments, `GAS_ROOT`/`GAS_TIP` the narrow-root → wide-tip
-   * radii as fractions of tail width. `FLOW_*` are offsets/second; the
+   * Gas layer — each tail carries a tessellated PLANE that updateFx
+   * rolls about the streak axis to face the camera (a cylindrical
+   * billboard): real spatial extent like a cone, but its silhouette is
+   * painted into per-vertex colors — `ramp(t)·(1−w²)^p` → every quad
+   * edge lands at alpha-0, so no polygon edge can ever show — while
+   * the seamless filament map underneath scrolls `offset.x` so gas
+   * streams anti-sunward through the static envelope. `GAS_U`/`GAS_V`
+   * is the plane tessellation (dense enough that the vertex-color
+   * envelope interpolates smoothly). `FLOW_*` are offsets/second; the
    * ion wind moves fastest (plasma is magnetically entrained, dust
-   * drifts). `WOBBLE_*` is the turbulence: a slow sinusoidal axial
-   * swirl + opacity shimmer per tail.
+   * drifts). `WOBBLE_*` adds a slow sinusoidal roll shimmer per tail.
    */
-  GAS_SEG: 48,
-  GAS_ROWS: 4,
-  GAS_ROOT: 0.09,
-  GAS_TIP: 0.5,
+  GAS_U: 96,
+  GAS_V: 24,
   GAS_FLOW_ION: 0.28,
   GAS_FLOW_DUST: 0.1,
   GAS_ALPHA_ION: 0.55,
@@ -307,11 +309,11 @@ export const SF_COMET = Object.freeze({
   FLICKER_AMP: 0.12,
   FLICKER_FREQ: 0.9,
   /**
-   * Filament texture — wisps drawn as sinuous vertical streaks (the
-   * cone's v axis runs root→tip) with knot clumps. `FILAMENT_W` is the
-   * base alpha; wander is in texture units. The gas texture is 512×128
-   * px — wide enough that filaments resolve around the circumference
-   * without aliasing.
+   * Filament texture — wisps drawn as sinuous horizontal streaks (u
+   * runs root→tip along the streak) with knot clumps biased toward the
+   * root. `FILAMENT_W` is the base alpha; wander is in texture units.
+   * The texture is 512×128 px and wraps horizontally so the scroll is
+   * seamless forever.
    */
   GAS_W: 512,
   GAS_H: 128,
@@ -375,7 +377,7 @@ export const SF_DETAIL = Object.freeze({
   RING_BANDS: 7,
   RING_BAND_W: 0.012,
   RING_ALPHA_MIN: 0.04,
-  RING_ALPHA_MAX: 0.4,
+  RING_ALPHA_MAX: 0.5,
   /** Additive halo sprite diameter as a multiple of the star's radius —
    *  the eased tail (see `_HALO_T*` in procedural.ts) makes the outer
    *  third invisible, so 3.6 keeps the glow hugging the limb without

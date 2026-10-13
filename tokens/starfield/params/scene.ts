@@ -59,12 +59,15 @@ export const SF_SCENE = Object.freeze({
    */
   ROCK_DETAIL: 7,
   /**
-   * Micro-relief octave for irregular bodies — `vnoise` is evaluated a
-   * second time at `ROCK_FINE_FREQ ×` the sampling coordinates and
-   * folded in at `ROCK_FINE_AMP ×` the macro amplitude, so rubble
-   * bodies carry regolith-scale surface grain on top of the km-scale
-   * crumple (the difference between a smooth potato and a real rock).
+   * Mid/micro relief octaves for irregular bodies — a single low-
+   * frequency noise pass makes every body a smooth blob, so `vnoise`
+   * stacks three octaves: the macro crumple (1×) sets the silhouette,
+   * `ROCK_MID_FREQ ×` adds the lumpy potato bumps real asteroids and
+   * rubble moons carry, and `ROCK_FINE_FREQ ×` grains the surface at
+   * regolith scale (amplitudes are fractions of `irregular.amp`).
    */
+  ROCK_MID_FREQ: 2.6,
+  ROCK_MID_AMP: 0.45,
   ROCK_FINE_FREQ: 5.5,
   ROCK_FINE_AMP: 0.4,
   /**
