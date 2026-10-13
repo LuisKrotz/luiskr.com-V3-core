@@ -72,6 +72,19 @@ export const SF_COLORS = Object.freeze({
   BETELGEUSE: 0xe07b39,
   TRAPPIST_STAR: 0xb3543e,
   TRAPPIST_PLANET: 0x7d94a6,
+  /**
+   * Per-world tints for the seven-planet chain — shared color made every
+   * member read as the same ball. Inner pair scorched rock, mid worlds
+   * through the volatile line into the habitable-zone teal/ocean slate,
+   * outermost icy.
+   */
+  TRAPPIST_B: 0x8a7562,
+  TRAPPIST_C: 0x9a8874,
+  TRAPPIST_D: 0x9aa8b4,
+  TRAPPIST_E: 0x5f9ea8,
+  TRAPPIST_F: 0x6f8fa8,
+  TRAPPIST_G: 0x7d94a6,
+  TRAPPIST_H: 0xcfe0ea,
   SAGITTARIUS_A: 0x000000,
   ACCRETION: 0xffb45e,
   ORION_NEBULA: 0x7ea8e0,
