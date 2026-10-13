@@ -11,6 +11,10 @@
  */
 export interface RouteMeta {
   title?: string
+  /** Meta description text — synced into description/og/twitter/DC metas. */
+  description?: string
+  /** Canonical path override — normalizes alias/legacy URLs to their canonical slug. */
+  canonical?: string
   translation?: string
   scrollTo?: string
   projectRoute?: boolean

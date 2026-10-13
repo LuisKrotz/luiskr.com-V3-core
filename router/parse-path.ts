@@ -27,6 +27,7 @@ import { VALID_LANGS } from '@core/i18n.js'
 import { appText, componentText, routeSlugs } from '@core/locale/ui-text.js'
 import type { RouteDescriptor, RouteMeta } from '@core/router/types.js'
 import { LEGAL_COMPONENT_KEYS } from '@core/tokens/data/component-keys.js'
+import { toMetaDescription } from '@core/utils/string.js'
 
 /**
  * Maps legacy/alternate project URL slugs to canonical data keys via
@@ -55,6 +56,26 @@ function titled(
     meta: { title: `${BASE_TITLE} ${CHAR_STRINGS.PIPE_SEP} ${suffix}`, ...meta },
     params: {},
   }
+}
+
+/**
+ * Contact-route meta description — "Contact | Mail, Phone, …" composed
+ * from the live components dictionary (loaded per locale before routes
+ * resolve, so this is correctly localized at parse time unlike the
+ * pages/* nodes, which views push post-fetch).
+ */
+function contactDescription(): string | undefined {
+  const node = componentText(CMS_KEYS.CONTACT) as
+    { title?: string; line1?: Array<{ description?: string }> } | undefined
+
+  if (!node?.title) return undefined
+
+  const links = (node.line1 || [])
+    .map((item) => item?.description)
+    .filter(Boolean)
+    .join(`${CHAR_STRINGS.COMMA}${CHAR_STRINGS.SPACE_CHAR}`)
+
+  return toMetaDescription(`${node.title} ${CHAR_STRINGS.PIPE_SEP} ${links}`)
 }
 
 /** Legal-page descriptor — page label comes from the localized legal-links component text. */
@@ -144,6 +165,7 @@ export function parsePath(pathname: string): RouteDescriptor {
       {
         translation: TRANSLATION_KEYS.HOME,
         scrollTo: SECTION_IDS.CONTACT,
+        description: contactDescription(),
       }
     )
   }
@@ -156,12 +178,25 @@ export function parsePath(pathname: string): RouteDescriptor {
 
     const slug = pathSegments[2] || undefined
 
+    // Canonical path normalizes legacy alias slugs (rawSlug → projectSlug)
+    // so /portfolio/brazilian-leather declares /portfolio/cicb instead of
+    // competing with it in the index; the media segment rides along.
+    const locPrefix = lang === LOCALES.EN ? CHAR_STRINGS.EMPTY : `${CHAR_STRINGS.SLASH}${lang}`
+
+    const canonical =
+      `${locPrefix}${CHAR_STRINGS.SLASH}${ROUTE_PATHS.PORTFOLIO_SEGMENT}` +
+      `${CHAR_STRINGS.SLASH}${projectSlug}${slug ? CHAR_STRINGS.SLASH + slug : CHAR_STRINGS.EMPTY}`
+
     return {
       name: ROUTE_NAMES.PROJECT,
       view: VIEW_TAGS.VIEW_PROJECT,
       lang,
       path: cleanPath,
-      meta: { title: `${BASE_TITLE} ${CHAR_STRINGS.PIPE_SEP} Project`, projectRoute: true },
+      meta: {
+        title: `${BASE_TITLE} ${CHAR_STRINGS.PIPE_SEP} Project`,
+        projectRoute: true,
+        canonical,
+      },
       params: { projectSlug, rawSlug, slug },
     }
   }

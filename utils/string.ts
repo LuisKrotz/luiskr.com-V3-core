@@ -5,6 +5,7 @@
  * slug/case helpers for id generation.
  */
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
+import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
 /**
@@ -32,6 +33,41 @@ export const stripHtml = (str: string): string => {
   } while (curr !== prev)
 
   return curr
+}
+
+/** Meta descriptions cap at ~160 chars — Google's SERP snippet budget. */
+const META_DESCRIPTION_MAX = 160
+
+/**
+ * Compacts markup-bearing CMS text into a meta-description string:
+ * `<br>` collapses to a space (it is a line break, not a word boundary),
+ * remaining tags strip via the iterated sanitizer, named/numeric entities
+ * decode so `&nbsp;` doesn't survive into the content attribute, runs of
+ * whitespace collapse to one space, and overlong text cuts at the last
+ * word boundary inside `max` — never mid-word.
+ * Pure ESM utility function, tree-shakeable.
+ * @param str Raw CMS text (may contain tags/entities).
+ * @param max Character budget — defaults to the SERP limit.
+ * @returns Plain-text description ≤ max chars.
+ */
+export const toMetaDescription = (str: string, max: number = META_DESCRIPTION_MAX): string => {
+  const text = stripHtml(
+    String(str || ATTR_VALUES.EMPTY).replace(/<br\s*\/?>/gi, CHAR_STRINGS.SPACE_CHAR)
+  )
+    .replace(/&nbsp;/gi, CHAR_STRINGS.SPACE_CHAR)
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, CHAR_STRINGS.SPACE_CHAR)
+    .trim()
+
+  if (text.length <= max) return text
+
+  const cut = text.slice(0, max)
+
+  return cut.slice(0, Math.max(cut.lastIndexOf(CHAR_STRINGS.SPACE_CHAR), 0)).trim()
 }
 
 /**

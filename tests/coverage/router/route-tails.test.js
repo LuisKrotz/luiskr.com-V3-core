@@ -12,14 +12,21 @@ import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { ROUTE_NAMES } from '@core/tokens/routes/names.js'
 import { SECTION_IDS } from '@core/tokens/ids/sections.js'
 import { VIEW_TAGS } from '@core/tokens/elements/views.js'
-import { handleNavigation, syncDocumentHead } from '@core/router/navigate.js'
+import {
+  handleNavigation,
+  syncDocumentHead,
+  setMetaContent,
+  setMetaDescription,
+} from '@core/router/navigate.js'
 import { parsePath } from '@core/router/parse-path.js'
+import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
 import { updateRobotsMeta, resolveProjectSlug } from '@website/views/project/data.js'
 import { checkAutoOpenModal } from '@website/views/project/modal.js'
 import { renderProject } from '@website/views/project/render.js'
 import { patchViewProject } from '@core/safari/patches/view-project.js'
 
 import '@website/views/not-found/NotFound.js'
+import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { LANG_MUTATIONS, MODAL_MUTATIONS } from '@core/tokens/events/mutations.js'
 
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
@@ -221,5 +228,125 @@ describe('route tails', () => {
 
     customElements.get = origGet
     customElements.whenDefined = origDef
+  })
+
+  test('syncDocumentHead — syncs title/url/canonical mirrors + description', () => {
+    const prevHead = document.head.innerHTML
+
+    document.head.insertAdjacentHTML(
+      'beforeend',
+      '<meta property="og:title" content="old"><meta name="twitter:title" content="old">' +
+        '<meta name="DC.Title" content="old"><meta property="og:url" content="old">' +
+        '<meta name="twitter:url" content="old"><meta name="description" content="old">' +
+        '<meta property="og:description" content="old">' +
+        '<meta name="twitter:description" content="old">' +
+        '<meta name="DC.Description" content="old">' +
+        '<meta property="og:image:alt" content="old">'
+    )
+
+    syncDocumentHead({
+      name: 'x',
+      view: 'v',
+      lang: 'en',
+      path: '/portfolio/brazilian-leather',
+      meta: {
+        title: 'T',
+        description: 'D',
+        canonical: '/portfolio/cicb',
+      },
+      params: {},
+    })
+
+    const q = (sel) => document.head.querySelector(sel)?.content
+
+    expect(q(QUERY_STRINGS.META_OG_TITLE)).toBe('T')
+    expect(q(QUERY_STRINGS.META_TW_TITLE)).toBe('T')
+    expect(q(QUERY_STRINGS.META_DC_TITLE)).toBe('T')
+    expect(q(QUERY_STRINGS.META_DESCRIPTION)).toBe('D')
+    expect(q(QUERY_STRINGS.META_OG_DESCRIPTION)).toBe('D')
+    expect(q(QUERY_STRINGS.META_TW_DESCRIPTION)).toBe('D')
+    expect(q(QUERY_STRINGS.META_DC_DESCRIPTION)).toBe('D')
+    expect(q(QUERY_STRINGS.META_OG_IMAGE_ALT)).toBe('D')
+    expect(q(QUERY_STRINGS.META_OG_URL)).toBe('https://luiskr.com/portfolio/cicb')
+    expect(q(QUERY_STRINGS.META_TW_URL)).toBe('https://luiskr.com/portfolio/cicb')
+    expect(document.head.querySelector(QUERY_STRINGS.LINK_CANONICAL).href).toBe(
+      'https://luiskr.com/portfolio/cicb'
+    )
+
+    document.head.innerHTML = prevHead
+  })
+
+  test('setMetaContent/setMetaDescription — absent metas no-op, present metas update', () => {
+    setMetaContent('meta[name="totally-absent"]', 'x')
+    setMetaDescription(CHAR_STRINGS.EMPTY)
+    setMetaDescription('snippet')
+
+    document.head.insertAdjacentHTML('beforeend', '<meta name="description" content="old">')
+
+    setMetaContent(QUERY_STRINGS.META_DESCRIPTION, 'fresh')
+    setMetaDescription('snippet')
+
+    expect(document.head.querySelector(QUERY_STRINGS.META_DESCRIPTION).content).toBe('snippet')
+
+    document.head.querySelector(QUERY_STRINGS.META_DESCRIPTION).remove()
+  })
+
+  test('parsePath — contact route carries the composed channel description', () => {
+    store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, {
+      contact: {
+        title: 'Contact',
+        line1: [{ description: 'Mail' }, { description: 'Phone' }, { link: 'no-desc' }],
+      },
+    })
+
+    const r = parsePath(`/${ROUTE_STRINGS.CONTACT}`)
+
+    expect(r.meta.description).toBe('Contact | Mail, Phone')
+  })
+
+  test('parsePath — empty contact title → undefined description arm', () => {
+    store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, { contact: { title: '', line1: [] } })
+
+    const r = parsePath(`/${ROUTE_STRINGS.CONTACT}`)
+
+    expect(r.meta.description).toBeUndefined()
+  })
+
+  test('parsePath — contact node without line1 → line1||[] arm', () => {
+    store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, { contact: { title: 'Contact' } })
+
+    const r = parsePath(`/${ROUTE_STRINGS.CONTACT}`)
+
+    expect(r.name).toBe(ROUTE_NAMES.CONTACT)
+
+    store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, null)
+  })
+
+  test('parsePath — license and docs routes resolve their descriptors', () => {
+    const lic = parsePath(ROUTE_PATHS.LICENSE)
+
+    expect(lic.view).toBe(VIEW_TAGS.VIEW_LEGAL)
+    expect(lic.meta.legalRoute).toBe(true)
+
+    const docs = parsePath(`${ROUTE_PATHS.DOCS}/reports`)
+
+    expect(docs.view).toBe(VIEW_TAGS.VIEW_DOCS)
+    expect(docs.meta.docsRoute).toBe(true)
+    expect(docs.params.docsPath).toBe('reports')
+  })
+
+  test('parsePath — project canonical normalizes aliases + locale + media', () => {
+    const alias = parsePath('/portfolio/brazilian-leather')
+
+    expect(alias.meta.canonical).toBe('/portfolio/cicb')
+
+    const loc = parsePath('/de/portfolio/minimelissa')
+
+    expect(loc.meta.canonical).toBe('/de/portfolio/mini-melissa')
+
+    const media = parsePath('/portfolio/cicb/some-media')
+
+    expect(media.meta.canonical).toBe('/portfolio/cicb/some-media')
+    expect(media.params.slug).toBe('some-media')
   })
 })

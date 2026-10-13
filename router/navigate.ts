@@ -40,9 +40,59 @@ function isCmsPath(path: string): boolean {
   return firstSeg === ROUTE_STRINGS.CMS || firstSeg === ROUTE_STRINGS.ADMIN
 }
 
-/** document.title + canonical <link> sync for the resolved route. */
+/**
+ * Writes `content` into one head <meta> selected by `selector`; no-ops when
+ * absent. Exported for views that resolve their title asynchronously
+ * (project data lands after navigation) and must keep the social mirrors
+ * in step.
+ */
+export const setMetaContent = (selector: string, content: string): void => {
+  const el = document.querySelector<HTMLMetaElement>(selector)
+
+  if (el) el.content = content
+}
+
+/**
+ * Pushes a resolved description into every description-bearing head meta —
+ * description, og:description, twitter:description, DC.Description and
+ * og:image:alt (the share card's alt text mirrors the snippet). Views call
+ * this after their localized content node resolves, since route parsing
+ * runs before the per-locale data chunks land.
+ */
+export function setMetaDescription(text: string): void {
+  if (!text) return
+
+  for (const selector of [
+    QUERY_STRINGS.META_DESCRIPTION,
+    QUERY_STRINGS.META_OG_DESCRIPTION,
+    QUERY_STRINGS.META_TW_DESCRIPTION,
+    QUERY_STRINGS.META_DC_DESCRIPTION,
+    QUERY_STRINGS.META_OG_IMAGE_ALT,
+  ]) {
+    setMetaContent(selector, text)
+  }
+}
+
+/**
+ * document.title + canonical <link> sync for the resolved route — extended
+ * to the social/url mirrors (og:title, twitter:title, DC.Title, og:url,
+ * twitter:url) so every head tag agrees with the active route instead of
+ * keeping the homepage values the shell booted with. `meta.canonical`
+ * normalizes alias URLs (e.g. /portfolio/brazilian-leather → /portfolio/cicb);
+ * `meta.description` feeds the description metas via setMetaDescription.
+ */
 export function syncDocumentHead(to: RouteDescriptor): void {
-  document.title = String(to.meta.title || BASE_TITLE)
+  const title = String(to.meta.title || BASE_TITLE)
+
+  document.title = title
+
+  for (const selector of [
+    QUERY_STRINGS.META_OG_TITLE,
+    QUERY_STRINGS.META_TW_TITLE,
+    QUERY_STRINGS.META_DC_TITLE,
+  ]) {
+    setMetaContent(selector, title)
+  }
 
   let canonicalEl = document.querySelector(QUERY_STRINGS.LINK_CANONICAL)
 
@@ -56,7 +106,15 @@ export function syncDocumentHead(to: RouteDescriptor): void {
 
   const cleanPath = to.path === ROUTE_PATHS.ROOT ? CHAR_STRINGS.EMPTY : to.path
 
-  canonicalEl.setAttribute(LINK_ATTRS.HREF, `${NET_STRINGS.SITE_URL}${cleanPath}`)
+  const canonicalUrl = `${NET_STRINGS.SITE_URL}${to.meta.canonical || cleanPath}`
+
+  canonicalEl.setAttribute(LINK_ATTRS.HREF, canonicalUrl)
+
+  setMetaContent(QUERY_STRINGS.META_OG_URL, canonicalUrl)
+
+  setMetaContent(QUERY_STRINGS.META_TW_URL, canonicalUrl)
+
+  if (to.meta.description) setMetaDescription(to.meta.description)
 }
 
 /**
