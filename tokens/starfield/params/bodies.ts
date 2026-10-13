@@ -123,21 +123,41 @@ export const SF_BELT = Object.freeze({
  */
 export const SF_BELT_ROCK = Object.freeze({
   /**
-   * Hero rocks per belt — enough variety that the annulus reads as a
-   * crowded debris field at fly-in distance, not a sparse scatter. Each
-   * rock is a seeded unique mesh, so the count is the visual density,
-   * not a texture detail.
+   * Hero rocks per belt — fewer than before but each one is now a
+   * high-tessellation mesh: the annulus reads as a crowded debris
+   * field at fly-in distance without the vertex-memory blowup that
+   * 96 ultra-dense geometries would cost (~3M tris per belt).
    */
-  COUNT: 96,
+  COUNT: 48,
   /**
    * Mesh tessellation — icosahedron detail for regular rocks and
-   * tetrahedron detail for fragments. Detail 3 ≈ 1280 tris/rock:
-   * smooth enough that the crumpled silhouette reads as a real body
-   * under glancing light, cheap enough that ~200 hero rocks add under
-   * 0.3M tris per belt.
+   * tetrahedron detail for fragments. Detail 6 ≈ 82k tris/rock —
+   * 64× the old detail-3 budget — so silhouettes hold a continuous
+   * curve at fly-in zoom with no readable polygon edges; fragments
+   * stay coarser (sharp shard planes are their look).
    */
-  DETAIL: 3,
-  FRAG_DETAIL: 2,
+  DETAIL: 6,
+  FRAG_DETAIL: 4,
+  /**
+   * Micro-relief octave — a second `vnoise` evaluation at `FINE_FREQ ×`
+   * the sampling coordinates folded in at `FINE_AMP` displacement, so
+   * rocks carry grain-scale roughness under the macro crumple instead
+   * of shading as one smooth lump between texture features.
+   */
+  FINE_FREQ: 6,
+  FINE_AMP: 0.16,
+  /**
+   * Class-texture canvas (px) — 512×256 equirect, 16× the pixel count
+   * of the original 128×64 strip so crater rims and mineral veins
+   * resolve as texture detail instead of smearing into noise.
+   */
+  TEX_W: 512,
+  TEX_H: 256,
+  /** Per-class feature counts, scaled to the hi-res canvas. */
+  TEX_GRAIN: 380,
+  TEX_CRATERS: 52,
+  TEX_VEINS: 22,
+  TEX_STREAKS: 16,
   /**
    * Rock radius as a fraction of annulus width — fragments at MIN,
    * regular bodies in the mid band, BIG_FRAC of rocks promoted to the
@@ -261,13 +281,23 @@ export const SF_COMET = Object.freeze({
   GAMMA: 1.5,
   TAIL_OFF: 0.02,
   /**
-   * Gas layer — each tail composites a second sprite whose filament
-   * texture tiles horizontally (streaks wrap at the canvas edge) so
-   * updateFx can scroll `map.offset.x` and stream gas anti-sunward.
-   * `FLOW_*` are offsets/second; the ion wind moves fastest (plasma is
-   * magnetically entrained, dust drifts). `WOBBLE_*` is the turbulence:
-   * a slow sinusoidal rotation + opacity shimmer per tail.
+   * Gas layer — each tail composites a tapered open-ended CONE whose
+   * filament texture wraps the circumference and tiles along the axis,
+   * so updateFx scrolls `map.offset.y` to stream gas anti-sunward and
+   * spins `rotation.x` for axial swirl. A true 3D volume reads
+   * correctly from every camera angle — no billboard rectangle can
+   * ever show (the old sprite gas layer drew a visible square frame).
+   * `GAS_SEG` is the radial tessellation (round silhouette), `GAS_ROWS`
+   * the axial segments, `GAS_ROOT`/`GAS_TIP` the narrow-root → wide-tip
+   * radii as fractions of tail width. `FLOW_*` are offsets/second; the
+   * ion wind moves fastest (plasma is magnetically entrained, dust
+   * drifts). `WOBBLE_*` is the turbulence: a slow sinusoidal axial
+   * swirl + opacity shimmer per tail.
    */
+  GAS_SEG: 48,
+  GAS_ROWS: 4,
+  GAS_ROOT: 0.09,
+  GAS_TIP: 0.5,
   GAS_FLOW_ION: 0.28,
   GAS_FLOW_DUST: 0.1,
   GAS_ALPHA_ION: 0.55,
@@ -277,13 +307,14 @@ export const SF_COMET = Object.freeze({
   FLICKER_AMP: 0.12,
   FLICKER_FREQ: 0.9,
   /**
-   * Filament texture — wisps drawn as sinuous horizontal streaks with
-   * knot clumps. `FILAMENT_W` is the base alpha; wander is in texture
-   * units. The gas texture is 256×64 px — long and thin, matching the
-   * tail's aspect.
+   * Filament texture — wisps drawn as sinuous vertical streaks (the
+   * cone's v axis runs root→tip) with knot clumps. `FILAMENT_W` is the
+   * base alpha; wander is in texture units. The gas texture is 512×128
+   * px — wide enough that filaments resolve around the circumference
+   * without aliasing.
    */
-  GAS_W: 256,
-  GAS_H: 64,
+  GAS_W: 512,
+  GAS_H: 128,
   FILAMENTS: 26,
   FILAMENT_W: 0.1,
   WANDER: 0.18,
@@ -330,6 +361,21 @@ export const SF_DETAIL = Object.freeze({
   /** Saturn ring radii as body-radius multiples (matches ring texture). */
   RING_INNER: 1.24,
   RING_OUTER: 2.28,
+  /**
+   * Procedural ring strip — ringed bodies without a photo texture
+   * (Uranus, Neptune) get a seeded banded strip painted at build time:
+   * `RING_STRIP_*` sizes the radius-indexed canvas, `RING_BANDS` seeds
+   * the tenuous ring count, `RING_BAND_W`/`RING_ALPHA_*` shape each
+   * narrow dusty band. Uranus's real system is 13 razor-thin dark
+   * rings; the painter biases thin + faint so it reads as a charcoal
+   * sketch, not Saturn's bright bands.
+   */
+  RING_STRIP_W: 512,
+  RING_STRIP_H: 16,
+  RING_BANDS: 7,
+  RING_BAND_W: 0.012,
+  RING_ALPHA_MIN: 0.04,
+  RING_ALPHA_MAX: 0.4,
   /** Additive halo sprite diameter as a multiple of the star's radius —
    *  the eased tail (see `_HALO_T*` in procedural.ts) makes the outer
    *  third invisible, so 3.6 keeps the glow hugging the limb without

@@ -40,23 +40,33 @@ export const SF_SCENE = Object.freeze({
    */
   SKYBOX_RADIUS: 64000,
   /**
-   * Sphere tessellation — 128×64 ≈ 16k triangles per body, the ultra
+   * Sphere tessellation — 256×128 ≈ 65k triangles per body, the ultra
    * tier: at this density a planet's limb holds a smooth arc even at
    * full-screen zoom and the terminator never facets under refraction
    * in the fresnel shells. Catalog bodies stay resident (~150 meshes ≈
-   * 2.4M tris is trivially GPU-bound territory) while registry bodies
-   * ride the LRU spawn/evict path, so the budget holds.
+   * 9.8M tris, still trivially GPU-bound territory) while registry
+   * bodies ride the LRU spawn/evict path, so the budget holds.
    */
-  SPHERE_SEGMENTS: 128,
-  RING_SEGMENTS: 192,
+  SPHERE_SEGMENTS: 256,
+  RING_SEGMENTS: 256,
   /**
    * Icosahedron subdivision detail for irregular bodies (Phobos-class
-   * rubble moons, comet nuclei, asteroids) — detail 6 ≈ 82k triangles:
-   * the crumpled silhouette stays continuous under glancing light, no
-   * facet flash at the terminator. Only `def.irregular` bodies pay the
+   * rubble moons, comet nuclei, catalog asteroids) — detail 7 ≈ 328k
+   * triangles: the crumpled silhouette stays continuous under glancing
+   * light at any zoom, no facet flash at the terminator and no visible
+   * polygon edges from afar. Only `def.irregular` bodies pay the
    * density — a dozen catalog bodies at most.
    */
-  ROCK_DETAIL: 6,
+  ROCK_DETAIL: 7,
+  /**
+   * Micro-relief octave for irregular bodies — `vnoise` is evaluated a
+   * second time at `ROCK_FINE_FREQ ×` the sampling coordinates and
+   * folded in at `ROCK_FINE_AMP ×` the macro amplitude, so rubble
+   * bodies carry regolith-scale surface grain on top of the km-scale
+   * crumple (the difference between a smooth potato and a real rock).
+   */
+  ROCK_FINE_FREQ: 5.5,
+  ROCK_FINE_AMP: 0.4,
   /**
    * Fill-light intensity — kept low so the sun point light owns the
    * terminator and planets shade with real day/night contrast instead of
