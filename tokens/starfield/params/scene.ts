@@ -51,13 +51,15 @@ export const SF_SCENE = Object.freeze({
   RING_SEGMENTS: 256,
   /**
    * Icosahedron subdivision detail for irregular bodies (Phobos-class
-   * rubble moons, comet nuclei, catalog asteroids) — detail 7 ≈ 328k
-   * triangles: the crumpled silhouette stays continuous under glancing
-   * light at any zoom, no facet flash at the terminator and no visible
-   * polygon edges from afar. Only `def.irregular` bodies pay the
-   * density — a dozen catalog bodies at most.
+   * rubble moons, comet nuclei, catalog asteroids). `detail` is EDGE
+   * segments, not recursion depth — faces = 20·(d+1)², so detail 64
+   * produces ~84.5k triangles (~42.5k welded verts): the crumpled
+   * silhouette stays continuous under glancing light at any zoom, no
+   * facet flash at the terminator and no visible polygon edges from
+   * afar. Only `def.irregular` bodies pay the density — a dozen
+   * catalog bodies at most.
    */
-  ROCK_DETAIL: 7,
+  ROCK_DETAIL: 64,
   /**
    * Mid/micro relief octaves for irregular bodies — a single low-
    * frequency noise pass makes every body a smooth blob, so `vnoise`

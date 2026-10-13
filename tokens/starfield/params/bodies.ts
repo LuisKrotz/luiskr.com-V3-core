@@ -131,13 +131,14 @@ export const SF_BELT_ROCK = Object.freeze({
   COUNT: 48,
   /**
    * Mesh tessellation — icosahedron detail for regular rocks and
-   * tetrahedron detail for fragments. Detail 6 ≈ 82k tris/rock —
-   * 64× the old detail-3 budget — so silhouettes hold a continuous
-   * curve at fly-in zoom with no readable polygon edges; fragments
-   * stay coarser (sharp shard planes are their look).
+   * tetrahedron detail for fragments. `detail` is EDGE segments:
+   * icosahedron detail 24 → 20·25² = 12.5k tris/rock (~600k per belt)
+   * so silhouettes hold a continuous curve at fly-in zoom with no
+   * readable polygon edges; fragments stay coarser (sharp shard
+   * planes are their look — tetra detail 10 → 4·11² = 484 tris).
    */
-  DETAIL: 6,
-  FRAG_DETAIL: 4,
+  DETAIL: 24,
+  FRAG_DETAIL: 10,
   /**
    * Mid/micro relief octaves — a single low-frequency noise pass makes
    * every rock a smooth blob, so displacement stacks three octaves:
@@ -169,10 +170,10 @@ export const SF_BELT_ROCK = Object.freeze({
    * as a planet-scale body crossing the frame.
    */
   SIZE_MIN: 0.0025,
-  SIZE_MAX: 0.011,
+  SIZE_MAX: 0.008,
   /** Large-body fraction + their size ceiling (× annulus width). */
   BIG_FRAC: 0.12,
-  BIG_MAX: 0.028,
+  BIG_MAX: 0.015,
   /** Collision-fragment fraction — tetrahedral shards, smallest rocks. */
   FRAGMENT_FRAC: 0.25,
   /**
@@ -245,13 +246,13 @@ export const SF_LOD = Object.freeze({
  * (the solar wind entrains plasma along field lines); the dust tail is
  * shorter, wider and lags the radius vector because grains keep some
  * orbital momentum — it tilts off the anti-sunward line and fans out.
- * Both tails are camera-facing sprites rooted at the nucleus whose
- * length and opacity scale with heliocentric proximity: sublimation
- * scales steeply with solar flux, so `TAIL_FLOOR` keeps a whisper at
- * apoapsis while periapsis throws the full streak. Lengths are
- * multiples of the nucleus radius (Halley ≈ 0.2 units → ~6.4-unit ion
- * streak), so the proportions read correctly at chart scale where an
- * honest ~10⁸-km tail would cross the whole map.
+ * Both tails are PARTICLE STREAMS rooted at the nucleus — `THREE.Points`
+ * clouds of soft-glow grains, never quads — whose length and opacity
+ * scale with heliocentric proximity: sublimation scales steeply with
+ * solar flux, so the tail ignites at periapsis and dies on the outbound
+ * leg. Lengths are multiples of the nucleus radius (Halley ≈ 0.2 units
+ * → ~6.4-unit ion stream), so the proportions read correctly at chart
+ * scale where an honest ~10⁸-km tail would cross the whole map.
  */
 export const SF_COMET = Object.freeze({
   /** Coma sprite diameter × nucleus radius — the sublimated envelope. */
@@ -261,23 +262,22 @@ export const SF_COMET = Object.freeze({
   /** Coma brightness floor — an inactive nucleus still vents a faint
    *  background coma; only the tails fully die. */
   COMA_FLOOR: 0.25,
-  /** Ion tail length/width as multiples of the nucleus radius. */
+  /** Ion tail length as a multiple of the nucleus radius — the plasma
+   *  stream reaches well past the coma before it disperses. */
   ION_LEN: 32,
-  ION_W: 1.7,
-  ION_OPACITY: 0.5,
+  ION_OPACITY: 0.55,
   /** Dust tail — shorter, broader, lagging the radius vector. */
   DUST_LEN: 21,
-  DUST_W: 4.5,
   /** Dust-tail lag angle (rad) — grains trail the comet's orbit, so the
-   *  streak fans off the anti-sunward line. */
+   *  fan tilts off the anti-sunward line. */
   DUST_TILT: 0.24,
-  DUST_OPACITY: 0.34,
+  DUST_OPACITY: 0.42,
   /**
    * Periapsis window — fraction of the periapsis→apoapsis span inside
    * which sublimation runs hard enough to grow tails. Solar flux falls
    * as 1/r², so the thaw front collapses quickly on the outbound leg:
    * `active = clamp(((rMin + span·ACTIVE_FRAC) − r) / (span·ACTIVE_FRAC))`
-   * raised to `GAMMA`, and the tail sprites unmount (`visible=false`)
+   * raised to `GAMMA`, and the tail clouds unmount (`visible=false`)
    * below `TAIL_OFF`. Halley sublimates measurably out to ~3 AU against
    * an 0.59–35 AU orbit → ~9% window; 0.3 reads correctly at chart scale
    * where the tail should die before the orbit leaves the inner system.
@@ -286,43 +286,101 @@ export const SF_COMET = Object.freeze({
   GAMMA: 1.5,
   TAIL_OFF: 0.02,
   /**
-   * Gas layer — each tail carries a tessellated PLANE that updateFx
-   * rolls about the streak axis to face the camera (a cylindrical
-   * billboard): real spatial extent like a cone, but its silhouette is
-   * painted into per-vertex colors — `ramp(t)·(1−w²)^p` → every quad
-   * edge lands at alpha-0, so no polygon edge can ever show — while
-   * the seamless filament map underneath scrolls `offset.x` so gas
-   * streams anti-sunward through the static envelope. `GAS_U`/`GAS_V`
-   * is the plane tessellation (dense enough that the vertex-color
-   * envelope interpolates smoothly). `FLOW_*` are offsets/second; the
-   * ion wind moves fastest (plasma is magnetically entrained, dust
-   * drifts). `WOBBLE_*` adds a slow sinusoidal roll shimmer per tail.
+   * Particle counts — each tail is TWO `Points` layers: `PTS_CORE`
+   * small bright grains forming the dense axial stream and `PTS_HALO`
+   * large dim grains forming the diffuse gas sheath around it. ~640
+   * grains per comet ≈ a few draw calls total — far cheaper than the
+   * displaced-geometry alternatives and the only primitive whose
+   * silhouette can never render a hard edge.
    */
-  GAS_U: 96,
-  GAS_V: 24,
-  GAS_FLOW_ION: 0.28,
-  GAS_FLOW_DUST: 0.1,
-  GAS_ALPHA_ION: 0.55,
-  GAS_ALPHA_DUST: 0.5,
-  WOBBLE_AMP: 0.02,
-  WOBBLE_FREQ: 0.8,
-  FLICKER_AMP: 0.12,
-  FLICKER_FREQ: 0.9,
+  PTS_CORE: 240,
+  PTS_HALO: 280,
+  /** Grain sizes (× nucleus radius) — core grains are tight sparks,
+   *  halo grains are big soft blobs whose overlap fakes the gas volume.
+   *  Under additive blending each grain contributes a fraction of its
+   *  footprint, so the grains run large: a sparse cloud of small
+   *  sprites reads as confetti, not gas. */
+  PSZ_CORE: 1.25,
+  PSZ_HALO: 3.0,
+  /** Dust grains ride slightly larger than ion plasma. */
+  DUST_PSIZE: 1.15,
   /**
-   * Filament texture — wisps drawn as sinuous horizontal streaks (u
-   * runs root→tip along the streak) with knot clumps biased toward the
-   * root. `FILAMENT_W` is the base alpha; wander is in texture units.
-   * The texture is 512×128 px and wraps horizontally so the scroll is
-   * seamless forever.
+   * Column spread — the half-width at the root (× radius) and the
+   * downstream fan factor: `spread(d) = SPREAD·(1 + GROW·d)` so the
+   * column opens as grains drift anti-sunward (solar-wind dispersion).
+   * Dust disperses far wider than the field-locked ion stream.
    */
-  GAS_W: 512,
-  GAS_H: 128,
-  FILAMENTS: 26,
-  FILAMENT_W: 0.1,
-  WANDER: 0.18,
-  KNOTS: 10,
-  KNOT_R: 0.06,
-  KNOT_W: 0.16,
+  SPREAD_ION: 1.05,
+  GROW_ION: 3.6,
+  SPREAD_DUST: 1.9,
+  GROW_DUST: 7,
+  /** `WID_FLOOR` keeps a residual spread when the tail shrinks toward
+   *  apoapsis (the column thins but never pinches to a zero-width line). */
+  WID_FLOOR: 0.4,
+  /** Sheath layer — wider spread and lower opacity than the core it
+   *  wraps (`SHEATH_W` × spread, `OP_HALO` × opacity); `HALO_SLOW`
+   *  slows its grains (outer gas drags behind the entrained spine). */
+  SHEATH_W: 1.7,
+  OP_HALO: 0.42,
+  HALO_SLOW: 0.7,
+  /**
+   * Emission rates — per-particle lifecycle `d = frac(phase + t·rate)`
+   * in cycles/scene-second. Ion plasma streams fast (magnetically
+   * entrained, ~5–20 s to cross), dust grains creep (~15–70 s). Each
+   * particle seeds a rate inside its layer's range so the stream never
+   * marches in lockstep.
+   */
+  RATE_ION_LO: 0.05,
+  RATE_ION_HI: 0.2,
+  RATE_DUST_LO: 0.015,
+  RATE_DUST_HI: 0.07,
+  /**
+   * Per-grain brightness floor (`DIM_LO`) and lateral wobble — each
+   * grain rides a seeded sine `sin(t·WOBF + phase)·WOB_AMP·spread·(0.25+0.75d)`
+   * growing downstream (turbulence amplifies as the column thins);
+   * `WOBF_LO/HI` spread the wobble frequencies so the column shimmers
+   * instead of sloshing.
+   */
+  DIM_LO: 0.4,
+  WOB_AMP: 0.55,
+  WOBF_LO: 0.3,
+  WOBF_HI: 1.7,
+  /**
+   * Grain footprint — `SZ_LO` is the per-grain seeded size floor
+   * (`sz[i] ∈ [SZ_LO, 1]` × layer size), `SZ_BASE + SZ_GROW·d` swells a
+   * grain's quad as it drifts downstream — dispersing gas expands, so
+   * the column stays fused (overlapping soft blobs) all the way to the
+   * ragged tip instead of thinning into separated dots.
+   */
+  SZ_LO: 0.6,
+  SZ_BASE: 0.55,
+  SZ_GROW: 1.4,
+  /**
+   * Brightness envelope along a grain's life `d` — a smoothstep ramp
+   * over the first `PTS_RAMP` fraction (fresh grains glow in rather
+   * than pop), then `(1−d)^PTS_FADE` so every grain dies at its own
+   * distance: the tip dissolves grain-by-grain into a ragged comb.
+   * `FADE` stays shallow — a steep falloff starves the mid-tail and
+   * the stream reads as a stub behind the coma.
+   */
+  PTS_RAMP: 0.06,
+  PTS_FADE: 1.15,
+  /** Vertical flattening — the z spread is `ZFLAT` × the in-plane
+   *  spread (the tail sheet is thinner than it is wide, like a real
+   *  dust sheet seen edge-on). */
+  ZFLAT: 0.65,
+  /**
+   * HDR grain gain — vertex colors are written as `rgb·envelope·GAIN`:
+   * values >1 push overlapping additive grains into saturation, which
+   * is what fuses a sparse cloud into a continuous glowing column —
+   * without it each grain stays a faint gray speck and the tail reads
+   * as confetti instead of gas.
+   */
+  GAIN: 1.15,
+  /** Solar-wind gust coupling — grain brightness scales by
+   *  `1 − WIND_K + WIND_K·windNorm` so a storm visibly surges the
+   *  stream (katsushika-style brightness waves down the tail). */
+  WIND_K: 0.3,
 })
 
 /**
