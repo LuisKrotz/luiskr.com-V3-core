@@ -296,6 +296,15 @@ export const SF_SPIRAL = Object.freeze({
    */
   ELLIPSE_EDGE: 0.55,
   /**
+   * Dwarf-galaxy backing glow — `spiralDisc.elliptical` bodies carry no
+   * photographic disc, and their size-attenuated star Points collapse to
+   * sub-pixel specks at Local-Group standoff distances, so a soft tinted
+   * halo sprite the size of the whole smudge keeps dwarfs readable as
+   * fuzzy unresolved patches from across the group.
+   */
+  DWARF_HALO_SCALE: 2.4,
+  DWARF_HALO_OPACITY: 0.5,
+  /**
    * Heliocentric exclusion bubble (chart units) carved out of a
    * `spiralDisc.bubble` galaxy's particle fill around the solar system —
    * keeps random disc stars from overlapping the Sun/planet meshes while

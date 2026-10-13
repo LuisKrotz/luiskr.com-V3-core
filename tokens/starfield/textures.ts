@@ -57,7 +57,7 @@ export const SF_TEXTURES = Object.freeze({
   PHOBOS: `${_SF_TEX}/4k_phobos.jpg`,
   DEIMOS: `${_SF_TEX}/4k_deimos.jpg`,
   MIMAS: `${_SF_TEX}/4k_mimas.jpg`,
-  ENCELADUS: `${_SF_TEX}/4k_enceladus.jpg`,
+  ENCELADUS: `${_SF_TEX}/4k_enceladus_v2.jpg`,
   DIONE: `${_SF_TEX}/4k_dione.jpg`,
   RHEA: `${_SF_TEX}/4k_rhea.jpg`,
   TITAN: `${_SF_TEX}/4k_titan.jpg`,

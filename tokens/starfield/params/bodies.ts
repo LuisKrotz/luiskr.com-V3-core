@@ -197,6 +197,45 @@ export const SF_LOD = Object.freeze({
 })
 
 /**
+ * Comet rendering — a `SF_KINDS.COMET` body is a dark irregular nucleus
+ * wrapped in a sublimated gas/dust envelope (coma) trailing two tails.
+ * The ion tail is a long narrow streak pointing straight anti-sunward
+ * (the solar wind entrains plasma along field lines); the dust tail is
+ * shorter, wider and lags the radius vector because grains keep some
+ * orbital momentum — it tilts off the anti-sunward line and fans out.
+ * Both tails are camera-facing sprites rooted at the nucleus whose
+ * length and opacity scale with heliocentric proximity: sublimation
+ * scales steeply with solar flux, so `TAIL_FLOOR` keeps a whisper at
+ * apoapsis while periapsis throws the full streak. Lengths are
+ * multiples of the nucleus radius (Halley ≈ 0.2 units → ~6.4-unit ion
+ * streak), so the proportions read correctly at chart scale where an
+ * honest ~10⁸-km tail would cross the whole map.
+ */
+export const SF_COMET = Object.freeze({
+  /** Coma sprite diameter × nucleus radius — the sublimated envelope. */
+  COMA_SCALE: 9,
+  /** Coma opacity at periapsis — thins with the same factor as tails. */
+  COMA_OPACITY: 0.45,
+  /** Ion tail length/width as multiples of the nucleus radius. */
+  ION_LEN: 32,
+  ION_W: 1.7,
+  ION_OPACITY: 0.5,
+  /** Dust tail — shorter, broader, lagging the radius vector. */
+  DUST_LEN: 21,
+  DUST_W: 4.5,
+  /** Dust-tail lag angle (rad) — grains trail the comet's orbit, so the
+   *  streak fans off the anti-sunward line. */
+  DUST_TILT: 0.24,
+  DUST_OPACITY: 0.34,
+  /**
+   * Apoapsis floor — tail factor never drops fully to zero (sublimation
+   * weakens but never halts), keeping a faint stub at the far end of
+   * the eccentric orbit.
+   */
+  TAIL_FLOOR: 0.1,
+})
+
+/**
  * Photographic-surface tuning — the real-imagery rendering layer for
  * planets and deep-sky objects. Photo masks feather a source image's
  * rectangular edge into transparency so NASA/ESA stills composite into

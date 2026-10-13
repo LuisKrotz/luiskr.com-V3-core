@@ -312,4 +312,44 @@ export const SF_CONSTELLATION = Object.freeze({
   JITTER: 0.3,
   /** Point size vs the host body radius — glints, not balls. */
   SIZE: 0.012,
+  /**
+   * Near-field reveal distance (world units) — LEO satellites are
+   * invisible from interplanetary range: the swarm resolves only when
+   * the camera is inside the Moon's orbital neighborhood (~4.5 units),
+   * so the threshold sits just past it. The value is an absolute
+   * camera-to-host distance, replacing the generic LOD `PAD + size·SCALE`
+   * reach that would otherwise key on the host's heliocentric orbit and
+   * reveal the shell from halfway across the chart.
+   */
+  REVEAL: 7,
+})
+
+/**
+ * Cryovolcanic/volcanic plume systems — Enceladus vents water-ice
+ * geysers from its south-polar tiger stripes, Io throws sulfur plumes
+ * hundreds of km over its whole surface. Each vent carries a steady
+ * jet sprite plus a rising puff sprite that cycles outward, fades, and
+ * recycles — a continuous eruption read without per-frame allocation.
+ */
+export const SF_PLUME = Object.freeze({
+  /** Default vent count when `def.plumes.count` is unset. */
+  VENTS: 6,
+  /** Jet/puff reach as a multiple of the body radius. */
+  HEIGHT: 1.9,
+  /** Jet sprite width × body radius. */
+  WIDTH: 0.2,
+  /** Rising-puff cycle seconds (per-vent phase is seeded). */
+  PERIOD: 3.2,
+  /** Steady jet opacity at the vent base. */
+  OPACITY: 0.42,
+  /** Puff opacity peak at the bottom of its rise. */
+  PUFF_OPACITY: 0.55,
+  /**
+   * Polar vent latitude band — |y| on the unit sphere above this marks
+   * the tiger-stripe cluster (Enceladus vents sit ~75°S). Scattered
+   * (volcanic) vents ignore it and sample the whole sphere.
+   */
+  POLAR_LAT: 0.85,
+  /** Per-vent spread around the pole direction (unit-sphere radius). */
+  POLAR_SPREAD: 0.28,
 })

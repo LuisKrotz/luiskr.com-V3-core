@@ -20,6 +20,7 @@ export {
   SF_DETAIL,
   SF_SPIKE,
   SF_NEBULA_DEPTH,
+  SF_COMET,
 } from './params/bodies.js'
 export { SF_SPIRAL } from './params/spiral.js'
 export { SF_WORKER, SF_STAR_CLOUD } from './params/worker.js'
@@ -32,4 +33,5 @@ export {
   SF_AURORA,
   SF_CONSTELLATION,
   SF_METEOR,
+  SF_PLUME,
 } from './params/weather.js'

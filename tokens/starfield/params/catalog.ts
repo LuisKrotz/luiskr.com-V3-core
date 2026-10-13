@@ -40,6 +40,27 @@ export const SF_COLORS = Object.freeze({
   BENNU: 0x4a4642,
   /** Halley's nucleus — icy dust, faint cyan-white. */
   HALLEY: 0xbfd8de,
+  /**
+   * Comet tail palette — the ion (plasma) tail glows blue-white from
+   * CO+ fluorescence under solar UV, while the dust tail scatters plain
+   * sunlight: a warm, dimmer, slightly yellowed streak. The nucleus
+   * itself is among the darkest bodies known (Halley albedo ≈ 0.04).
+   */
+  COMET_ION: 0x9fd4ff,
+  COMET_DUST: 0xf2e8d0,
+  COMET_NUCLEUS: 0x2a2622,
+  /**
+   * Cryovolcanic/volcanic plume tints — Enceladus vents water-ice
+   * grains lit ice-blue; Io's plumes are sulfur/SO₂ fallout, a warm
+   * sulphurous gold.
+   */
+  PLUME_ICE: 0xdfefff,
+  PLUME_SULFUR: 0xe8c85c,
+  /**
+   * Titan's tholin photochemical haze — the opaque orange limb glow
+   * overriding the Earth-blue atmosphere tint on its rim shell.
+   */
+  TITAN_HAZE: 0xe0a458,
   /** ISS truss — bright metallic white. */
   ISS: 0xe8ecf0,
   /** ISS solar arrays — the wings' burnished gold kapton over silicon. */

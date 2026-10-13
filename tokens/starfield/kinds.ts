@@ -63,6 +63,12 @@ export const SF_KINDS = Object.freeze({
    * label instead of falling through to the raw kind string.
    */
   SATELLITE: 'satellite',
+  /**
+   * Icy small body on an eccentric orbit (Halley-class) — renders a
+   * dark irregular nucleus wrapped in a sublimated coma with ion and
+   * dust tails that stream anti-sunward and grow toward periapsis.
+   */
+  COMET: 'comet',
 })
 
 /**
