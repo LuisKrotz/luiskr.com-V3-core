@@ -70,7 +70,7 @@ export const routeSlugs = (lang: string): LangSlugMap =>
  * `source-code.rights` through the live-then-fallback dictionaries and
  * substitutes the `{year}` placeholder with the current calendar year so
  * the stored translation never goes stale.
- * @returns e.g. 'All rights reserved © Luis Krötz, 2026'
+ * @returns e.g. 'Copyright © 2026 Luis Krötz'
  */
 export const rightsText = (): string =>
   String(componentText(SOURCE_COMPONENT_KEYS.SOURCE_RIGHTS)).replace(

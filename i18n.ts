@@ -81,6 +81,8 @@ export interface LangSlugMap {
   gdpr: string
   /** Terms-of-use page segment. */
   terms: string
+  /** License page segment. */
+  license: string
   /** Earth playground segment. */
   earthPlayground: string
   /** Star-field experiment segment. */

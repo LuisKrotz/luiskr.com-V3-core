@@ -39,7 +39,7 @@ describe('ui-text tails', () => {
   test('rightsText substitutes the live year into the rights template', () => {
     const text = rightsText()
 
-    expect(text).toContain(`Luis Krötz, ${new Date().getFullYear()}`)
+    expect(text).toContain(`${new Date().getFullYear()} Luis Krötz`)
     expect(text).not.toContain('{year}')
   })
 
@@ -49,7 +49,7 @@ describe('ui-text tails', () => {
     expect(`${r.pre}${r.copy}${r.mid}${r.year}${r.post}`).toBe(rightsText())
     expect(r.copy).toBe(CHAR_STRINGS.COPYRIGHT)
     expect(r.year).toBe(String(new Date().getFullYear()))
-    expect(r.mid).toContain('Luis Krötz')
+    expect(r.post).toContain('Luis Krötz')
 
     // Missing-© arm — a rights string without the glyph renders unsegmented.
     store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, {

@@ -6,7 +6,7 @@
  *   /[locale]/<localized-about>    → view-home  (scrolls to #about)
  *   /[locale]/<localized-contact>  → view-home  (scrolls to #contact)
  *   /[locale]/portfolio/<projectSlug>[/<slug>] → view-project
- *   /[locale]/privacy|gdpr|terms   → view-legal (localized slugs)
+ *   /[locale]/privacy|gdpr|terms|license → view-legal (localized slugs)
  *   /[locale]/earth-playground     → view-space-playground
  *   anything else                  → view-not-found
  */
@@ -185,6 +185,10 @@ export function parsePath(pathname: string): RouteDescriptor {
     first === ROUTE_STRINGS.TERMS_OF_USE
   ) {
     return legalRoute(ROUTE_NAMES.TERMS, lang, cleanPath, 3, TRANSLATION_KEYS.TERMS_OF_USE)
+  }
+
+  if (first === slugs.license || first === ROUTE_STRINGS.LICENSE) {
+    return legalRoute(ROUTE_NAMES.LICENSE, lang, cleanPath, 4, TRANSLATION_KEYS.LICENSE)
   }
 
   // Docs portal — English-only; the remaining segments address a node in

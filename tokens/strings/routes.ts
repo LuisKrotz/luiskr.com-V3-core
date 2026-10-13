@@ -8,6 +8,7 @@ import {
   _B_ADMIN,
   _B_CMS,
   _B_CONTACT,
+  _K_LICENSE,
   _K_PRIVACY_POLICY,
   _K_TERMS_OF_USE,
 } from '../base.js'
@@ -28,6 +29,7 @@ export const ROUTE_STRINGS = Object.freeze({
   TERMS: 'terms',
   TERMS_OF_USE: _K_TERMS_OF_USE,
   PRIVACY_POLICY: _K_PRIVACY_POLICY,
+  LICENSE: _K_LICENSE,
   ABOUT: _B_ABOUT,
   CONTACT: _B_CONTACT,
 })

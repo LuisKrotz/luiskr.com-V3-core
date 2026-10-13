@@ -1,7 +1,7 @@
 /**
  * @file utils/data/legal-links.ts
  * @description Builds the bundled legal link list (home / privacy / GDPR /
- * terms) for a locale. Shared by <legal-footer> and <awards-mentions> —
+ * terms / license) for a locale. Shared by <legal-footer> and <awards-mentions> —
  * lives in utils so neither component depends on the other's folder.
  * Destinations resolve through LANG_SLUGS so localized paths work offline;
  * labels come from the components dictionary, index-aligned with slugFor.
@@ -41,6 +41,7 @@ export function getFallbackLegalLinks(locale: string = LOCALES.EN): LegalLink[] 
     slugs.privacy || ROUTE_STRINGS.PRIVACY_POLICY,
     slugs.gdpr || ROUTE_STRINGS.GDPR,
     slugs.terms || ROUTE_STRINGS.TERMS_OF_USE,
+    slugs.license || ROUTE_STRINGS.LICENSE,
   ]
 
   return slugFor.map((slug, i) => ({

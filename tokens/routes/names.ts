@@ -15,6 +15,7 @@ export const ROUTE_NAMES = Object.freeze({
   PRIVACY: 'Privacy Policy',
   GDPR: 'GDPR',
   TERMS: 'Terms of Use',
+  LICENSE: 'License',
   PROJECT: 'DynamicProject',
   NOT_FOUND: 'Not Found',
   ADMIN_LOGIN: 'Admin Login',
@@ -34,4 +35,5 @@ export const ROUTE_PREFIXES = Object.freeze({
   PRIVACY: 'Privacy',
   GDPR: 'GDPR',
   TERMS: 'Terms',
+  LICENSE: 'License',
 })

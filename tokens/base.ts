@@ -425,6 +425,10 @@ export const _K_PRIVACY_POLICY = 'privacy-policy'
  */
 export const _K_TERMS_OF_USE = 'terms-of-use'
 /**
+ * Token key "k license" — single source for the repeated literal.
+ */
+export const _K_LICENSE = 'license'
+/**
  * Shared key token `earthPlayground` — single source for a literal repeated across modules
  * (zero-hardcoding rule 5).
  */

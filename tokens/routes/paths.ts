@@ -26,6 +26,7 @@ export const ROUTE_PATHS = Object.freeze({
   PRIVACY_POLICY: '/privacy-policy',
   GDPR: '/gdpr',
   TERMS_OF_USE: '/terms-of-use',
+  LICENSE: '/license',
   NOT_FOUND: 'not-found',
   EARTH_PLAYGROUND: '/earth-playground',
   EARTH_PLAYGROUND_SEGMENT: 'earth-playground',

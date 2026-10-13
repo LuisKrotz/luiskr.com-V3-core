@@ -9,6 +9,7 @@ import {
   _B_DOCS,
   _B_NOT_FOUND,
   _K_HOME,
+  _K_LICENSE,
   _K_PRIVACY_POLICY,
   _K_TERMS_OF_USE,
 } from '../base.js'
@@ -23,6 +24,7 @@ export const TRANSLATION_KEYS = Object.freeze({
   PRIVACY_POLICY: _K_PRIVACY_POLICY,
   GDPR: 'GDPR',
   TERMS_OF_USE: _K_TERMS_OF_USE,
+  LICENSE: _K_LICENSE,
   NOT_FOUND: _B_NOT_FOUND,
   ABOUT: _B_ABOUT,
   EARTH_PLAYGROUND: 'earth-playground',
