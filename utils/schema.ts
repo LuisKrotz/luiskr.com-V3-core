@@ -1,20 +1,25 @@
 /**
  * @file schema.ts
  * @description JSON-LD structured-data builders (Schema.org entities for
- * Organization, WebSite, ItemList/carousel, Article, VideoObject) plus
- * updateJsonLd() which maintains the single <script id="json-ld"> node in
- * <head>. Called by Home and Project views so search engines always see
- * the current page's graph.
+ * Organization, WebSite, WebPage, BreadcrumbList, ItemList/carousel,
+ * Article, VideoObject) plus updateJsonLd() which maintains the single
+ * <script id="json-ld"> node in <head>. Every resolved route emits a
+ * base graph via generateRouteSchema; Home and Project views layer
+ * their rich entities (carousel ItemList, project Article + media) on
+ * top so search engines always see the current page's full graph.
  */
 
-import { LOCALES } from '@core/tokens/locales.js'
+import { LOCALES, LOCALE_TAGS } from '@core/tokens/locales.js'
+import { BASE_TITLE } from '@core/tokens/routes.js'
+import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { DOCS_STRINGS } from '@core/tokens/strings/docs.js'
 import { ROUTE_NAMES } from '@core/tokens/routes/names.js'
-import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
+import { DB_PATHS, ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
-import { stripHtml } from './string.js'
+import { slugify, stripHtml, toMetaDescription } from './string.js'
+import { buildMediaUrls } from './media.js'
 import { CDN_URLS, SOCIAL_URLS } from '@core/tokens/media/urls.js'
 
 /** Award/press item as handed to the ItemList builder — label/title are display names, link/slug feed the target URL. */
@@ -24,13 +29,47 @@ interface CarouselSchemaItem {
   slug?: string
   title?: string
   src?: string
+  /** Cover basename (no extension) under the CDN `covers/` folder. */
+  image?: string
+  description?: string
+}
+
+/** Ordered crumb for the BreadcrumbList builder — display name + absolute item URL. */
+interface BreadcrumbItem {
+  name: string
+  url: string
+}
+
+/** Inputs for the per-route base graph (Org + WebSite + WebPage + BreadcrumbList). */
+interface RouteSchemaOptions {
+  /** Canonical absolute page URL — also the WebPage @id base. */
+  url: string
+  /** Localized page name (what the SERP shows). */
+  name: string
+  /** Localized meta description; falls back to the site description. */
+  description?: string
+  /** Locale code ('br', 'de', …) — resolved to BCP-47 via LOCALE_TAGS. */
+  lang?: string
+  /** primaryImageOfPage URL; defaults to the global share image. */
+  image?: string
+  /** Ordered crumbs ending at this page — emits BreadcrumbList when ≥2. */
+  breadcrumb?: BreadcrumbItem[]
+}
+
+/** Media descriptor inside project `sections` (and the project cover). */
+interface ProjectMediaNode {
+  src?: string
+  label?: string
+  isVideo?: boolean
+  size?: Array<number | string>
 }
 
 /** Project translation slice the Article/VideoObject builders read — cover drives both image variants and the optional VideoObject. */
 interface ProjectSchemaSource {
   title?: string
   folder?: string
-  cover?: { src?: string; isVideo?: boolean }
+  cover?: { src?: string; isVideo?: boolean; label?: string }
+  sections?: unknown
 }
 
 /**
@@ -48,16 +87,21 @@ export const generateWebsiteSchema = (): Record<string, unknown>[] => {
       url: NET_STRINGS.SITE_URL,
       logo: `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_ORG_LOGO}`,
       image: `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_SHARE_IMAGE}`,
-      sameAs: [SOCIAL_URLS.GITHUB, SOCIAL_URLS.LINKEDIN],
+      sameAs: [
+        SOCIAL_URLS.WHATSAPP,
+        SOCIAL_URLS.GITHUB,
+        SOCIAL_URLS.LINKEDIN,
+        SOCIAL_URLS.INSTAGRAM,
+      ],
     },
     {
       '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
       '@type': 'WebSite',
       '@id': `${NET_STRINGS.SITE_URL}#website`,
       url: NET_STRINGS.SITE_URL,
-      name: 'Luis Krötz',
-      description:
-        'Front-End Software Engineer specializing in performance, design systems, and animations.',
+      name: BASE_TITLE,
+      description: SCHEMA_STRINGS.SCHEMA_SITE_DESCRIPTION,
+      image: `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_SHARE_IMAGE}`,
       publisher: {
         '@id': `${NET_STRINGS.SITE_URL}#organization`,
       },
@@ -88,24 +132,99 @@ export const generateCarouselItemListSchema = (
         ? item.link
         : `${baseUrl}${ROUTE_PATHS.PORTFOLIO}${item.link || item.slug || ''}`
 
+      // Image resolution order: absolute src → CDN-relative src → the
+      // covers/ folder basename the portfolio list stores (`image`).
+      const imageUrl = item.src
+        ? item.src.startsWith('http')
+          ? item.src
+          : `${CDN_URLS.CDN_BASE}${item.src}`
+        : item.image
+          ? `${CDN_URLS.CDN_BASE}${DB_PATHS.COVERS}${item.image}.jpg`
+          : null
+
       return {
         '@type': 'ListItem',
         position: idx + 1,
         url: targetUrl,
         name: item.label || item.title || `Item ${idx + 1}`,
-        ...(item.src
-          ? {
-              image: item.src.startsWith('http') ? item.src : `${CDN_URLS.CDN_BASE}${item.src}`,
-            }
-          : {}),
+        ...(imageUrl ? { image: imageUrl } : {}),
+        ...(item.description ? { description: item.description } : {}),
       }
     }),
   }
 }
 
 /**
- * Generates an Article and VideoObject graph for a project detail page.
- * Includes multiple aspect ratio image variants (16x9, 4x3, 1x1) for Google Rich Results.
+ * Recursively walks project `sections` (nested arrays of text strings
+ * and media descriptors) yielding every node that carries a `src`. The
+ * generator shape keeps traversal total — media descriptors are leaf
+ * objects, so a matched node is yielded rather than descended into.
+ */
+function* walkMedia(node: unknown): Generator<ProjectMediaNode, void, void> {
+  if (Array.isArray(node)) {
+    for (const child of node) yield* walkMedia(child)
+
+    return
+  }
+
+  if (node && typeof node === TYPE_STRINGS.OBJECT) {
+    const rec = node as ProjectMediaNode
+
+    if (typeof rec.src === TYPE_STRINGS.STRING && rec.src) yield rec
+  }
+}
+
+/**
+ * First text string in the nested sections array — the same paragraph
+ * the project view promotes to the meta description, reused here so
+ * Article/VideoObject descriptions match the emitted page text.
+ */
+const firstSectionText = (node: unknown): string => {
+  if (typeof node === TYPE_STRINGS.STRING) return node as string
+
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      const found = firstSectionText(item)
+
+      if (found) return found
+    }
+  }
+
+  return ATTR_VALUES.EMPTY
+}
+
+/**
+ * VideoObject entity for one media descriptor — contentUrl/embedUrl
+ * point at the CDN mp4 and thumbnailUrl at its jpg poster, the two
+ * URLs Google's video crawler needs to index the asset.
+ */
+const videoObjectFor = (
+  media: ProjectMediaNode,
+  folder: string,
+  title: string,
+  description: string
+): Record<string, unknown> => {
+  const { source, thumb } = buildMediaUrls(CDN_URLS.CDN_BASE, folder, media)
+
+  return {
+    '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+    '@type': 'VideoObject',
+    name: media.label || `${title} Video`,
+    description: description || `Showcase video for ${title}`,
+    thumbnailUrl: [thumb],
+    uploadDate: SCHEMA_STRINGS.SCHEMA_PUBLISHED_DATE,
+    duration: SCHEMA_STRINGS.SCHEMA_VIDEO_DURATION,
+    contentUrl: source,
+    embedUrl: source,
+  }
+}
+
+/**
+ * Generates an Article and cover VideoObject graph for a project detail
+ * page. The Article `image` carries the real CDN asset — the full
+ * uncompressed mozjpg for image covers, the video poster for video
+ * covers — since the hypothetical aspect-ratio variants (-16x9/-4x3/
+ * -1x1) never existed on the bucket and 404'd for crawlers.
  * @param project - Project translation data
  * @param slug - Project URL slug
  * @param locale - Page locale (defaults to LOCALES.EN)
@@ -122,13 +241,17 @@ export const generateProjectArticleSchema = (
 
   const title = project.title ? stripHtml(project.title) : slug
 
-  const coverSrc = project.cover?.src
-    ? `${CDN_URLS.CDN_BASE}${project.folder || ''}${project.cover.src}`
-    : null
+  const folder = project.folder || ATTR_VALUES.EMPTY
 
-  const imageVariants = coverSrc
-    ? [`${coverSrc}.jpg`, `${coverSrc}-16x9.jpg`, `${coverSrc}-4x3.jpg`, `${coverSrc}-1x1.jpg`]
+  const cover = buildMediaUrls(CDN_URLS.CDN_BASE, folder, project.cover || null)
+
+  const images = cover.source
+    ? [cover.isVideo ? cover.thumb : cover.source]
     : [`${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_SHARE_IMAGE}`]
+
+  const description =
+    toMetaDescription(firstSectionText(project.sections)) ||
+    `Case study for ${title} built by Software Engineer Luis Krötz.`
 
   const article: Record<string, unknown> = {
     '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
@@ -136,52 +259,230 @@ export const generateProjectArticleSchema = (
     '@id': `${canonicalUrl}#article`,
     isPartOf: {
       '@type': 'WebPage',
-      '@id': canonicalUrl,
+      '@id': `${canonicalUrl}#webpage`,
       url: canonicalUrl,
       name: title,
-      inLanguage: locale,
+      inLanguage: LOCALE_TAGS[locale]?.bcp || locale,
     },
     headline: title,
-    inLanguage: locale,
+    inLanguage: LOCALE_TAGS[locale]?.bcp || locale,
     mainEntityOfPage: canonicalUrl,
     datePublished: SCHEMA_STRINGS.SCHEMA_PUBLISHED_DATE,
-    dateModified: new Date().toISOString(),
+    dateModified: SCHEMA_STRINGS.SCHEMA_PUBLISHED_DATE,
     author: {
       '@type': 'Person',
-      name: 'Luis Krötz',
+      name: BASE_TITLE,
       url: NET_STRINGS.SITE_URL,
     },
     publisher: {
       '@type': 'Person',
-      name: 'Luis Krötz',
+      name: BASE_TITLE,
       url: NET_STRINGS.SITE_URL,
     },
-    image: imageVariants,
-    description: `Case study for ${title} built by Software Engineer Luis Krötz.`,
+    image: images,
+    description,
   }
 
   const entities: Record<string, unknown>[] = [article]
 
   // Add VideoObject schema if project has a cover video or section videos
-  if (project.cover?.isVideo) {
-    const videoUrl = `${CDN_URLS.CDN_BASE}${project.folder || ''}${project.cover.src}.mp4`
-
-    const posterUrl = `${CDN_URLS.CDN_BASE}${project.folder || ''}${project.cover.src}.mp4.jpg-thumb.jpg`
-
-    entities.push({
-      '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
-      '@type': 'VideoObject',
-      name: `${title} Video Tour`,
-      description: `Showcase video for ${title}`,
-      thumbnailUrl: [posterUrl],
-      uploadDate: SCHEMA_STRINGS.SCHEMA_PUBLISHED_DATE,
-      duration: SCHEMA_STRINGS.SCHEMA_VIDEO_DURATION,
-      contentUrl: videoUrl,
-      embedUrl: videoUrl,
-    })
+  if (project.cover?.isVideo && project.cover.src) {
+    entities.push(videoObjectFor(project.cover, folder, title, description))
   }
 
   return entities
+}
+
+/**
+ * BreadcrumbList entity from an ordered crumb trail — positions are
+ * 1-based per the spec. Returns null for an empty/absent trail so
+ * callers can spread the result unconditionally.
+ * @param items Ordered crumbs ending at the current page.
+ * @param id    Optional @id the page entity's `breadcrumb` can point at.
+ * @returns BreadcrumbList entity or null.
+ */
+export const generateBreadcrumbSchema = (
+  items: BreadcrumbItem[] = [],
+  id?: string
+): Record<string, unknown> | null => {
+  if (!Array.isArray(items) || items.length === 0) return null
+
+  return {
+    '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+    '@type': 'BreadcrumbList',
+    ...(id ? { '@id': id } : {}),
+    itemListElement: items.map((item, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  }
+}
+
+/**
+ * Base per-route JSON-LD graph — Organization + WebSite (localized
+ * inLanguage) + WebPage + optional BreadcrumbList. Emitted on every
+ * navigation so crawlers never see a stale homepage graph on deep
+ * links; views that own richer entities (project Article, docs
+ * TechArticle) replace or extend this graph once their data resolves.
+ * @param options Route URL/name/description/locale/image/breadcrumb.
+ * @returns JSON-LD entities for updateJsonLd().
+ */
+export const generateRouteSchema = (options: RouteSchemaOptions): Record<string, unknown>[] => {
+  const { url, name, description, lang, image, breadcrumb } = options
+
+  const bcp = (lang && LOCALE_TAGS[lang]?.bcp) || lang || LOCALES.EN
+
+  const [org, website] = generateWebsiteSchema()
+
+  website.inLanguage = bcp
+
+  const crumbs = generateBreadcrumbSchema(breadcrumb, `${url}#breadcrumbs`)
+
+  const webPage: Record<string, unknown> = {
+    '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+    '@type': 'WebPage',
+    '@id': `${url}#webpage`,
+    url,
+    name,
+    description: description || SCHEMA_STRINGS.SCHEMA_SITE_DESCRIPTION,
+    inLanguage: bcp,
+    isPartOf: { '@id': `${NET_STRINGS.SITE_URL}#website` },
+    publisher: { '@id': `${NET_STRINGS.SITE_URL}#organization` },
+    primaryImageOfPage: {
+      '@type': 'ImageObject',
+      url: image || `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_SHARE_IMAGE}`,
+    },
+    ...(crumbs ? { breadcrumb: { '@id': `${url}#breadcrumbs` } } : {}),
+  }
+
+  return crumbs ? [org, website, webPage, crumbs] : [org, website, webPage]
+}
+
+/**
+ * Complete project-page JSON-LD graph — the route base (Org + WebSite
+ * + WebPage + breadcrumb) plus the project Article, a media ItemList
+ * whose entries deep-link to the emitted /portfolio/<p>/<media> URLs
+ * (Google's carousel surface), and one VideoObject per section video
+ * alongside the cover video the Article builder already emits. When a
+ * `mediaSlug` deep link is active the graph recenters on that media:
+ * the WebPage gets the media URL + label + its own asset, a third crumb
+ * level appears, and a dedicated ImageObject/VideoObject leads the
+ * graph — matching the static media pages the generator emits.
+ * @param project Localized project translation node.
+ * @param slug    Canonical project slug.
+ * @param locale  Page locale (defaults to LOCALES.EN).
+ * @param mediaSlug Active media deep-link segment (params.slug).
+ * @returns JSON-LD entities for updateJsonLd().
+ */
+export const generateProjectSchema = (
+  project: ProjectSchemaSource | null,
+  slug: string,
+  locale: string = LOCALES.EN,
+  mediaSlug?: string
+): Record<string, unknown>[] => {
+  if (!project || !slug) return []
+
+  const canonicalUrl = `${NET_STRINGS.SITE_URL}${ROUTE_PATHS.PORTFOLIO}${slug}`
+
+  const title = project.title ? stripHtml(project.title) : slug
+
+  const folder = project.folder || ATTR_VALUES.EMPTY
+
+  const description = toMetaDescription(firstSectionText(project.sections))
+
+  const cover = buildMediaUrls(CDN_URLS.CDN_BASE, folder, project.cover || null)
+
+  const coverImage = cover.source
+    ? cover.isVideo
+      ? cover.thumb
+      : cover.source
+    : `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_SHARE_IMAGE}`
+
+  const media = [...walkMedia(project.sections)]
+
+  // A media deep link resolves to its descriptor so the WebPage, its
+  // primaryImageOfPage and the third crumb all describe the asset at
+  // this URL rather than the parent project.
+  const activeMedia = mediaSlug
+    ? media.find((m) => m.label && slugify(m.label) === mediaSlug)
+    : undefined
+
+  const activeUrls = activeMedia ? buildMediaUrls(CDN_URLS.CDN_BASE, folder, activeMedia) : null
+
+  const pageUrl = activeMedia ? `${canonicalUrl}/${mediaSlug}` : canonicalUrl
+
+  const pageName = activeMedia?.label || title
+
+  const pageImage = activeUrls
+    ? activeUrls.isVideo
+      ? activeUrls.thumb
+      : activeUrls.source
+    : coverImage
+
+  const listItems = media
+    .filter((m): m is ProjectMediaNode & { label: string } => Boolean(m.label))
+    .map((m, idx) => {
+      const { source, thumb, isVideo } = buildMediaUrls(CDN_URLS.CDN_BASE, folder, m)
+
+      return {
+        '@type': 'ListItem',
+        position: idx + 1,
+        url: `${canonicalUrl}/${slugify(m.label)}`,
+        name: m.label,
+        image: isVideo ? thumb : source,
+      }
+    })
+
+  const mediaList: Record<string, unknown> | null = listItems.length
+    ? {
+        '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+        '@type': 'ItemList',
+        itemListElement: listItems,
+      }
+    : null
+
+  // The active media already leads the graph as its own entity — skip it
+  // here so the same asset isn't declared twice on media pages.
+  const sectionVideos = media
+    .filter((m) => m.isVideo && m !== activeMedia)
+    .map((m) => videoObjectFor(m, folder, title, description))
+
+  const routeGraph = generateRouteSchema({
+    url: pageUrl,
+    name: pageName,
+    description,
+    lang: locale,
+    image: pageImage,
+    breadcrumb: [
+      { name: BASE_TITLE, url: `${NET_STRINGS.SITE_URL}${ROUTE_PATHS.ROOT}` },
+      { name: title, url: canonicalUrl },
+      ...(activeMedia ? [{ name: pageName, url: pageUrl }] : []),
+    ],
+  })
+
+  const mediaEntity =
+    activeMedia && activeUrls
+      ? activeUrls.isVideo
+        ? videoObjectFor(activeMedia, folder, title, description)
+        : {
+            '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+            '@type': 'ImageObject',
+            '@id': `${pageUrl}#image`,
+            url: activeUrls.source,
+            contentUrl: activeUrls.source,
+            name: pageName,
+          }
+      : null
+
+  return [
+    ...routeGraph,
+    ...(mediaEntity ? [mediaEntity] : []),
+    ...generateProjectArticleSchema(project, slug, locale),
+    ...(mediaList ? [mediaList] : []),
+    ...sectionVideos,
+  ]
 }
 
 /** Minimal manifest-node shape the docs schema reads — kept structural so `core` never imports from `experiments`. */

@@ -13,6 +13,7 @@ import { ROUTE_NAMES } from '@core/tokens/routes/names.js'
 import { SECTION_IDS } from '@core/tokens/ids/sections.js'
 import { VIEW_TAGS } from '@core/tokens/elements/views.js'
 import {
+  buildRouteJsonLd,
   handleNavigation,
   syncDocumentHead,
   setMetaContent,
@@ -289,6 +290,64 @@ describe('route tails', () => {
     expect(document.head.querySelector(QUERY_STRINGS.META_DESCRIPTION).content).toBe('snippet')
 
     document.head.querySelector(QUERY_STRINGS.META_DESCRIPTION).remove()
+  })
+
+  test('buildRouteJsonLd — no override recomputes canonical; description + prefix-strip arms', () => {
+    const graph = buildRouteJsonLd(
+      {
+        name: 'x',
+        view: 'v',
+        lang: 'en',
+        path: '/about',
+        meta: { title: 'Luis Krötz | About', description: 'fallback' },
+        params: {},
+      },
+      undefined,
+      'resolved bio'
+    )
+
+    const webPage = graph.find((e) => e['@type'] === 'WebPage')
+
+    expect(webPage.url).toBe('https://luiskr.com/about')
+    expect(webPage.name).toBe('About')
+    expect(webPage.description).toBe('resolved bio')
+
+    const crumbs = graph.find((e) => e['@type'] === 'BreadcrumbList')
+
+    expect(crumbs.itemListElement[1].name).toBe('About')
+  })
+
+  test('buildRouteJsonLd — home route emits no breadcrumb', () => {
+    const graph = buildRouteJsonLd({
+      name: 'x',
+      view: 'v',
+      lang: 'en',
+      path: '/',
+      meta: { title: 'Luis Krötz' },
+      params: {},
+    })
+
+    expect(graph.find((e) => e['@type'] === 'BreadcrumbList')).toBeUndefined()
+    expect(graph.find((e) => e['@type'] === 'WebPage').url).toBe('https://luiskr.com')
+  })
+
+  test('syncDocumentHead — writes the route JSON-LD graph into head', () => {
+    syncDocumentHead({
+      name: 'x',
+      view: 'v',
+      lang: 'br',
+      path: '/br/portfolio/melissa',
+      meta: { title: 'Luis Krötz | Melissa', canonical: '/br/portfolio/melissa' },
+      params: {},
+    })
+
+    const script = document.getElementById('jsonld-graph')
+    const graph = JSON.parse(script.textContent)['@graph']
+    const webPage = graph.find((e) => e['@type'] === 'WebPage')
+
+    expect(webPage.url).toBe('https://luiskr.com/br/portfolio/melissa')
+    expect(webPage.inLanguage).toBe('pt-BR')
+    expect(graph.find((e) => e['@type'] === 'BreadcrumbList')).toBeTruthy()
   })
 
   test('parsePath — contact route carries the composed channel description', () => {

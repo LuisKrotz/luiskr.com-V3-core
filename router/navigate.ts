@@ -20,6 +20,7 @@ import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { SPACE } from '@core/tokens/layout/space.js'
 import { deepQuerySelector } from '@core/utils/dom.js'
 import { notifyLoadFailed } from '@core/utils/notify.js'
+import { generateRouteSchema, updateJsonLd } from '@core/utils/schema.js'
 import { parsePath } from '@core/router/parse-path.js'
 import type { RouteDescriptor } from '@core/router/types.js'
 import type { Router } from '@core/router/router.js'
@@ -115,6 +116,53 @@ export function syncDocumentHead(to: RouteDescriptor): void {
   setMetaContent(QUERY_STRINGS.META_TW_URL, canonicalUrl)
 
   if (to.meta.description) setMetaDescription(to.meta.description)
+
+  updateJsonLd(buildRouteJsonLd(to, canonicalUrl))
+}
+
+/**
+ * Base JSON-LD entities for a resolved route — exported so views whose
+ * localized descriptions resolve post-navigation (home/about) can
+ * re-emit the graph with the real description instead of the parse-time
+ * fallback, and so rich views can append entities to the same base.
+ * `canonicalOverride` lets syncDocumentHead pass the URL it already
+ * computed for the <link canonical> so both stay identical.
+ * @param to Resolved route descriptor.
+ * @param canonicalOverride Canonical URL; recomputed from `to` when absent.
+ * @param description Description override (post-fetch localized text).
+ * @returns JSON-LD entity array for updateJsonLd().
+ */
+export function buildRouteJsonLd(
+  to: RouteDescriptor,
+  canonicalOverride?: string,
+  description?: string
+): Record<string, unknown>[] {
+  const title = String(to.meta.title || BASE_TITLE)
+
+  const titlePrefix = `${BASE_TITLE} ${CHAR_STRINGS.PIPE_SEP} `
+
+  const pageName = title.startsWith(titlePrefix) ? title.slice(titlePrefix.length) : title
+
+  const canonicalUrl =
+    canonicalOverride ||
+    `${NET_STRINGS.SITE_URL}${
+      to.meta.canonical || (to.path === ROUTE_PATHS.ROOT ? CHAR_STRINGS.EMPTY : to.path)
+    }`
+
+  return generateRouteSchema({
+    url: canonicalUrl,
+    name: pageName,
+    description: description || to.meta.description,
+    lang: to.lang,
+    ...(to.path === ROUTE_PATHS.ROOT
+      ? {}
+      : {
+          breadcrumb: [
+            { name: BASE_TITLE, url: `${NET_STRINGS.SITE_URL}${ROUTE_PATHS.ROOT}` },
+            { name: pageName, url: canonicalUrl },
+          ],
+        }),
+  })
 }
 
 /**

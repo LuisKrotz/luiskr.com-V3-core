@@ -18,4 +18,6 @@ export const SCHEMA_STRINGS = Object.freeze({
   SCHEMA_VIDEO_DURATION: 'PT1M00S',
   SCHEMA_SHARE_IMAGE: '/assets/icons/share.png',
   SCHEMA_ORG_LOGO: '/assets/icons/android-chrome-256x256.png',
+  SCHEMA_SITE_DESCRIPTION:
+    'Front-End Software Engineer specializing in performance, design systems, and animations.',
 })
