@@ -15,6 +15,7 @@ import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import store from '@core/store.js'
 import type { SafariPatchableEl } from '../../types.js'
+import { isCarouselHosted, eagerizeCarouselFigure } from '../carousel-media.js'
 
 /**
  * Safari loadHighRes: requests the Q50 (medium) variant instead of the
@@ -85,6 +86,15 @@ export function bindSafariImageLoad(
   fig: Element | null,
   isHero: boolean
 ): void {
+  // Carousel-hosted figures can't rely on the lazy thumbnail or the
+  // IntersectionObserver below — iOS WebKit never fires either inside
+  // the carousel track's transform context, so go fully eager instead.
+  if (isCarouselHosted(el)) {
+    eagerizeCarouselFigure(el)
+
+    return
+  }
+
   const thumb = el.$(`.${MEDIA_CLASSES.RENDER_MEDIA_THUMB}`) as HTMLImageElement | null
 
   if (thumb && !isHero) {

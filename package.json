@@ -17,7 +17,22 @@
     "./Component": "./Component.js",
     "./predictive-loader": "./predictive-loader.js"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css",
+    "**/*.scss",
+    "legacy-polyfills/*.ts",
+    "safari/loader.ts",
+    "safari/patch.ts",
+    "firebase.ts",
+    "store.ts",
+    "predictive-loader.ts",
+    "utils/motion/scroll-state.ts",
+    "utils/gpu/gpu-accel.ts",
+    "utils/media/local-media-cache.ts",
+    "utils/gpu/npu-predict.ts",
+    "utils/perf/stats-engine.ts",
+    "utils/wasm/*.ts"
+  ],
   "scripts": {
     "build": "vite build",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.mjs",

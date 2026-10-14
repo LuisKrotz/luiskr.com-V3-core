@@ -30,6 +30,10 @@ export const GPU_PATTERNS = Object.freeze({
 export const UA_PATTERNS = Object.freeze({
   /** Mobile user agents — WebGL hinting is irrelevant (single GPU path) */
   MOBILE_UA: /iPhone|iPad|iPod|Android|Mobile/i,
+  /** iPhone/iPad/iPod — full GPU scenes exceed the mobile jetsam budget */
+  IOS_UA: /iPhone|iPad|iPod/i,
+  /** iPadOS 13+ "desktop mode" disguise — Macintosh UA + multi-touch */
+  MACINTOSH_UA: /Macintosh/i,
 })
 
 /**

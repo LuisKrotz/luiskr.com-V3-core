@@ -20,6 +20,7 @@ const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 describe('safari patch guard tails', () => {
   test('patch* bail when customElements.get returns nothing', async () => {
     const { patchCarousel } = await import('@core/safari/patches/carousel.js')
+    const { patchCarouselMedia } = await import('@core/safari/patches/carousel-media.js')
     const { patchMediaExpanded } = await import('@core/safari/patches/media-expanded.js')
     const { patchMediaFigure } = await import('@core/safari/patches/media-figure.js')
 
@@ -27,6 +28,7 @@ describe('safari patch guard tails', () => {
     const defSpy = jest.spyOn(window.customElements, 'whenDefined').mockResolvedValue(undefined)
 
     patchCarousel()
+    patchCarouselMedia()
     patchMediaExpanded()
     patchMediaFigure()
     await flush()

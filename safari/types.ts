@@ -50,6 +50,7 @@ export interface PatchableProto {
   onDestroy?: () => void
   loadHighRes?: () => void
   _updateModalDOM?: () => void
+  _updateDom?: () => void
 }
 
 /** A custom-element constructor whose prototype exposes the patchable methods. */

@@ -10,7 +10,9 @@
  *   4. Strips will-change/transform/backface-visibility from existing media
  *        (fixes the iOS compositing flicker on figures).
  *   5. Per-component patches applied via customElements.whenDefined:
- *        - CustomCarousel: injects safari-carousel styles into the shadow root.
+ *        - CustomCarousel: injects safari-carousel styles into the shadow
+ *          root, plus carousel-media.ts which forces eager <img> loading —
+ *          iOS never resolves lazy images inside the carousel track.
  *        - MediaFigure: safari-media styles, lazy thumbnails, force-muted
  *          autoplay videos with touch-unlock, and a tap-vs-scroll expand
  *          gesture that bypasses iOS's unreliable click synthesis.
@@ -25,6 +27,7 @@ import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { patchCarousel } from './patches/carousel.js'
+import { patchCarouselMedia } from './patches/carousel-media.js'
 import { patchMediaExpanded } from './patches/media-expanded.js'
 import { patchMediaFigure } from './patches/media-figure.js'
 import { patchViewProject } from './patches/view-project.js'
@@ -77,6 +80,8 @@ if (typeof document !== TYPE_STRINGS.UNDEFINED) {
 // ── 5. Component Patches ──────────────────────────────────────────────────────
 if (typeof customElements !== TYPE_STRINGS.UNDEFINED) {
   patchCarousel()
+
+  patchCarouselMedia()
 
   patchMediaFigure()
 
