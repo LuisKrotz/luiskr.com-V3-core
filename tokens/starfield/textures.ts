@@ -101,5 +101,12 @@ export const SF_TEXTURES = Object.freeze({
 /** Public-URL prefix for the per-body lazy-loaded JSON dossiers. */
 export const SF_DATA_BASE = '/experiments/star-field/data'
 
+/**
+ * Per-locale body-name table filename — `data/<locale>/names.json`
+ * maps every curated body id to its localized display name; the router
+ * slugifies it for translated deep-link segments and the navigator rows.
+ */
+export const SF_NAMES_FILE = 'names.json'
+
 /** Module public-asset root — dossier media entries join under this. */
 export const SF_ASSET_BASE = '/experiments/star-field'
