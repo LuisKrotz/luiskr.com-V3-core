@@ -149,4 +149,52 @@ describe('intro-loader tails', () => {
 
     loader.destroy()
   })
+
+  test('update else arms: null percentEl, child-less barEl, empty stages', async () => {
+    sessionStorage.removeItem('lk_intro_shown')
+    store.commit(PREF_MUTATIONS.SET_REDUCED_MOTION, false)
+
+    const loader = new IntroLoader(document.body, jest.fn())
+
+    loader.percentEl = null
+
+    // barEl present but with no fill child → `?.firstElementChild` misses.
+    loader.barEl = document.createElement('div')
+
+    // stages is captured at runAnimation() entry — set it before re-calling.
+    loader.copy.stages = []
+
+    // Drive exactly one update tick under these conditions: the first
+    // rAF runs the callback synchronously, the re-schedule inside update
+    // is swallowed so the loop can't recurse.
+    const origRaf = globalThis.requestAnimationFrame
+    let first = true
+
+    globalThis.requestAnimationFrame = (cb) => {
+      if (!first) return 1
+
+      first = false
+      cb(performance.now())
+
+      return 1
+    }
+
+    loader.progress = -1
+
+    loader.runAnimation()
+
+    globalThis.requestAnimationFrame = origRaf
+
+    // update() ran the tick — it always writes progress first.
+    expect(loader.progress).toBeGreaterThanOrEqual(0)
+
+    await flush(30)
+
+    loader.destroy()
+
+    // Second destroy: animId already nulled + container gone — both
+    // destroy() else-arms (no pending rAF, nothing attached to remove).
+    loader.destroy()
+    loader.container?.remove()
+  })
 })

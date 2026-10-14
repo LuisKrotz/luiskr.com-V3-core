@@ -49,10 +49,14 @@
   }
 
   // Living tile edge — a hairline gradient ring (mask-composite cuts the
-  // fill to border-width only) with a soft sheen slowly traveling the
-  // perimeter. Transform-free: background-position drifts on a long loop,
-  // cheap enough to run on every tile at once.
-  &::after {
+  // fill to border-width only) with a soft sheen traveling the perimeter.
+  // The old single-layer background-position drift repainted every tile
+  // on every frame; the ring is now split into two masked layers frozen at
+  // opposite gradient stops while ::before cross-fades its opacity — the
+  // highlight still reads as drifting, but the animation runs entirely on
+  // the compositor.
+  &::after,
+  &::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -75,6 +79,14 @@
       linear-gradient(var(--color-white-raw) 0 0) content-box,
       linear-gradient(var(--color-white-raw) 0 0);
     mask-composite: exclude;
+  }
+
+  &::after {
+    background-position: 0% 0%;
+  }
+
+  &::before {
+    background-position: 100% 100%;
     animation: mosaic-border-sheen 9s ease-in-out infinite alternate;
     pointer-events: none;
   }
@@ -102,31 +114,33 @@
 
   // While the title burns, the sheen ring would read as a second
   // competing hover effect — freeze + hide it for the burn's duration.
-  &--burning::after {
+  &--burning::after,
+  &--burning::before {
     animation: none;
     opacity: 0;
   }
 }
 
-// Sheen drifts diagonally across the ring — alternate loop, slow and
-// low-contrast, so the grid shimmers without flickering.
+// The ::before layer pulses between the two frozen ring positions —
+// alternate loop, slow and low-contrast, so the grid shimmers without
+// flickering (opacity only: compositor-thread, no repaint).
 @keyframes mosaic-border-sheen {
   0% {
-    background-position: 0% 0%;
+    opacity: 0.15;
   }
 
   100% {
-    background-position: 100% 100%;
+    opacity: 0.9;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-mosaic-item::after {
+  .home-mosaic-item::before {
     animation: none;
   }
 }
 
 // Shadow DOM: mirror the store-driven html.reduced-motion flag.
-:host-context(html.reduced-motion) .home-mosaic-item::after {
+:host-context(html.reduced-motion) .home-mosaic-item::before {
   animation: none;
 }

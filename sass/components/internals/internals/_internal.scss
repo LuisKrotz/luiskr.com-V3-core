@@ -36,6 +36,12 @@
     padding: var(--space-2xl) var(--space-xl);
     box-sizing: border-box;
     background-color: var(--bg-dark);
+    // Skip layout/paint while off-screen — the media figure is the page's
+    // heaviest paint, and scroll spends its frame budget re-rendering
+    // sections that aren't visible. `auto` remembers the real size after
+    // first render; the vh estimate only sizes the pre-render placeholder.
+    content-visibility: auto;
+    contain-intrinsic-size: auto 70vh;
 
     @include layout-768() {
       padding: var(--space-3xl) var(--space-3xl);
@@ -151,6 +157,10 @@
     flex-direction: column;
     justify-content: center;
     contain: layout style;
+    // Off-screen description blocks skip render entirely; the draw-text
+    // fit inside no-ops on zero-size reads and re-fits via RO on reveal.
+    content-visibility: auto;
+    contain-intrinsic-size: auto 60vh;
 
     @include layout-768() {
       // 1 col indent per side on 8-col grid (1/8 = 12.5%)
@@ -262,6 +272,11 @@
     background-color: var(--bg-dark);
     overflow-x: auto;
     scroll-snap-align: center;
+    // The media strip is the second-heaviest paint — skip it while the
+    // section itself is off-screen (horizontally off-view items are
+    // already clipped by the overflow container).
+    content-visibility: auto;
+    contain-intrinsic-size: auto 70vh;
 
     /* width */
     &::-webkit-scrollbar {
@@ -495,6 +510,11 @@
   }
 
   &-footer {
+    // Same off-screen skip as the other sections — the related-cards
+    // strip renders nothing until it nears the viewport.
+    content-visibility: auto;
+    contain-intrinsic-size: auto 80vh;
+
     &-title {
       @extend %TTL_BASE;
       @extend %TTL_LG;
@@ -578,31 +598,48 @@
         @extend %MAXAREA;
 
         display: block;
+        position: relative;
+        overflow: hidden;
         width: 100%;
         height: var(--space-3xs);
         margin: var(--space-2xl) auto var(--space-xl);
         padding: 0;
         border: none;
         border-radius: var(--radius-round);
+        // Static hairline — the traveling accent band lives on ::after so
+        // the sweep is a composited transform, not a per-frame repaint.
         background: linear-gradient(
           90deg,
           transparent,
-          var(--border-color) 35%,
-          var(--color-accent) 50%,
-          var(--border-color) 65%,
+          var(--border-color) 12%,
+          var(--border-color) 88%,
           transparent
         );
-        background-size: 200% 100%;
-        animation: internal-footer-divider-sheen 7s ease-in-out infinite;
+
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          width: 25%;
+          background: linear-gradient(90deg, transparent, var(--color-accent) 50%, transparent);
+          transform: translateX(-110%);
+          animation: internal-footer-divider-sheen 7s ease-in-out infinite;
+        }
 
         @media (prefers-reduced-motion: reduce) {
-          animation: none;
+          &::after {
+            animation: none;
+          }
         }
 
         // Shadow DOM: the store-driven html.reduced-motion flag can't
         // pierce the boundary — host-context mirrors the media query.
         :host-context(html.reduced-motion) & {
-          animation: none;
+          &::after {
+            animation: none;
+          }
         }
 
         @include layout-1024() {
@@ -611,12 +648,12 @@
       }
 
       @keyframes internal-footer-divider-sheen {
-        0% {
-          background-position: 200% 0;
+        from {
+          transform: translateX(-110%);
         }
 
-        100% {
-          background-position: -100% 0;
+        to {
+          transform: translateX(440%);
         }
       }
 

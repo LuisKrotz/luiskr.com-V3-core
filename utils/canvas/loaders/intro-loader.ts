@@ -170,7 +170,7 @@ export class IntroLoader {
       }
 
       if (this.barEl?.firstElementChild instanceof HTMLElement) {
-        this.barEl.firstElementChild.style.width = `${t * 100}${CHAR_STRINGS.PERCENT}`
+        this.barEl.firstElementChild.style.transform = `scaleX(${t})`
       }
 
       if (this.msgEl && stages.length) {

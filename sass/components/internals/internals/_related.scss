@@ -62,9 +62,12 @@ $_B_RELATED: 'related-mosaic';
     }
 
     // Living tile edge — same hairline sheen as the home mosaic: a
-    // gradient ring clipped to border-width via mask-composite, drifting
-    // on a slow alternate loop.
-    &::after {
+    // gradient ring clipped to border-width via mask-composite. The ring
+    // is split into two masked layers frozen at opposite gradient stops
+    // while ::before cross-fades its opacity — the drift survives, the
+    // per-frame repaint on every tile doesn't (compositor-thread only).
+    &::after,
+    &::before {
       content: '';
       position: absolute;
       inset: 0;
@@ -87,6 +90,14 @@ $_B_RELATED: 'related-mosaic';
         linear-gradient(var(--color-white-raw) 0 0) content-box,
         linear-gradient(var(--color-white-raw) 0 0);
       mask-composite: exclude;
+    }
+
+    &::after {
+      background-position: 0% 0%;
+    }
+
+    &::before {
+      background-position: 100% 100%;
       animation: related-border-sheen 9s ease-in-out infinite alternate;
       pointer-events: none;
     }
@@ -218,21 +229,21 @@ $_B_RELATED: 'related-mosaic';
 
 @keyframes related-border-sheen {
   0% {
-    background-position: 0% 0%;
+    opacity: 0.15;
   }
 
   100% {
-    background-position: 100% 100%;
+    opacity: 0.9;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .#{$_B_RELATED}-item::after {
+  .#{$_B_RELATED}-item::before {
     animation: none;
   }
 }
 
 // Shadow DOM: mirror the store-driven html.reduced-motion flag.
-:host-context(html.reduced-motion) .#{$_B_RELATED}-item::after {
+:host-context(html.reduced-motion) .#{$_B_RELATED}-item::before {
   animation: none;
 }
