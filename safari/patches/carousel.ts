@@ -6,6 +6,7 @@
  */
 
 import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
+import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import type { PatchableCtor, SafariPatchableEl } from '../types.js'
 import safariCarouselStyles from '@core/sass/components/safari/safari-carousel.scss?inline'
 
@@ -30,7 +31,7 @@ export function patchCarousel(): void {
     CustomCarouselClass.prototype._renderInitial = function (this: SafariPatchableEl) {
       originalRenderInitial?.call(this)
 
-      const safariStyle = document.createElement('style')
+      const safariStyle = document.createElement(HTML_TAGS.STYLE)
 
       safariStyle.textContent = safariCarouselStyles
 

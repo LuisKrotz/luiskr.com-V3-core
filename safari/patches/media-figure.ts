@@ -45,7 +45,7 @@ export function patchMediaFigure(): void {
     MediaFigureClass.prototype._renderInitial = function (this: SafariPatchableEl) {
       originalMediaRenderInitial?.call(this)
 
-      const safariStyle = document.createElement('style')
+      const safariStyle = document.createElement(HTML_TAGS.STYLE)
 
       safariStyle.textContent = safariMediaStyles
 

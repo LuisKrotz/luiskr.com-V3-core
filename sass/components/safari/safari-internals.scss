@@ -1,0 +1,19 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  safari-internals.scss — Safari-only overrides for the view-project shadow
+//  root, injected by the safari patch layer: disables content-visibility:auto
+//  on the internal sections. WebKit does not reliably unskip skipped subtrees —
+//  media and carousel slides inside them can stay blank, and lazy images in
+//  skipped content never trigger — so Safari renders the sections eagerly.
+//  Injected only by core/safari; other platforms keep the optimization.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Mirrors the sections that carry `content-visibility: auto` in
+// internals/_internal.scss — Safari gets fully-rendered subtrees instead.
+.internal {
+  &-main,
+  &-description,
+  &-extra,
+  &-footer {
+    content-visibility: visible;
+  }
+}

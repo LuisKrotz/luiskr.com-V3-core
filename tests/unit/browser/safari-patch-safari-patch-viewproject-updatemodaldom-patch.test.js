@@ -106,4 +106,19 @@ describe('safari-patch — ViewProject _updateModalDOM patch', () => {
 
     expect(document.body.contains(orphan)).toBe(false)
   })
+
+  test('onMounted appends the safari-internals style node before the original runs', () => {
+    const appended = []
+    const ctx = { shadowRoot: { appendChild: (n) => appended.push(n) } }
+
+    try {
+      cls(VIEW_TAGS.VIEW_PROJECT).prototype.onMounted.call(ctx)
+    } catch {
+      // the original mount touches store/fetch on a stubbed context — the
+      // safari style is appended BEFORE the original call, so it lands
+      // regardless.
+    }
+
+    expect(appended.some((n) => n.localName === HTML_TAGS.STYLE)).toBe(true)
+  })
 })

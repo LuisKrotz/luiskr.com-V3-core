@@ -11,6 +11,7 @@ import { COMMON_ATTRS } from '@core/tokens/attrs/common.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { MODAL_CLASSES } from '@core/tokens/classes/modal.js'
 import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
+import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { VIEW_TAGS } from '@core/tokens/elements/views.js'
 import { THEME_CSS_PROPS } from '@core/tokens/css/theme.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
@@ -20,12 +21,16 @@ import { VENDOR_STRINGS } from '@core/tokens/strings/vendor.js'
 import store from '@core/store.js'
 import type { PatchableCtor, SafariPatchableEl } from '../types.js'
 import { GENERIC_DIMENSIONS } from '@core/tokens/media/dimensions.js'
+import safariInternalsStyles from '@core/sass/components/safari/safari-internals.scss?inline'
 
 /**
  * Installs the view-project Safari patch once the element registers:
  * replaces `_updateModalDOM` with the lifted-dialog variant and wraps
  * `onDestroy` so a modal lifted into document.body is reaped when the
- * view unmounts (otherwise it orphans on top of the next page).
+ * view unmounts (otherwise it orphans on top of the next page). `onMounted`
+ * is wrapped to inject the safari-internals stylesheet — WebKit does not
+ * reliably unskip `content-visibility: auto` subtrees, so the internal
+ * sections render eagerly on Safari only.
  */
 export function patchViewProject(): void {
   // ── ViewProject (Modal Open/Close in ShadowRoot for Safari) ─────────────────
@@ -33,6 +38,22 @@ export function patchViewProject(): void {
     const ViewProjectClass = customElements.get(VIEW_TAGS.VIEW_PROJECT) as PatchableCtor | undefined
 
     if (!ViewProjectClass) return
+
+    // WebKit leaves media/carousel subtrees blank inside
+    // `content-visibility: auto` sections — the override stylesheet
+    // renders them eagerly on Safari (zero cost on other platforms,
+    // which never get this injection).
+    const originalMounted = ViewProjectClass.prototype.onMounted
+
+    ViewProjectClass.prototype.onMounted = function (this: SafariPatchableEl) {
+      const safariStyle = document.createElement(HTML_TAGS.STYLE)
+
+      safariStyle.textContent = safariInternalsStyles
+
+      this.shadowRoot?.appendChild(safariStyle)
+
+      originalMounted?.call(this)
+    }
 
     // iOS can't reliably layer <dialog> inside shadow DOM — the native
     // top-layer breaks under WebKit's compositing. This override lifts the
