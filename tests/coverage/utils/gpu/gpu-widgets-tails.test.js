@@ -19,15 +19,17 @@ const { mountWebGpuWidget } = await import('@core/utils/gpu/webgpu-widget.js')
 
 describe('gpu-widgets tokens', () => {
   it('widget kinds mirror the rust/ crate ordering', () => {
-    expect(Object.values(GPU_WIDGET_KINDS)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    expect(Object.values(GPU_WIDGET_KINDS)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    ])
   })
 
   it('artifact registry covers every kind with url+cls and only skeleton eager', () => {
     for (const kind of Object.values(GPU_WIDGET_KINDS)) {
       const spec = GPU_WIDGET_ARTIFACTS[kind]
 
-      expect(spec.url).toMatch(/^\/wasm\/[a-z-]+\/luiskr_[a-z_]+\.js$/)
-      expect(spec.cls).toMatch(/^[A-Z][A-Za-z]+$/)
+      expect(spec.url).toMatch(/^\/wasm\/[a-z0-9-]+\/luiskr_[a-z0-9_]+\.js$/)
+      expect(spec.cls).toMatch(/^[A-Z][A-Za-z0-9]+$/)
       expect(spec.eager).toBe(kind === GPU_WIDGET_KINDS.SKELETON)
     }
   })
@@ -40,6 +42,11 @@ describe('gpu-widgets tokens', () => {
     expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.CLOSE_BUTTON]).toBe(12)
     expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.MENU_BACKGROUND]).toBe(16)
     expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.SKELETON]).toBe(12)
+    expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.GLITCH]).toBe(16)
+    expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.DIVIDER_SHEEN]).toBe(16)
+    expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.TEXT_DRAW]).toBe(16)
+    expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.RING_SHEEN]).toBe(16)
+    expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.CORNER_BRACKETS]).toBe(16)
   })
 
   it('flag personalities cover every shipped locale pair', () => {

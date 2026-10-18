@@ -47,6 +47,13 @@ export const GPU_WIDGET_KINDS = Object.freeze({
   RING_SHEEN: 13,
   /** Action buttons — corner-bracket expansion. */
   CORNER_BRACKETS: 14,
+  /**
+   * Full-scene surface — the scene3d engine handle (`Surface3d`). Not a
+   * uniform widget: mounts through `core/utils/gpu/scene3d.ts`, which
+   * reads its artifact spec from this same registry so the URL stays
+   * single-sourced here.
+   */
+  SCENE3D: 15,
 })
 
 /**
@@ -143,6 +150,12 @@ export const GPU_WIDGET_ARTIFACTS: Readonly<
   [GPU_WIDGET_KINDS.CORNER_BRACKETS]: Object.freeze({
     url: `${ASSET_PATHS.WASM_WIDGETS_PREFIX}corner-brackets/luiskr_corner_brackets.js`,
     cls: 'CornerBrackets',
+    eager: false,
+  }),
+  /** scene3d — the full-scene engine surface (mount via scene3d.ts). */
+  [GPU_WIDGET_KINDS.SCENE3D]: Object.freeze({
+    url: `${ASSET_PATHS.WASM_WIDGETS_PREFIX}scene3d/luiskr_scene3d.js`,
+    cls: 'Surface3d',
     eager: false,
   }),
 })
