@@ -16,6 +16,7 @@ import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { webglPool } from '../webgl-pool.js'
 import { measureSkeleton } from './skeleton/measure.js'
 import { type SkeletonRenderer, skeletonRenderer } from './skeleton/renderer.js'
+import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
 import { init } from './skeleton/init.js'
 import { sampleTheme } from './skeleton/theme.js'
 import { loop, render, resolve, upload } from './skeleton/loop.js'
@@ -89,6 +90,23 @@ export class SkeletonWebGL {
   ctx: CanvasRenderingContext2D | null = null
   /** Borrowed shared-renderer handle — null until acquire succeeds. */
   renderer: SkeletonRenderer | null = null
+  /**
+   * Live WebGPU wasm widget handle — set when the skeleton artifact
+   * mounts (preferred path; MANUAL drive — this class owns the loop).
+   */
+  _wasm: WidgetHandle | null = null
+  /**
+   * Mount-abandon latch — set by destroy()/the fallback arm of
+   * resolve() so a late-arriving wasm handle can never activate a
+   * layer over content that already resolved.
+   */
+  _abandoned = false
+  /**
+   * Last wasm-painted `t` — the crate accumulates its own clock via
+   * `frame(dt)`, so dt must be the time since the last PAINTED frame
+   * (frame-skip means loop ticks ≠ painted frames).
+   */
+  _wasmT = 0
   /** rAF handle for the shimmer loop — null while paused/destroyed. */
   animId: number | null = null
   /** Measured placeholder list — rebuilt by refresh(). */
@@ -101,6 +119,12 @@ export class SkeletonWebGL {
   skelBaseData = new Float32Array(SKELETON_RENDER.MAX_RECTS * 4)
   /** Per-rect ink RGBA uploaded as u_sink. */
   skelInkData = new Float32Array(SKELETON_RENDER.MAX_RECTS * 4)
+  /**
+   * Interleaved wasm sheet — 16 f32s per rect row
+   * [rect(4), meta(4), sbase(4), sink(4)] matching the crate's
+   * `write_sheet` layout (rust/skeleton SHEET_VEC4S = MAX_RECTS×4).
+   */
+  sheetData = new Float32Array(SKELETON_RENDER.MAX_RECTS * 16)
   /** Sampled --skel-bg base palette floats (theme-level default). */
   base: number[] | null = null
   /** Sampled ink/glyph palette floats (theme-level default). */
@@ -271,6 +295,8 @@ export class SkeletonWebGL {
    * the layer after the host detaches.
    */
   destroy() {
+    this._abandoned = true
+
     if (this.animId) {
       cancelAnimationFrame(this.animId)
 
@@ -307,6 +333,12 @@ export class SkeletonWebGL {
       skeletonRenderer.release()
 
       this.renderer = null
+    }
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
     }
 
     this.canvas?.remove()

@@ -128,11 +128,6 @@ export const _B_CURSOR = 'magnetic-cursor'
  */
 export const _B_DISTORT = 'image-distort'
 /**
- * BEM block fragment "b webgpu overlay" — composed by the token groups into
- * the dual-layer render canvas class names (zero-hardcoding rules 4–5).
- */
-export const _B_GPU_OVERLAY = 'gpu-overlay'
-/**
  * BEM block fragment "b footer source" — composed by the token groups below into full class names.
  */
 export const _B_FOOTER_SOURCE = 'footer-source'

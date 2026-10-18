@@ -13,6 +13,8 @@ import { releaseQuadGL, watchContextLoss } from '../../gl-lifecycle.js'
 import { webglPool } from '../../webgl-pool.js'
 import { SWITCH_SLIDER_FS, SWITCH_SLIDER_VS } from './shaders.js'
 import { glContextOptions } from '@core/utils/gpu/gpu-info.js'
+import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
+import { hasWebGpu, mountWebGpuWidget } from '../../../gpu/webgpu-widget.js'
 import type { SwitchWebGL } from '../switch-slider.js'
 import { devWarn } from '@core/devlog.js'
 
@@ -65,6 +67,75 @@ export function init(host: SwitchWebGL): void {
 
   host.canvas.style.height = `${host.height}px`
 
+  // WebGPU available → try the wasm artifact first. The canvas must
+  // not get a webgl/2d context while the mount is in flight (canvas
+  // contexts are mutually exclusive), so the rest of init is deferred
+  // into the mount result.
+  if (hasWebGpu() && !host._wasmFailed) {
+    tryWasm(host)
+
+    return
+  }
+
+  initRest(host)
+}
+
+/**
+ * Attempts the WebGPU wasm switch (~48KB artifact, own GPUDevice).
+ * MANUAL drive: this class keeps its own spring loop, so the bridge
+ * only initializes the surface. On any failure initRest() runs the
+ * exact previous path (WebGL → 2D → CSS).
+ * @param host The switch whose canvas the wasm widget should claim.
+ */
+export function tryWasm(host: SwitchWebGL): void {
+  if (host._wasmPending || host._wasm) return
+
+  host._wasmPending = true
+
+  const canvas = host.canvas
+
+  void mountWebGpuWidget(GPU_WIDGET_KINDS.SWITCH_SLIDER, canvas, undefined, {
+    drive: GPU_WIDGET_DRIVE.MANUAL,
+  }).then((handle) => {
+    host._wasmPending = false
+
+    if (!handle || host.canvas !== canvas) {
+      host._wasmFailed = true
+
+      if (host.canvas === canvas) initRest(host)
+
+      return
+    }
+
+    if (host._purged) {
+      handle.destroy()
+
+      return
+    }
+
+    host._wasm = handle
+
+    host.useWebGL = true
+
+    // `res` = CSS px (the shader's 54×28 design units), `rect` =
+    // canvas bitmap px (the frag→uv divisor).
+    host._wasm.widget.set_size(host.width, host.height)
+
+    host._wasm.widget.resize(host.canvas.width, host.canvas.height)
+
+    host.bindEvents()
+
+    host.animate()
+  })
+}
+
+/**
+ * The classic boot tail — WebGL attempt → 2D fallback → events +
+ * loop. Runs directly on no-WebGPU browsers and after a wasm mount
+ * failure.
+ * @param host The switch to bring up on the classic path.
+ */
+export function initRest(host: SwitchWebGL): void {
   // No preventDefault: preventing loss asks the browser to restore the
   // context, which would resurrect the one deliberately lost in purge().
   host._onContextLost = watchContextLoss(host.canvas, () => triggerFallback(host))

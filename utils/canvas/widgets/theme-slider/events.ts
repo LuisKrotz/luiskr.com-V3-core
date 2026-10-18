@@ -37,6 +37,8 @@ export function bindThemeSliderEvents(s: ThemeSliderWebGL): void {
     s.rippleTime = (performance.now() - s.startTime) * 0.001
 
     s.ripplePos = s._pToKnobX(s.targetP)
+
+    s._tapWasm()
   }
 
   s.onPointerMove = (e: PointerEvent) => {

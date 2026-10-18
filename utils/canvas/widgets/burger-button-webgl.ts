@@ -21,6 +21,9 @@ import { webglPool } from '../webgl-pool.js'
 import { BURGER_VS, burgerFsSource } from './burger-button/shaders.js'
 import { glContextOptions } from '@core/utils/gpu/gpu-info.js'
 import { webglContext } from '../webgl-mode.js'
+import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
+import { hasWebGpu, mountWebGpuWidget } from '../../gpu/webgpu-widget.js'
+import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
 
 /**
  * WebGL animated hamburger icon for the mobile burger button.
@@ -50,6 +53,14 @@ export class BurgerButtonWebGL {
   _purged = false
   _hasDeriv = false
   useWebGL = false
+  /** Live WebGPU wasm handle — the preferred backend when it mounts. */
+  _wasm: WidgetHandle | null = null
+  /** Latch — a failed wasm mount never retries on this instance. */
+  _wasmFailed = false
+  /** In-flight mount — restore() must not double-mount on re-entry. */
+  _wasmPending = false
+  /** Last wasm-painted t — frame(dt) consumes deltas, not absolutes. */
+  _wasmT = 0
 
   constructor(canvas: HTMLCanvasElement, onClick?: EventListener | null) {
     this.canvas = canvas
@@ -95,6 +106,52 @@ export class BurgerButtonWebGL {
     this._start()
   }
 
+  /**
+   * Attempts the WebGPU wasm burger (~50KB artifact, own GPUDevice).
+   * MANUAL drive: this class keeps its own loop/resize logic, so the
+   * bridge only initializes the surface — state setters and frame(dt)
+   * are forwarded by the existing draw path. On any failure the WebGL
+   * path runs exactly as before; on success the canvas gets a webgpu
+   * context (which is mutually exclusive with the webgl one, so the
+   * mount MUST settle before _initGLReal touches getContext).
+   */
+  _tryWasm() {
+    if (this._wasmPending || this._wasm) return
+
+    this._wasmPending = true
+
+    const canvas = this.canvas
+
+    void mountWebGpuWidget(GPU_WIDGET_KINDS.BURGER, canvas, undefined, {
+      drive: GPU_WIDGET_DRIVE.MANUAL,
+    }).then((handle) => {
+      this._wasmPending = false
+
+      if (!handle || this.canvas !== canvas) {
+        this._wasmFailed = true
+
+        // Mount failed — plain WebGL init on the same (untouched) canvas.
+        if (this.canvas === canvas) this._initGLReal()
+
+        return
+      }
+
+      if (this._purged) {
+        // The canvas went offscreen while the artifact was in flight —
+        // release the freshly-mounted widget; restore() re-mounts.
+        handle.destroy()
+
+        return
+      }
+
+      this._wasm = handle
+
+      this.useWebGL = true
+
+      this._start()
+    })
+  }
+
   /** Creates the WebGL context + shader program; falls back to the CSS/DOM path on failure. */
 
   _initGL() {
@@ -103,6 +160,19 @@ export class BurgerButtonWebGL {
       return
     }
 
+    // WebGPU available → try the wasm artifact first; the canvas must
+    // not get a WebGL context while the mount is in flight.
+    if (hasWebGpu() && !this._wasmFailed) {
+      this._tryWasm()
+      return
+    }
+
+    this._initGLReal()
+  }
+
+  /** The synchronous WebGL bootstrap — ran directly on no-WebGPU browsers and after a wasm mount failure. */
+
+  _initGLReal() {
     // Re-init after a purge/restore: clear the fallback marks a previous
     // failure left on this (persistent, reused) canvas element.
     this.canvas.style.display = CHAR_STRINGS.EMPTY
@@ -190,7 +260,7 @@ export class BurgerButtonWebGL {
    * cleared buffer blank until the next state change.
    */
   _checkResize() {
-    if (!this.canvas || !this.gl) return
+    if (!this.canvas || (!this.gl && !this._wasm)) return
 
     // Supersample ×4 past DPR: a 34px icon renders at ~136–272px and the
     // CSS downsample smooths the hairline edges on top of the shader's
@@ -208,7 +278,15 @@ export class BurgerButtonWebGL {
 
       this.canvas.height = h
 
-      this.gl.viewport(0, 0, w, h)
+      if (this._wasm) {
+        // Wasm: `res` = CSS px (design units), `rect` = canvas bitmap
+        // px (the frag→uv divisor — supersampling included).
+        this._wasm.widget.set_size(rect.width || 34, rect.height || 34)
+
+        this._wasm.widget.resize(w, h)
+      } else {
+        this.gl?.viewport(0, 0, w, h)
+      }
 
       // Static mode (reduced motion) has no loop to repaint the cleared buffer
       if (this.animId === null) {
@@ -251,15 +329,31 @@ export class BurgerButtonWebGL {
   _drawFrame(t: number): void {
     if (this.canvas.width === 0 || this.canvas.height === 0) return
 
-    const gl = this.gl
-
-    if (!gl) return
-
     const isDark =
       document.documentElement.classList.contains(STATE_CLASSES.DARK_MODE) ||
       this.canvas.classList.contains(NAV_CLASSES.NAV_ON_DARK)
         ? 1
         : 0
+
+    if (this._wasm) {
+      const w = this._wasm.widget as { set_dark?: (v: number) => void }
+
+      w.set_dark?.(isDark)
+
+      // dt = time since the last painted frame — the crate keeps its
+      // own accumulated clock.
+      const dt = this._wasmT ? t - this._wasmT : t
+
+      this._wasmT = t
+
+      this._wasm.widget.frame(dt)
+
+      return
+    }
+
+    const gl = this.gl
+
+    if (!gl) return
 
     gl.clearColor(0, 0, 0, 0)
 
@@ -279,7 +373,7 @@ export class BurgerButtonWebGL {
   /** rAF callback — repaints each frame while running. */
 
   _loop() {
-    if (!this.gl || !this.useWebGL) return
+    if ((!this.gl && !this._wasm) || !this.useWebGL) return
 
     this.animId = requestAnimationFrame(() => this._loop())
 
@@ -302,6 +396,14 @@ export class BurgerButtonWebGL {
       this.animId = null
     }
 
+    if (this._wasm) {
+      // Offscreen: release the GPU widget entirely — restore()
+      // re-mounts the artifact on re-entry.
+      this._wasm.destroy()
+
+      this._wasm = null
+    }
+
     releaseQuadGL(this.canvas, this, this._onContextLost)
 
     this._onContextLost = null
@@ -316,6 +418,14 @@ export class BurgerButtonWebGL {
     if (!this.canvas?.isConnected) return
 
     this._purged = false
+
+    // A purged wasm widget re-mounts the artifact — the crate's own
+    // module is cached by the browser so this is a re-init, not a
+    // re-fetch.
+    if (hasWebGpu() && !this._wasmFailed) {
+      this._tryWasm()
+      return
+    }
 
     this._initGL()
 
@@ -348,6 +458,12 @@ export class BurgerButtonWebGL {
     }
 
     window.removeEventListener(WINDOW_EVENTS.RESIZE, this._onResize)
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
+    }
 
     releaseQuadGL(this.canvas, this, this._onContextLost)
 

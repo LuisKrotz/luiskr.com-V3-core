@@ -7,6 +7,7 @@
 
 import { LOCALES } from '@core/tokens/locales.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+import { GPU_FLAG_ANIMS } from '@core/tokens/motion/gpu-widgets.js'
 import type { FlagWebGL } from '../flag-webgl.js'
 import { FLAG_DIMENSIONS } from '@core/tokens/media/dimensions.js'
 
@@ -37,6 +38,14 @@ export function resizeToNaturalAspect(flag: FlagWebGL): void {
   flag.canvas.width = Math.round(flag.width * dpr)
 
   flag.canvas.height = Math.round(flag.height * dpr)
+
+  if (flag._wasm) {
+    // Wasm surface: `res` = CSS px, `rect` = canvas bitmap px — both
+    // follow the canvas's natural-aspect backing size.
+    flag._wasm.widget.set_size(flag.width, flag.height)
+
+    flag._wasm.widget.resize(flag.canvas.width, flag.canvas.height)
+  }
 }
 
 /** Picks the shader's animation mode (wave / gentle ripple / static). */
@@ -78,6 +87,47 @@ export function getAnimType(flag: FlagWebGL): number {
       return 15.0
     default:
       return 0.0
+  }
+}
+
+/**
+ * Picks the wasm flag shader's personality — locale code →
+ * `GPU_FLAG_ANIMS` discriminant. The WebGL shader's four extra anim
+ * slots (GL/CA/NL/GA) have no dedicated wasm personality and map to
+ * the nearest regional effect.
+ * @returns Wasm anim discriminant for the widget's set_state call.
+ */
+export function wasmAnimType(flag: FlagWebGL): number {
+  switch (flag.lang.code) {
+    case LOCALES.EN:
+      return GPU_FLAG_ANIMS.EN
+    case LOCALES.BR:
+      return GPU_FLAG_ANIMS.PT
+    case LOCALES.ES:
+      return GPU_FLAG_ANIMS.ES
+    case LOCALES.DE:
+      return GPU_FLAG_ANIMS.DE
+    case LOCALES.HRK:
+      return GPU_FLAG_ANIMS.HRK
+    case LOCALES.CAS:
+      return GPU_FLAG_ANIMS.CAS
+    case LOCALES.RIV:
+      return GPU_FLAG_ANIMS.RIV
+    case LOCALES.GN:
+      return GPU_FLAG_ANIMS.GN
+    case LOCALES.IT:
+      return GPU_FLAG_ANIMS.IT
+    case LOCALES.RU:
+      return GPU_FLAG_ANIMS.RU
+    case LOCALES.FR:
+      return GPU_FLAG_ANIMS.FR
+    case LOCALES.TLN:
+      return GPU_FLAG_ANIMS.TLN
+    case LOCALES.NL:
+      return GPU_FLAG_ANIMS.DE
+    default:
+      // GL/CA/GA and unknown codes → the Spanish silk personality.
+      return GPU_FLAG_ANIMS.ES
   }
 }
 

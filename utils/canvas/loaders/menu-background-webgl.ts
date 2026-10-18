@@ -16,6 +16,9 @@ import { parseCssColor } from '../css-color.js'
 import { releaseQuadGL } from '../gl-lifecycle.js'
 import { webglPool } from '../webgl-pool.js'
 import { initGL, triggerFallback } from './menu-background/init.js'
+import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
+import { hasWebGpu, mountWebGpuWidget } from '../../gpu/webgpu-widget.js'
+import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
 import { sampleTheme } from './menu-background/theme.js'
 import {
   animateReveal,
@@ -74,6 +77,12 @@ export class MenuBackgroundWebGL {
   _onContextLost: EventListener | null = null
   _purged = false
   _wantsActive = false
+  /** Live WebGPU wasm handle — the preferred backend when it mounts. */
+  _wasm: WidgetHandle | null = null
+  /** Latch — a failed wasm mount never retries on this instance. */
+  _wasmFailed = false
+  /** In-flight mount — restore() must not double-mount on re-entry. */
+  _wasmPending = false
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -89,7 +98,63 @@ export class MenuBackgroundWebGL {
   /** Creates the WebGL context + shader program; falls back to the CSS/DOM path on failure. */
 
   _initGL() {
+    if (!this.canvas) {
+      this._triggerFallback()
+      return
+    }
+
+    // WebGPU available → try the wasm artifact first; the canvas must
+    // not get a webgl context while the mount is in flight.
+    if (hasWebGpu() && !this._wasmFailed) {
+      this._tryWasm()
+      return
+    }
+
     initGL(this)
+  }
+
+  /**
+   * Attempts the WebGPU wasm menu background (~50KB artifact, own
+   * GPUDevice). MANUAL drive: this class keeps its own reveal ease +
+   * loop, so the bridge only initializes the surface. On any failure
+   * the WebGL path runs exactly as before.
+   */
+  _tryWasm() {
+    if (this._wasmPending || this._wasm) return
+
+    this._wasmPending = true
+
+    const canvas = this.canvas
+
+    void mountWebGpuWidget(GPU_WIDGET_KINDS.MENU_BACKGROUND, canvas, undefined, {
+      drive: GPU_WIDGET_DRIVE.MANUAL,
+    }).then((handle) => {
+      this._wasmPending = false
+
+      if (!handle || this.canvas !== canvas) {
+        this._wasmFailed = true
+
+        if (this.canvas === canvas) initGL(this)
+
+        return
+      }
+
+      if (this._purged) {
+        handle.destroy()
+
+        return
+      }
+
+      this._wasm = handle
+
+      this.useWebGL = true
+
+      this._handleResize()
+
+      // The menu may have opened while the artifact was in flight —
+      // start() early-returned on useWebGL then; re-drive it now.
+      if (this._wantsActive) this.start()
+    })
   }
 
   /** Switches to the non-WebGL path (CSS moiré layer) — used on context loss or init failure. */
@@ -154,6 +219,12 @@ export class MenuBackgroundWebGL {
     this.stop()
 
     this._releaseGL()
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
+    }
   }
 
   /** Recreates the GL context + restarts the loop after an offscreen purge. */
@@ -223,5 +294,11 @@ export class MenuBackgroundWebGL {
     this.stop()
 
     this._releaseGL()
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
+    }
   }
 }

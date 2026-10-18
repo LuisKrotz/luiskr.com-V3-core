@@ -13,6 +13,8 @@ import { releaseQuadGL, watchContextLoss } from '../../gl-lifecycle.js'
 import { webglPool } from '../../webgl-pool.js'
 import { CLOSE_BUTTON_FS, CLOSE_BUTTON_VS } from './shaders.js'
 import { glContextOptions } from '@core/utils/gpu/gpu-info.js'
+import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
+import { hasWebGpu, mountWebGpuWidget } from '../../../gpu/webgpu-widget.js'
 import type { CloseButtonWebGL } from '../close-button.js'
 import { webglContext } from '../../webgl-mode.js'
 import { devWarn } from '@core/devlog.js'
@@ -38,6 +40,14 @@ function applyBackingStore(host: CloseButtonWebGL): void {
   host.canvas.width = Math.round(host.width * dpr)
 
   host.canvas.height = Math.round(host.height * dpr)
+
+  if (host._wasm) {
+    // The wasm widget tracks the same pair: `res` = CSS px, `rect` =
+    // canvas bitmap px — both follow the backing store.
+    host._wasm.widget.set_size(host.width, host.height)
+
+    host._wasm.widget.resize(host.canvas.width, host.canvas.height)
+  }
 }
 
 /** Re-measures + re-sizes the backing store when the host box changes. */
@@ -120,6 +130,86 @@ export function init(host: CloseButtonWebGL): void {
 
   observeResize(host)
 
+  // Offscreen close buttons release their GPU entirely; restore()
+  // rebuilds it. Register before probing so both backends qualify.
+  webglPool.register(host.canvas, host)
+
+  // WebGPU available → try the wasm artifact first. The canvas must
+  // not get a webgl context while the mount is in flight (canvas
+  // contexts are mutually exclusive), so the rest of init is deferred
+  // into the mount result.
+  if (hasWebGpu() && !host._wasmFailed) {
+    // Fallback-first like initWebGL: the CSS X shows while the
+    // artifact loads, and the mount callback removes the marker.
+    host.canvas.classList.add(STATE_CLASSES.IS_FALLBACK)
+
+    tryWasm(host)
+    tryWasm(host)
+
+    return
+  }
+
+  initRest(host)
+}
+
+/**
+ * Attempts the WebGPU wasm close button (~48KB artifact, own
+ * GPUDevice). MANUAL drive: this class keeps its own eased-channel
+ * loop, so the bridge only initializes the surface. On any failure
+ * initRest() runs the exact previous path (WebGL → CSS X).
+ * @param host The button whose canvas the wasm widget should claim.
+ */
+export function tryWasm(host: CloseButtonWebGL): void {
+  if (host._wasmPending || host._wasm) return
+
+  host._wasmPending = true
+
+  const canvas = host.canvas
+
+  void mountWebGpuWidget(GPU_WIDGET_KINDS.CLOSE_BUTTON, canvas, undefined, {
+    drive: GPU_WIDGET_DRIVE.MANUAL,
+  }).then((handle) => {
+    host._wasmPending = false
+
+    if (!handle || host.canvas !== canvas) {
+      host._wasmFailed = true
+
+      if (host.canvas === canvas) initRest(host)
+
+      return
+    }
+
+    if (host._purged) {
+      handle.destroy()
+
+      return
+    }
+
+    host._wasm = handle
+
+    host.useWebGL = true
+
+    // The shader starts the X's stroke draw-in from 0 — same as the
+    // WebGL path's initial IS_FALLBACK→first-frame reveal.
+    host.canvas.classList.remove(STATE_CLASSES.IS_FALLBACK)
+
+    host._wasm.widget.set_size(host.width, host.height)
+
+    host._wasm.widget.resize(host.canvas.width, host.canvas.height)
+
+    host.bindEvents()
+
+    host.animate()
+  })
+}
+
+/**
+ * The classic boot tail — context-loss watch → WebGL attempt → CSS-X
+ * fallback → events + loop. Runs directly on no-WebGPU browsers and
+ * after a wasm mount failure.
+ * @param host The button to bring up on the classic path.
+ */
+export function initRest(host: CloseButtonWebGL): void {
   // No preventDefault on context loss: a prevented loss asks the browser
   // to restore the context, and our deliberate loseContext() in destroy()
   // would resurrect a zombie that silently exhausts the context pool.
@@ -136,9 +226,6 @@ export function init(host: CloseButtonWebGL): void {
   }
 
   host.bindEvents()
-
-  // Offscreen close buttons release their GL entirely; restore() rebuilds it.
-  webglPool.register(host.canvas, host)
 
   host.animate()
 }

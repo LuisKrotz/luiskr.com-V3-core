@@ -14,7 +14,9 @@ import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { releaseQuadGL, watchContextLoss } from '../gl-lifecycle.js'
 import { webglPool } from '../webgl-pool.js'
-import { init, initWebGL, onContextLost } from './close-button/init.js'
+import { init, initWebGL, onContextLost, tryWasm } from './close-button/init.js'
+import { hasWebGpu } from '../../gpu/webgpu-widget.js'
+import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
 import { animate, renderStatic, renderWebGL } from './close-button/render.js'
 
 /**
@@ -52,6 +54,14 @@ export class CloseButtonWebGL {
   _ro: ResizeObserver | null = null
   _onContextLost: EventListener | null = null
   _purged = false
+  /** Live WebGPU wasm handle — the preferred backend when it mounts. */
+  _wasm: WidgetHandle | null = null
+  /** Latch — a failed wasm mount never retries on this instance. */
+  _wasmFailed = false
+  /** In-flight mount — restore() must not double-mount on re-entry. */
+  _wasmPending = false
+  /** Last wasm-painted t — frame(dt) consumes deltas, not absolutes. */
+  _wasmT = 0
   boundTarget: Element | null = null
   onMouseEnter = (): void => {
     this.setHover(true)
@@ -124,6 +134,10 @@ export class CloseButtonWebGL {
    * boundTarget is remembered for destroy().
    */
   bindEvents(): void {
+    // Latch — purge()/restore() keep listeners attached, so a wasm
+    // re-mount must not bind a second handler set on top of the live one.
+    if (this.boundTarget) return
+
     const target = this.canvas.parentElement || this.canvas
 
     this.boundTarget = target
@@ -148,6 +162,10 @@ export class CloseButtonWebGL {
    */
   triggerClick(): void {
     this.clickTime = (performance.now() - this.startTime) * 0.001
+
+    const w = this._wasm?.widget as { click?: (t: number) => void } | undefined
+
+    w?.click?.(this.clickTime)
   }
 
   /**
@@ -203,6 +221,12 @@ export class CloseButtonWebGL {
     releaseQuadGL(this.canvas, this, this._onContextLost)
 
     this._onContextLost = null
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
+    }
   }
 
   /** Recreates the GL context + program and resumes the loop after a purge. */
@@ -218,6 +242,14 @@ export class CloseButtonWebGL {
     this.canvas.style.display = CHAR_STRINGS.EMPTY
 
     this.canvas.classList.remove(STATE_CLASSES.IS_FALLBACK)
+
+    if (hasWebGpu() && !this._wasmFailed) {
+      // A purged wasm button re-mounts the artifact (module fetch is
+      // browser-cached — this is a re-init, not a re-fetch).
+      tryWasm(this)
+
+      return
+    }
 
     this.initWebGL()
 
@@ -250,5 +282,11 @@ export class CloseButtonWebGL {
     releaseQuadGL(this.canvas, this, this._onContextLost)
 
     this._onContextLost = null
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
+    }
   }
 }

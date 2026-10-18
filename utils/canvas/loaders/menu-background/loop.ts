@@ -151,6 +151,14 @@ export function handleResize(host: MenuBackgroundWebGL): void {
 
   host.canvas.height = host.height
 
+  if (host._wasm) {
+    // `res` = CSS px (the shader's design domain), `rect` = canvas
+    // bitmap px (the frag→uv divisor — supersampled + capped).
+    host._wasm.widget.set_size(w, h)
+
+    host._wasm.widget.resize(host.width, host.height)
+  }
+
   if (host.gl) {
     host.gl.viewport(0, 0, host.width, host.height)
   }
@@ -158,7 +166,7 @@ export function handleResize(host: MenuBackgroundWebGL): void {
 
 /** rAF callback — draws the animated contour field each frame. */
 export function loop(host: MenuBackgroundWebGL): void {
-  if (!host.isActive || !host.gl || !host.useWebGL) return
+  if (!host.isActive || !(host.gl || host._wasm) || !host.useWebGL) return
 
   host.animId = requestAnimationFrame(() => host._loop())
 
@@ -169,7 +177,7 @@ export function loop(host: MenuBackgroundWebGL): void {
 export function renderFrame(host: MenuBackgroundWebGL, staticTime?: number | null): void {
   const gl = host.gl
 
-  if (!gl) return
+  if (!gl && !host._wasm) return
 
   const now = performance.now()
 
@@ -192,6 +200,41 @@ export function renderFrame(host: MenuBackgroundWebGL, staticTime?: number | nul
   if (isDark !== host._darkAtStart) {
     host._sampleTheme()
   }
+
+  if (host._wasm) {
+    // Per-widget artifact: reveal ease + both inks + theme alpha land
+    // in one set_state; frame(dt) draws the field (dt=0 for the
+    // reduced-motion static frame so the crate's clock stays put).
+    const w = host._wasm.widget as {
+      set_state?: (
+        reveal: number,
+        r1: number,
+        g1: number,
+        b1: number,
+        alpha: number,
+        r2: number,
+        g2: number,
+        b2: number
+      ) => void
+    }
+
+    w.set_state?.(
+      host._reveal,
+      host._color[0],
+      host._color[1],
+      host._color[2],
+      isDark ? ALPHA_DARK : ALPHA_LIGHT,
+      host._color2[0],
+      host._color2[1],
+      host._color2[2]
+    )
+
+    host._wasm.widget.frame(staticTime != null ? 0 : dt)
+
+    return
+  }
+
+  if (!gl) return
 
   gl.clearColor(0, 0, 0, 0)
 

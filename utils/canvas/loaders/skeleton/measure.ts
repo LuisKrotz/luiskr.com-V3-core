@@ -171,6 +171,16 @@ export function measureSkeleton(layer: SkeletonWebGL): void {
     layer.canvas.height = bh
   }
 
+  if (layer._wasm) {
+    // Wasm path: the backing size just changed (or the first measure
+    // initialized it) — re-configure the surface + push both size
+    // fields: `res` = CSS px (design units), `rect` = device px
+    // (the frag→uv divisor; sheet rows are already dpr-scaled).
+    layer._wasm.widget.set_size(w, h)
+
+    layer._wasm.widget.resize(bw, bh)
+  }
+
   layer.dpr = dpr
 
   layer.rects = boxes

@@ -32,7 +32,8 @@ export function renderStatic(host: CloseButtonWebGL): void {
 
   const now = performance.now()
 
-  if (host.useWebGL && host.gl) {
+  // `gl || _wasm` — the wasm backend claims useWebGL without a GL context.
+  if (host.useWebGL && (host.gl || host._wasm)) {
     renderWebGL(host, now)
   }
 }
@@ -77,13 +78,39 @@ export function animate(host: CloseButtonWebGL): void {
     host.drawProgress = Math.min(1.0, host.drawProgress + DRAW_RATE)
   }
 
-  if (host.useWebGL && host.gl) {
+  if (host.useWebGL && (host.gl || host._wasm)) {
     renderWebGL(host, now)
   }
 }
 
+/** Per-frame wasm render: pushes the three eased channels + one frame tick. */
+export function renderWasm(host: CloseButtonWebGL, now: number): void {
+  if (!host._wasm) return
+
+  const w = host._wasm.widget as {
+    set_state?: (liquid: number, draw: number, rot: number) => void
+  }
+
+  w.set_state?.(host.hoverLevel, host.drawProgress, host.rotation)
+
+  const t = (now - host.startTime) * 0.001
+
+  // dt = time since the last painted frame — the crate accumulates.
+  const dt = host._wasmT ? t - host._wasmT : t
+
+  host._wasmT = t
+
+  host._wasm.widget.frame(dt)
+}
+
 /** Per-frame WebGL render: updates time/hover uniforms and draws the quad. */
 export function renderWebGL(host: CloseButtonWebGL, now: number): void {
+  if (host._wasm) {
+    renderWasm(host, now)
+
+    return
+  }
+
   const gl = host.gl
 
   if (!gl || !host.program || !host.quadBuffer) return

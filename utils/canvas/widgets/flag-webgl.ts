@@ -18,7 +18,13 @@ import { webglPool } from '../webgl-pool.js'
 import { FlagRenderer, flagRenderer } from './flag/renderer.js'
 import { displayAspect, getAnimType, resizeToNaturalAspect, splitPoint } from './flag/anim.js'
 import { animateFlag, renderFlagWebGL, renderStaticFlag, triggerFlagFallback } from './flag/loop.js'
+import { flagUrl } from './flag/texture.js'
+import { wasmImageDecoder } from '@core/utils/wasm/wasm-image-decoder.js'
+import { FLAG_TEXTURE } from '@core/tokens/media/flag-texture.js'
 import { FLAG_DIMENSIONS } from '@core/tokens/media/dimensions.js'
+import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
+import { hasWebGpu, mountWebGpuWidget } from '../../gpu/webgpu-widget.js'
+import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
 
 /**
  * WebGL Flag Animator for Language Selection Buttons
@@ -56,6 +62,14 @@ export class FlagWebGL {
   onMouseEnter: (() => void) | undefined
   onMouseLeave: (() => void) | undefined
   boundTarget: HTMLElement | undefined
+  /** Live WebGPU wasm handle — the preferred backend when it mounts. */
+  _wasm: WidgetHandle | null = null
+  /** Latch — a failed wasm mount never retries on this instance. */
+  _wasmFailed = false
+  /** In-flight mount — restore() must not double-mount on re-entry. */
+  _wasmPending = false
+  /** Last wasm-painted t — frame(dt) consumes deltas, not absolutes. */
+  _wasmT = 0
 
   constructor(canvas: HTMLCanvasElement, langOption: LangOption) {
     this.canvas = canvas
@@ -129,10 +143,134 @@ export class FlagWebGL {
     return getAnimType(this)
   }
 
-  /** Boot sequence: GL init → event binding → render start; fully degrades to the fallback path. */
+  /** Boot sequence: wasm mount → GL init → event binding → render start; fully degrades to the fallback path. */
 
   init() {
     if (!this.canvas || typeof this.canvas.getContext !== TYPE_STRINGS.FUNCTION) {
+      this._triggerFallback()
+
+      return
+    }
+
+    // WebGPU available → try the per-flag wasm artifact first; the
+    // canvas must not get a 2D context while the mount is in flight.
+    if (hasWebGpu() && !this._wasmFailed) {
+      this._tryWasm()
+      return
+    }
+
+    this.init2d()
+  }
+
+  /**
+   * Attempts the WebGPU wasm flag (~52KB artifact, own GPUDevice).
+   * MANUAL drive: this class keeps its own loop + hover easing, so the
+   * bridge only initializes the surface. On failure the shared-
+   * renderer 2D path runs exactly as before.
+   */
+  _tryWasm() {
+    if (this._wasmPending || this._wasm) return
+
+    this._wasmPending = true
+
+    const canvas = this.canvas
+
+    void mountWebGpuWidget(GPU_WIDGET_KINDS.FLAG, canvas, undefined, {
+      drive: GPU_WIDGET_DRIVE.MANUAL,
+    }).then((handle) => {
+      this._wasmPending = false
+
+      if (!handle || this.canvas !== canvas) {
+        this._wasmFailed = true
+
+        if (this.canvas === canvas) this.init2d()
+
+        return
+      }
+
+      if (this._paused) {
+        handle.destroy()
+
+        return
+      }
+
+      this._wasm = handle
+
+      this.useWebGL = true
+
+      this._resizeToNaturalAspect()
+
+      this.loadWasmImages()
+
+      this.bindEvents()
+
+      webglPool.register(this.canvas, this)
+
+      this.animate()
+    })
+  }
+
+  /**
+   * Decodes the locale's flag SVG(s) through the wasm image-decoder
+   * worker and uploads them as textures — the GPU→GPU bitmap path
+   * never round-trips pixels through the main thread. Unsplit locales
+   * bind the same bitmap twice (the shader's cheapest no-op).
+   */
+  loadWasmImages(): void {
+    if (!this._wasm) return
+
+    const codes = [this.lang.cc, this.lang.cc2].filter((cc): cc is string => Boolean(cc))
+
+    const w = this._wasm.widget as {
+      upload_textures?: (a: ImageBitmap, b: ImageBitmap) => void
+    }
+
+    void Promise.all(
+      codes.map((cc) =>
+        wasmImageDecoder
+          .decodeImageWASM(flagUrl(cc), FLAG_TEXTURE.WIDTH, FLAG_TEXTURE.HEIGHT)
+          .catch(() => null)
+      )
+    ).then((bitmaps) => {
+      if (!this._wasm || this._paused) return
+
+      const a = bitmaps[0]
+
+      if (!a) {
+        // Decode failed — the 2D shared renderer still has the <img> path.
+        this._wasmFailed = true
+
+        this._wasm.destroy()
+
+        this._wasm = null
+
+        this.init2d()
+
+        return
+      }
+
+      const b = bitmaps[1] || a
+
+      w.upload_textures?.(a, b)
+
+      this.aspect1 = a.width / a.height
+
+      if (bitmaps[1]) this.aspect2 = bitmaps[1].width / bitmaps[1].height
+
+      this._resizeToNaturalAspect()
+
+      this.isLoaded = true
+
+      if (!this.animId) this._renderStatic()
+    })
+  }
+
+  /**
+   * The shared-renderer 2D boot — ran directly on no-WebGPU browsers
+   * and after a wasm mount failure.
+   */
+  init2d() {
+    if (!this.canvas) {
       this._triggerFallback()
 
       return
@@ -182,6 +320,12 @@ export class FlagWebGL {
 
       this.renderer = null
     }
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
+    }
   }
 
   /** Re-acquires the shared renderer and resumes the wave loop after a purge. */
@@ -192,7 +336,15 @@ export class FlagWebGL {
 
     if (!this.useWebGL) return
 
-    if (!this.renderer) {
+    if (!this.renderer && !this._wasm && hasWebGpu() && !this._wasmFailed) {
+      // A purged wasm flag re-mounts the artifact (module fetch is
+      // browser-cached — this is a re-init, not a re-fetch).
+      this._tryWasm()
+
+      return
+    }
+
+    if (!this.renderer && !this._wasm) {
       this.renderer = flagRenderer.acquire()
 
       if (!this.renderer) {
@@ -250,6 +402,10 @@ export class FlagWebGL {
   /** Wires pointer/hover listeners that drive the widget's interactive state. */
 
   bindEvents() {
+    // Latch — purge()/restore() keep listeners attached, so a wasm
+    // re-mount must not bind a second pair on top of the live one.
+    if (this.boundTarget) return
+
     this.onMouseEnter = () => {
       this.setHover(true)
     }
@@ -331,6 +487,12 @@ export class FlagWebGL {
       flagRenderer.release()
 
       this.renderer = null
+    }
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
     }
 
     this.ctx = null

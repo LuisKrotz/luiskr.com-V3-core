@@ -14,7 +14,9 @@ import { SWITCH_TYPES } from '@core/tokens/theme/switches.js'
 import store from '@core/store.js'
 import { releaseQuadGL, watchContextLoss } from '../gl-lifecycle.js'
 import { webglPool } from '../webgl-pool.js'
-import { init, initWebGL, triggerFallback } from './switch-slider/init.js'
+import { init, initWebGL, triggerFallback, tryWasm } from './switch-slider/init.js'
+import { hasWebGpu } from '../../gpu/webgpu-widget.js'
+import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
 import { animate, renderCanvas2D, renderStatic, renderWebGL } from './switch-slider/render.js'
 
 /**
@@ -52,6 +54,14 @@ export class SwitchWebGL {
   _onContextLost: EventListener | null = null
   _purged = false
   onClick: ((_e: MouseEvent) => void) | undefined
+  /** Live WebGPU wasm handle — the preferred backend when it mounts. */
+  _wasm: WidgetHandle | null = null
+  /** Latch — a failed wasm mount never retries on this instance. */
+  _wasmFailed = false
+  /** In-flight mount — restore() must not double-mount on re-entry. */
+  _wasmPending = false
+  /** Last wasm-painted t — frame(dt) consumes deltas, not absolutes. */
+  _wasmT = 0
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -146,6 +156,10 @@ export class SwitchWebGL {
   /** Wires pointer/hover listeners that drive the widget's interactive state. */
 
   bindEvents(): void {
+    // Latch — purge()/restore() keep listeners attached, so a wasm
+    // re-mount must not bind a second handler on top of the live one.
+    if (this.onClick) return
+
     this.onClick = (e: MouseEvent) => {
       e.stopPropagation()
 
@@ -239,6 +253,12 @@ export class SwitchWebGL {
     releaseQuadGL(this.canvas, this, this._onContextLost)
 
     this._onContextLost = null
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
+    }
   }
 
   /** Recreates the GL context + program (or the 2D fallback) and resumes the loop after a purge. */
@@ -254,6 +274,14 @@ export class SwitchWebGL {
     this.canvas.style.display = CHAR_STRINGS.EMPTY
 
     this.canvas.classList.remove(STATE_CLASSES.IS_FALLBACK)
+
+    if (hasWebGpu() && !this._wasmFailed) {
+      // A purged wasm switch re-mounts the artifact (module fetch is
+      // browser-cached — this is a re-init, not a re-fetch).
+      tryWasm(this)
+
+      return
+    }
 
     this.initWebGL()
 
@@ -290,5 +318,11 @@ export class SwitchWebGL {
     releaseQuadGL(this.canvas, this, this._onContextLost)
 
     this._onContextLost = null
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
+    }
   }
 }

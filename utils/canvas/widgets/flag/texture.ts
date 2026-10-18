@@ -14,7 +14,13 @@ import { WEBGL_STRINGS } from '@core/tokens/strings/webgl.js'
 import { wasmImageDecoder } from '@core/utils/wasm/wasm-image-decoder.js'
 import type { FlagRenderer } from './renderer.js'
 
-const flagUrl = (cc: string): string => `${ASSET_PATHS.FLAGS_PREFIX}${cc}${ASSET_PATHS.SVG_EXT}`
+/**
+ * Flag SVG source URL for a country code — shared by the `<img>`
+ * decode path and the WebGPU wasm texture upload.
+ * @param cc Country code segment.
+ */
+export const flagUrl = (cc: string): string =>
+  `${ASSET_PATHS.FLAGS_PREFIX}${cc}${ASSET_PATHS.SVG_EXT}`
 
 /**
  * Kicks the worker-side decode once per country code: the WASM pool fetches

@@ -10,6 +10,7 @@ import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 import store from '@core/store.js'
 import { flagRenderer } from './renderer.js'
+import { wasmAnimType } from './anim.js'
 import type { FlagWebGL } from '../flag-webgl.js'
 
 /** Switches to the non-WebGL path (CSS class on the host / Canvas2D) — used on context loss or init failure. */
@@ -47,10 +48,36 @@ export function renderStaticFlag(flag: FlagWebGL): void {
   }
 }
 
+/** Per-frame wasm render: pushes hover/anim/split state + one frame tick. */
+export function renderFlagWasm(flag: FlagWebGL, now: number): void {
+  if (!flag._wasm) return
+
+  const w = flag._wasm.widget as {
+    set_state?: (h: number, a: number, s: number, x: number) => void
+  }
+
+  w.set_state?.(flag.hoverLevel, wasmAnimType(flag), flag.lang.cc2 ? 1.0 : 0.0, flag._splitPoint())
+
+  const t = (now - flag.startTime) * 0.001
+
+  // dt = time since the last painted frame — the crate accumulates.
+  const dt = flag._wasmT ? t - flag._wasmT : t
+
+  flag._wasmT = t
+
+  flag._wasm.widget.frame(dt)
+}
+
 /** Per-frame WebGL render: updates time/hover uniforms and draws the quad. */
 export function renderFlagWebGL(flag: FlagWebGL, now: number): void {
   // Purged (offscreen) flags have no renderer — not a failure, just idle.
   if (flag._paused) return
+
+  if (flag._wasm) {
+    renderFlagWasm(flag, now)
+
+    return
+  }
 
   if (!flag.renderer?.gl) {
     flag._triggerFallback()

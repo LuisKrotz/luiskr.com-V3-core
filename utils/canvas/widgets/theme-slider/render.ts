@@ -25,7 +25,8 @@ export function renderStatic(host: ThemeSliderWebGL): void {
 
   const now = performance.now()
 
-  if (host.useWebGL && host.gl) {
+  // `gl || _wasm` — the wasm backend claims useWebGL without a GL context.
+  if (host.useWebGL && (host.gl || host._wasm)) {
     renderWebGL(host, now)
   } else if (host.ctx) {
     renderCanvas2D(host)
@@ -59,15 +60,41 @@ export function animate(host: ThemeSliderWebGL): void {
 
   host.knobX = host._pToKnobX(host.currentP)
 
-  if (host.useWebGL && host.gl) {
+  if (host.useWebGL && (host.gl || host._wasm)) {
     renderWebGL(host, now)
   } else if (host.ctx) {
     renderCanvas2D(host)
   }
 }
 
+/** Per-frame wasm render: pushes spring state + one frame tick. */
+export function renderWasm(host: ThemeSliderWebGL, now: number): void {
+  if (!host._wasm) return
+
+  const w = host._wasm.widget as {
+    set_state?: (progress: number, knobX: number) => void
+  }
+
+  w.set_state?.(host.currentP, host.knobX)
+
+  const t = (now - host.startTime) * 0.001
+
+  // dt = time since the last painted frame — the crate accumulates.
+  const dt = host._wasmT ? t - host._wasmT : t
+
+  host._wasmT = t
+
+  host._wasm.widget.frame(dt)
+}
+
 /** Per-frame WebGL render: updates time/knob uniforms and draws the quad. */
 export function renderWebGL(host: ThemeSliderWebGL, now: number): void {
+  if (host._wasm) {
+    renderWasm(host, now)
+
+    return
+  }
+
   const gl = host.gl
 
   if (!gl || !host.program || !host.quadBuffer) return

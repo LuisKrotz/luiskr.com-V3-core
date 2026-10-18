@@ -14,7 +14,9 @@ import store from '@core/store.js'
 import { releaseQuadGL, watchContextLoss } from '../gl-lifecycle.js'
 import { webglPool } from '../webgl-pool.js'
 import { bindThemeSliderEvents } from './theme-slider/events.js'
-import { init, initWebGL, triggerFallback } from './theme-slider/init.js'
+import { init, initWebGL, triggerFallback, tryWasm } from './theme-slider/init.js'
+import { hasWebGpu } from '../../gpu/webgpu-widget.js'
+import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
 import { pToKnobX, pToTheme, themeToP, xToContinuousP, xToP } from './theme-slider/math.js'
 import { animate, renderCanvas2D, renderStatic, renderWebGL } from './theme-slider/render.js'
 
@@ -63,6 +65,14 @@ export class ThemeSliderWebGL {
   _resizeObserver: ResizeObserver | null = null
   _onContextLost: EventListener | null = null
   _purged = false
+  /** Live WebGPU wasm handle — the preferred backend when it mounts. */
+  _wasm: WidgetHandle | null = null
+  /** Latch — a failed wasm mount never retries on this instance. */
+  _wasmFailed = false
+  /** In-flight mount — restore() must not double-mount on re-entry. */
+  _wasmPending = false
+  /** Last wasm-painted t — frame(dt) consumes deltas, not absolutes. */
+  _wasmT = 0
   onPointerDown: ((_e: PointerEvent) => void) | undefined
   onPointerMove: ((_e: PointerEvent) => void) | undefined
   onPointerUp: ((_e: PointerEvent) => void) | undefined
@@ -155,7 +165,22 @@ export class ThemeSliderWebGL {
   /** Wires pointer drag + tap-to-snap; supports keyboard arrows for a11y. */
 
   bindEvents(): void {
+    // Latch — purge()/restore() keep listeners attached, so a wasm
+    // re-mount must not bind a second handler set on top of the live one.
+    if (this.onPointerDown) return
+
     bindThemeSliderEvents(this)
+  }
+
+  /**
+   * Forwards the latest ripple stamp to the wasm widget's `tap()` —
+   * the crate's clock shares this.startTime's domain (its first
+   * frame() absorbs the full elapsed t as dt).
+   */
+  _tapWasm(): void {
+    const w = this._wasm?.widget as { tap?: (t: number, x: number) => void } | undefined
+
+    w?.tap?.(this.rippleTime, this.ripplePos)
   }
 
   /**
@@ -184,6 +209,8 @@ export class ThemeSliderWebGL {
     this.rippleTime = (performance.now() - this.startTime) * 0.001
 
     this.ripplePos = this._pToKnobX(this.targetP)
+
+    this._tapWasm()
 
     if (store.getters.getReducedMotion()) this._renderStatic()
   }
@@ -251,6 +278,12 @@ export class ThemeSliderWebGL {
     releaseQuadGL(this.canvas, this, this._onContextLost)
 
     this._onContextLost = null
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
+    }
   }
 
   /** Recreates the GL context + program and resumes the loop after a purge. */
@@ -270,6 +303,14 @@ export class ThemeSliderWebGL {
     this.canvas
       .closest(`.${PREF_CLASSES.PREF_THEME_WRAPPER}`)
       ?.classList.remove(STATE_CLASSES.HAS_FALLBACK)
+
+    if (hasWebGpu() && !this._wasmFailed) {
+      // A purged wasm slider re-mounts the artifact (module fetch is
+      // browser-cached — this is a re-init, not a re-fetch).
+      tryWasm(this)
+
+      return
+    }
 
     this.initWebGL()
 
@@ -304,5 +345,11 @@ export class ThemeSliderWebGL {
     releaseQuadGL(this.canvas, this, this._onContextLost)
 
     this._onContextLost = null
+
+    if (this._wasm) {
+      this._wasm.destroy()
+
+      this._wasm = null
+    }
   }
 }
