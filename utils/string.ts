@@ -90,11 +90,55 @@ export const escapeHtml = (str: string): string => {
 }
 
 /**
+ * Russian Cyrillic → Latin transliteration map for `slugify`. Media
+ * labels exist per locale; without this step a Cyrillic-only caption
+ * (e.g. "фон бренда") would slugify to '' — the deep link would never
+ * be written, emitted, or sitemapped, dropping the item's indexable URL.
+ * Must be copied byte-identically into the build-script slugify twins.
+ */
+const CYRILLIC_SLUG: Record<string, string> = {
+  а: 'a',
+  б: 'b',
+  в: 'v',
+  г: 'g',
+  д: 'd',
+  е: 'e',
+  ё: 'e',
+  ж: 'zh',
+  з: 'z',
+  и: 'i',
+  й: 'y',
+  к: 'k',
+  л: 'l',
+  м: 'm',
+  н: 'n',
+  о: 'o',
+  п: 'p',
+  р: 'r',
+  с: 's',
+  т: 't',
+  у: 'u',
+  ф: 'f',
+  х: 'h',
+  ц: 'c',
+  ч: 'ch',
+  ш: 'sh',
+  щ: 'sch',
+  ъ: '',
+  ы: 'y',
+  ь: '',
+  э: 'e',
+  ю: 'yu',
+  я: 'ya',
+}
+
+/**
  * Converts a string into a clean, URL-safe and DOM-id-safe slug.
- * Pipeline: NFD-fold diacritics to ASCII → lowercase → trim → collapse
- * every non-alphanumeric run to a single `-` → strip edge dashes. e.g.
- * "METCHA — Leather!" → "metcha-leather", "Cecerelê: tour" →
- * "cecerele-tour", "aboutmarco.com" → "aboutmarco-com".
+ * Pipeline: NFD-fold diacritics to ASCII → lowercase → transliterate
+ * Cyrillic → trim → collapse every non-alphanumeric run to a single `-`
+ * → strip edge dashes. e.g. "METCHA — Leather!" → "metcha-leather",
+ * "Cecerelê: tour" → "cecerele-tour", "aboutmarco.com" →
+ * "aboutmarco-com", "фон бренда" → "fon-brenda".
  * MUST stay byte-identical to the slugify in shared/scripts/build
  * (generate-sitemap.js + build-locale-pages.mjs): it computes the media
  * deep-link segment both at runtime (modal write/read) and at build
@@ -110,7 +154,35 @@ export const slugify = (text: string): string => {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, ATTR_VALUES.EMPTY)
     .toLowerCase()
+    .replace(/[а-яё]/g, (ch) => CYRILLIC_SLUG[ch])
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, ATTR_VALUES.EMPTY)
+}
+
+/**
+ * Assigns the canonical deep-link slug for one media item within a
+ * project's traversal. Distinct captions can collapse to the same slug
+ * ("Fórum 2020, Full page" vs "Fórum 2020: Full Page"), which used to
+ * silently drop the second item's indexable URL everywhere. The first
+ * occurrence keeps the base slug; later ones gain `-2`, `-3`, … in
+ * document order — every labelled item stays uniquely addressable.
+ * Callers iterate items in traversal order sharing one `seen` map; the
+ * same map/count convention is mirrored in the build scripts
+ * (generate-sitemap.js + build-locale-pages.mjs) so emitted file names,
+ * sitemap <loc>s and runtime resolution agree.
+ * @param seen Per-project base-slug → assigned-count map (mutated).
+ * @param label The item's caption.
+ * @returns The item's unique deep-link slug ('' when unslugifiable).
+ */
+export const mediaSlugSeq = (seen: Map<string, number>, label: string): string => {
+  const base = slugify(label)
+
+  if (!base) return ATTR_VALUES.EMPTY
+
+  const ordinal = seen.get(base) ?? 0
+
+  seen.set(base, ordinal + 1)
+
+  return ordinal ? `${base}-${ordinal + 1}` : base
 }

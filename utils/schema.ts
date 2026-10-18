@@ -18,7 +18,7 @@ import { DB_PATHS, ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
-import { slugify, stripHtml, toMetaDescription } from './string.js'
+import { mediaSlugSeq, stripHtml, toMetaDescription } from './string.js'
 import { buildMediaUrls } from './media.js'
 import { CDN_URLS, SOCIAL_URLS } from '@core/tokens/media/urls.js'
 
@@ -402,12 +402,20 @@ export const generateProjectSchema = (
 
   const media = [...walkMedia(project.sections)]
 
+  // Deep-link slug per item — document-order numbering disambiguates
+  // captions that collapse to the same slug, in lockstep with the
+  // emitted media pages + sitemap deep links.
+  const slugSeen = new Map<string, number>()
+
+  const deepSlugOf = (m: ProjectMediaNode) =>
+    m.label ? mediaSlugSeq(slugSeen, m.label) : ATTR_VALUES.EMPTY
+
   // A media deep link resolves to its descriptor so the WebPage, its
   // primaryImageOfPage and the third crumb all describe the asset at
   // this URL rather than the parent project.
-  const activeMedia = mediaSlug
-    ? media.find((m) => m.label && slugify(m.label) === mediaSlug)
-    : undefined
+  const deepSlugs = media.map((m) => deepSlugOf(m))
+
+  const activeMedia = mediaSlug ? media.find((_, i) => deepSlugs[i] === mediaSlug) : undefined
 
   const activeUrls = activeMedia ? buildMediaUrls(CDN_URLS.CDN_BASE, folder, activeMedia) : null
 
@@ -422,14 +430,17 @@ export const generateProjectSchema = (
     : coverImage
 
   const listItems = media
-    .filter((m): m is ProjectMediaNode & { label: string } => Boolean(m.label))
-    .map((m, idx) => {
+    .map((m, i) => ({ m, deepSlug: deepSlugs[i] }))
+    .filter((e): e is { m: ProjectMediaNode & { label: string }; deepSlug: string } =>
+      Boolean(e.m.label && e.deepSlug)
+    )
+    .map(({ m, deepSlug }, idx) => {
       const { source, thumb, isVideo } = buildMediaUrls(CDN_URLS.CDN_BASE, folder, m)
 
       return {
         '@type': 'ListItem',
         position: idx + 1,
-        url: `${canonicalUrl}/${slugify(m.label)}`,
+        url: `${canonicalUrl}/${deepSlug}`,
         name: m.label,
         image: isVideo ? thumb : source,
       }

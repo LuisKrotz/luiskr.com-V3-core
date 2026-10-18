@@ -20,6 +20,7 @@ import {
   setMetaDescription,
 } from '@core/router/navigate.js'
 import { parsePath } from '@core/router/parse-path.js'
+import { LANG_SLUGS } from '@core/i18n.js'
 import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
 import { updateRobotsMeta, resolveProjectSlug } from '@website/views/project/data.js'
 import { checkAutoOpenModal } from '@website/views/project/modal.js'
@@ -407,5 +408,47 @@ describe('route tails', () => {
 
     expect(media.meta.canonical).toBe('/portfolio/cicb/some-media')
     expect(media.params.slug).toBe('some-media')
+  })
+
+  test('parsePath — legal aliases canonicalize onto the locale slug', () => {
+    const en = LANG_SLUGS.en
+    const br = LANG_SLUGS.br
+    const de = LANG_SLUGS.de
+
+    expect(parsePath(`/${ROUTE_STRINGS.TERMS}`).meta.canonical).toBe(`/${en.terms}`)
+    expect(parsePath(`/${ROUTE_STRINGS.PRIVACY}`).meta.canonical).toBe(`/${en.privacy}`)
+    expect(parsePath(`/br/${en.privacy}`).meta.canonical).toBe(`/br/${br.privacy}`)
+    expect(parsePath(`/br/${en.terms}`).meta.canonical).toBe(`/br/${br.terms}`)
+    expect(parsePath(`/de/${en.gdpr}`).meta.canonical).toBe(`/de/${de.gdpr}`)
+    expect(parsePath(`/br/${br.terms}`).meta.canonical).toBe(`/br/${br.terms}`)
+  })
+
+  test('parsePath — playground + star-field aliases canonicalize localized', () => {
+    const en = LANG_SLUGS.en
+    const br = LANG_SLUGS.br
+
+    expect(parsePath(`/${ROUTE_PATHS.SPACE_PLAYGROUND_SEGMENT}`).meta.canonical).toBe(
+      `/${en.earthPlayground}`
+    )
+    expect(parsePath(`/br/${ROUTE_PATHS.SPACE_PLAYGROUND_SEGMENT}`).meta.canonical).toBe(
+      `/br/${br.earthPlayground}`
+    )
+    expect(parsePath(`/br/${en.earthPlayground}`).meta.canonical).toBe(`/br/${br.earthPlayground}`)
+    expect(parsePath(`/br/${en.starField}`).meta.canonical).toBe(`/br/${br.starField}`)
+    expect(parsePath(`/br/${br.starField}/mars`).meta.canonical).toBe(`/br/${br.starField}/mars`)
+    expect(parsePath(`/${en.starField}/mars`).meta.canonical).toBe(`/${en.starField}/mars`)
+  })
+
+  test('parsePath — docs strips the locale prefix from its canonical', () => {
+    expect(parsePath('/docs/core/router').meta.canonical).toBe('/docs/core/router')
+    expect(parsePath('/br/docs/core/router').meta.canonical).toBe('/docs/core/router')
+  })
+
+  test('parsePath — trailing slashes collapse into the canonical path', () => {
+    const en = LANG_SLUGS.en
+
+    expect(parsePath(`/${en.about}/`).path).toBe(`/${en.about}`)
+    expect(parsePath('/br/').path).toBe('/br')
+    expect(parsePath('/portfolio/metcha/').meta.canonical).toBe('/portfolio/metcha')
   })
 })

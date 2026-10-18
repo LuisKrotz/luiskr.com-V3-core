@@ -23,6 +23,11 @@ export function bindThemeSliderEvents(s: ThemeSliderWebGL): void {
 
     const rect = s.canvas.getBoundingClientRect()
 
+    // Cache the rect for the whole gesture — the pointermove path must
+    // not read layout per event (1000Hz+ polling would thrash it).
+    s.dragRectLeft = rect.left
+    s.dragRectWidth = rect.width
+
     const clientX = e.clientX || (e as unknown as TouchEvent).touches?.[0]?.clientX || 0
 
     const x = clientX - rect.left
@@ -37,13 +42,14 @@ export function bindThemeSliderEvents(s: ThemeSliderWebGL): void {
   s.onPointerMove = (e: PointerEvent) => {
     if (!s.isDragging) return
 
-    const rect = s.canvas.getBoundingClientRect()
+    // Coalesced-input contract: high-polling mice deliver several moves
+    // per frame — only the freshest sample matters for the drag target.
+    const coalesced = e.getCoalescedEvents?.()
+    const last = coalesced && coalesced.length ? coalesced[coalesced.length - 1] : e
 
-    const clientX = e.clientX || (e as unknown as TouchEvent).touches?.[0]?.clientX || 0
+    const clientX = last.clientX || (last as unknown as TouchEvent).touches?.[0]?.clientX || 0
 
-    const x = clientX - rect.left
-
-    s.targetP = s._xToContinuousP(x, rect.width)
+    s.targetP = s._xToContinuousP(clientX - s.dragRectLeft, s.dragRectWidth)
   }
 
   s.onPointerUp = (e: PointerEvent) => {
@@ -131,11 +137,11 @@ export function bindThemeSliderEvents(s: ThemeSliderWebGL): void {
     }
   }
 
-  s.canvas.addEventListener(POINTER_EVENTS.POINTERDOWN, s.onPointerDown)
+  s.canvas.addEventListener(POINTER_EVENTS.POINTERDOWN, s.onPointerDown, { passive: true })
 
-  window.addEventListener(POINTER_EVENTS.POINTERMOVE, s.onPointerMove)
+  window.addEventListener(POINTER_EVENTS.POINTERMOVE, s.onPointerMove, { passive: true })
 
-  window.addEventListener(POINTER_EVENTS.POINTERUP, s.onPointerUp)
+  window.addEventListener(POINTER_EVENTS.POINTERUP, s.onPointerUp, { passive: true })
 
   s.canvas.addEventListener(MOUSE_EVENTS.CLICK, s.onClick)
 

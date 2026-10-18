@@ -36,6 +36,13 @@ export class ThemeSliderWebGL {
   currentP: number
   knobX: number
   isDragging = false
+  /**
+   * Cached canvas rect for the active drag — captured once at
+   * pointerdown so the high-rate pointermove path performs zero layout
+   * reads (the rect cannot change mid-gesture; cleared on pointerup).
+   */
+  dragRectLeft = 0
+  dragRectWidth = 0
   startX = 0
   useWebGL = false
   animId: number | null = null

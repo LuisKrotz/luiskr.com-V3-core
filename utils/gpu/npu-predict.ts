@@ -64,12 +64,6 @@ interface PointerSample {
   time: number
 }
 
-/** Pointer velocity in px/ms on each axis. */
-interface PointerVelocity {
-  vx: number
-  vy: number
-}
-
 /**
  * Predictive input engine — tracks pointer velocity and predicts where the
  * pointer will be a frame ahead, so hover/prefetch work can start before
@@ -87,10 +81,18 @@ class NPUPredictor {
   preloadedTargets = new Set<string>()
   /** Rolling pointer samples (reserved for trajectory shape analysis). */
   interactionHistory: PointerSample[] = []
-  /** Previous pointer position+stamp for the velocity delta. */
-  lastPointer: PointerSample = { x: 0, y: 0, time: Date.now() }
-  /** Latest px/ms velocity vector. */
-  pointerVelocity: PointerVelocity = { vx: 0, vy: 0 }
+  /**
+   * Velocity state as bare scalars — high-polling pointermove events fire
+   * thousands of times per second, so allocating {x,y,time}/{vx,vy}
+   * objects per event would create constant GC pressure inside the
+   * frame budget. Only the fields below are mutated.
+   */
+  lastPX = 0
+  lastPY = 0
+  lastPT = Date.now()
+  /** Latest px/ms velocity components. */
+  pvx = 0
+  pvy = 0
   /** Rolling metrics exposed to the stats HUD. */
   analytics: NpuAnalytics = {
     npuAccelerated: false,
@@ -151,20 +153,24 @@ class NPUPredictor {
       (e) => {
         const pe = e as PointerEvent
 
+        // Freshest coalesced sample — intermediate points from a 1000Hz
+        // poll add nothing to a per-frame velocity estimate.
+        const coalesced = pe.getCoalescedEvents?.()
+        const last = coalesced && coalesced.length ? coalesced[coalesced.length - 1] : pe
+
         const now = Date.now()
 
-        const dt = Math.max(1, now - this.lastPointer.time)
+        const dt = Math.max(1, now - this.lastPT)
 
-        const dx = pe.clientX - this.lastPointer.x
+        const dx = last.clientX - this.lastPX
 
-        const dy = pe.clientY - this.lastPointer.y
+        const dy = last.clientY - this.lastPY
 
-        this.pointerVelocity = {
-          vx: dx / dt,
-          vy: dy / dt,
-        }
-
-        this.lastPointer = { x: pe.clientX, y: pe.clientY, time: now }
+        this.pvx = dx / dt
+        this.pvy = dy / dt
+        this.lastPX = last.clientX
+        this.lastPY = last.clientY
+        this.lastPT = now
       },
       { passive: true }
     )
@@ -207,9 +213,9 @@ class NPUPredictor {
 
     const t0 = performance.now()
 
-    const vx = Math.abs(this.pointerVelocity.vx)
+    const vx = Math.abs(this.pvx)
 
-    const vy = Math.abs(this.pointerVelocity.vy)
+    const vy = Math.abs(this.pvy)
 
     const speed = Math.sqrt(vx * vx + vy * vy)
 

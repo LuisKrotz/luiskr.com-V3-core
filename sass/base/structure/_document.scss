@@ -189,3 +189,33 @@ main {
     min-height: 100vh;
   }
 }
+
+// Reader-mode content — the prerendered <article class="reader-content">
+// emitted into #app. Before the SPA mounts it IS the page, so it gets a
+// readable baseline (constrained measure, comfortable rhythm). After
+// mount, main.ts hoists it out of #app and adds --offscreen: the copy
+// stays DOM-present for reader mode and AI agents (Readability cannot
+// pierce the app's shadow DOM) without being painted or intercepting
+// input. Not aria-hidden — that would filter it out of Readability too.
+.reader-content {
+  max-width: 75ch;
+  margin: 0 auto;
+  padding: var(--space-lg);
+  line-height: 1.6;
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  &--offscreen {
+    position: absolute;
+    right: 100vw;
+    top: 0;
+    width: 75ch;
+    height: 100vh;
+    overflow: hidden;
+    pointer-events: none;
+  }
+}

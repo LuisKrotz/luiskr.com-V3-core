@@ -27,4 +27,8 @@ export const MEDIA = Object.freeze({
   VIDEO_THUMB_EXT: '.mp4.jpg-thumb.jpg',
   /** 2× scale-down video variant suffix */
   VIDEO_SCALE: '.mp4-scaledown-2x',
+  /** Compressed image extension — webp sibling of every .jpg asset */
+  WEBP_EXT: '.webp',
+  /** Compressed video extension — webm sibling of every .mp4 asset */
+  WEBM_EXT: '.webm',
 })

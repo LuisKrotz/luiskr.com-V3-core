@@ -23,4 +23,5 @@ export const STATE_CLASSES = Object.freeze({
   SHOW_GRID: 'show-grid',
   PAGE_FADE_IN: 'page-fade-in',
   PAGE_FADE_OUT: 'page-fade-out',
+  CYRILLIC_FONT: 'cyrillic-font',
 })

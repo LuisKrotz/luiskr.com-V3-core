@@ -162,3 +162,29 @@ export const CLIPBOARD_EVENTS = Object.freeze({
   VISIBILITY_CHANGE: 'visibilitychange',
   BEFORE_PRINT: 'beforeprint',
 })
+
+/**
+ * Frozen service-worker event/state map — registration lifecycle
+ * (`updatefound` on the registration, `statechange`/`installed` on the
+ * installing worker) plus window online/offline. Local replacement for
+ * the retired `register-service-worker` dependency.
+ */
+export const SW_EVENTS = Object.freeze({
+  UPDATE_FOUND: 'updatefound',
+  STATE_CHANGE: 'statechange',
+  ONLINE: 'online',
+  OFFLINE: 'offline',
+})
+
+/** ServiceWorker state strings + registration plumbing constants. */
+export const SW_STRINGS = Object.freeze({
+  INSTALLED: 'installed',
+  /** Content-type fragment a valid SW script must answer with. */
+  SCRIPT_MIME: 'javascript',
+  /** Response header read by the localhost validity probe. */
+  CONTENT_TYPE: 'content-type',
+  /** Request header sent by the localhost probe (mirrors real SW fetches). */
+  PROBE_HEADER: 'Service-Worker',
+  /** Probe header value — browsers tag SW script requests this way. */
+  PROBE_VALUE: 'script',
+})

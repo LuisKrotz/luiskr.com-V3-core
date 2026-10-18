@@ -66,4 +66,8 @@ export const DB_PATHS = Object.freeze({
 export const ASSET_PATHS = Object.freeze({
   FLAGS_PREFIX: '/assets/flags/',
   SVG_EXT: '.svg',
+  /** wasm-pack `--target web` artifacts — JS glue beside the .wasm. */
+  WASM_OVERLAY_PREFIX: '/wasm/overlay/',
+  /** `rust/diagram` artifacts — the mermaid-subset SVG engine. */
+  WASM_DIAGRAM_PREFIX: '/wasm/diagram/',
 })

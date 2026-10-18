@@ -4,7 +4,13 @@
  * stripping, entity escaping, slug folding and the meta-description
  * compactor used by route head-sync and the locale-page generator.
  */
-import { stripHtml, escapeHtml, slugify, toMetaDescription } from '@core/utils/string.js'
+import {
+  stripHtml,
+  escapeHtml,
+  slugify,
+  mediaSlugSeq,
+  toMetaDescription,
+} from '@core/utils/string.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 
 describe('string utils tails', () => {
@@ -27,6 +33,23 @@ describe('string utils tails', () => {
     expect(slugify('  Sp ace_thing  ')).toBe('sp-ace-thing')
     expect(slugify('')).toBe(CHAR_STRINGS.EMPTY)
     expect(slugify(null)).toBe(CHAR_STRINGS.EMPTY)
+  })
+
+  test('slugify transliterates Cyrillic labels into latin slugs', () => {
+    expect(slugify('фон бренда и структура макета')).toBe('fon-brenda-i-struktura-maketa')
+    expect(slugify('Мелисса')).toBe('melissa')
+    expect(slugify('вся страница')).toBe('vsya-stranica')
+  })
+
+  test('mediaSlugSeq numbers repeated label slugs in document order', () => {
+    const seen = new Map()
+
+    expect(mediaSlugSeq(seen, 'Fórum 2020, Full page')).toBe('forum-2020-full-page')
+    expect(mediaSlugSeq(seen, 'Fórum 2020: Full Page')).toBe('forum-2020-full-page-2')
+    expect(mediaSlugSeq(seen, 'forum 2020 FULL PAGE')).toBe('forum-2020-full-page-3')
+    expect(mediaSlugSeq(seen, 'Mobile tour')).toBe('mobile-tour')
+    expect(mediaSlugSeq(seen, '!!!')).toBe(CHAR_STRINGS.EMPTY)
+    expect(mediaSlugSeq(seen, '')).toBe(CHAR_STRINGS.EMPTY)
   })
 
   test('toMetaDescription strips markup, decodes entities, collapses whitespace', () => {

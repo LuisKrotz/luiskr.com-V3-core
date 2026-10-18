@@ -30,7 +30,10 @@ describe('npu-predict', () => {
       new window.MouseEvent(POINTER_EVENTS.POINTERMOVE, { clientX: 200, clientY: 150 })
     )
 
-    expect(npuPredict.pointerVelocity).toBeTruthy()
+    // Scalar velocity state — lastP{X,Y,T}/pv{x,y}, no per-event objects.
+    expect(npuPredict.pvx).not.toBe(0)
+    expect(npuPredict.lastPX).toBe(200)
+    expect(npuPredict.lastPY).toBe(150)
   })
 
   test('preloadRouteAsset dedupes targets', async () => {

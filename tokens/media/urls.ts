@@ -15,6 +15,8 @@ export const CDN_URLS = Object.freeze({
   CDN_BASE: 'https://storage.googleapis.com/luiskr.com/public/_v3/',
   FLAG_CDN: 'https://flagcdn.com/',
   FIREBASE_DB: 'https://luiskr-com.firebaseio.com',
+  /** Build-time bucket key list — same-origin JSON, gates webp/webm <source> emission. */
+  MEDIA_MANIFEST: '/meta/media-manifest.json',
 })
 
 /**

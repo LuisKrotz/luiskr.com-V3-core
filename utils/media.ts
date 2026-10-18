@@ -98,6 +98,32 @@ export const getOptimizedGravatar = (urlStr: string, size = 300): string => {
 }
 
 /**
+ * Derives the .webp sibling of a .jpg URL — the compressed-variant naming
+ * convention replaces only the extension, so the webp sits beside the
+ * original at the same path ("if webp exists" is decided by the request,
+ * no manifest lookup). Returns '' for non-.jpg input so callers can
+ * conditionally render a <source>.
+ * @param url JPG media URL.
+ * @returns The same URL with .webp instead of .jpg, or '' when not .jpg.
+ */
+export const webpSibling = (url: string): string =>
+  url.endsWith(MEDIA.EXT)
+    ? `${url.slice(0, -MEDIA.EXT.length)}${MEDIA.WEBP_EXT}`
+    : ATTR_VALUES.EMPTY
+
+/**
+ * Derives the .webm sibling of an .mp4 URL — same convention as
+ * webpSibling: `x.mp4` → `x.webm` and `x.mp4-scaledown-2x.mp4` →
+ * `x.mp4-scaledown-2x.webm`. Returns '' for non-.mp4 input.
+ * @param url MP4 media URL.
+ * @returns The same URL with .webm instead of .mp4, or '' when not .mp4.
+ */
+export const webmSibling = (url: string): string =>
+  url.endsWith(MEDIA.VIDEO_EXT)
+    ? `${url.slice(0, -MEDIA.VIDEO_EXT.length)}${MEDIA.WEBM_EXT}`
+    : ATTR_VALUES.EMPTY
+
+/**
  * Constructs media URLs for images and videos following the project's
  * compression pipeline. URL grammar:
  *   image source : storage + folder + src + '-mozjpg-uncompressed.jpg'   (full quality)

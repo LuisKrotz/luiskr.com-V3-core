@@ -84,7 +84,8 @@ function legalRoute(
   lang: string,
   path: string,
   linkIdx: number,
-  translation: string
+  translation: string,
+  canonical: string
 ): RouteDescriptor {
   const links = componentText(LEGAL_COMPONENT_KEYS.LEGAL_LINKS) as
     Array<{ page?: string }> | undefined
@@ -98,6 +99,7 @@ function legalRoute(
     {
       translation,
       legalRoute: true,
+      canonical,
     }
   )
 }
@@ -108,8 +110,15 @@ function legalRoute(
  * to that element id.
  */
 export function parsePath(pathname: string): RouteDescriptor {
-  const cleanPath =
+  const rawPath =
     pathname.split(CHAR_STRINGS.QUESTION)[0].split(CHAR_STRINGS.HASH)[0] || ROUTE_PATHS.ROOT
+
+  // Trailing slashes collapse into the canonical form so `/about/` both
+  // renders `/about` and declares `/about` as its canonical URL.
+  const cleanPath =
+    rawPath.length > 1 && rawPath.endsWith(CHAR_STRINGS.SLASH)
+      ? rawPath.replace(/\/+$/, CHAR_STRINGS.EMPTY)
+      : rawPath
 
   const segments = cleanPath.split(CHAR_STRINGS.SLASH).filter(Boolean)
 
@@ -124,6 +133,11 @@ export function parsePath(pathname: string): RouteDescriptor {
   }
 
   const slugs = routeSlugs(lang)
+
+  // Locale prefix every canonical path carries — '' for English (unprefixed),
+  // '/<loc>' otherwise. Legal/playground/star-field aliases all canonicalize
+  // onto the locale's LANG_SLUGS slug through this prefix.
+  const locPrefix = lang === LOCALES.EN ? CHAR_STRINGS.EMPTY : `${CHAR_STRINGS.SLASH}${lang}`
 
   // Root home
   if (pathSegments.length === 0) {
@@ -181,8 +195,6 @@ export function parsePath(pathname: string): RouteDescriptor {
     // Canonical path normalizes legacy alias slugs (rawSlug → projectSlug)
     // so /portfolio/brazilian-leather declares /portfolio/cicb instead of
     // competing with it in the index; the media segment rides along.
-    const locPrefix = lang === LOCALES.EN ? CHAR_STRINGS.EMPTY : `${CHAR_STRINGS.SLASH}${lang}`
-
     const canonical =
       `${locPrefix}${CHAR_STRINGS.SLASH}${ROUTE_PATHS.PORTFOLIO_SEGMENT}` +
       `${CHAR_STRINGS.SLASH}${projectSlug}${slug ? CHAR_STRINGS.SLASH + slug : CHAR_STRINGS.EMPTY}`
@@ -201,17 +213,33 @@ export function parsePath(pathname: string): RouteDescriptor {
     }
   }
 
-  // Check legal routes
+  // Check legal routes — English-segment and legacy aliases (`/terms`,
+  // `/privacy`, `/<loc>/privacy-policy`) all canonicalize onto the locale's
+  // LANG_SLUGS slug so they never compete with it in the index.
   if (
     first === slugs.privacy ||
     first === ROUTE_STRINGS.PRIVACY ||
     first === ROUTE_STRINGS.PRIVACY_POLICY
   ) {
-    return legalRoute(ROUTE_NAMES.PRIVACY, lang, cleanPath, 1, TRANSLATION_KEYS.PRIVACY_POLICY)
+    return legalRoute(
+      ROUTE_NAMES.PRIVACY,
+      lang,
+      cleanPath,
+      1,
+      TRANSLATION_KEYS.PRIVACY_POLICY,
+      `${locPrefix}${CHAR_STRINGS.SLASH}${slugs.privacy}`
+    )
   }
 
   if (first === slugs.gdpr || first === ROUTE_STRINGS.GDPR) {
-    return legalRoute(ROUTE_NAMES.GDPR, lang, cleanPath, 2, TRANSLATION_KEYS.GDPR)
+    return legalRoute(
+      ROUTE_NAMES.GDPR,
+      lang,
+      cleanPath,
+      2,
+      TRANSLATION_KEYS.GDPR,
+      `${locPrefix}${CHAR_STRINGS.SLASH}${slugs.gdpr}`
+    )
   }
 
   if (
@@ -219,15 +247,30 @@ export function parsePath(pathname: string): RouteDescriptor {
     first === ROUTE_STRINGS.TERMS ||
     first === ROUTE_STRINGS.TERMS_OF_USE
   ) {
-    return legalRoute(ROUTE_NAMES.TERMS, lang, cleanPath, 3, TRANSLATION_KEYS.TERMS_OF_USE)
+    return legalRoute(
+      ROUTE_NAMES.TERMS,
+      lang,
+      cleanPath,
+      3,
+      TRANSLATION_KEYS.TERMS_OF_USE,
+      `${locPrefix}${CHAR_STRINGS.SLASH}${slugs.terms}`
+    )
   }
 
   if (first === slugs.license || first === ROUTE_STRINGS.LICENSE) {
-    return legalRoute(ROUTE_NAMES.LICENSE, lang, cleanPath, 4, TRANSLATION_KEYS.LICENSE)
+    return legalRoute(
+      ROUTE_NAMES.LICENSE,
+      lang,
+      cleanPath,
+      4,
+      TRANSLATION_KEYS.LICENSE,
+      `${locPrefix}${CHAR_STRINGS.SLASH}${slugs.license}`
+    )
   }
 
   // Docs portal — English-only; the remaining segments address a node in
-  // the build-time manifest tree (docs/ reports/ coverage/ src/).
+  // the build-time manifest tree (docs/ reports/ coverage/ src/). The
+  // canonical strips any locale prefix: `/<loc>/docs/x` declares `/docs/x`.
   if (first === ROUTE_PATHS.DOCS_SEGMENT) {
     return {
       name: ROUTE_NAMES.DOCS,
@@ -238,12 +281,14 @@ export function parsePath(pathname: string): RouteDescriptor {
         title: `${BASE_TITLE} ${CHAR_STRINGS.PIPE_SEP} ${ROUTE_NAMES.DOCS}`,
         translation: TRANSLATION_KEYS.DOCS,
         docsRoute: true,
+        canonical: `${CHAR_STRINGS.SLASH}${pathSegments.join(CHAR_STRINGS.SLASH)}`,
       },
       params: { docsPath: pathSegments.slice(1).join(CHAR_STRINGS.SLASH) },
     }
   }
 
-  // Earth / Space Playground
+  // Earth / Space Playground — `/space-playground` and English-segment
+  // aliases under a locale canonicalize onto the locale's real slug.
   if (
     first === slugs.earthPlayground ||
     first === ROUTE_PATHS.EARTH_PLAYGROUND_SEGMENT ||
@@ -257,6 +302,7 @@ export function parsePath(pathname: string): RouteDescriptor {
       meta: {
         title: `${String(appText(CMS_KEYS.EARTH_PLAYGROUND))} ${CHAR_STRINGS.PIPE_SEP} ${BASE_TITLE}`,
         translation: TRANSLATION_KEYS.EARTH_PLAYGROUND,
+        canonical: `${locPrefix}${CHAR_STRINGS.SLASH}${slugs.earthPlayground}`,
       },
       params: {},
     }
@@ -264,7 +310,9 @@ export function parsePath(pathname: string): RouteDescriptor {
 
   // Star-field experiment — optional body segment deep-links straight
   // to a catalog object (/star-field-experiment/mars); the component
-  // validates it against the catalog and ignores unknown ids.
+  // validates it against the catalog and ignores unknown ids. Body
+  // deep links are translated routes: the canonical keeps the locale's
+  // own starField slug (`/<loc>/<starField>/<body>`).
   if (first === slugs.starField || first === ROUTE_PATHS.STAR_FIELD_SEGMENT) {
     return {
       name: ROUTE_NAMES.STAR_FIELD,
@@ -274,6 +322,9 @@ export function parsePath(pathname: string): RouteDescriptor {
       meta: {
         title: `${String(appText(CMS_KEYS.STAR_FIELD))} ${CHAR_STRINGS.PIPE_SEP} ${BASE_TITLE}`,
         translation: TRANSLATION_KEYS.STAR_FIELD,
+        canonical: `${locPrefix}${CHAR_STRINGS.SLASH}${slugs.starField}${
+          pathSegments[1] ? `${CHAR_STRINGS.SLASH}${pathSegments[1]}` : CHAR_STRINGS.EMPTY
+        }`,
       },
       params: pathSegments[1] ? { body: pathSegments[1] } : {},
     }

@@ -151,6 +151,13 @@
   --font-mono: #{$font-mono};
   --font-primary: 'Raleway', sans-serif;
 
+  // Cyrillic surface — Russian pages swap the whole type stack to Fira
+  // Sans (Raleway's letterforms are latin-first; Fira carries native
+  // cyrillic coverage). The class is toggled at boot + on locale commits.
+  &.cyrillic-font {
+    --font-primary: 'Fira Sans', sans-serif;
+  }
+
   /* Abbreviated CSS custom property mappings for optimized footprint */
   /* --bg-primary -> --bg-1 */
   --bg-1: var(--bg-primary);

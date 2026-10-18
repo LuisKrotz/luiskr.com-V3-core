@@ -12,6 +12,7 @@ import { _B_NAV, _K_DIALOG, _K_INPUT, _K_STYLE, _K_TITLE } from '../base.js'
  */
 export const HTML_TAGS = Object.freeze({
   FIGURE: 'figure',
+  ARTICLE: 'article',
   VIDEO: 'video',
   IMG: 'img',
   IFRAME: 'iframe',

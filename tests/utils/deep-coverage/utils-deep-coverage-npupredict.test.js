@@ -83,13 +83,35 @@ describe('npuPredict', () => {
   })
 
   test('pointer velocity tracking updates on pointermove', () => {
-    npuPredict.lastPointer = { x: 0, y: 0, time: Date.now() - 10 }
+    // Scalar velocity state — the predictor keeps lastP{X,Y,T}/pv{x,y}
+    // scalars so a 1000Hz pointermove stream allocates nothing.
+    npuPredict.lastPX = 0
+    npuPredict.lastPY = 0
+    npuPredict.lastPT = Date.now() - 10
 
     window.dispatchEvent(
       new window.PointerEvent(POINTER_EVENTS.POINTERMOVE, { clientX: 100, clientY: 50 })
     )
 
-    expect(npuPredict.pointerVelocity.vx).not.toBe(0)
+    expect(npuPredict.pvx).not.toBe(0)
+    expect(npuPredict.lastPX).toBe(100)
+    expect(npuPredict.lastPY).toBe(50)
+
+    // Coalesced packet — the freshest sample (last entry) drives the
+    // velocity estimate, the intermediate points are ignored.
+    const packet = new window.PointerEvent(POINTER_EVENTS.POINTERMOVE, {
+      clientX: 1,
+      clientY: 1,
+    })
+
+    packet.getCoalescedEvents = () => [
+      { clientX: 220, clientY: 210 },
+      { clientX: 200, clientY: 190 },
+    ]
+    window.dispatchEvent(packet)
+
+    expect(npuPredict.lastPX).toBe(200)
+    expect(npuPredict.lastPY).toBe(190)
   })
 
   test('getNpuAnalytics returns the metrics snapshot', () => {

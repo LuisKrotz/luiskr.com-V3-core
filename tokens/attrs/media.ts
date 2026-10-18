@@ -41,6 +41,8 @@ export const MEDIA_ATTRS = Object.freeze({
   DISABLE_PICTURE_IN_PICTURE: 'disablePictureInPicture',
   DRAGGABLE: 'draggable',
   VIDEO_MP4: 'video/mp4',
+  VIDEO_WEBM: 'video/webm',
+  IMAGE_WEBP: 'image/webp',
   AUDIO_OGG: 'audio/ogg',
   AUDIO_MPEG: 'audio/mpeg',
 })

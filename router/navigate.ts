@@ -107,7 +107,9 @@ export function syncDocumentHead(to: RouteDescriptor): void {
 
   const cleanPath = to.path === ROUTE_PATHS.ROOT ? CHAR_STRINGS.EMPTY : to.path
 
-  const canonicalUrl = `${NET_STRINGS.SITE_URL}${to.meta.canonical || cleanPath}`
+  // Root keeps the trailing slash — sitemap.xml and the prerendered
+  // documents all declare `https://luiskr.com/`.
+  const canonicalUrl = `${NET_STRINGS.SITE_URL}${to.meta.canonical || cleanPath || ROUTE_PATHS.ROOT}`
 
   canonicalEl.setAttribute(LINK_ATTRS.HREF, canonicalUrl)
 

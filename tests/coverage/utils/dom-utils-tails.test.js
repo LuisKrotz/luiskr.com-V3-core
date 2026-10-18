@@ -4,7 +4,14 @@
  */
 import _router from '@core/router/router.js'
 
-import { deepQuerySelector, deepQuerySelectorAll } from '@core/utils/dom.js'
+import {
+  deepQuerySelector,
+  deepQuerySelectorAll,
+  viewportWidth,
+  resetViewportCache,
+  flushLayout,
+  isIntentionalFlush,
+} from '@core/utils/dom.js'
 
 import '@website/views/legal/Legal.js'
 import '@website/views/home/Home.js'
@@ -79,5 +86,47 @@ describe('dom-utils tails', () => {
 
     expect(svgPlaceholder()).toContain(SVG_STRINGS.SVG_DATA_URI_PREFIX)
     expect(svgPlaceholder(10, 20)).toContain(encodeURIComponent('10 20'))
+  })
+
+  test('viewportWidth memoizes per task and resets on microtask + hook', async () => {
+    resetViewportCache()
+
+    const first = viewportWidth()
+
+    expect(first).toBe(window.innerWidth)
+    expect(viewportWidth()).toBe(first)
+
+    // The queued microtask invalidates — next task re-reads innerWidth.
+    await Promise.resolve()
+    expect(viewportWidth()).toBe(window.innerWidth)
+
+    resetViewportCache()
+    expect(viewportWidth()).toBe(window.innerWidth)
+  })
+
+  test('viewportWidth returns 0 without a window (SSR arm)', () => {
+    const prevWindow = globalThis.window
+
+    resetViewportCache()
+    delete globalThis.window
+
+    try {
+      expect(viewportWidth()).toBe(0)
+    } finally {
+      globalThis.window = prevWindow
+      resetViewportCache()
+    }
+  })
+
+  test('flushLayout marks the intentional window and returns offsetHeight', () => {
+    const el = document.createElement(HTML_TAGS.DIV)
+
+    document.body.appendChild(el)
+
+    expect(isIntentionalFlush()).toBe(false)
+    expect(flushLayout(el)).toBe(el.offsetHeight)
+    expect(isIntentionalFlush()).toBe(false)
+
+    el.remove()
   })
 })

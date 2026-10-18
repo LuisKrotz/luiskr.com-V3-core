@@ -4,6 +4,7 @@
  */
 import { describe, test, expect, jest, afterEach } from '@jest/globals'
 import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
+import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
 const cssVarsMock = jest.fn()
 const ResizeObserverShim = class MockRO {
@@ -21,7 +22,25 @@ jest.unstable_mockModule('intersection-observer', () => ({}))
 
 const registerMock = jest.fn()
 
-jest.unstable_mockModule('register-service-worker', () => ({ register: registerMock }))
+// The register entry is stubbed; `dropStaleServiceWorkers` keeps real
+// semantics inline (requireActual is unusable on async ESM factories) —
+// the suite asserts it unregisters live registrations.
+jest.unstable_mockModule('@core/utils/service-worker.js', () => ({
+  registerSiteServiceWorker: registerMock,
+  dropStaleServiceWorkers: () => {
+    const sw = typeof navigator === TYPE_STRINGS.UNDEFINED ? undefined : navigator.serviceWorker
+
+    if (!sw || typeof sw.getRegistrations !== TYPE_STRINGS.FUNCTION) return
+
+    sw.getRegistrations()
+      .then((registrations) => {
+        for (const registration of registrations) {
+          void registration.unregister()
+        }
+      })
+      .catch(() => {})
+  },
+}))
 
 /** Stashed globals, restored after each test. Descriptors are captured
  * (not values) so accessor properties like HTMLElement.prototype.inert
