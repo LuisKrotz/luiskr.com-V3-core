@@ -118,6 +118,9 @@ export const DOCS_UNITS = Object.freeze({
   SCENE_DIR_OPACITY: 0.5,
   SCENE_FILE_OPACITY: 0.28,
   SCENE_LINE_OPACITY: 0.22,
+  /** scene3d edge ribbons — half-width of the cross-quad strips that
+   *  stand in for 1px LineSegments under the engine (chart units) */
+  SCENE_EDGE_HALF: 0.08,
   /** active-location highlight — the node matching the open docsPath pops
    *  to near-full alpha with a larger pulse; ancestor dirs along its path
    *  lift a notch above the base dir alpha so the branch reads. */
