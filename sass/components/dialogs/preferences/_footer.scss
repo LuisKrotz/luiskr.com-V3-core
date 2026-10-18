@@ -69,6 +69,23 @@
       height: calc(100% - #{to-rem($space-2xs)});
     }
   }
+
+  // WebGPU corner-bracket overlay — the rust/corner-brackets canvas is
+  // an inset:0 child that repaints both L brackets once mounted; the
+  // pseudo-element brackets drop out while the canvas is live.
+  &-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  &:has(> .pref-done-btn-canvas:not(.is-fallback))::before,
+  &:has(> .pref-done-btn-canvas:not(.is-fallback))::after {
+    content: none;
+  }
 }
 
 // Vue modal transition

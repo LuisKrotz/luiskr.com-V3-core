@@ -33,4 +33,8 @@ export const HOME_MOSAIC_CLASSES = Object.freeze({
   HOME_MOSAIC_DETAILS: `${_B_HOME_MOSAIC}-details`,
   HOME_MOSAIC_DESC: `${_B_HOME_MOSAIC}-desc`,
   HOME_MOSAIC_BTN: `${_B_HOME_MOSAIC}-btn`,
+  /** WebGPU overlay canvas for the corner-bracket widget on card CTAs. */
+  HOME_MOSAIC_BTN_CANVAS: `${_B_HOME_MOSAIC}-btn-canvas`,
+  /** WebGPU overlay canvas for the instanced border-sheen rings. */
+  HOME_MOSAIC_RING_CANVAS: `${_B_HOME_MOSAIC}-ring-canvas`,
 })

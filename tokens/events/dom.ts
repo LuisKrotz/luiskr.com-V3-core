@@ -128,6 +128,7 @@ export const MEDIA_EVENTS = Object.freeze({
  */
 export const ANIMATION_EVENTS = Object.freeze({
   TRANSITIONEND: 'transitionend',
+  TRANSITIONSTART: 'transitionstart',
   ANIMATIONEND: 'animationend',
 })
 

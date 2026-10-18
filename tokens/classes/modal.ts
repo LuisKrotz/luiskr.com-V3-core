@@ -49,4 +49,6 @@ export const EXPAND_MODAL_CLASSES = Object.freeze({
   EXPAND_MODAL_MEDIA_ITEM_VIDEO: `${_B_EXPAND_MODAL_MEDIA_ITEM}--video`,
   EXPAND_MODAL_OPEN_1: `${_B_EXPAND_MODAL}-open-1`,
   EXPAND_MODAL_OPEN_2: `${_B_EXPAND_MODAL}-open-2`,
+  /** WebGPU overlay canvas shared by the modal's corner-bracket buttons. */
+  EXPAND_MODAL_BRACKET_CANVAS: `${_B_EXPAND_MODAL}-bracket-canvas`,
 })

@@ -20,6 +20,8 @@ export const FOOTER_CLASSES = Object.freeze({
   FOOTER_DOCS_DESC: `${_B_FOOTER_SOURCE}-docs-desc`,
   /** Self-made credit + copyright block below the source row. */
   FOOTER_DIVIDER: `${_B_FOOTER_SOURCE}-divider`,
+  /** WebGPU overlay canvas for the divider sheen (`divider-sheen` widget). */
+  FOOTER_DIVIDER_CANVAS: `${_B_FOOTER_SOURCE}-divider-canvas`,
   FOOTER_CREDIT: `${_B_FOOTER_SOURCE}-credit`,
   FOOTER_RIGHTS: `${_B_FOOTER_SOURCE}-rights`,
 })

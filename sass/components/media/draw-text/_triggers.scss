@@ -56,3 +56,19 @@
   animation: char-draw 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 15ms));
 }
+
+// ── WebGPU overlay (rust/text-draw) ─────────────────────────────────────────
+// While --gpu is on the content span, the overlay canvas repaints every
+// glyph (one instanced draw for the whole stagger); the DOM char spans
+// keep their CSS animation advancing underneath but paint nothing, so
+// dropping the class at done-time lands on the identical rest state.
+.draw-text--gpu .draw-text__char {
+  visibility: hidden;
+}
+
+// The overlay canvas — the mount helper sizes/positions it inline over
+// the content box (absolute against the host's relative box).
+.draw-text__canvas {
+  position: absolute;
+  pointer-events: none;
+}

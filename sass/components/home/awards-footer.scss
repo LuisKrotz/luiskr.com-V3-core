@@ -128,6 +128,7 @@
 
 $_B_AFH: 'awards-footer-header';
 $_B_AFP: 'awards-footer-progress';
+$_B_FS: 'footer-source';
 
 @keyframes awards-progress-fill {
   from {
@@ -197,7 +198,7 @@ $_B_AFP: 'awards-footer-progress';
 }
 
 // Credits/source line.
-.footer-source {
+.#{$_B_FS} {
   @extend .ttl-xs;
 
   text-transform: uppercase;
@@ -317,13 +318,20 @@ $_B_AFP: 'awards-footer-progress';
       }
     }
 
-    // Shadow DOM: the store-driven html.reduced-motion flag can't pierce
-    // the boundary — host-context mirrors the media query.
-    :host-context(html.reduced-motion) & {
-      &::after {
-        animation: none;
-      }
+    // WebGPU sheen live — the rust/divider-sheen canvas draws the whole
+    // divider (hairline + traveling band); the <hr>'s own paint hides
+    // but keeps its box so the overlay overlay stays measurable.
+    &:has(+ .#{$_B_FS}-divider-canvas:not(.is-fallback)) {
+      visibility: hidden;
     }
+  }
+
+  // The divider's WebGPU overlay canvas — absolutely positioned over
+  // the <hr>'s box by the mount helper (inline left/top/width/height).
+  .#{$_B_FS}-divider-canvas {
+    position: absolute;
+    display: block;
+    pointer-events: none;
   }
 
   // Authorship lines — centered mini copy under the divider. Both lines

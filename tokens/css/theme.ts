@@ -21,6 +21,8 @@ export const THEME_CSS_PROPS = Object.freeze({
   MENU_BG: '--menu-bg',
   WHITE: '--white',
   BORDER_COLOR: '--border-color',
+  BORDER_ITEM_HOVER: '--border-item-hover',
+  SPACE_HAIRLINE: '--space-hairline',
   COLOR_ACCENT: '--color-accent',
   COLOR_ACCENT_CONTRAST: '--color-accent-contrast',
   FOCUS_RING: '--focus-ring',

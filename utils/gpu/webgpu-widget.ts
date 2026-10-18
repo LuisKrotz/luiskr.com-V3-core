@@ -40,8 +40,12 @@ export interface WasmWidget {
   resize(w: number, h: number): void
   /** Canvas CSS size — feeds the shader's res/rect uniforms. */
   set_size(w: number, h: number): void
-  /** One rAF tick; `dt` in seconds. */
-  frame(dt: number): void
+  /**
+   * One rAF tick; `dt` in seconds. Returns false when the surface is
+   * stale/lost (the caller disarms its loop); the wasm-pack signature
+   * declares `boolean | undefined`, so callers must tolerate undefined.
+   */
+  frame(dt: number): boolean
   /** Kind-specific setters — see each crate's lib.rs exports. */
   [key: string]: unknown
 }
@@ -179,7 +183,7 @@ function wire(widget: WasmWidget, canvas: HTMLCanvasElement, manual: boolean): W
     const w = Math.max(1, canvas.clientWidth)
     const h = Math.max(1, canvas.clientHeight)
 
-    if (typeof widget.set_size === 'function') {
+    if (typeof widget.set_size === TYPE_STRINGS.FUNCTION) {
       widget.set_size(w, h)
     }
 

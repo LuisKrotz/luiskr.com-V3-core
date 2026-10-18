@@ -46,6 +46,12 @@ export const AWC_CLASSES = Object.freeze({
   AWC_AWARD_IMG: `${_B_AWC_AWARD}-img`,
   AWC_AWARD_TEXT: `${_B_AWC_AWARD}-text`,
   AWC_SLIDE_CONTENT: `${_B_AWC}-slide-content`,
+  /** Corner-bracket action button inside CMS card content (explore variant). */
+  AWC_CARD_ACTION: `${_B_AWC}-card-action`,
+  /** Corner-bracket action button inside CMS card content (selected variant). */
+  AWC_LABEL_ACTION: `${_B_AWC}-label-action`,
+  /** WebGPU overlay canvas for the corner-bracket widget. */
+  AWC_ACTION_CANVAS: `${_B_AWC}-action-canvas`,
   AWC_AWARDS: `${_B_AWC}--awards`,
 })
 

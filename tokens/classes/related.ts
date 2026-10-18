@@ -21,4 +21,6 @@ export const RELATED_CLASSES = Object.freeze({
   RELATED_MOSAIC_INFO: `${_B_RELATED}-info`,
   RELATED_MOSAIC_TITLE: `${_B_RELATED}-title`,
   RELATED_MOSAIC_DESC: `${_B_RELATED}-desc`,
+  /** WebGPU overlay canvas for the instanced border-sheen rings. */
+  RELATED_MOSAIC_RING_CANVAS: `${_B_RELATED}-ring-canvas`,
 })

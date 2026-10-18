@@ -28,4 +28,22 @@
   @include layout-1920() {
     min-height: var(--space-8xl);
   }
+
+  // WebGPU ring-sheen overlay — the rust/ring-sheen canvas fills the
+  // container (JS sets the backing size to the container's device-px
+  // box); instanced SDF rings replace every tile's two pseudo layers.
+  &-ring-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  // Live GPU sheen — the tile pseudo rings drop out; the canvas draws
+  // them (grid-wide, one draw call).
+  &:has(> .home-mosaic-ring-canvas:not(.is-fallback)) .home-mosaic-item::before,
+  &:has(> .home-mosaic-ring-canvas:not(.is-fallback)) .home-mosaic-item::after {
+    content: none;
+  }
 }

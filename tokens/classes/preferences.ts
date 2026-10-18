@@ -45,6 +45,8 @@ export const PREF_CLASSES = Object.freeze({
   PREF_STAT_CARD: `${_B_PREF}-stat-card`,
   PREF_FOOTER: `${_B_PREF}-footer`,
   PREF_DONE_BTN: `${_B_PREF}-done-btn`,
+  /** WebGPU overlay canvas for the corner-bracket widget on the done button. */
+  PREF_DONE_BTN_CANVAS: `${_B_PREF}-done-btn-canvas`,
   PREF_SWITCH_ROW: `${_B_PREF_SWITCH}-row`,
   PREF_SWITCH_INFO: `${_B_PREF_SWITCH}-info`,
   PREF_SWITCH_LABEL: `${_B_PREF_SWITCH}-label`,

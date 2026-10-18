@@ -37,6 +37,16 @@ export const GPU_WIDGET_KINDS = Object.freeze({
   BURN: 8,
   /** Media surface — decoded image/video textured quad. */
   MEDIA: 9,
+  /** About portrait — VHS glitch corruption passes. */
+  GLITCH: 10,
+  /** Footer divider — hairline + traveling sheen band. */
+  DIVIDER_SHEEN: 11,
+  /** Draw-text — instanced per-char writing animation. */
+  TEXT_DRAW: 12,
+  /** Mosaic/related tiles — instanced border ring sheen. */
+  RING_SHEEN: 13,
+  /** Action buttons — corner-bracket expansion. */
+  CORNER_BRACKETS: 14,
 })
 
 /**
@@ -105,6 +115,36 @@ export const GPU_WIDGET_ARTIFACTS: Readonly<
     cls: 'Media',
     eager: false,
   }),
+  /** glitch — about-page VHS portrait corruption. */
+  [GPU_WIDGET_KINDS.GLITCH]: Object.freeze({
+    url: `${ASSET_PATHS.WASM_WIDGETS_PREFIX}glitch/luiskr_glitch.js`,
+    cls: 'Glitch',
+    eager: false,
+  }),
+  /** divider-sheen — footer hairline traveling band. */
+  [GPU_WIDGET_KINDS.DIVIDER_SHEEN]: Object.freeze({
+    url: `${ASSET_PATHS.WASM_WIDGETS_PREFIX}divider-sheen/luiskr_divider_sheen.js`,
+    cls: 'DividerSheen',
+    eager: false,
+  }),
+  /** text-draw — per-char writing animation over a raster atlas. */
+  [GPU_WIDGET_KINDS.TEXT_DRAW]: Object.freeze({
+    url: `${ASSET_PATHS.WASM_WIDGETS_PREFIX}text-draw/luiskr_text_draw.js`,
+    cls: 'TextDraw',
+    eager: false,
+  }),
+  /** ring-sheen — instanced mosaic/related tile border rings. */
+  [GPU_WIDGET_KINDS.RING_SHEEN]: Object.freeze({
+    url: `${ASSET_PATHS.WASM_WIDGETS_PREFIX}ring-sheen/luiskr_ring_sheen.js`,
+    cls: 'RingSheen',
+    eager: false,
+  }),
+  /** corner-brackets — button corner-bracket expansion. */
+  [GPU_WIDGET_KINDS.CORNER_BRACKETS]: Object.freeze({
+    url: `${ASSET_PATHS.WASM_WIDGETS_PREFIX}corner-brackets/luiskr_corner_brackets.js`,
+    cls: 'CornerBrackets',
+    eager: false,
+  }),
 })
 
 /**
@@ -127,6 +167,16 @@ export const GPU_WIDGET_UNIFORM_F32S = Object.freeze({
   [GPU_WIDGET_KINDS.MENU_BACKGROUND]: 16,
   /** skeleton: res(2), time, resolve, ink_alpha, count, pad(2), rect(4). */
   [GPU_WIDGET_KINDS.SKELETON]: 12,
+  /** glitch: res(2), time, hover, seed, cover(4), pad(7). */
+  [GPU_WIDGET_KINDS.GLITCH]: 16,
+  /** divider: res(2), time, pad, border(4), accent(4), rect(4). */
+  [GPU_WIDGET_KINDS.DIVIDER_SHEEN]: 16,
+  /** text-draw: res(2), time_ms, count, ink(4), pad(4). */
+  [GPU_WIDGET_KINDS.TEXT_DRAW]: 16,
+  /** ring-sheen: res(2), time, hair, edge(4), accent(4), pad(4). */
+  [GPU_WIDGET_KINDS.RING_SHEEN]: 16,
+  /** corner: res(2), hover, hair, arm0(2), arm1(2), edge(4), accent(4). */
+  [GPU_WIDGET_KINDS.CORNER_BRACKETS]: 16,
 })
 
 /**

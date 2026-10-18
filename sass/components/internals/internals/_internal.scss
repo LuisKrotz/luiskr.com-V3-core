@@ -642,9 +642,26 @@
           }
         }
 
+        // WebGPU sheen live — the rust/divider-sheen canvas draws the
+        // whole divider (hairline + traveling band); the <hr>'s own
+        // paint hides but keeps its box so the overlay stays
+        // measurable.
+        &:has(+ .internal-footer-items-divider-canvas:not(.is-fallback)) {
+          visibility: hidden;
+        }
+
         @include layout-1024() {
           margin-top: var(--space-3xl);
         }
+      }
+
+      // The divider's WebGPU overlay canvas — absolutely positioned
+      // over the <hr>'s box by the mount helper (inline
+      // left/top/width/height).
+      &-divider-canvas {
+        position: absolute;
+        display: block;
+        pointer-events: none;
       }
 
       @keyframes internal-footer-divider-sheen {

@@ -217,6 +217,23 @@
         width: calc(100% - #{to-rem($space-xs)});
         height: calc(100% - #{to-rem($space-xs)});
       }
+
+      // WebGPU corner-bracket overlay — the rust/corner-brackets canvas
+      // repaints both L brackets once mounted inside the action; the
+      // pseudo-element brackets drop out while the canvas is live.
+      .aw-c-action-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      &:has(> .aw-c-action-canvas:not(.is-fallback))::before,
+      &:has(> .aw-c-action-canvas:not(.is-fallback))::after {
+        content: none;
+      }
     }
   }
 
