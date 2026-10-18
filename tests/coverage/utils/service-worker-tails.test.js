@@ -8,7 +8,7 @@
  * registration failure, and the online/offline window relays.
  */
 import { describe, test, expect, jest, afterEach } from '@jest/globals'
-import { SW_EVENTS, SW_STRINGS, WINDOW_EVENTS } from '@core/tokens/events/dom.js'
+import { SW_EVENTS, SW_STRINGS } from '@core/tokens/events/dom.js'
 import { registerSiteServiceWorker, dropStaleServiceWorkers } from '@core/utils/service-worker.js'
 
 /** Stashed property descriptors restored after each test. */
@@ -123,6 +123,32 @@ describe('registerSiteServiceWorker', () => {
     expect(hooks.online).toHaveBeenCalled()
   })
 
+  test('statechange before installed resolves nothing', async () => {
+    const registration = makeRegistration()
+    const hooks = { cached: jest.fn(), updated: jest.fn() }
+
+    stubSw({ ready: Promise.resolve(registration), register: jest.fn(async () => registration) })
+    await registerSiteServiceWorker('/sw.js', hooks)
+
+    registration.attachInstalling()
+    registration.fireUpdatefound()
+
+    // Mid-install statechange (still 'installing') must NOT resolve
+    // cached/updated — only the 'installed' transition does.
+    registration.installing.listeners[SW_EVENTS.STATE_CHANGE]?.()
+
+    expect(hooks.cached).not.toHaveBeenCalled()
+    expect(hooks.updated).not.toHaveBeenCalled()
+  })
+
+  test('no-ops when navigator itself is undefined', async () => {
+    saveKey('navigator')
+    Object.defineProperty(globalThis, 'navigator', { value: undefined, configurable: true })
+
+    await expect(registerSiteServiceWorker('/sw.js')).resolves.toBeUndefined()
+    expect(() => dropStaleServiceWorkers()).not.toThrow()
+  })
+
   test('updatefound with no installing worker still emits the event', async () => {
     const registration = makeRegistration()
     const hooks = { updatefound: jest.fn() }
@@ -232,5 +258,12 @@ describe('dropStaleServiceWorkers', () => {
     await Promise.resolve()
 
     expect(unregister).toHaveBeenCalledTimes(2)
+  })
+
+  test('getRegistrations rejection is swallowed (best-effort cleanup)', async () => {
+    stubSw({ getRegistrations: async () => Promise.reject(new Error('denied')) })
+
+    expect(() => dropStaleServiceWorkers()).not.toThrow()
+    await Promise.resolve()
   })
 })

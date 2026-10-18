@@ -18,10 +18,6 @@ jest.unstable_mockModule('@webcomponents/webcomponentsjs', () => ({}))
 jest.unstable_mockModule('whatwg-fetch', () => ({}))
 jest.unstable_mockModule('intersection-observer', () => ({}))
 
-const registerMock = jest.fn()
-
-jest.unstable_mockModule('register-service-worker', () => ({ register: registerMock }))
-
 /** Stashed globals, restored after each test. Descriptors are captured
  * (not values) so accessor properties like HTMLElement.prototype.inert
  * don't invoke their getter against the prototype itself. */
