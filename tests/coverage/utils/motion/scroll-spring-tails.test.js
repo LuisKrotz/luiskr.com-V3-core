@@ -194,4 +194,20 @@ describe('scroll-spring tails', () => {
 
     expect(el.scrollLeft).toBe(0)
   })
+
+  test('cancelSpringScroll clears a state whose frame never armed', () => {
+    // A rAF returning 0 leaves the state registered with raf = 0 — the
+    // cancel path must still lift the class and drop the state.
+    const el = makeTrack()
+
+    globalThis.requestAnimationFrame = () => 0
+
+    springScrollTo(el, 400, ANIM)
+
+    expect(el.classList.contains(ANIM)).toBe(true)
+
+    cancelSpringScroll(el, ANIM)
+
+    expect(el.classList.contains(ANIM)).toBe(false)
+  })
 })

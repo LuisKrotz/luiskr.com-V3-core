@@ -98,6 +98,28 @@ export const getOptimizedGravatar = (urlStr: string, size = 300): string => {
 }
 
 /**
+ * Percent-encodes a media URL for attribute/markup emission — bucket keys
+ * can carry literal spaces ('brazilian leather/…', '…PARIS FASHION-WEEK…')
+ * and non-ASCII ('garçonne'), which the bucket serves fine but which break
+ * <source srcset> candidates (its grammar splits on whitespace) and
+ * RFC-3986-strict contexts (sitemap locs, JSON-LD image/contentUrl).
+ * Idempotent: already-encoded input decodes first, so a %20 never
+ * becomes %2520 (encodeURI escapes '%' itself). Malformed escapes make
+ * decodeURI throw — the catch emits the input with bare '%' → %25.
+ * @param url Raw or encoded media URL (may contain spaces/non-ASCII).
+ * @returns The emission-safe URL ('' stays '').
+ */
+export const encodeMediaUrl = (url: string): string => {
+  if (!url) return url
+
+  try {
+    return encodeURI(decodeURI(url))
+  } catch {
+    return encodeURI(url)
+  }
+}
+
+/**
  * Derives the .webp sibling of a .jpg URL — the compressed-variant naming
  * convention replaces only the extension, so the webp sits beside the
  * original at the same path ("if webp exists" is decided by the request,
@@ -152,13 +174,19 @@ export const buildMediaUrls = (
   // the caller's `|| placeholder` handling can reject — never 'undefined'.
   const srcPath = (folder || ATTR_VALUES.EMPTY) + (item.src || ATTR_VALUES.EMPTY)
 
-  const source = isVideo
-    ? `${storage}${srcPath}${MEDIA.VIDEO_EXT}`
-    : `${storage}${srcPath}${MEDIA.MOZ}${MEDIA.Q100}${MEDIA.EXT}`
+  // Outputs are emission-encoded — schema JSON-LD and attribute consumers
+  // both receive canonical URLs; the raw-space bucket form never leaks.
+  const source = encodeMediaUrl(
+    isVideo
+      ? `${storage}${srcPath}${MEDIA.VIDEO_EXT}`
+      : `${storage}${srcPath}${MEDIA.MOZ}${MEDIA.Q100}${MEDIA.EXT}`
+  )
 
-  const thumb = isVideo
-    ? `${storage}${srcPath}${MEDIA.VIDEO_THUMB_EXT}`
-    : `${storage}${srcPath}${MEDIA.MOZ}${MEDIA.THUMB_SUFFIX}${MEDIA.EXT}`
+  const thumb = encodeMediaUrl(
+    isVideo
+      ? `${storage}${srcPath}${MEDIA.VIDEO_THUMB_EXT}`
+      : `${storage}${srcPath}${MEDIA.MOZ}${MEDIA.THUMB_SUFFIX}${MEDIA.EXT}`
+  )
 
   return { source, thumb, isVideo }
 }

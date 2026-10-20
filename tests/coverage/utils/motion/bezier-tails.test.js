@@ -57,6 +57,44 @@ describe('cubicBezier tails', () => {
     expect(y).toBeCloseTo(0.0032, 2)
   })
 
+  test('zero tangent at the Newton seed — break arm, then bisection', () => {
+    // x1 = 1, x2 = 2 → slope(s) = 3 − 6s² which is exactly 0 at
+    // s = 1/√2. Seeding s = x = Math.SQRT1_2 makes the first Newton
+    // iteration hit |d| < 1e-6 → break → bisection resolves the root.
+    const ease = cubicBezier(1, 0, 2, 0)
+
+    const y = ease(Math.SQRT1_2)
+
+    expect(Number.isFinite(y)).toBe(true)
+    expect(y).toBeGreaterThanOrEqual(0)
+    expect(y).toBeLessThanOrEqual(1)
+  })
+
+  test('flat approach overshoots the Newton step above 1 — s>1 clamp arm', () => {
+    // x1 = 0, x2 = 0.05 keeps the x-curve far below x at the seed while
+    // the tangent stays shallow (d ≈ 0.32 at s = 0.3) so the Newton
+    // step s − err/d overshoots to ~1.13 and the s > 1 clamp rescues it.
+    const ease = cubicBezier(0, 0.5, 0.05, 0.5)
+
+    const y = ease(0.3)
+
+    expect(Number.isFinite(y)).toBe(true)
+    expect(y).toBeGreaterThanOrEqual(0)
+    expect(y).toBeLessThanOrEqual(1)
+  })
+
+  test('negative first control point pulls Newton below zero — s<0 clamp arm', () => {
+    // x1 = −0.5, x2 = 1.5 → the tangent at small s is negative, so the
+    // Newton step s − err/d flips negative and the clamp rescues it.
+    const ease = cubicBezier(-0.5, 0.5, 1.5, 0.5)
+
+    const y = ease(0.05)
+
+    expect(Number.isFinite(y)).toBe(true)
+    expect(y).toBeGreaterThanOrEqual(0)
+    expect(y).toBeLessThanOrEqual(1)
+  })
+
   test('bisection converges on a steep curve', () => {
     const ease = cubicBezier(0.9, 0, 0.1, 1)
 

@@ -349,6 +349,194 @@ describe('webgpu-widget render-worker route', () => {
     expect(worker.posted.some((m) => m.data.type === 'destroy')).toBe(true)
   })
 
+  it('malformed worker messages take the empty-data and missing-id arms', async () => {
+    const canvas = transferableCanvas()
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas)
+
+    expect(h).not.toBeNull()
+
+    const worker = FakeWorker.last
+
+    worker.onmessage({})
+    worker.onmessage({ data: {} })
+    worker.onmessage({ data: { type: 'mounted' } })
+    worker.onmessage({ data: { type: 'mount-fail' } })
+    worker.onmessage({ data: { type: 'call-result' } })
+    worker.onmessage({ data: { type: 'probe-result' } })
+    worker.onmessage({ data: { type: 'dead' } })
+    worker.onmessage({ data: { type: 'frame-result', alive: false } })
+    worker.onmessage({ data: { type: 'unrelated' } })
+
+    h.destroy()
+  })
+
+  it('call args transfer .buffer payloads and evaluate the ImageBitmap arm', async () => {
+    const PrevIB = globalThis.ImageBitmap
+
+    globalThis.ImageBitmap = class ImageBitmap {}
+
+    const canvas = transferableCanvas()
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas)
+    const worker = FakeWorker.last
+    const buf = new ArrayBuffer(4)
+
+    // An arg carrying a .buffer (typed-array shape) transfers the buffer.
+    await h.widget.upload({ buffer: buf })
+
+    const callMsg = worker.posted.find((m) => m.data.m === 'upload')
+
+    expect(callMsg.transfer).toContain(buf)
+
+    // A plain-object arg evaluates every operand and transfers nothing.
+    await h.widget.configure({})
+
+    const plainMsg = worker.posted.find((m) => m.data.m === 'configure')
+
+    expect(plainMsg.transfer).toEqual([])
+
+    globalThis.ImageBitmap = PrevIB
+    h.destroy()
+  })
+
+  it('call and probe deadlines resolve null', async () => {
+    const canvas = transferableCanvas()
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas)
+
+    // No call/probe-frame replies — the reply timers must expire.
+    FakeWorker.responder = () => null
+
+    jest.useFakeTimers()
+
+    try {
+      const callP = h.widget.tap()
+      const probeP = h.probe(10)
+
+      await jest.advanceTimersByTimeAsync(WASM_POOL.REPLY_TIMEOUT_MS + 1)
+
+      expect(await callP).toBeNull()
+      expect(await probeP).toBeNull()
+    } finally {
+      jest.useRealTimers()
+      h.destroy()
+    }
+  })
+
+  it('a probe-result without numeric coverage resolves null', async () => {
+    const canvas = transferableCanvas()
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas)
+
+    FakeWorker.responder = (d) =>
+      d.type === 'probe-frame' ? { type: 'probe-result', replyId: d.replyId } : null
+
+    expect(await h.probe(10)).toBeNull()
+    h.destroy()
+  })
+
+  it('a throwing postMessage inside probe resolves null', async () => {
+    const canvas = transferableCanvas()
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas)
+    const worker = FakeWorker.last
+    const orig = worker.postMessage
+
+    worker.postMessage = () => {
+      throw new Error('gone')
+    }
+
+    expect(await h.probe(10)).toBeNull()
+
+    worker.postMessage = orig
+    h.destroy()
+  })
+
+  it('a frame post throw flips the alive flag', async () => {
+    const canvas = transferableCanvas()
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas)
+    const worker = FakeWorker.last
+    const orig = worker.postMessage
+
+    worker.postMessage = () => {
+      throw new Error('gone')
+    }
+
+    expect(h.widget.frame(0.016)).toBe(false)
+    // Second call takes the !state.alive arm directly.
+    expect(h.widget.frame(0.016)).toBe(false)
+
+    worker.postMessage = orig
+    h.destroy()
+  })
+
+  it('dim setters coerce NaN to 0 and swallow dead-worker posts', async () => {
+    const canvas = transferableCanvas()
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas)
+
+    canvas.width = 'nope'
+    canvas.height = 'nope'
+
+    expect(canvas.width).toBe(0)
+    expect(canvas.height).toBe(0)
+
+    const worker = FakeWorker.last
+    const orig = worker.postMessage
+
+    worker.postMessage = () => {
+      throw new Error('gone')
+    }
+
+    canvas.width = 320
+    canvas.height = 240
+
+    expect(canvas.width).toBe(320)
+    expect(canvas.height).toBe(240)
+
+    worker.postMessage = orig
+    h.destroy()
+  })
+
+  it('a frozen canvas throws inside mountViaWorker — mount falls through to in-page', async () => {
+    const canvas = transferableCanvas()
+
+    // transferToOffscreen succeeds but defineProperty on the frozen
+    // element throws — the mount-level catch must catch it as a plain
+    // routing failure and continue to the in-page loader.
+    Object.freeze(canvas)
+
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas, async () => {
+      throw new Error('artifact 404')
+    })
+
+    expect(h).toBeNull()
+  })
+
+  it('a transferred canvas that cannot transfer stays in-page', async () => {
+    const canvas = document.createElement('canvas')
+
+    canvas.transferToOffscreen = () => {
+      throw new Error('already transferred')
+    }
+
+    // Falls through to the in-page mount — the throwing loader resolves null.
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas, async () => {
+      throw new Error('artifact 404')
+    })
+
+    expect(h).toBeNull()
+  })
+
+  it('a worker mount without IntersectionObserver takes the observer-null arm', async () => {
+    const saved = globalThis.IntersectionObserver
+
+    delete globalThis.IntersectionObserver
+
+    const canvas = transferableCanvas()
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas)
+
+    expect(h).not.toBeNull()
+
+    h.destroy()
+    globalThis.IntersectionObserver = saved
+  })
+
   // LAST — the onerror flush latches the worker route off for the
   // rest of the file (module-level workerProbe reset).
   it('a worker error flushes pending work and latches the route off', async () => {

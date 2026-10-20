@@ -5,7 +5,13 @@
 import { jest } from '@jest/globals'
 import '@core/utils/data/sanitize.js'
 
-import { isGravatarUrl, getGravatarSrcset, getOptimizedGravatar, buildMediaUrls } from '@core/utils/media.js'
+import {
+  isGravatarUrl,
+  getGravatarSrcset,
+  getOptimizedGravatar,
+  buildMediaUrls,
+  encodeMediaUrl,
+} from '@core/utils/media.js'
 
 import '@website/components/feedback/CookieBanner.js'
 import '@website/components/home/ContactSection.js'
@@ -19,10 +25,14 @@ import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 
 jest.unstable_mockModule('@core/firebase.js', () => ({
   signInWithGoogle: jest.fn(async () => ({ user: { uid: 'u1' } })),
-  onAuthChange: jest.fn(async (cb) => { cb(null); return () => {} }),
+  onAuthChange: jest.fn(async (cb) => {
+    cb(null)
+    return () => {}
+  }),
   logoutUser: jest.fn(async () => {}),
   fetchFirebaseDb: jest.fn(async () => ({ exists: () => false, val: () => null })),
-  getDbInstance: jest.fn(async () => ({})) }))
+  getDbInstance: jest.fn(async () => ({})),
+}))
 
 describe('media utils tails', () => {
   test('isGravatarUrl classifies host variants and bad input', () => {
@@ -42,8 +52,14 @@ describe('media utils tails', () => {
   })
 
   test('buildMediaUrls composes image + video URLs', () => {
-    const img = buildMediaUrls(CDN_URLS.CDN_BASE, `${TEST_PROJECTS.CICB}/`, { src: TEST_TEXT.SECOND, isVideo: false })
-    const vid = buildMediaUrls(CDN_URLS.CDN_BASE, `${TEST_PROJECTS.CICB}/`, { src: TEST_TEXT.SECOND, isVideo: true })
+    const img = buildMediaUrls(CDN_URLS.CDN_BASE, `${TEST_PROJECTS.CICB}/`, {
+      src: TEST_TEXT.SECOND,
+      isVideo: false,
+    })
+    const vid = buildMediaUrls(CDN_URLS.CDN_BASE, `${TEST_PROJECTS.CICB}/`, {
+      src: TEST_TEXT.SECOND,
+      isVideo: true,
+    })
 
     expect(img.source).toContain(TEST_TEXT.SECOND)
     expect(vid.isVideo).toBe(true)
@@ -68,5 +84,34 @@ describe('media utils tails', () => {
 
     expect(out.isVideo).toBe(false)
     expect(out.source).toContain(CDN_URLS.CDN_BASE)
+  })
+
+  test('encodeMediaUrl encodes spaces/unicode, escapes bare %, stays idempotent', () => {
+    const spaced = 'brazilian leather/portal/shot'
+    const clean = `${CDN_URLS.CDN_BASE}covers/${TEST_PROJECTS.CICB}.jpg`
+
+    expect(encodeMediaUrl(CHAR_STRINGS.EMPTY)).toBe(CHAR_STRINGS.EMPTY)
+    expect(encodeMediaUrl(clean)).toBe(clean)
+    expect(encodeMediaUrl(`${CDN_URLS.CDN_BASE}${spaced}.jpg`)).toBe(
+      `${CDN_URLS.CDN_BASE}${spaced.replace(/ /g, '%20')}.jpg`
+    )
+    // Bare '%' that is not a valid escape gets encoded; an existing %20
+    // must not double-encode to %2520 (idempotent).
+    expect(encodeMediaUrl(`${CDN_URLS.CDN_BASE}a%zz.jpg`)).toContain('a%25zz.jpg')
+    expect(encodeMediaUrl(`${CDN_URLS.CDN_BASE}a%20b.jpg`)).toBe(`${CDN_URLS.CDN_BASE}a%20b.jpg`)
+  })
+
+  test('buildMediaUrls encodes spaced bucket keys in its outputs', () => {
+    const spaced = 'brazilian leather'
+    const img = buildMediaUrls(CDN_URLS.CDN_BASE, `${spaced}/`, {
+      src: 'shot',
+      isVideo: false,
+    })
+    const vid = buildMediaUrls(CDN_URLS.CDN_BASE, `${spaced}/`, { src: 'shot', isVideo: true })
+
+    expect(img.source).toContain('brazilian%20leather')
+    expect(img.source).not.toContain(' ')
+    expect(vid.source).not.toContain(' ')
+    expect(vid.thumb).not.toContain(' ')
   })
 })

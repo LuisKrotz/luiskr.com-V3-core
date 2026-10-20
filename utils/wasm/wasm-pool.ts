@@ -369,4 +369,7 @@ if (typeof window !== TYPE_STRINGS.UNDEFINED) {
   window.addEventListener(WINDOW_EVENTS.PAGEHIDE, () => wasmPool.destroy(), { once: true })
 }
 
+/* istanbul ignore next -- vite HMR teardown: import.meta.hot only exists on the dev
+   server; under jest the instrumented module evaluates before a test realm can
+   populate __VITE_HOT__, so the arm is structurally unreachable in coverage. */
 if (import.meta.hot) import.meta.hot.dispose(() => wasmPool.destroy())

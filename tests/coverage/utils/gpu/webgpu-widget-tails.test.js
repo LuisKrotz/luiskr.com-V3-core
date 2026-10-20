@@ -6,13 +6,16 @@
  * fallback, the live path (frame ticks, resize forwarding, set_size
  * guard, destroy), and the visibility-gated loop restart.
  */
+import { jest } from '@jest/globals'
 import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+import { WASM_POOL } from '@core/tokens/data/wasm.js'
 import {
   getSharedGpuDevice,
   hasWebGpu,
   mountWebGpuWidget,
   warmWidgetArtifacts,
+  webgpuWidgetsEnabled,
 } from '@core/utils/gpu/webgpu-widget.js'
 
 /** Captures the widget instance the fake class returns. */
@@ -376,6 +379,213 @@ describe('webgpu-widget bridge', () => {
     }
 
     window.dispatchEvent(new Event('resize'))
+    h.destroy()
+  })
+
+  it('webgpuWidgetsEnabled is false without window, for foreign keys, and off-values', () => {
+    const winDesc = Object.getOwnPropertyDescriptor(globalThis, 'window')
+
+    Object.defineProperty(globalThis, 'window', { value: undefined, configurable: true })
+    expect(webgpuWidgetsEnabled()).toBe(false)
+    if (winDesc) Object.defineProperty(globalThis, 'window', winDesc)
+
+    // A debug param for another feature — the key-mismatch arm.
+    window.history.replaceState(null, '', '/?debug=webGLMode:active')
+    expect(webgpuWidgetsEnabled()).toBe(false)
+
+    // The widget key carrying a non-active value.
+    window.history.replaceState(null, '', '/?debug=webgpuWidgets:fallback')
+    expect(webgpuWidgetsEnabled()).toBe(false)
+  })
+
+  it('mount returns null when document is absent — SSR guard arm', async () => {
+    navigator.gpu = {}
+
+    const docDesc = Object.getOwnPropertyDescriptor(globalThis, 'document')
+
+    Object.defineProperty(globalThis, 'document', { value: undefined, configurable: true })
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, {})
+
+    if (docDesc) Object.defineProperty(globalThis, 'document', docDesc)
+
+    expect(h).toBeNull()
+  })
+
+  it('a tab hidden mid-tick disarms at the loop tail', async () => {
+    navigator.gpu = fakeGpu()
+    const canvas = document.createElement('canvas')
+
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas, async () =>
+      recordingModule(async () => lastWidget, 'Skeleton')
+    )
+
+    expect(h).not.toBeNull()
+
+    // Flip hidden INSIDE frame() — the tick entered while visible, so the
+    // tail re-arm check sees the hidden state and takes the else arm.
+    lastWidget.frame = (dt) => {
+      lastWidget.frames.push(dt)
+      Object.defineProperty(document, 'hidden', { value: true, configurable: true })
+    }
+
+    await flushTick()
+    const parked = lastWidget.frames.length
+
+    await flushTick()
+    expect(lastWidget.frames.length).toBe(parked)
+
+    Object.defineProperty(document, 'hidden', { value: false, configurable: true })
+    h.destroy()
+  })
+
+  it('mounts with no IntersectionObserver — the observer-null arm', async () => {
+    navigator.gpu = fakeGpu()
+    const saved = globalThis.IntersectionObserver
+
+    delete globalThis.IntersectionObserver
+
+    const canvas = document.createElement('canvas')
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.BURGER, canvas, async () =>
+      recordingModule(async () => lastWidget, 'Burger')
+    )
+
+    expect(h).not.toBeNull()
+
+    h.destroy()
+    globalThis.IntersectionObserver = saved
+  })
+
+  it('the intersection callback covers missing-entry, offscreen, and re-arm arms', async () => {
+    navigator.gpu = fakeGpu()
+
+    let ioCb = null
+    const PrevIO = globalThis.IntersectionObserver
+
+    globalThis.IntersectionObserver = class {
+      constructor(cb) {
+        ioCb = cb
+      }
+      observe() {}
+      disconnect() {}
+    }
+
+    const canvas = document.createElement('canvas')
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas, async () =>
+      recordingModule(async () => lastWidget, 'Skeleton')
+    )
+
+    expect(h).not.toBeNull()
+    expect(ioCb).not.toBeNull()
+
+    await flushTick()
+    expect(lastWidget.frames.length).toBeGreaterThan(0)
+
+    // Missing entry → !entry → onScreen stays true.
+    ioCb([])
+
+    // Offscreen → onScreen false → the next tick disarms at the gate.
+    ioCb([{ isIntersecting: false }])
+    const beforeOff = lastWidget.frames.length
+
+    await flushTick()
+    await flushTick()
+    expect(lastWidget.frames.length).toBeLessThanOrEqual(beforeOff + 1)
+
+    // Back onscreen → kick() re-arms the loop.
+    ioCb([{ isIntersecting: true }])
+    await flushTick()
+    expect(lastWidget.frames.length).toBeGreaterThan(beforeOff)
+
+    h.destroy()
+    globalThis.IntersectionObserver = PrevIO
+  })
+
+  it('an artifact load that never resolves hits the init deadline', async () => {
+    navigator.gpu = {}
+    const canvas = document.createElement('canvas')
+
+    jest.useFakeTimers()
+
+    try {
+      const p = mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas, () => new Promise(() => {}))
+
+      await jest.advanceTimersByTimeAsync(WASM_POOL.REPLY_TIMEOUT_MS + 1)
+
+      expect(await p).toBeNull()
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('concurrent mounts on one module share the single wasm instantiation', async () => {
+    navigator.gpu = fakeGpu()
+
+    const mod = recordingModule(async () => lastWidget, 'Burger')
+
+    mod.default = jest.fn(async () => ({}))
+
+    const a = await mountWebGpuWidget(
+      GPU_WIDGET_KINDS.BURGER,
+      document.createElement('canvas'),
+      async () => mod
+    )
+    const b = await mountWebGpuWidget(
+      GPU_WIDGET_KINDS.BURGER,
+      document.createElement('canvas'),
+      async () => mod
+    )
+
+    expect(a).not.toBeNull()
+    expect(b).not.toBeNull()
+    // initModule memoizes on the module object — one instantiation.
+    expect(mod.default).toHaveBeenCalledTimes(1)
+
+    a.destroy()
+    b.destroy()
+  })
+
+  it('a zeroed wasm pointer skips free() on destroy', async () => {
+    navigator.gpu = fakeGpu()
+    const canvas = document.createElement('canvas')
+    let freed = 0
+
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas, async () => ({
+      default: async () => ({}),
+      Skeleton: function () {
+        return {
+          __wbg_ptr: 0,
+          init: async () => ({}),
+          resize: () => undefined,
+          frame: () => true,
+          free: () => {
+            freed++
+          },
+        }
+      },
+    }))
+
+    h.destroy()
+
+    expect(freed).toBe(0)
+  })
+
+  it('visibilitychange while the loop is armed takes the kick else arm', async () => {
+    navigator.gpu = fakeGpu()
+    const canvas = document.createElement('canvas')
+
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas, async () =>
+      recordingModule(async () => lastWidget, 'Skeleton')
+    )
+
+    await flushTick()
+    const armed = lastWidget.frames.length
+
+    // rafId is live — kick() must not double-arm the loop.
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    await flushTick()
+
+    expect(lastWidget.frames.length).toBeGreaterThan(armed)
     h.destroy()
   })
 

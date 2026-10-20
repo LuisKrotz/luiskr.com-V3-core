@@ -10,7 +10,7 @@
 import { CDN_URLS } from '@core/tokens/media/urls.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
-import { webpSibling, webmSibling } from '../media.js'
+import { webpSibling, webmSibling, encodeMediaUrl } from '../media.js'
 
 /** Parsed bucket key set — null until (or unless) the manifest fetch lands. */
 let keys: Set<string> | null = null
@@ -62,7 +62,15 @@ export function mediaManifestReady(): boolean {
 export function mediaKeyExists(url: string): boolean {
   if (!keys || !url) return false
 
-  const key = url.startsWith(CDN_URLS.CDN_BASE) ? url.slice(CDN_URLS.CDN_BASE.length) : url
+  let key = url.startsWith(CDN_URLS.CDN_BASE) ? url.slice(CDN_URLS.CDN_BASE.length) : url
+
+  // Callers may hand in an encodeMediaUrl'd URL while bucket keys are
+  // stored raw — reverse valid %XX escapes ('%20' → space) so both forms
+  // match. Malformed escapes (a '%' not followed by two hex digits) make
+  // decodeURI throw, so they short-circuit to the raw comparison.
+  if (key.includes('%') && !/%(?![0-9a-fA-F]{2})/.test(key)) {
+    key = decodeURI(key)
+  }
 
   return keys.has(key)
 }
@@ -75,7 +83,7 @@ export function mediaKeyExists(url: string): boolean {
 export function webpIfExists(url: string): string {
   const webp = webpSibling(url)
 
-  return webp && mediaKeyExists(webp) ? webp : ATTR_VALUES.EMPTY
+  return webp && mediaKeyExists(webp) ? encodeMediaUrl(webp) : ATTR_VALUES.EMPTY
 }
 
 /**
@@ -87,5 +95,5 @@ export function webpIfExists(url: string): string {
 export function webmIfExists(url: string): string {
   const webm = webmSibling(url)
 
-  return webm && mediaKeyExists(webm) ? webm : ATTR_VALUES.EMPTY
+  return webm && mediaKeyExists(webm) ? encodeMediaUrl(webm) : ATTR_VALUES.EMPTY
 }
