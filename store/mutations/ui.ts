@@ -70,6 +70,8 @@ export const uiMutations = (store: Store): MutationMap => ({
 
     store.state.modalObject.media = p.media ?? null
 
+    store.state.modalObject.origin = p.origin ?? null
+
     if (typeof document !== TYPE_STRINGS.UNDEFINED) {
       // Two ways to be "open": the boolean flag, or a caller passing the
       // modal-open class name through `class` (legacy callers encode state

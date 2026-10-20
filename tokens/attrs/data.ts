@@ -66,4 +66,16 @@ export const DATA_ATTRS = Object.freeze({
   DATA_BODY: `${_DATA}body`,
   /** Marks a docs-content box whose delegated link handler is attached. */
   DATA_WIRED: `${_DATA}wired`,
+  /**
+   * `data-anim-label` — the alt the animation-desc helper last stamped;
+   * lets locale re-applies refresh only helper-owned names (an author
+   * name that diverges from the stamp is never clobbered).
+   */
+  DATA_ANIM_LABEL: `${_DATA}anim-label`,
+  /**
+   * `data-anim-desc` — marks canvas fallback text owned by the
+   * animation-desc helper (value = the ANIMATION_IDS entry, so the
+   * marker doubles as the element's animation identity).
+   */
+  DATA_ANIM_DESC: `${_DATA}anim-desc`,
 })

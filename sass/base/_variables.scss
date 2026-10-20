@@ -351,6 +351,113 @@ $space-10xl: 1597;
 // The scale intentionally ends at 10xl — 1597px already exceeds the widest
 // content max-area, so fib(18)+ steps carried no consumers and were removed.
 
+// Coverage-report palette — istanbul's semantic statuses re-tokenized so
+// sanitized report payloads (docs portal .docs-html) follow the app theme
+// instead of the report's baked light hexes. Published as --cov-* by
+// structure/_tokens.scss; dark overrides in structure/_dark-mode.scss.
+/// Light theme — istanbul's own dark red (low-status bar, chart border).
+$cov-low-strong: #c21f39;
+/// Light theme — istanbul's medium red cell fill (cstat/fstat misses).
+$cov-low-mid: #f6c6ce;
+/// Light theme — istanbul's light red row tint (low rows, cline-no).
+$cov-low-soft: #fce1e5;
+/// Light theme — istanbul's light green row tint (high rows, cline-yes).
+$cov-high-soft: #e6f5d0;
+/// Light theme — istanbul's medium green cell fill (cstat-yes).
+$cov-high-mid: #a1d76a;
+/// Light theme — istanbul's dark green (high-status bar, chart border).
+$cov-high-strong: #4d9221;
+/// Light theme — istanbul's light gold row tint (medium rows).
+$cov-med-soft: #fff4c2;
+/// Light theme — istanbul's gold (medium-status bar, chart border).
+$cov-med-strong: #f9cd0b;
+/// Light theme — istanbul's branch-miss yellow cell.
+$cov-warn: #ffea00;
+/// Light theme — istanbul's skipped-stat grey.
+$cov-skip: #dddddd;
+/// Light theme — istanbul's neutral line marker grey.
+$cov-neutral: #eaeaea;
+/// Light theme — istanbul's zebra stripe for even source lines.
+$cov-stripe: #eeeeee;
+/// Both themes — istanbul's missing-branch chip stays a dark slab.
+$cov-missing-bg: #333333;
+/// Light theme — istanbul's missing-branch ink (yellow on the dark slab).
+$cov-missing-ink: #ffe600;
+/// Light theme — istanbul's fraction chip background.
+$cov-fraction-bg: #e8e8e8;
+/// Light theme — istanbul's fraction chip ink.
+$cov-fraction-ink: #555555;
+/// Light theme — istanbul's table/grid border grey.
+$cov-border: #bbbbbb;
+/// Light theme — istanbul's link blue.
+$cov-link: #0074d9;
+
+/// Dark theme — low-status red brightened for dark surfaces.
+$cov-low-strong-dark: #d84a60;
+/// Dark theme — mid red cell fill deepened so dark text areas stay quiet.
+$cov-low-mid-dark: #7a2530;
+/// Dark theme — light red row tint → deep desaturated maroon.
+$cov-low-soft-dark: #381318;
+/// Dark theme — light green row tint → deep olive-black.
+$cov-high-soft-dark: #14230d;
+/// Dark theme — medium green cell fill.
+$cov-high-mid-dark: #5d9435;
+/// Dark theme — high-status green brightened for dark surfaces.
+$cov-high-strong-dark: #8fd356;
+/// Dark theme — light gold row tint → deep umber.
+$cov-med-soft-dark: #2e280f;
+/// Dark theme — medium-status gold dimmed for dark surfaces.
+$cov-med-strong-dark: #d4ac09;
+/// Dark theme — branch-miss yellow → deep mustard.
+$cov-warn-dark: #8a7a00;
+/// Dark theme — skipped-stat grey lifted above the black surface.
+$cov-skip-dark: #3d3d3d;
+/// Dark theme — neutral line marker.
+$cov-neutral-dark: $color-black;
+/// Dark theme — zebra stripe for even source lines.
+$cov-stripe-dark: #141414;
+/// Dark theme — missing-branch ink keeps the yellow signal on the slab.
+$cov-missing-ink-dark: #ffe600;
+/// Dark theme — fraction chip background.
+$cov-fraction-bg-dark: #1e1e1e;
+/// Dark theme — fraction chip ink.
+$cov-fraction-ink-dark: #b8b1ac;
+/// Dark theme — table/grid border.
+$cov-border-dark: #3a3a3a;
+/// Dark theme — link blue lifted for contrast on dark.
+$cov-link-dark: #58a6ff;
+
+// Coverage syntax palette — google-code-prettify token inks re-tokenized
+// for both themes (the inlined prettify.css ships light-only colors).
+/// Light theme — strings/attribute values.
+$cov-syn-str: #008800;
+/// Light theme — keywords/tags.
+$cov-syn-kwd: #000088;
+/// Light theme — comments (base.css's muted grey wins over prettify maroon).
+$cov-syn-com: #999999;
+/// Light theme — types/attrs/decls/vars.
+$cov-syn-typ: #660066;
+/// Light theme — literals.
+$cov-syn-lit: #006666;
+/// Light theme — punctuation/operators/closers.
+$cov-syn-pun: #666600;
+/// Light theme — function names.
+$cov-syn-fun: #d40000;
+/// Dark theme — strings.
+$cov-syn-str-dark: #9ece6a;
+/// Dark theme — keywords/tags.
+$cov-syn-kwd-dark: #7aa2f7;
+/// Dark theme — comments.
+$cov-syn-com-dark: #8a8a8a;
+/// Dark theme — types/attrs/decls/vars.
+$cov-syn-typ-dark: #e0af68;
+/// Dark theme — literals.
+$cov-syn-lit-dark: #ff9e64;
+/// Dark theme — punctuation.
+$cov-syn-pun-dark: #9aa5ce;
+/// Dark theme — function names.
+$cov-syn-fun-dark: #f7768e;
+
 // Z-indexes — layering system, every value declared once here
 /// z-index layer — the scale is declared once here, in stacking order
 $z-header: 50;
@@ -374,3 +481,37 @@ $z-top: 9999;
 $font-mono:
   'ui-monospace', 'SF Mono', 'SFMono-Regular', 'Cascadia Mono', 'Segoe UI Mono', 'Ubuntu Mono',
   'Roboto Mono', monospace;
+
+/// Damped-spring easing for hover morphs (mosaic tiles, related strips)
+/// — a physical spring response (ζ=0.6, ~1.3 cycles) sampled at 4%
+/// intervals into a CSS linear() easing: ~10% overshoot, one settle
+/// lobe, lands exactly at 1. Browsers without linear() keep the
+/// cubic-bezier fallback declared alongside it at each callsite.
+$ease-spring: linear(
+  0,
+  0.047,
+  0.163,
+  0.315,
+  0.479,
+  0.636,
+  0.775,
+  0.889,
+  0.976,
+  1.038,
+  1.078,
+  1.098,
+  1.104,
+  1.1,
+  1.089,
+  1.075,
+  1.059,
+  1.044,
+  1.031,
+  1.02,
+  1.012,
+  1.006,
+  1.002,
+  1,
+  1,
+  1
+);

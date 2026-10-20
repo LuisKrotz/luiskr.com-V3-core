@@ -277,6 +277,11 @@ export const _B_EXPAND_MODAL_MEDIA_FIGURE = `${_B_EXPAND_MODAL_MEDIA}-figure`
  */
 export const _B_EXPAND_MODAL_MEDIA_ITEM = `${_B_EXPAND_MODAL_MEDIA}-item`
 /**
+ * BEM block fragment `…` — declared once here; every domain class token composes from this
+ * fragment (zero-hardcoding rule 9).
+ */
+export const _B_EXPAND_MODAL_GENIE = `${_B_EXPAND_MODAL}-genie`
+/**
  * BEM block fragment "b internal description" — composed by the token groups below into full class names.
  */
 export const _B_INTERNAL_DESCRIPTION = `${_B_INTERNAL}-description`
@@ -438,6 +443,11 @@ export const _K_EARTH_PLAYGROUND = 'earthPlayground'
  * (zero-hardcoding rule 5).
  */
 export const _K_STAR_FIELD = 'starField'
+/**
+ * Shared key token `animations` — single source for the animations-reference
+ * dictionary key and the route's English segment (zero-hardcoding rule 5).
+ */
+export const _K_ANIMATIONS = 'animations'
 /**
  * Token key "k about section" — single source for the repeated literal.
  */

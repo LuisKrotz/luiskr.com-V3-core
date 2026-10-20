@@ -113,7 +113,9 @@ describe('corner-brackets', () => {
     })
 
     test('breaks out of Newton when the x-derivative vanishes', () => {
-      // Control points x1=x2=0 push dx toward 0 at t≈0 — the guard arm.
+      // p=0 seeds t=0 → dx = 3o²·x1 + … evaluates to 0 → guard arm.
+      expect(bezierEase(0, 0, 0.5, 0, 0.5)).toBe(0)
+
       const v = bezierEase(0.5, 0, 0.5, 0, 0.5)
 
       expect(Number.isFinite(v)).toBe(true)
@@ -182,6 +184,22 @@ describe('corner-brackets', () => {
 
       globalThis.IntersectionObserver = saved
     })
+
+    test('a missing matchMedia skips the reduced-motion probe entirely', async () => {
+      const orig = window.matchMedia
+
+      window.matchMedia = undefined
+      makeWidget()
+      mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+      mount()
+
+      await flush()
+
+      expect(mountCalls.length).toBe(1)
+
+      window.matchMedia = orig
+    })
   })
 
   describe('mount arms', () => {
@@ -232,6 +250,128 @@ describe('corner-brackets', () => {
       expect(widget.colors.length).toBe(1)
       expect(widget.resizes.length).toBe(1)
       expect(widget.frames.length).toBe(1)
+    })
+
+    test('the ResizeObserver arm re-runs layout once live', async () => {
+      makeWidget()
+      mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+      const ros = []
+      const PrevRO = globalThis.ResizeObserver
+
+      globalThis.ResizeObserver = class {
+        constructor(cb) {
+          this.cb = cb
+          ros.push(this)
+        }
+        observe() {}
+        disconnect() {}
+      }
+
+      mount()
+
+      await flush()
+
+      globalThis.ResizeObserver = PrevRO
+
+      expect(ros.length).toBe(1)
+
+      // A zero devicePixelRatio resolves through the `|| 1` fallback.
+      const prevDpr = window.devicePixelRatio
+
+      Object.defineProperty(window, 'devicePixelRatio', { value: 0, configurable: true })
+      ros[0].cb()
+      Object.defineProperty(window, 'devicePixelRatio', { value: prevDpr, configurable: true })
+
+      expect(widget.resizes.length).toBe(2)
+      expect(widget.arms.length).toBe(2)
+
+      // A queued RO notification after teardown — layout's !handle arm.
+      const td = teardowns.pop()
+
+      td()
+      ros[0].cb()
+
+      expect(widget.resizes.length).toBe(2)
+    })
+
+    test('a retarget while the mount is in flight early-returns colors()', () => {
+      makeWidget()
+      mountResult = { canvas: null, widget, destroy: jest.fn() }
+      mountDelay = 50
+
+      const watched = document.createElement('div')
+
+      watched.matches = () => true
+
+      mount(button, { ...SPEC, hoverOn: watched })
+
+      watched.dispatchEvent(new Event(POINTER_EVENTS.POINTERENTER))
+
+      expect(widget.hovers.length).toBe(0)
+    })
+
+    test('a detached button resolves the probe against itself', async () => {
+      makeWidget()
+      mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+      const orphan = document.createElement('button')
+
+      mount(orphan)
+
+      await flush()
+
+      expect(mountCalls.length).toBe(1)
+    })
+
+    test('re-fired IO entries hit the pending/handle/failed/dead guards', async () => {
+      makeWidget()
+      mountResult = { canvas: null, widget, destroy: jest.fn() }
+      mountDelay = 40
+
+      const ios = []
+      const PrevIO = globalThis.IntersectionObserver
+
+      globalThis.IntersectionObserver = class {
+        constructor(cb) {
+          this.cb = cb
+          ios.push(this)
+        }
+        observe() {}
+        disconnect() {}
+      }
+
+      mount()
+      ios[0].cb([{ isIntersecting: false, target: button }]) // non-intersecting else arm
+      ios[0].cb([{ isIntersecting: true, target: button }]) // starts the fetch
+      ios[0].cb([{ isIntersecting: true, target: button }]) // pending arm
+
+      await flush(80)
+
+      ios[0].cb([{ isIntersecting: true, target: button }]) // live-handle arm
+
+      expect(mountCalls.length).toBe(1)
+
+      const td = teardowns.pop()
+
+      td()
+      ios[0].cb([{ isIntersecting: true, target: button }]) // dead arm
+
+      // A second mount whose artifact fails → failed guard on refire.
+      mountCalls = []
+      mountResult = null
+      mountDelay = 0
+
+      mount()
+      ios[1].cb([{ isIntersecting: true, target: button }])
+
+      await flush()
+
+      ios[1].cb([{ isIntersecting: true, target: button }]) // failed arm
+
+      expect(mountCalls.length).toBe(1)
+
+      globalThis.IntersectionObserver = PrevIO
     })
   })
 
@@ -311,6 +451,52 @@ describe('corner-brackets', () => {
       parent.dispatchEvent(new Event(POINTER_EVENTS.POINTERENTER))
 
       await flush(30)
+    })
+
+    test('a missing parent selector falls back to the button itself', async () => {
+      mount(button, { ...SPEC, hoverParentSelector: '.not-present' })
+
+      await flush()
+
+      button.dispatchEvent(new Event(POINTER_EVENTS.POINTERENTER))
+
+      await flush(30)
+    })
+
+    test('a pending ramp is cancelled on teardown and its stale tick no-ops', async () => {
+      makeWidget()
+      mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+      const cbs = []
+      const prevRaf = globalThis.requestAnimationFrame
+
+      globalThis.requestAnimationFrame = (cb) => {
+        cbs.push(cb)
+
+        return cbs.length
+      }
+
+      const watched = document.createElement('div')
+
+      watched.matches = () => true
+
+      mount(button, { ...SPEC, hoverOn: watched })
+
+      await flush()
+
+      watched.dispatchEvent(new Event(POINTER_EVENTS.POINTERENTER))
+
+      expect(cbs.length).toBe(1)
+
+      // Teardown while the ramp raf is pending — the `if (raf)` cancel arm.
+      const td = teardowns.pop()
+
+      td()
+
+      // A queued tick fired after teardown — the !handle || dead guard.
+      cbs[0]()
+
+      globalThis.requestAnimationFrame = prevRaf
     })
   })
 

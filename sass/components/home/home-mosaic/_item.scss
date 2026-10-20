@@ -36,11 +36,25 @@
     box-shadow 0.42s ease,
     opacity 0.35s ease,
     filter 0.35s ease;
+  // Spring upgrade where linear() parses — the ~10% overshoot turns the
+  // reflow into a fluid morph; older engines drop this declaration whole
+  // and keep the cubic-bezier above.
+  transition:
+    height 0.6s $ease-spring,
+    top 0.6s $ease-spring,
+    left 0.6s $ease-spring,
+    transform 0.5s $ease-spring,
+    box-shadow 0.42s ease,
+    opacity 0.35s ease,
+    filter 0.35s ease;
 
   @media (max-width: 768px) {
     // Drop layout-affecting properties — keep only compositor-thread properties
     transition:
       transform 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.3s ease;
+    transition:
+      transform 0.36s $ease-spring,
       opacity 0.3s ease;
   }
 
@@ -112,12 +126,22 @@
     @include focus-ring;
   }
 
-  // While the title burns, the sheen ring would read as a second
-  // competing hover effect — freeze + hide it for the burn's duration.
-  &--burning::after,
-  &--burning::before {
-    animation: none;
-    opacity: 0;
+  // While the title burns: the sheen ring freezes (a second competing
+  // hover effect reads wrong mid-combustion), and the card unclips —
+  // the smoke plume must rise past the card silhouette and dissipate
+  // instead of slicing at the rounded-corner clip.
+  &--burning {
+    overflow: visible;
+
+    &::after,
+    &::before {
+      animation: none;
+      opacity: 0;
+    }
+
+    .home-mosaic-media {
+      overflow: visible;
+    }
   }
 }
 

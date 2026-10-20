@@ -234,25 +234,28 @@ export function renderFrame(host: MenuBackgroundWebGL, staticTime?: number | nul
     return
   }
 
-  if (!gl) return
+  // Reaching here means `host._wasm` was null, so the top `!gl && !_wasm`
+  // guard already proved gl — the cast replaces a dead `if (!gl) return`
+  // whose arm could never be exercised.
+  const g = gl as WebGLRenderingContext
 
-  gl.clearColor(0, 0, 0, 0)
+  g.clearColor(0, 0, 0, 0)
 
-  gl.clear(gl.COLOR_BUFFER_BIT)
+  g.clear(g.COLOR_BUFFER_BIT)
 
-  gl.useProgram(host.program)
+  g.useProgram(host.program)
 
-  gl.uniform1f(host.uTime, t)
+  g.uniform1f(host.uTime, t)
 
-  gl.uniform2f(host.uResolution, host.width, host.height)
+  g.uniform2f(host.uResolution, host.width, host.height)
 
-  gl.uniform3f(host.uColor, host._color[0], host._color[1], host._color[2])
+  g.uniform3f(host.uColor, host._color[0], host._color[1], host._color[2])
 
-  gl.uniform3f(host.uColor2, host._color2[0], host._color2[1], host._color2[2])
+  g.uniform3f(host.uColor2, host._color2[0], host._color2[1], host._color2[2])
 
-  gl.uniform1f(host.uReveal, host._reveal)
+  g.uniform1f(host.uReveal, host._reveal)
 
-  gl.uniform1f(host.uAlpha, isDark ? ALPHA_DARK : ALPHA_LIGHT)
+  g.uniform1f(host.uAlpha, isDark ? ALPHA_DARK : ALPHA_LIGHT)
 
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, QUAD_STRIP.VERTEX_COUNT)
+  g.drawArrays(g.TRIANGLE_STRIP, 0, QUAD_STRIP.VERTEX_COUNT)
 }

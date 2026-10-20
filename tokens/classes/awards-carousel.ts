@@ -27,6 +27,7 @@ export const AWC_CLASSES = Object.freeze({
   AWC_DOT: _B_AWC_DOT,
   AWC_DOT_ACTIVE: `${_B_AWC_DOT}--active`,
   AWC_TRACK: `${_B_AWC}-track`,
+  AWC_TRACK_ANIMATING: `${_B_AWC}-track--animating`,
   AWC_SLIDE: _B_AWC_SLIDE,
   AWC_SLIDE_ACTIVE: `${_B_AWC_SLIDE}--active`,
   AWC_SLIDE_CLONE: _B_AWC_SLIDE_CLONE,

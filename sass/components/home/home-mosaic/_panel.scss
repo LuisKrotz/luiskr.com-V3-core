@@ -11,6 +11,9 @@
   transition:
     height 0.52s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.28s ease 0.1s;
+  transition:
+    height 0.52s $ease-spring,
+    opacity 0.28s ease 0.1s;
   // Mobile: drop non-composited height transition, keep opacity only
   @media (max-width: 768px) {
     transition: opacity 0.28s ease 0.1s;

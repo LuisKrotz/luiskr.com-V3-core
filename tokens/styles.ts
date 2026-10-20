@@ -13,7 +13,17 @@
  *     the OS preference and the in-app toggle freeze all animation.
  * Selectors are assembled from `_SKEL`-derived fragments so the class
  * spellings match CLASSES tokens in constants.js by construction.
+ *
+ * The visually-hidden `.sr-only` rule is AUTHORED in SCSS —
+ * `core/sass/base/structure/_a11y.scss` — and arrives here as compiled
+ * `?inline` text (adopted-stylesheets rule: CSS rules are never authored
+ * as JS declaration payloads). The same partial is @imported by
+ * `_structure.scss` for the document sheet, so one authored rule covers
+ * light-DOM nodes and every shadow root uniformly. In Jest the import
+ * resolves to '' via the style mock.
  */
+
+import A11Y_BASE_STYLES from '@core/sass/base/structure/_a11y.scss?inline'
 
 /** 'skeleton' block fragment — the root every skeleton class composes from. */
 const _SKEL = 'skeleton'
@@ -86,7 +96,8 @@ const _SKEL_BEFORE_SELECTORS = _SKEL_SELECTORS
  *    ~0ms so motion-sensitive users see instant state changes.
  */
 export const BASE_HOST_STYLES = Object.freeze(
-  `:host { display: block; font-family: var(--font-primary); color: var(--text-primary); box-sizing: border-box; }
+  `${A11Y_BASE_STYLES}
+:host { display: block; font-family: var(--font-primary); color: var(--text-primary); box-sizing: border-box; }
 :host > [data-content] { display: contents; }
 @keyframes ${_SKEL}-shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 ${_SKEL_SELECTORS} { position: relative; overflow: hidden; background: var(--skel-bg-1); color: transparent; user-select: none; }

@@ -68,13 +68,7 @@ export function patchViewProject(): void {
         document.querySelector(`dialog.${MODAL_CLASSES.MODAL_ABOVE}`) ||
         document.querySelector(`.${MODAL_CLASSES.MODAL_ABOVE}`)) as HTMLDialogElement | null
 
-      const below = this.$(`.${MODAL_CLASSES.MODAL_BELOW}`)
-
       if (modal?.open) {
-        if (below) {
-          below.style.transform = `translateY(-${modal.transform || 0}${CHAR_STRINGS.PX})`
-        }
-
         if (above) {
           if (!document.body.contains(above)) {
             document.body.appendChild(above)
@@ -122,6 +116,25 @@ export function patchViewProject(): void {
 
           above.open = true
 
+          // The lifted dialog never reaches the native top layer, so
+          // WebKit keeps the document interactive — no inert lock. The
+          // standard iOS pin stands in: body goes position:fixed at the
+          // current offset (the page stays visually put under the glass)
+          // and the offset is repaid on close. Not the html-overflow
+          // trick — flipping the root scroller's overflow collapses
+          // scrollTop to 0, which is the page jump this avoids.
+          const pinnedY = window.scrollY
+
+          if (pinnedY > 0) {
+            document.body.style.position = STATE_STRINGS.FIXED
+
+            document.body.style.top = `${-pinnedY}${CHAR_STRINGS.PX}`
+
+            document.body.style.left = CHAR_STRINGS.ZERO
+
+            document.body.style.right = CHAR_STRINGS.ZERO
+          }
+
           const existing = above.querySelector(COMPONENT_TAGS.MEDIA_EXPANDED)
 
           const src = modal.media?.source || ATTR_VALUES.EMPTY
@@ -154,10 +167,6 @@ export function patchViewProject(): void {
           }
         }
       } else {
-        if (below) {
-          below.style.transform = ATTR_VALUES.EMPTY
-        }
-
         if (above) {
           try {
             if (typeof above.close === TYPE_STRINGS.FUNCTION && above.open) {
@@ -174,6 +183,22 @@ export function patchViewProject(): void {
           above.style.display = ATTR_VALUES.NONE
 
           above.replaceChildren()
+
+          // Repay the open-branch body pin: read the parked offset off
+          // the body's own top (negative scrollY), release the layout,
+          // then scrollTo — the restore must run AFTER unpinning or the
+          // still-fixed document clamps the scroll to 0.
+          const parked = -parseFloat(document.body.style.top || CHAR_STRINGS.ZERO)
+
+          document.body.style.position = ATTR_VALUES.EMPTY
+
+          document.body.style.top = ATTR_VALUES.EMPTY
+
+          document.body.style.left = ATTR_VALUES.EMPTY
+
+          document.body.style.right = ATTR_VALUES.EMPTY
+
+          if (parked > 0) window.scrollTo(0, parked)
 
           if (this.shadowRoot && !this.shadowRoot.contains(above)) {
             this.shadowRoot.appendChild(above)

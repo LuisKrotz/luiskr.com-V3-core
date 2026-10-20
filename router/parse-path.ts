@@ -330,6 +330,23 @@ export function parsePath(pathname: string): RouteDescriptor {
     }
   }
 
+  // Animations reference — localized slug plus the English-segment alias
+  // under a locale prefix, canonicalizing onto the locale's own slug.
+  if (first === slugs.animations || first === ROUTE_PATHS.ANIMATIONS_SEGMENT) {
+    return {
+      name: ROUTE_NAMES.ANIMATIONS,
+      view: VIEW_TAGS.VIEW_ANIMATIONS,
+      lang,
+      path: cleanPath,
+      meta: {
+        title: `${String(appText(CMS_KEYS.ANIMATIONS))} ${CHAR_STRINGS.PIPE_SEP} ${BASE_TITLE}`,
+        translation: TRANSLATION_KEYS.ANIMATIONS,
+        canonical: `${locPrefix}${CHAR_STRINGS.SLASH}${slugs.animations}`,
+      },
+      params: {},
+    }
+  }
+
   // 404
   return titled(
     ROUTE_NAMES.NOT_FOUND,

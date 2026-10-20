@@ -161,6 +161,25 @@ export const slugify = (text: string): string => {
 }
 
 /**
+ * Splits a paragraph into sentence runs for staged draw-text reveals.
+ * A boundary is terminal punctuation (. ! ? …) followed by whitespace —
+ * mid-word dots without a following space ("Three.js", CDN paths) never
+ * split. The delimiter whitespace is consumed; callers join runs with a
+ * real space node so inline wrapping is preserved. Text with no
+ * boundary returns as a single run; empty input returns [].
+ * @param text Raw paragraph text.
+ * @returns Sentence strings in document order, whitespace-trimmed.
+ */
+export const splitDrawSentences = (text: string): string[] => {
+  if (!text) return []
+
+  return text
+    .split(/(?<=[.!?…])\s+/u)
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
+/**
  * Assigns the canonical deep-link slug for one media item within a
  * project's traversal. Distinct captions can collapse to the same slug
  * ("Fórum 2020, Full page" vs "Fórum 2020: Full Page"), which used to

@@ -19,8 +19,9 @@ import {
   setMetaContent,
   setMetaDescription,
 } from '@core/router/navigate.js'
-import { parsePath } from '@core/router/parse-path.js'
+import { parsePath, normalizeProjectKey } from '@core/router/parse-path.js'
 import { LANG_SLUGS } from '@core/i18n.js'
+import { LOCALES } from '@core/tokens/locales.js'
 import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
 import { updateRobotsMeta, resolveProjectSlug } from '@website/views/project/data.js'
 import { checkAutoOpenModal } from '@website/views/project/modal.js'
@@ -74,6 +75,27 @@ describe('route tails', () => {
 
     expect(r.view).toBe(VIEW_TAGS.VIEW_STAR_FIELD)
     expect(r.params.body).toBe('sun')
+  })
+
+  test('parsePath — animations reference: localized slug + English-segment alias', () => {
+    const en = parsePath(`/${ROUTE_PATHS.ANIMATIONS_SEGMENT}`)
+
+    expect(en.name).toBe(ROUTE_NAMES.ANIMATIONS)
+    expect(en.view).toBe(VIEW_TAGS.VIEW_ANIMATIONS)
+    expect(en.meta.canonical).toBe(`/${LANG_SLUGS.en.animations}`)
+
+    // Localized slug — the German route resolves the view with its own canonical.
+    const de = parsePath(`/de/${LANG_SLUGS.de.animations}`)
+
+    expect(de.name).toBe(ROUTE_NAMES.ANIMATIONS)
+    expect(de.lang).toBe(LOCALES.DE)
+    expect(de.meta.canonical).toBe(`/de/${LANG_SLUGS.de.animations}`)
+
+    // English-segment alias under a locale prefix canonicalizes localized.
+    const alias = parsePath(`/de/${LANG_SLUGS.en.animations}`)
+
+    expect(alias.view).toBe(VIEW_TAGS.VIEW_ANIMATIONS)
+    expect(alias.meta.canonical).toBe(`/de/${LANG_SLUGS.de.animations}`)
   })
 
   test('updateRobotsMeta — create, reuse, remove, absent arms', () => {
@@ -450,5 +472,28 @@ describe('route tails', () => {
     expect(parsePath(`/${en.about}/`).path).toBe(`/${en.about}`)
     expect(parsePath('/br/').path).toBe('/br')
     expect(parsePath('/portfolio/metcha/').meta.canonical).toBe('/portfolio/metcha')
+  })
+
+  test('parsePath — unmatched paths resolve the not-found view', () => {
+    const r = parsePath('/this-route-does-not-exist')
+
+    expect(r.name).toBe(ROUTE_NAMES.NOT_FOUND)
+    expect(r.view).toBe(VIEW_TAGS.VIEW_NOT_FOUND)
+
+    const loc = parsePath('/de/gibt-es-nicht')
+
+    expect(loc.name).toBe(ROUTE_NAMES.NOT_FOUND)
+    expect(loc.lang).toBe(LOCALES.DE)
+  })
+
+  test('parsePath — empty path falls back to the root descriptor', () => {
+    const r = parsePath(CHAR_STRINGS.EMPTY)
+
+    expect(r.name).toBe(ROUTE_NAMES.HOME)
+    expect(r.view).toBe(VIEW_TAGS.VIEW_HOME)
+  })
+
+  test('normalizeProjectKey — empty slug returns EMPTY without aliasing', () => {
+    expect(normalizeProjectKey(CHAR_STRINGS.EMPTY)).toBe(CHAR_STRINGS.EMPTY)
   })
 })

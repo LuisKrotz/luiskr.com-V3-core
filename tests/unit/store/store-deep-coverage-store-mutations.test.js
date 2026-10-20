@@ -197,6 +197,10 @@ describe('store — mutations', () => {
     store.commit(DATA_MUTATIONS.SET_MENTIONS, { items: [2] })
     expect(store.getters.getMentions().title).toBe('T')
 
+    // Title-only payload — items reset to null (the ?? right arm).
+    store.commit(DATA_MUTATIONS.SET_MENTIONS, { title: 'T2' })
+    expect(store.getters.getMentions().items).toBeNull()
+
     store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, { c: 1 })
     store.commit(LANG_MUTATIONS.SET_APP_LANG, { a: 1 })
     store.commit(LANG_MUTATIONS.SET_APP_LANG, 'not-an-object')
@@ -230,6 +234,11 @@ describe('store — mutations', () => {
     })
     expect(store.getters.getModal().open).toBe(true)
     expect(document.documentElement.classList.contains(MODAL_CLASSES.MODAL_OPEN)).toBe(true)
+
+    // Class-only descriptor — `open` falls back via ?? and isOpen
+    // resolves through the class-name path instead.
+    store.commit(MODAL_MUTATIONS.SET_MODAL, { class: MODAL_CLASSES.MODAL_OPEN })
+    expect(store.getters.getModal().open).toBe(false)
 
     store.commit(MODAL_MUTATIONS.SET_MODAL, { transform: 0, class: '', open: false, media: {} })
     expect(document.documentElement.classList.contains(MODAL_CLASSES.MODAL_OPEN)).toBe(false)

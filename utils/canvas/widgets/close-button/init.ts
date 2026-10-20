@@ -144,7 +144,6 @@ export function init(host: CloseButtonWebGL): void {
     host.canvas.classList.add(STATE_CLASSES.IS_FALLBACK)
 
     tryWasm(host)
-    tryWasm(host)
 
     return
   }

@@ -7,6 +7,7 @@ import { jest } from '@jest/globals'
 import _router from '@core/router/router.js'
 
 import { statsEngine } from '@core/utils/perf/stats-engine.js'
+import { startNetworkObserver } from '@core/utils/perf/stats/network.js'
 
 import '@website/views/legal/Legal.js'
 import '@website/views/home/Home.js'
@@ -38,5 +39,17 @@ describe('stats-engine tails', () => {
     }
 
     statsEngine._stop()
+  })
+
+  test('startNetworkObserver no-ops the fetch patch without a window', () => {
+    const win = globalThis.window
+
+    delete globalThis.window
+
+    try {
+      startNetworkObserver({})
+    } finally {
+      globalThis.window = win
+    }
   })
 })

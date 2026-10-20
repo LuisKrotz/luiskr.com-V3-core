@@ -10,6 +10,10 @@ html {
   min-height: 100%;
   overflow-x: hidden;
   overflow-y: scroll; // always show scrollbar to prevent layout shift on navigation
+  // Reserve the scrollbar gutter permanently — when .modal-open locks
+  // overflow the classic-scrollbar viewport must NOT widen, or every
+  // element reflows in a single CLS cluster (~100+ shift sources).
+  scrollbar-gutter: stable;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
@@ -18,10 +22,13 @@ html {
   scrollbar-width: thin;
 }
 
-// Scroll-lock applied while a modal is open (JS toggles this class).
-html.modal-open {
-  overflow-y: hidden; // hide background scrollbar when any modal is open
-}
+// No html-level overflow lock for .modal-open: on the root scroller
+// `overflow:hidden` collapses documentElement.scrollTop to 0 — the page
+// visibly jumps to the top under the modal. The expand <dialog> is the
+// lock instead — its inert top layer blocks interaction scrolling and
+// overscroll-behavior:contain stops chained document scroll. (:has()
+// can't scope this — the dialog lives in a shadow root, and Safari's
+// lifted-dialog patch keeps its own body pin anyway.)
 
 // Document body base: bg-primary fill, text-primary ink, primary font.
 body {
@@ -154,21 +161,15 @@ draw-text {
   display: inline;
 }
 
-// Routed content host (#main).
+// Routed content host (#main). No .modal-open fixed-position pin: it
+// pulled the whole routed tree out of flow (scrollHeight collapsed to
+// the viewport, scrollY clamped to 0 — the page jumped under the
+// modal). The native dialog's inert top layer is the scroll lock now;
+// Safari's lifted-dialog patch pins body itself.
 main {
   // Clearance for the fixed cookie banner — without it the banner covers
   // the page bottom (legal footer unreachable) until consent is answered.
   padding-bottom: var(--cookie-banner-h);
-
-  .modal-open & {
-    position: fixed;
-    top: var(
-      --modal-top,
-      0px
-    ); // Set via JS before class toggle — prevents iOS Safari scroll-to-top
-    width: 100%;
-    left: 0;
-  }
 }
 
 #main {

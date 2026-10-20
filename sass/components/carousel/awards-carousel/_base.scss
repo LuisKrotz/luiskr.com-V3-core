@@ -38,6 +38,13 @@ $awc-peek: 10vw;
     &::-webkit-scrollbar {
       display: none;
     }
+
+    // Same lift as .carousel-track--animating — the scroll spring writes
+    // scrollLeft per frame, so snap/smooth must not re-drive it.
+    &--animating {
+      scroll-snap-type: none;
+      scroll-behavior: auto;
+    }
   }
 
   &-slide {
@@ -98,8 +105,9 @@ $awc-peek: 10vw;
       width: $awc-dot-size;
       border-radius: $awc-dot-size;
       background: var(--text-muted);
+      // Elastic pill morph — matches .carousel-dot's spring curve.
       transition:
-        width 0.25s ease,
+        width 0.5s $ease-spring,
         background 0.25s ease;
     }
 

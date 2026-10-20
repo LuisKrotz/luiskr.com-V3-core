@@ -34,6 +34,8 @@ import { ANIMATION_EVENTS, CLIPBOARD_EVENTS } from '@core/tokens/events/dom.js'
 import { parseCssColor } from '@core/utils/canvas/css-color.js'
 import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
 import { hasWebGpu, mountWebGpuWidget } from '@core/utils/gpu/webgpu-widget.js'
+import { applyAnimationDesc } from '@core/utils/a11y/animation-desc.js'
+import { ANIMATION_IDS } from '@core/tokens/data/animation-ids.js'
 import type { WidgetHandle } from '@core/utils/gpu/webgpu-widget.js'
 
 /** Tile-sheet stride — mirrors rust/ring-sheen's `TILE_F32S`. */
@@ -83,8 +85,13 @@ export function mountRingSheen(
   tilesSelector: string,
   canvasClass: string
 ): RingSheenSession | null {
+  if (!container) return null
+
+  // The tile ring sheen runs as CSS rings even without WebGPU — the
+  // description binds to the container before the capability guard.
+  applyAnimationDesc(container, ANIMATION_IDS.RING_SHEEN)
+
   if (
-    !container ||
     !hasWebGpu() ||
     typeof document === TYPE_STRINGS.UNDEFINED ||
     typeof window === TYPE_STRINGS.UNDEFINED ||
@@ -114,10 +121,9 @@ export function mountRingSheen(
    * Re-measures every tile against the container box and repushes the
    * sheet + backing size. Colors refresh too — theme flips restyle the
    * ring vars without a remount.
+   * @param surface The live widget handle (callers run post-mount or post-guard).
    */
-  const resheet = () => {
-    if (!handle) return
-
+  const resheet = (surface: WidgetHandle) => {
     const dpr = window.devicePixelRatio || 1
     const box = container.getBoundingClientRect()
     const w = Math.max(1, Math.round(box.width * dpr))
@@ -126,7 +132,7 @@ export function mountRingSheen(
     canvas.width = w
     canvas.height = h
 
-    handle.widget.resize(w, h)
+    surface.widget.resize(w, h)
 
     const list = tiles()
     const sheet = new Float32Array(list.length * TILE_F32S)
@@ -146,7 +152,7 @@ export function mountRingSheen(
       sheet[rec + 7] = 0
     })
 
-    const wasm = handle.widget as unknown as RingSheenWasm
+    const wasm = surface.widget as unknown as RingSheenWasm
     const cs = getComputedStyle(container)
     const edge = parseCssColor(cs.getPropertyValue(THEME_CSS_PROPS.BORDER_ITEM_HOVER)) || [1, 1, 1]
     const accent = parseCssColor(cs.getPropertyValue(THEME_CSS_PROPS.COLOR_ACCENT_CONTRAST)) || [
@@ -173,7 +179,7 @@ export function mountRingSheen(
     if (dirty || transitionLive) {
       dirty = transitionLive
 
-      resheet()
+      resheet(handle)
     }
 
     const alive = handle.widget.frame(dt) !== false
@@ -218,7 +224,7 @@ export function mountRingSheen(
 
       handle = mounted
 
-      resheet()
+      resheet(handle)
 
       canvas.classList.remove(STATE_CLASSES.IS_FALLBACK)
 

@@ -18,9 +18,14 @@ jest.unstable_mockModule('@core/devlog.js', () => ({ devWarn: jest.fn(), devLog:
 const { mountWebGpuWidget } = await import('@core/utils/gpu/webgpu-widget.js')
 
 describe('gpu-widgets tokens', () => {
+  beforeAll(() => {
+    // The widget layer is opt-in — mounts need the active flag.
+    window.history.replaceState(null, '', '/?debug=webgpuWidgets:active')
+  })
+
   it('widget kinds mirror the rust/ crate ordering', () => {
     expect(Object.values(GPU_WIDGET_KINDS)).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
     ])
   })
 
@@ -47,6 +52,7 @@ describe('gpu-widgets tokens', () => {
     expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.TEXT_DRAW]).toBe(16)
     expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.RING_SHEEN]).toBe(16)
     expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.CORNER_BRACKETS]).toBe(16)
+    expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.GENIE]).toBe(24)
   })
 
   it('flag personalities cover every shipped locale pair', () => {
@@ -68,7 +74,13 @@ describe('gpu-widgets tokens', () => {
   })
 
   it('mount wires a widget artifact and exposes it on the handle', async () => {
-    navigator.gpu = {}
+    // A gpu double with a working shared-device request — mount now
+    // passes the one-per-page GPUDevice into init.
+    navigator.gpu = {
+      requestAdapter: async () => ({
+        requestDevice: async () => ({ lost: new Promise(() => {}) }),
+      }),
+    }
 
     const canvas = document.createElement('canvas')
     const widget = {

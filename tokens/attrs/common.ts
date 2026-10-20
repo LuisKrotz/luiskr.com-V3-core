@@ -62,4 +62,11 @@ export const COMMON_ATTRS = Object.freeze({
   POINTER: 'pointer',
   /** `fit` — sizing/fit field name used by media layout contracts. */
   FIT: 'fit',
+  /**
+   * `longdesc` — the long-description URL attribute (HTML4 semantics,
+   * valid on <img>/<iframe>). Points at a same-document fragment
+   * (`#lk-anim-desc-<id>`) carrying the full animation description —
+   * the machine-readable contract AI agents + SEO crawlers read.
+   */
+  LONGDESC: 'longdesc',
 })

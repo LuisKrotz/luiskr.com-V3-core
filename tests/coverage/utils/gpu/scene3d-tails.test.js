@@ -10,10 +10,12 @@ import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globa
 import { GPU_WIDGET_ARTIFACTS, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
 
 let mockGpu = true
+let mockDevice = { queue: () => ({}) }
 let decodeResult = null
 
 jest.unstable_mockModule('@core/utils/gpu/webgpu-widget.js', () => ({
   hasWebGpu: () => mockGpu,
+  getSharedGpuDevice: async () => mockDevice,
   mountWebGpuWidget: async () => null,
   warmWidgetArtifacts: () => undefined,
 }))
@@ -89,12 +91,51 @@ describe('scene3d facade', () => {
     expect(load).not.toHaveBeenCalled()
   })
 
+  test('resolves null without a shared device — mount never runs', async () => {
+    mockDevice = null
+
+    const mount = jest.fn(async () => makeSurface())
+
+    expect(
+      await mod.mountScene3d(canvas, async () => ({ default: async () => ({}), mount }))
+    ).toBeNull()
+    expect(mount).not.toHaveBeenCalled()
+
+    mockDevice = { queue: () => ({}) }
+  })
+
+  test('mount receives the shared device between canvas and size', async () => {
+    const surface = makeSurface()
+    let mountArgs = null
+
+    const handle = await mod.mountScene3d(canvas, async () => ({
+      default: async () => ({}),
+      mount: async (...args) => {
+        mountArgs = args
+
+        return surface
+      },
+    }))
+
+    expect(handle).not.toBeNull()
+    expect(mountArgs[0]).toBe(canvas)
+    expect(mountArgs[1]).toBe(mockDevice)
+    expect(mountArgs[2]).toBe(320)
+    expect(mountArgs[3]).toBe(240)
+
+    handle.destroy()
+  })
+
   test('resolves null when the artifact load rejects', async () => {
     const load = async () => {
       throw new Error('404')
     }
 
     expect(await mod.mountScene3d(canvas, load)).toBeNull()
+  })
+
+  test('the default loader arm resolves null when the glue import 404s', async () => {
+    expect(await mod.mountScene3d(canvas)).toBeNull()
   })
 
   test('resolves null when the wasm init throws', async () => {
@@ -186,6 +227,27 @@ describe('scene3d facade', () => {
     mod.resizeScene3d(surface, canvas)
 
     expect(surface.resizes).toEqual([[1, 1]])
+  })
+
+  test('resizeScene3d falls back to dpr 1 without window or with a zero ratio', () => {
+    const surface = makeSurface()
+    const realWindow = globalThis.window
+
+    delete globalThis.window
+
+    mod.resizeScene3d(surface, canvas)
+
+    globalThis.window = realWindow
+    Object.defineProperty(realWindow, 'devicePixelRatio', { value: 0, configurable: true })
+
+    mod.resizeScene3d(surface, canvas)
+
+    Object.defineProperty(realWindow, 'devicePixelRatio', { value: 1, configurable: true })
+
+    expect(surface.resizes).toEqual([
+      [320, 240],
+      [320, 240],
+    ])
   })
 
   test('loadScene3dTexture returns null when decode fails', async () => {

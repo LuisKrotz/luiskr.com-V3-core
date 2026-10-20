@@ -38,6 +38,8 @@ import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 import { parseCssColor } from '@core/utils/canvas/css-color.js'
 import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
 import { hasWebGpu, mountWebGpuWidget } from '@core/utils/gpu/webgpu-widget.js'
+import { applyAnimationDesc } from '@core/utils/a11y/animation-desc.js'
+import { ANIMATION_IDS } from '@core/tokens/data/animation-ids.js'
 import type { WidgetHandle } from '@core/utils/gpu/webgpu-widget.js'
 
 /**
@@ -183,8 +185,14 @@ function stopDivider(m: DividerMount): void {
 export function mountDividerSheen(hr: HTMLElement, canvasClass: string): () => void {
   const noop = () => undefined
 
+  if (!hr) return noop
+
+  // The hairline's traveling light band runs as a CSS fallback even
+  // without WebGPU — the description applies before the capability
+  // guard; the injected desc node is what AI/SEO agents read.
+  applyAnimationDesc(hr, ANIMATION_IDS.DIVIDER_SHEEN)
+
   if (
-    !hr ||
     !hasWebGpu() ||
     typeof document === TYPE_STRINGS.UNDEFINED ||
     typeof window === TYPE_STRINGS.UNDEFINED ||

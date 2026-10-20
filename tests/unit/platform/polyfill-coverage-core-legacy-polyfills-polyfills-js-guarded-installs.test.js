@@ -90,6 +90,7 @@ describe('core/legacy-polyfills/polyfills.js guarded installs', () => {
     await import('@core/legacy-polyfills/polyfills.js')
 
     expect([1, 2, 3].at(-1)).toBe(3)
+    expect([1, 2, 3].at(0)).toBe(1)
     expect([1, 2, 3].at(5)).toBeUndefined()
     expect([1, 2, 3].at(-9)).toBeUndefined()
   })
@@ -102,6 +103,7 @@ describe('core/legacy-polyfills/polyfills.js guarded installs', () => {
     await import('@core/legacy-polyfills/polyfills.js')
 
     expect('abc'.at(-1)).toBe('c')
+    expect('abc'.at(0)).toBe('a')
     expect('abc'.at(5)).toBeUndefined()
   })
 

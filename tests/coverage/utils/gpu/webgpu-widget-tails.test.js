@@ -8,10 +8,34 @@
  */
 import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
-import { hasWebGpu, mountWebGpuWidget, warmWidgetArtifacts } from '@core/utils/gpu/webgpu-widget.js'
+import {
+  getSharedGpuDevice,
+  hasWebGpu,
+  mountWebGpuWidget,
+  warmWidgetArtifacts,
+} from '@core/utils/gpu/webgpu-widget.js'
 
 /** Captures the widget instance the fake class returns. */
 let lastWidget = null
+
+/**
+ * Builds a navigator.gpu double — requestAdapter → requestDevice → a
+ * fake GPUDevice whose `lost` promise the test controls. `calls`
+ * records requestDevice invocations so the shared-device cache is
+ * assertable (one device for the whole page, never one per widget).
+ */
+const fakeGpu = () => {
+  const calls = []
+  let lostResolve = null
+  const device = { lost: new Promise((resolve) => (lostResolve = resolve)) }
+
+  return {
+    device,
+    calls,
+    loseDevice: (reason = 'unknown') => lostResolve({ reason }),
+    requestAdapter: async () => ({ requestDevice: async () => (calls.push(1), device) }),
+  }
+}
 
 /** Builds a fake wasm module whose widget records every call. */
 const recordingModule = (initImpl, cls) => ({
@@ -38,8 +62,14 @@ const flushTick = async () => {
 }
 
 describe('webgpu-widget bridge', () => {
+  beforeEach(() => {
+    // The widget layer is opt-in — mounts need the active flag.
+    window.history.replaceState(null, '', '/?debug=webgpuWidgets:active')
+  })
+
   afterEach(() => {
     delete navigator.gpu
+    window.history.replaceState(null, '', '/')
   })
 
   it('hasWebGpu gates on navigator.gpu', () => {
@@ -74,8 +104,15 @@ describe('webgpu-widget bridge', () => {
     expect(h).toBeNull()
   })
 
-  it('returns null when init fails', async () => {
+  it('the default loader arm resolves null when the glue import 404s', async () => {
     navigator.gpu = {}
+    const canvas = document.createElement('canvas')
+
+    expect(await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas)).toBeNull()
+  })
+
+  it('returns null when init fails', async () => {
+    navigator.gpu = fakeGpu()
     const canvas = document.createElement('canvas')
 
     const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.BURGER, canvas, async () =>
@@ -88,7 +125,7 @@ describe('webgpu-widget bridge', () => {
   })
 
   it('wires frame ticks, resize forwarding, and destroy', async () => {
-    navigator.gpu = {}
+    navigator.gpu = fakeGpu()
     const canvas = document.createElement('canvas')
 
     Object.defineProperty(canvas, 'clientWidth', { value: 40 })
@@ -115,7 +152,7 @@ describe('webgpu-widget bridge', () => {
   })
 
   it('tolerates a widget without set_size', async () => {
-    navigator.gpu = {}
+    navigator.gpu = fakeGpu()
     const canvas = document.createElement('canvas')
 
     const mod = {
@@ -141,7 +178,7 @@ describe('webgpu-widget bridge', () => {
   })
 
   it('pauses the loop while the tab is hidden and resumes on visible', async () => {
-    navigator.gpu = {}
+    navigator.gpu = fakeGpu()
     const canvas = document.createElement('canvas')
 
     const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SWITCH_SLIDER, canvas, async () =>
@@ -168,8 +205,28 @@ describe('webgpu-widget bridge', () => {
     h.destroy()
   })
 
+  it('a hidden-tab visibilitychange is a no-op and destroy skips a dead clock', async () => {
+    navigator.gpu = fakeGpu()
+    const canvas = document.createElement('canvas')
+
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas, async () =>
+      recordingModule(async () => lastWidget, 'Skeleton')
+    )
+
+    await flushTick()
+
+    Object.defineProperty(document, 'hidden', { value: true, configurable: true })
+    document.dispatchEvent(new Event('visibilitychange')) // hidden → onVisible else arm
+
+    await flushTick() // the in-flight tick disarms the loop (rafId 0)
+
+    h.destroy() // rafId already 0 → cancelAnimationFrame skipped
+
+    Object.defineProperty(document, 'hidden', { value: false, configurable: true })
+  })
+
   it('manual drive wires no clock and no listeners — the caller owns both', async () => {
-    navigator.gpu = {}
+    navigator.gpu = fakeGpu()
     const canvas = document.createElement('canvas')
 
     const h = await mountWebGpuWidget(
@@ -188,6 +245,137 @@ describe('webgpu-widget bridge', () => {
     // No bridge rAF — zero unsolicited frames.
     expect(lastWidget.frames.length).toBe(0)
 
+    h.destroy()
+  })
+
+  it('a frame throw disarms the loop instead of escaping the rAF', async () => {
+    navigator.gpu = fakeGpu()
+    const canvas = document.createElement('canvas')
+
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas, async () =>
+      recordingModule(async () => lastWidget, 'Skeleton')
+    )
+
+    expect(h).not.toBeNull()
+
+    await flushTick()
+    expect(lastWidget.frames.length).toBeGreaterThan(0)
+
+    // A wasm-boundary throw — the loop must disarm, not spam per frame.
+    lastWidget.frame = () => {
+      throw new Error('unreachable')
+    }
+
+    await flushTick()
+    const count = lastWidget.frames.length
+
+    await flushTick()
+    expect(lastWidget.frames.length).toBe(count)
+
+    h.destroy()
+  })
+
+  it('destroy calls the wasm free() — the registry never re-enters free', async () => {
+    navigator.gpu = fakeGpu()
+    const canvas = document.createElement('canvas')
+    let freed = 0
+
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas, async () => ({
+      default: async () => ({}),
+      Skeleton: function () {
+        lastWidget = {
+          frames: [],
+          resizes: [],
+          sizes: [],
+          init: async () => lastWidget,
+          resize: (w, hh) => lastWidget.resizes.push([w, hh]),
+          set_size: (w, hh) => lastWidget.sizes.push([w, hh]),
+          frame: (dt) => lastWidget.frames.push(dt),
+          free: () => {
+            freed++
+          },
+        }
+
+        return lastWidget
+      },
+    }))
+
+    expect(h).not.toBeNull()
+
+    h.destroy()
+    expect(freed).toBe(1)
+  })
+
+  it('manual drive destroy also frees the widget', async () => {
+    navigator.gpu = fakeGpu()
+    const canvas = document.createElement('canvas')
+    let freed = 0
+
+    const h = await mountWebGpuWidget(
+      GPU_WIDGET_KINDS.SKELETON,
+      canvas,
+      async () => ({
+        default: async () => ({}),
+        Skeleton: function () {
+          return {
+            init: async () => ({}),
+            resize: () => undefined,
+            set_size: () => undefined,
+            frame: () => undefined,
+            free: () => {
+              freed++
+            },
+          }
+        },
+      }),
+      { drive: GPU_WIDGET_DRIVE.MANUAL }
+    )
+
+    h.destroy()
+    expect(freed).toBe(1)
+  })
+
+  it('a free() throw at destroy is contained — never an uncaught error', async () => {
+    navigator.gpu = fakeGpu()
+    const canvas = document.createElement('canvas')
+
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.SKELETON, canvas, async () => ({
+      default: async () => ({}),
+      Skeleton: function () {
+        return {
+          init: async () => ({}),
+          resize: () => undefined,
+          set_size: () => undefined,
+          frame: () => undefined,
+          free: () => {
+            throw new Error('memory access out of bounds')
+          },
+        }
+      },
+    }))
+
+    expect(() => h.destroy()).not.toThrow()
+  })
+
+  it('a resize/set_size throw stays inside the listener', async () => {
+    navigator.gpu = fakeGpu()
+    const canvas = document.createElement('canvas')
+
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.BURGER, canvas, async () =>
+      recordingModule(async () => lastWidget, 'Burger')
+    )
+
+    expect(h).not.toBeNull()
+
+    // A poisoned widget throws on the next resize — the listener swallows.
+    lastWidget.set_size = () => {
+      throw new Error('borrow poisoned')
+    }
+    lastWidget.resize = () => {
+      throw new Error('borrow poisoned')
+    }
+
+    window.dispatchEvent(new Event('resize'))
     h.destroy()
   })
 
@@ -224,5 +412,160 @@ describe('webgpu-widget bridge', () => {
     })
 
     await Promise.resolve()
+
+    // The default-loader arm — the real import rejects and is swallowed.
+    warmWidgetArtifacts()
+
+    await Promise.resolve()
+  })
+})
+
+describe('shared GPUDevice', () => {
+  beforeEach(() => {
+    // The widget layer is opt-in — mounts need the active flag.
+    window.history.replaceState(null, '', '/?debug=webgpuWidgets:active')
+  })
+
+  afterEach(() => {
+    delete navigator.gpu
+    window.history.replaceState(null, '', '/')
+  })
+
+  it('resolves null without navigator.gpu', async () => {
+    delete navigator.gpu
+
+    expect(await getSharedGpuDevice()).toBeNull()
+  })
+
+  it('resolves null when the adapter request returns nothing', async () => {
+    navigator.gpu = { requestAdapter: async () => null }
+
+    expect(await getSharedGpuDevice()).toBeNull()
+  })
+
+  it('resolves null when the device request rejects (driver OOM arm)', async () => {
+    navigator.gpu = {
+      requestAdapter: async () => ({
+        requestDevice: async () => {
+          throw new Error('D3D12 create command queue failed with E_OUTOFMEMORY')
+        },
+      }),
+    }
+
+    expect(await getSharedGpuDevice()).toBeNull()
+  })
+
+  it('resolves null when the device request resolves undefined', async () => {
+    navigator.gpu = { requestAdapter: async () => ({ requestDevice: async () => undefined }) }
+
+    expect(await getSharedGpuDevice()).toBeNull()
+  })
+
+  it('resolves null when requestAdapter throws (gpu handle without methods)', async () => {
+    navigator.gpu = {}
+
+    expect(await getSharedGpuDevice()).toBeNull()
+  })
+
+  it('issues ONE device request across many widget mounts', async () => {
+    const gpu = fakeGpu()
+
+    navigator.gpu = gpu
+
+    const canvas = () => document.createElement('canvas')
+
+    const [a, b] = await Promise.all([
+      mountWebGpuWidget(GPU_WIDGET_KINDS.BURGER, canvas(), async () =>
+        recordingModule(async () => lastWidget, 'Burger')
+      ),
+      mountWebGpuWidget(GPU_WIDGET_KINDS.CLOSE_BUTTON, canvas(), async () =>
+        recordingModule(async () => lastWidget, 'CloseButton')
+      ),
+    ])
+
+    expect(a).not.toBeNull()
+    expect(b).not.toBeNull()
+    expect(gpu.calls.length).toBe(1)
+
+    a.destroy()
+    b.destroy()
+  })
+
+  it('passes the shared device object into every widget init', async () => {
+    const gpu = fakeGpu()
+
+    navigator.gpu = gpu
+
+    const canvas = document.createElement('canvas')
+    const initArgs = []
+
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.BURGER, canvas, async () => ({
+      default: async () => ({}),
+      Burger: function () {
+        lastWidget = {
+          init: (c, device) => initArgs.push([c, device]),
+          resize: () => {},
+          frame: () => true,
+        }
+
+        return lastWidget
+      },
+    }))
+
+    expect(h).not.toBeNull()
+    expect(initArgs.length).toBe(1)
+    expect(initArgs[0][0]).toBe(canvas)
+    expect(initArgs[0][1]).toBe(gpu.device)
+
+    h.destroy()
+  })
+
+  it('mount returns null without instantiating the widget when no device exists', async () => {
+    // requestAdapter resolves null — mount must bail before touching
+    // the artifact class (a dead device would init-trap in wasm).
+    navigator.gpu = { requestAdapter: async () => null }
+
+    let constructed = 0
+    const canvas = document.createElement('canvas')
+
+    const h = await mountWebGpuWidget(GPU_WIDGET_KINDS.BURGER, canvas, async () => ({
+      default: async () => ({}),
+      Burger: function () {
+        constructed += 1
+
+        return { init: async () => {}, resize: () => {}, frame: () => true }
+      },
+    }))
+
+    expect(h).toBeNull()
+    expect(constructed).toBe(0)
+  })
+
+  it('a lost device clears the cache — the next mount re-requests', async () => {
+    const gpu = fakeGpu()
+
+    navigator.gpu = gpu
+
+    expect(await getSharedGpuDevice()).toBe(gpu.device)
+    expect(gpu.calls.length).toBe(1)
+
+    gpu.loseDevice('destroyed')
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(await getSharedGpuDevice()).toBe(gpu.device)
+    expect(gpu.calls.length).toBe(2)
+  })
+
+  it('a changed navigator.gpu handle re-requests instead of reusing the cache', async () => {
+    const first = fakeGpu()
+    const second = fakeGpu()
+
+    navigator.gpu = first
+    expect(await getSharedGpuDevice()).toBe(first.device)
+
+    navigator.gpu = second
+    expect(await getSharedGpuDevice()).toBe(second.device)
+    expect(second.calls.length).toBe(1)
   })
 })

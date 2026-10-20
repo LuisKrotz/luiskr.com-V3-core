@@ -21,6 +21,7 @@ export interface LangSlugMap {
   license: string
   earthPlayground: string
   starField: string
+  animations: string
 }
 
 /**
@@ -44,6 +45,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'license',
     earthPlayground: 'earth-playground',
     starField: 'star-field-experiment',
+    animations: 'animations',
   },
   br: {
     about: 'sobre',
@@ -54,6 +56,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'licenca',
     earthPlayground: 'playground-da-terra',
     starField: 'experimento-campo-estelar',
+    animations: 'animacoes',
   },
   es: {
     about: 'acerca',
@@ -64,6 +67,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'licencia',
     earthPlayground: 'playground-de-la-tierra',
     starField: 'experimento-campo-estelar',
+    animations: 'animaciones',
   },
   de: {
     about: 'ueber',
@@ -74,6 +78,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'lizenz',
     earthPlayground: 'erde-playground',
     starField: 'sternenfeld-experiment',
+    animations: 'animationen',
   },
   hrk: {
     about: 'iwwer-mich',
@@ -84,6 +89,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'lizenz',
     earthPlayground: 'erd-playground',
     starField: 'sternfeld-experiment',
+    animations: 'animatsione',
   },
   cas: {
     about: 'sobre-mi',
@@ -94,6 +100,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'licencia',
     earthPlayground: 'playground-de-la-tierra',
     starField: 'experimento-campo-estelar',
+    animations: 'animaciones',
   },
   riv: {
     about: 'sobre-yo',
@@ -104,6 +111,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'licenca',
     earthPlayground: 'playground-da-terra',
     starField: 'experimento-campo-estelar',
+    animations: 'animacoes',
   },
   gn: {
     about: 'che-rehegua',
@@ -114,6 +122,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'licencia',
     earthPlayground: 'yvy-nembosarai',
     starField: 'mbyja-nembosarai',
+    animations: 'jeguama',
   },
   it: {
     about: 'chi-sono',
@@ -124,6 +133,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'licenza',
     earthPlayground: 'playground-della-terra',
     starField: 'esperimento-campo-stellare',
+    animations: 'animazioni',
   },
   ru: {
     about: 'obo-mne',
@@ -134,6 +144,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'litsenziya',
     earthPlayground: 'zemnaya-pesochnitsa',
     starField: 'zvezdnoe-pole',
+    animations: 'animatsii',
   },
   fr: {
     about: 'a-propos',
@@ -144,6 +155,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'licence',
     earthPlayground: 'playground-de-la-terre',
     starField: 'experience-champ-etoile',
+    animations: 'animations',
   },
   tln: {
     about: 'de-mi',
@@ -154,6 +166,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'lisensa',
     earthPlayground: 'playground-della-terra',
     starField: 'esperimento-canpo-stelare',
+    animations: 'animassion',
   },
   gl: {
     about: 'sobre-min',
@@ -164,6 +177,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'licenza',
     earthPlayground: 'playground-da-terra',
     starField: 'experimento-campo-estelar',
+    animations: 'animacions',
   },
   ca: {
     about: 'quant-a-mi',
@@ -174,6 +188,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'llicencia',
     earthPlayground: 'playground-de-la-terra',
     starField: 'experiment-camp-estelar',
+    animations: 'animacions',
   },
   nl: {
     about: 'over-mij',
@@ -184,6 +199,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'licentie',
     earthPlayground: 'aarde-playground',
     starField: 'sterrenveld-experiment',
+    animations: 'animaties',
   },
   ga: {
     about: 'faoi-mhe',
@@ -194,5 +210,6 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     license: 'ceadunas',
     earthPlayground: 'playground-an-domhain',
     starField: 'turgnamh-reimse-realta',
+    animations: 'beochan',
   },
 }

@@ -9,6 +9,7 @@ import {
   escapeHtml,
   slugify,
   mediaSlugSeq,
+  splitDrawSentences,
   toMetaDescription,
 } from '@core/utils/string.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
@@ -39,6 +40,13 @@ describe('string utils tails', () => {
     expect(slugify('фон бренда и структура макета')).toBe('fon-brenda-i-struktura-maketa')
     expect(slugify('Мелисса')).toBe('melissa')
     expect(slugify('вся страница')).toBe('vsya-stranica')
+  })
+
+  test('splitDrawSentences splits on terminal punctuation + whitespace only', () => {
+    expect(splitDrawSentences('One. Two! Three?')).toEqual(['One.', 'Two!', 'Three?'])
+    expect(splitDrawSentences('Built with Three.js today')).toEqual(['Built with Three.js today'])
+    expect(splitDrawSentences('')).toEqual([])
+    expect(splitDrawSentences(null)).toEqual([])
   })
 
   test('mediaSlugSeq numbers repeated label slugs in document order', () => {

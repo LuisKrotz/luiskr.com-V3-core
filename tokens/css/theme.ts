@@ -30,4 +30,5 @@ export const THEME_CSS_PROPS = Object.freeze({
   BURN_MID: '--burn-mid',
   BURN_EDGE: '--burn-edge',
   BURN_SCORCH: '--burn-scorch',
+  BURN_SMOKE: '--burn-smoke',
 })

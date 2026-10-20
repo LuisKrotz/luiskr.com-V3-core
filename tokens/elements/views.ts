@@ -19,4 +19,5 @@ export const VIEW_TAGS = Object.freeze({
   VIEW_SPACE_PLAYGROUND: 'view-space-playground',
   VIEW_STAR_FIELD: 'view-star-field',
   VIEW_DOCS: 'view-docs',
+  VIEW_ANIMATIONS: 'view-animations',
 })

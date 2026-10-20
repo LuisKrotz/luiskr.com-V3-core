@@ -27,6 +27,9 @@ html.dark-mode {
   --burn-mid: #{$cms-accent};
   --burn-edge: #{$cms-accent-hover};
   --burn-scorch: rgba(6, 22, 26, 0.85);
+  // Plasma-fire smoke — pale cyan-grey that stays visible over the
+  // dark card without competing with the accent embers.
+  --burn-smoke: rgba(158, 196, 208, 0.42);
 
   // Menu inks resolve to the current monochrome field — identical rendering.
   --menu-bg: var(--bg-darkest);
@@ -72,4 +75,31 @@ html.dark-mode {
   --skel-bg-1: color-mix(in srgb, var(--bg-secondary) 93%, var(--color-white-raw) 7%);
   --skel-bg-2: color-mix(in srgb, var(--bg-secondary) 83%, var(--color-white-raw) 17%);
   --skel-bg-3: var(--skel-bg-1);
+
+  // Coverage-report palette (dark theme) — deep tints keep the status hue
+  // readable on near-black; strong swatches brighten for legibility.
+  --cov-low-strong: #{$cov-low-strong-dark};
+  --cov-low-mid: #{$cov-low-mid-dark};
+  --cov-low-soft: #{$cov-low-soft-dark};
+  --cov-high-soft: #{$cov-high-soft-dark};
+  --cov-high-mid: #{$cov-high-mid-dark};
+  --cov-high-strong: #{$cov-high-strong-dark};
+  --cov-med-soft: #{$cov-med-soft-dark};
+  --cov-med-strong: #{$cov-med-strong-dark};
+  --cov-warn: #{$cov-warn-dark};
+  --cov-skip: #{$cov-skip-dark};
+  --cov-neutral: #{$cov-neutral-dark};
+  --cov-stripe: #{$cov-stripe-dark};
+  --cov-missing-ink: #{$cov-missing-ink-dark};
+  --cov-fraction-bg: #{$cov-fraction-bg-dark};
+  --cov-fraction-ink: #{$cov-fraction-ink-dark};
+  --cov-border: #{$cov-border-dark};
+  --cov-link: #{$cov-link-dark};
+  --cov-syn-str: #{$cov-syn-str-dark};
+  --cov-syn-kwd: #{$cov-syn-kwd-dark};
+  --cov-syn-com: #{$cov-syn-com-dark};
+  --cov-syn-typ: #{$cov-syn-typ-dark};
+  --cov-syn-lit: #{$cov-syn-lit-dark};
+  --cov-syn-pun: #{$cov-syn-pun-dark};
+  --cov-syn-fun: #{$cov-syn-fun-dark};
 }

@@ -7,6 +7,7 @@
  */
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals'
 import { SkeletonWebGL } from '@core/utils/canvas/loaders/skeleton-webgl.js'
+import { measureSkeleton } from '@core/utils/canvas/loaders/skeleton/measure.js'
 import { skeletonRenderer } from '@core/utils/canvas/loaders/skeleton/renderer.js'
 import { createMockGL, createMock2D } from '@tests/fixtures/mock-webgl.js'
 import { SKELETON_CLASSES } from '@core/tokens/classes/skeleton.js'
@@ -209,6 +210,121 @@ describe('skeleton measure tails', () => {
 
     drawSpy.mockRestore()
     themeSpy.mockRestore()
+
+    layer.destroy()
+    host.remove()
+  })
+
+  test('measure guards skip dead, host-less, and resolving layers', () => {
+    expect(measureSkeleton({ useWebGL: false })).toBeUndefined()
+    expect(measureSkeleton({ useWebGL: true, host: null })).toBeUndefined()
+    expect(measureSkeleton({ useWebGL: true, host: {}, resolveStart: 1 })).toBeUndefined()
+  })
+
+  test('measure no-ops on empty content and a missing canvas', () => {
+    const { host, root, content } = makeHost()
+    const layer = new SkeletonWebGL(host, root, content)
+
+    layer.base = [0.1, 0.1, 0.1]
+    layer.ink = [0.9, 0.9, 0.9]
+
+    layer.refresh()
+
+    expect(layer.rects).toHaveLength(0)
+
+    layer.canvas = null
+
+    content.appendChild(makeSkel({ left: 0, top: 0, width: 100, height: 40 }))
+
+    layer.refresh()
+
+    expect(layer.rects).toHaveLength(0)
+
+    layer.destroy()
+    host.remove()
+  })
+
+  test('text placeholders derive rows from line-height and glyph cells', () => {
+    const realCompute = globalThis.getComputedStyle
+
+    globalThis.getComputedStyle = (el) => ({
+      ...realCompute(el),
+      lineHeight: '16px',
+      borderTopLeftRadius: '0px',
+      getPropertyValue: () => '',
+    })
+
+    const { host, root, content } = makeHost()
+
+    Object.defineProperty(host, 'clientWidth', { value: 400, configurable: true })
+    Object.defineProperty(host, 'clientHeight', { value: 300, configurable: true })
+
+    const layer = new SkeletonWebGL(host, root, content)
+
+    layer.base = [0.1, 0.1, 0.1]
+    layer.ink = [0.9, 0.9, 0.9]
+
+    // PARA_FULL matches the text-like selector; height > lh * 1.4 → row = lh.
+    const para = makeSkel({ left: 0, top: 0, width: 100, height: 30 })
+
+    para.className = SKELETON_CLASSES.SKELETON_PARA_FULL
+
+    // Small height picks the glyph path without the text-like selector.
+    const small = makeSkel({ left: 0, top: 40, width: 100, height: 20 })
+
+    // Tall block stays media (isText false → row 0, media cell).
+    const media = makeSkel({ left: 0, top: 70, width: 100, height: 200 })
+
+    // Zero-height text-like node → row falls through `row || r.height`.
+    const emptyPara = makeSkel({ left: 0, top: 275, width: 100, height: 0 })
+
+    emptyPara.className = SKELETON_CLASSES.SKELETON_PARA_FULL
+
+    // Zero-height non-text node → `r.height > 0` fails isText.
+    const emptyBlock = makeSkel({ left: 120, top: 275, width: 100, height: 0 })
+
+    content.appendChild(para)
+    content.appendChild(small)
+    content.appendChild(media)
+    content.appendChild(emptyPara)
+    content.appendChild(emptyBlock)
+
+    layer.refresh()
+
+    expect(layer.rects).toHaveLength(3)
+    expect(layer.rects[0].row).toBe(16)
+    expect(layer.rects[1].row).toBe(20)
+    expect(layer.rects[2].row).toBe(0)
+
+    globalThis.getComputedStyle = realCompute
+
+    layer.destroy()
+    host.remove()
+  })
+
+  test('a zero devicePixelRatio falls back to one for backing size', () => {
+    const origDpr = Object.getOwnPropertyDescriptor(window, 'devicePixelRatio')
+
+    Object.defineProperty(window, 'devicePixelRatio', { value: 0, configurable: true })
+
+    const { host, root, content } = makeHost()
+
+    content.appendChild(makeSkel({ left: 0, top: 0, width: 100, height: 40 }))
+
+    const layer = new SkeletonWebGL(host, root, content)
+
+    layer.base = [0.1, 0.1, 0.1]
+    layer.ink = [0.9, 0.9, 0.9]
+
+    layer.refresh()
+
+    expect(layer.dpr).toBe(1)
+
+    if (origDpr) {
+      Object.defineProperty(window, 'devicePixelRatio', origDpr)
+    } else {
+      delete window.devicePixelRatio
+    }
 
     layer.destroy()
     host.remove()

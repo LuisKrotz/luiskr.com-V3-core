@@ -39,8 +39,14 @@ $_B_RELATED: 'related-mosaic';
     background: var(--bg-secondary);
     box-shadow: 0 var(--space-2xs) var(--space-lg) rgba($color-black, 0.15);
     transition:
-      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-      box-shadow 0.35s ease;
+      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.4s ease;
+    // Spring upgrade where linear() parses — the ~10% overshoot turns the
+    // hover lift into an elastic settle; older engines drop the whole
+    // declaration and keep the cubic-bezier above.
+    transition:
+      transform 0.55s $ease-spring,
+      box-shadow 0.4s ease;
 
     // Mobile: always full-width (base styles: flex: 1 1 100%; width: 100%; max-width: 100%)
 
@@ -141,7 +147,9 @@ $_B_RELATED: 'related-mosaic';
     object-fit: cover;
     object-position: center;
     display: block;
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    // Spring upgrade — the hover zoom breathes: slight overshoot then settle.
+    transition: transform 0.7s $ease-spring;
   }
 
   &-overlay {
@@ -189,7 +197,8 @@ $_B_RELATED: 'related-mosaic';
     letter-spacing: to-rem(0.8);
     color: var(--color-white-raw);
     text-shadow: 0 var(--space-2xs) var(--space-md) rgba($color-black, 0.6);
-    transition: transform 0.3s ease;
+    transition: transform 0.45s ease;
+    transition: transform 0.45s $ease-spring;
 
     .#{$_B_RELATED}-item--featured & {
       font-size: var(--space-lg);
@@ -215,9 +224,15 @@ $_B_RELATED: 'related-mosaic';
     margin-top: 0;
     opacity: 0;
     transition:
-      max-height 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-      margin-top 0.25s ease,
-      opacity 0.25s ease;
+      max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      margin-top 0.45s ease,
+      opacity 0.3s ease;
+    // Spring upgrade — the reveal overshoots slightly then settles, so the
+    // info block feels like it breathes open rather than sliding dryly.
+    transition:
+      max-height 0.5s $ease-spring,
+      margin-top 0.45s $ease-spring,
+      opacity 0.3s ease;
 
     .#{$_B_RELATED}-item:hover &,
     .#{$_B_RELATED}-item:focus-within & {

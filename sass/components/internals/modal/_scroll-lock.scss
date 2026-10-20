@@ -3,15 +3,10 @@
 //  Imported by modal.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
-// Scroll-lock while any modal is open (JS adds .modal-open to <html>/<body>).
-html.modal-open,
-html.modal-open body,
-html:has(.modal-open),
-html:has(.modal-open) body,
-html:has(dialog[open].modal-above),
-html:has(dialog[open].modal-above) body {
-  overflow: hidden;
-}
+// No html-level overflow lock: the root scroller's overflow:hidden
+// collapses documentElement.scrollTop to 0 (visible page jump). The
+// expand <dialog>'s inert top layer + overscroll-behavior:contain is the
+// lock; body's overflow below covers engines where body itself scrolls.
 
 // The expand dialog: fixed fullscreen layer above everything (media expand view).
 dialog.modal-above,
@@ -34,11 +29,16 @@ dialog.modal-above,
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  background: var(--bg-dark);
+  // Transparent by design — the glass surface lives on
+  // .expand-modal-content (translucent dark + backdrop blur); the
+  // dialog frame and its ::backdrop must let the page show through so
+  // the genie funnel reads as liquid glass over the still-visible
+  // page, not an opaque black mass.
+  background: transparent;
   color: inherit;
 
   &::backdrop {
-    background: var(--bg-dark);
+    background: transparent;
     position: fixed;
     inset: 0;
   }
@@ -46,16 +46,12 @@ dialog.modal-above,
 
 // Page state when a modal is open.
 .modal-open {
-  // Lock page scroll behind the modal
+  // Lock page scroll behind the modal — the native dialog's inert top
+  // layer is the primary lock; this overflow guard covers engines whose
+  // modal inertness doesn't block document scrolling. No fixed-position
+  // pin: the document keeps its real scroll offset → zero shift.
   body {
     overflow: hidden;
-  }
-
-  .modal-below {
-    top: 0;
-    left: 0;
-    width: 100%;
-    position: fixed;
   }
 
   // Hide regular nav links in modal context

@@ -21,6 +21,8 @@ import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
 import { LOCALES } from '@core/tokens/locales.js'
 import { FALLBACK_APP, FALLBACK_LOADERS } from '@core/locale/fallback.js'
 import type { LoaderCopy } from '@core/locale/fallback.js'
+import { applyAnimationDesc } from '@core/utils/a11y/animation-desc.js'
+import { ANIMATION_IDS } from '@core/tokens/data/animation-ids.js'
 import store from '@core/store.js'
 
 /** Total boot animation budget (ms) — long enough for stages to read. */
@@ -150,6 +152,10 @@ export class IntroLoader {
     this.container.appendChild(content)
 
     this.rootContainer.appendChild(this.container)
+
+    // Spinner/counter/bar are all part of the one boot overlay —
+    // the container carries the animation description.
+    applyAnimationDesc(this.container, ANIMATION_IDS.INTRO_LOADER)
 
     this.runAnimation()
   }

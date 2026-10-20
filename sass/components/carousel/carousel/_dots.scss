@@ -59,7 +59,9 @@
     background: transparent; // real colour is on ::after
     cursor: pointer;
     flex-shrink: 0;
-    transition: min-width 0.25s ease;
+    // Dot→pill morph rides the damped-spring curve — the little width
+    // overshoot makes the switch read organic rather than a dead ease.
+    transition: min-width 0.5s $ease-spring;
 
     // Visible dot — centred inside the 24px tap target
     &::after {
@@ -70,7 +72,7 @@
       border-radius: 9999px;
       background: var(--grey-3);
       transition:
-        width 0.25s ease,
+        width 0.5s $ease-spring,
         background 0.25s ease;
     }
 

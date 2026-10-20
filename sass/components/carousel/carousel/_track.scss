@@ -40,6 +40,14 @@
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none; // Firefox
+
+    // While the scroll spring drives scrollLeft per frame, snap and the
+    // CSS smooth behavior would fight it — lift both until the spring
+    // settles (it parks exactly on a snap point, so re-arm is invisible).
+    &--animating {
+      scroll-snap-type: none;
+      scroll-behavior: auto;
+    }
     &::-webkit-scrollbar {
       display: none;
     } // Chrome/Safari

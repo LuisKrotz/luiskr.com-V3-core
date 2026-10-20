@@ -15,6 +15,7 @@ import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { VIEW_TAGS } from '@core/tokens/elements/views.js'
 import { MODAL_CLASSES } from '@core/tokens/classes/modal.js'
 import { MODAL_MUTATIONS } from '@core/tokens/events/mutations.js'
+import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 
 // The patch registers whenDefined() callbacks at module-eval — the component
 // imports above ensure the tags already resolve when it installs.
@@ -60,16 +61,10 @@ describe('safari-patch — ViewProject modal fallbacks', () => {
     above.remove()
   })
 
-  test('open modal with no transform uses 0 and existing expanded is reused', async () => {
+  test('open modal with no transform keeps the page unpinned and reuses the expanded element', async () => {
     const above = document.createElement(HTML_TAGS.DIALOG)
-    const below = { style: {} }
     const ctx = {
-      $: (sel) =>
-        sel.includes(MODAL_CLASSES.MODAL_ABOVE)
-          ? above
-          : sel.includes(MODAL_CLASSES.MODAL_BELOW)
-            ? below
-            : null,
+      $: (sel) => (sel.includes(MODAL_CLASSES.MODAL_ABOVE) ? above : null),
       shadowRoot: document.createDocumentFragment(),
     }
 
@@ -78,9 +73,11 @@ describe('safari-patch — ViewProject modal fallbacks', () => {
       media: { source: 's.jpg', isVideo: false },
     })
 
+    // scrollY is 0 in the fixture — the pin only engages on a real
+    // offset, so body stays unpinned here.
     patched().call(ctx)
 
-    expect(below.style.transform).toContain('0')
+    expect(document.body.style.position).not.toBe(STATE_STRINGS.FIXED)
     expect(above.querySelector(COMPONENT_TAGS.MEDIA_EXPANDED)).not.toBeNull()
 
     // second call — same media → existing expanded element is kept

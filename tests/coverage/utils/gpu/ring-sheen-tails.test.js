@@ -206,6 +206,61 @@ describe('ring-sheen mount', () => {
     expect(widget.frames.length).toBe(count)
   })
 
+  test('refresh before the mount resolves is a no-op (resheet/poke guards)', () => {
+    mountDelay = 60
+
+    const s = mount()
+
+    s.refresh() // handle still null → resheet's !handle + poke's guard arms
+
+    expect(s).not.toBeNull()
+  })
+
+  test('no IntersectionObserver mounts directly; no ResizeObserver stays live', async () => {
+    makeWidget()
+    mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+    const io = globalThis.IntersectionObserver
+    const ro = globalThis.ResizeObserver
+
+    delete globalThis.IntersectionObserver
+    delete globalThis.ResizeObserver
+
+    mount()
+
+    await flush()
+
+    expect(widget.tiles.length).toBeGreaterThan(0)
+    expect(container.querySelector('canvas')).not.toBeNull()
+
+    globalThis.IntersectionObserver = io
+    globalThis.ResizeObserver = ro
+  })
+
+  test('a timestamped clock runs the dt arm; hidden refresh stays parked', async () => {
+    makeWidget()
+    mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+    const raf = globalThis.requestAnimationFrame
+
+    globalThis.requestAnimationFrame = (cb) => setTimeout(() => cb(performance.now()), 0)
+
+    mount()
+
+    await flush(60)
+
+    expect(widget.frames.length).toBeGreaterThan(1)
+
+    globalThis.requestAnimationFrame = raf
+    Object.defineProperty(document, 'hidden', { value: true, configurable: true })
+
+    const s = sessions[0]
+
+    s.refresh() // hidden → poke's !document.hidden arm
+
+    Object.defineProperty(document, 'hidden', { value: false, configurable: true })
+  })
+
   test('document.hidden pauses and visibilitychange resumes', async () => {
     makeWidget()
     mountResult = { canvas: null, widget, destroy: jest.fn() }
@@ -229,5 +284,118 @@ describe('ring-sheen mount', () => {
     await flush(60)
 
     expect(widget.frames.length).toBeGreaterThan(n)
+  })
+
+  test('a live ResizeObserver marks dirty and resheets on the next tick', async () => {
+    makeWidget()
+    mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+    const ros = []
+
+    globalThis.ResizeObserver = class {
+      constructor(cb) {
+        this.cb = cb
+        ros.push(this)
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+
+    mount()
+
+    await flush(60)
+
+    expect(ros.length).toBe(1)
+
+    const n = widget.tiles.length
+
+    ros[0].cb() // markDirty → dirty + poke → tick → resheet
+
+    await flush(40)
+
+    expect(widget.tiles.length).toBeGreaterThan(n)
+
+    delete globalThis.ResizeObserver
+  })
+
+  test('a zero devicePixelRatio falls back to unit scale', async () => {
+    makeWidget()
+    mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+    const prev = window.devicePixelRatio
+
+    Object.defineProperty(window, 'devicePixelRatio', { value: 0, configurable: true })
+
+    mount()
+
+    await flush()
+
+    expect(widget.resizes.length).toBeGreaterThan(0)
+
+    Object.defineProperty(window, 'devicePixelRatio', { value: prev, configurable: true })
+  })
+
+  test('an empty tile selector sheets zero instances', async () => {
+    makeWidget()
+    mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+    const s = mountRingSheen(container, '.not-a-tile', 'ring-canvas')
+
+    if (s) sessions.push(s)
+
+    await flush()
+
+    expect(widget.tiles.length).toBeGreaterThan(0)
+    expect(widget.tiles[0].length).toBe(0)
+  })
+
+  test('a non-intersecting IO entry skips mount; a stale tick no-ops after destroy', async () => {
+    makeWidget()
+    mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+    const ios = []
+    const PrevIO = globalThis.IntersectionObserver
+
+    globalThis.IntersectionObserver = class {
+      constructor(cb) {
+        this.cb = cb
+        ios.push(this)
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+
+    mount()
+
+    ios[0].cb([{ isIntersecting: false, target: container }]) // else arm — no mount
+    expect(mountCalls.length).toBe(0)
+
+    // A stale rAF queued before destroy must early-return on dead.
+    const cbs = []
+    const prevRaf = globalThis.requestAnimationFrame
+
+    globalThis.requestAnimationFrame = (cb) => {
+      cbs.push(cb)
+
+      return cbs.length
+    }
+
+    ios[0].cb([{ isIntersecting: true, target: container }])
+
+    await flush()
+
+    container.dispatchEvent(new Event(ANIMATION_EVENTS.TRANSITIONSTART))
+
+    const s = sessions[0]
+
+    expect(cbs.length).toBeGreaterThan(0)
+
+    s.destroy()
+    cbs[0]() // tick → !handle || dead → early return
+
+    globalThis.requestAnimationFrame = prevRaf
+    globalThis.IntersectionObserver = PrevIO
   })
 })

@@ -142,4 +142,43 @@ describe('gpu-accel tails', () => {
       gpu._ready = prevReady
     }
   })
+
+  test('initGPU invokes the silent warn sink when shader compilation fails', () => {
+    const gpu = gpuAccel
+    const fakeGl = {
+      VERTEX_SHADER: 1,
+      FRAGMENT_SHADER: 2,
+      COMPILE_STATUS: 3,
+      LINK_STATUS: 4,
+      ARRAY_BUFFER: 5,
+      STATIC_DRAW: 6,
+      FLOAT: 7,
+      enable: () => {},
+      createShader: () => ({}),
+      shaderSource: () => {},
+      compileShader: () => {},
+      getShaderParameter: () => false,
+      getShaderInfoLog: () => 'bad shader',
+      deleteShader: () => {},
+    }
+    const fakeCanvas = { width: 0, height: 0, getContext: () => fakeGl }
+    const origCreate = document.createElement.bind(document)
+    const spy = jest
+      .spyOn(document, 'createElement')
+      .mockImplementation((tag) => (tag === 'canvas' ? fakeCanvas : origCreate(tag)))
+    const prevReady = gpu._ready
+
+    try {
+      gpu._ready = false
+      gpu.initGPU()
+
+      // compile fails → the custom `warn: () => {}` sink ran, `built` is null.
+      expect(gpu.gl).toBe(fakeGl)
+      expect(gpu.program).toBeFalsy()
+    } finally {
+      spy.mockRestore()
+
+      gpu._ready = prevReady
+    }
+  })
 })

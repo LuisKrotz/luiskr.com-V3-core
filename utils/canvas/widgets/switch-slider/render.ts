@@ -1,16 +1,16 @@
 /**
  * @file switch-slider-render.ts — render loop for the switch slider:
- * the 18%/frame spring ease, the static single-frame path used under
- * reduced motion, and the per-frame WebGL/Canvas2D draws.
+ * the RAF damped-spring animation (SLIDER_SPRING chase, ~4% elastic
+ * overshoot), the static single-frame path used under reduced motion,
+ * and the per-frame WebGL/Canvas2D draws.
  */
 
 import store from '@core/store.js'
 import { bindQuad } from '../../gl-program.js'
 import { paintSwitchSlider2D } from './paint-2d.js'
+import { springStep } from '../../../motion/spring.js'
+import { SLIDER_SPRING } from '@core/tokens/motion/slider.js'
 import type { SwitchWebGL } from '../switch-slider.js'
-
-/** Spring constant — snappier than the theme slider's 0.14 (26px travel). */
-const SPRING = 0.18
 
 /**
  * Snap state to target and draw a single settled frame — used under
@@ -19,6 +19,10 @@ const SPRING = 0.18
  */
 export function renderStatic(host: SwitchWebGL): void {
   host.currentP = host.targetP
+
+  host.velP = 0
+
+  host._animT = 0
 
   host.knobX = host._pToKnobX(host.currentP)
 
@@ -50,12 +54,19 @@ export function animate(host: SwitchWebGL): void {
 
   const now = performance.now()
 
-  // Exponential ease-out spring: closes 18% of the remaining distance
-  // per frame (τ ≈ 5 frames — snappier than the theme slider's 0.14,
-  // matching the smaller 26px travel distance).
-  const diff = host.targetP - host.currentP
+  // Damped-spring chase — the shared integrator (utils/motion/spring.ts)
+  // in the underdamped snap regime (ζ≈0.72: ~4% overshoot — the elastic
+  // settle). Switches have no drag surface, so the snap constants apply
+  // unconditionally. dt is wall-clock — 120/240Hz displays get identical
+  // motion, and a suspended tab clamps to DT_MAX_S instead of exploding
+  // the spring.
+  const dt = host._animT
+    ? Math.min((now - host._animT) * 0.001, SLIDER_SPRING.DT_MAX_S)
+    : SLIDER_SPRING.DT_INIT_S
 
-  host.currentP += diff * SPRING
+  host._animT = now
+
+  springStep(host, SLIDER_SPRING.SNAP_K, SLIDER_SPRING.SNAP_C, dt)
 
   host.knobX = host._pToKnobX(host.currentP)
 

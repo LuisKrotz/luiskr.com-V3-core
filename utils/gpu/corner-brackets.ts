@@ -34,6 +34,8 @@ import { FOCUS_EVENTS, POINTER_EVENTS } from '@core/tokens/events/dom.js'
 import { parseCssColor } from '@core/utils/canvas/css-color.js'
 import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
 import { hasWebGpu, mountWebGpuWidget } from '@core/utils/gpu/webgpu-widget.js'
+import { applyAnimationDesc } from '@core/utils/a11y/animation-desc.js'
+import { ANIMATION_IDS } from '@core/tokens/data/animation-ids.js'
 import type { WidgetHandle } from '@core/utils/gpu/webgpu-widget.js'
 
 /**
@@ -149,8 +151,14 @@ function cssLength(el: HTMLElement, value: string): number {
 export function mountCornerBrackets(button: HTMLElement, spec: CornerBracketSpec): () => void {
   const noop = () => undefined
 
+  if (!button) return noop
+
+  // The button animates its corner brackets on hover even without
+  // WebGPU (the CSS ::before fallback), so the description applies
+  // before the capability guard — idempotent across re-mounts.
+  applyAnimationDesc(button, ANIMATION_IDS.CORNER_BRACKETS)
+
   if (
-    !button ||
     !hasWebGpu() ||
     typeof document === TYPE_STRINGS.UNDEFINED ||
     typeof window === TYPE_STRINGS.UNDEFINED ||

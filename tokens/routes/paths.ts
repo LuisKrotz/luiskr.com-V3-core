@@ -5,7 +5,7 @@
  * PATHS.
  */
 
-import { _B_ABOUT, _B_CONTACT, _B_DOCS } from '../base.js'
+import { _B_ABOUT, _B_CONTACT, _B_DOCS, _K_ANIMATIONS } from '../base.js'
 
 /**
  * Frozen public-route map — canonical (English) URL paths. `*_SEGMENT`
@@ -36,6 +36,7 @@ export const ROUTE_PATHS = Object.freeze({
   STAR_FIELD_SEGMENT: 'star-field-experiment',
   DOCS: `/${_B_DOCS}`,
   DOCS_SEGMENT: _B_DOCS,
+  ANIMATIONS_SEGMENT: _K_ANIMATIONS,
 })
 
 /**

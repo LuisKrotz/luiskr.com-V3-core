@@ -198,6 +198,71 @@ describe('divider-sheen mount', () => {
     expect(widget.frames.length).toBeGreaterThan(n)
   })
 
+  test('resolved CSS vars push the hairline + band colors', async () => {
+    makeWidget()
+    mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+    const gcs = globalThis.getComputedStyle
+
+    globalThis.getComputedStyle = () => ({
+      getPropertyValue: () => 'rgb(10, 20, 30)',
+      borderRadius: '0px',
+    })
+
+    mount()
+
+    await flush()
+
+    globalThis.getComputedStyle = gcs
+
+    expect(widget.colors.length).toBe(1)
+    expect(widget.colors[0].length).toBe(8)
+  })
+
+  test('an IO exit stops the loop — live raf and idle arms', async () => {
+    makeWidget()
+    mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+    const ios = []
+    const PrevIO = globalThis.IntersectionObserver
+
+    globalThis.IntersectionObserver = class {
+      constructor(cb) {
+        this.cb = cb
+        ios.push(this)
+      }
+      observe() {}
+      disconnect() {}
+    }
+
+    mount()
+
+    // IO exit while the mount is still in flight — raf is 0.
+    ios[0].cb([{ isIntersecting: false, target: hr }])
+    ios[0].cb([{ isIntersecting: true, target: hr }])
+    // A visible re-entry while the mount is pending — the `m.visible`
+    // else-if arm runs pumpDivider, which early-returns on `!m.handle`.
+    ios[0].cb([{ isIntersecting: true, target: hr }])
+
+    await flush(60)
+
+    expect(widget.frames.length).toBeGreaterThan(0)
+
+    // A visible-page event while the loop ticks — pumpDivider's raf guard.
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    // IO exit with the loop ticking — cancelAnimationFrame arm.
+    ios[0].cb([{ isIntersecting: false, target: hr }])
+
+    const n = widget.frames.length
+
+    await flush(60)
+
+    expect(widget.frames.length - n).toBeLessThanOrEqual(1)
+
+    globalThis.IntersectionObserver = PrevIO
+  })
+
   test('window resize re-mirrors the box once live', async () => {
     makeWidget()
     mountResult = { canvas: null, widget, destroy: jest.fn() }
@@ -205,6 +270,8 @@ describe('divider-sheen mount', () => {
     Object.defineProperty(hr, 'offsetWidth', { value: 200, configurable: true })
 
     mount()
+
+    window.dispatchEvent(new Event('resize')) // handle still null → onResize's guard arm
 
     await flush()
 

@@ -281,3 +281,55 @@ export function calcAspectScaled(
 
   return Math.round(height * (maxW / width))
 }
+
+/**
+ * Contain-fit scale for media inside a bounding box, clamped to 1:
+ * min(boundW/naturalW, boundH/naturalH, 1) — the media may shrink to fit
+ * both bounds but is never upscaled past its natural pixel size. This is
+ * the hard guarantee behind the natural-dimension cap: multiplying the
+ * natural dims by the returned scale yields a box that can never exceed
+ * the source file's real pixels, so object-fit: cover inside that box
+ * renders at ≤100% of the source and physically cannot upscale it.
+ * Non-positive inputs yield 0 (callers treat it as "no constraint").
+ * @param naturalW Source file width in px.
+ * @param naturalH Source file height in px.
+ * @param boundW Layout width bound in px.
+ * @param boundH Layout height bound in px.
+ * @returns Scale factor in [0, 1].
+ */
+export function calcMediaScale(
+  naturalW: number,
+  naturalH: number,
+  boundW: number,
+  boundH: number
+): number {
+  if (!(naturalW > 0) || !(naturalH > 0)) return 0
+
+  return (
+    _call('calc_media_scale', naturalW, naturalH, boundW, boundH) ??
+    Math.min(boundW / naturalW, boundH / naturalH, 1)
+  )
+}
+
+/**
+ * Capped media box in px: natural dims multiplied by calcMediaScale —
+ * the largest box that both fits the bounds and never exceeds the
+ * source's natural size. Used to mirror the CSS min(--mf-*, --mf-natural-*)
+ * caps in JS projections (carousel fit measurement) so the side-by-side
+ * decision and the published slide heights match the rendered layout.
+ * @param naturalW Source file width in px.
+ * @param naturalH Source file height in px.
+ * @param boundW Layout width bound in px.
+ * @param boundH Layout height bound in px.
+ * @returns { width, height } box in px, or 0×0 for degenerate input.
+ */
+export function calcMediaBox(
+  naturalW: number,
+  naturalH: number,
+  boundW: number,
+  boundH: number
+): { width: number; height: number } {
+  const scale = calcMediaScale(naturalW, naturalH, boundW, boundH)
+
+  return { width: naturalW * scale, height: naturalH * scale }
+}

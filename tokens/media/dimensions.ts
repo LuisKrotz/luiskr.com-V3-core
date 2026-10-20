@@ -140,6 +140,10 @@ export const DRAW_TIMINGS = Object.freeze({
   DRAW_DELAY_MAX_MS: 22,
   DRAW_INDEX_STEP_MS: 30,
   DRAW_FALLBACK_DELAY: 14,
+  // Handwriting pace for sentence-level reveals (about bio): a new char
+  // starts every ~2 frames at 60Hz — visibly sequential "one char at a
+  // time", while sentences queue back-to-back on the ordered clock.
+  DRAW_SENTENCE_CHAR_DELAY: 30,
   // Menu labels: per-char draw pace, per-item stagger, base delay before the
   // first item starts — the item underline uses these to land after the last char.
   MENU_LABEL_CHAR_DELAY: 45,

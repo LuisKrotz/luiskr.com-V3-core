@@ -54,6 +54,8 @@ export const GPU_WIDGET_KINDS = Object.freeze({
    * single-sourced here.
    */
   SCENE3D: 15,
+  /** Expand-modal genie — composited-sheet mesh-warp transition. */
+  GENIE: 16,
 })
 
 /**
@@ -158,6 +160,12 @@ export const GPU_WIDGET_ARTIFACTS: Readonly<
     cls: 'Surface3d',
     eager: false,
   }),
+  /** genie — expand-modal composited-sheet mesh-warp + dock flash. */
+  [GPU_WIDGET_KINDS.GENIE]: Object.freeze({
+    url: `${ASSET_PATHS.WASM_WIDGETS_PREFIX}genie/luiskr_genie.js`,
+    cls: 'Genie',
+    eager: false,
+  }),
 })
 
 /**
@@ -190,6 +198,8 @@ export const GPU_WIDGET_UNIFORM_F32S = Object.freeze({
   [GPU_WIDGET_KINDS.RING_SHEEN]: 16,
   /** corner: res(2), hover, hair, arm0(2), arm1(2), edge(4), accent(4). */
   [GPU_WIDGET_KINDS.CORNER_BRACKETS]: 16,
+  /** genie: res(2), time, progress, from(4), to(4), reserved(2), dpr, flags, tint(4), uv(4). */
+  [GPU_WIDGET_KINDS.GENIE]: 24,
 })
 
 /**

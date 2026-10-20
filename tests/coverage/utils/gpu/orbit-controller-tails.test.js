@@ -91,6 +91,29 @@ describe('orbit-controller', () => {
     expect(ctl.pitch).toBeLessThanOrEqual(0.5)
     expect(ctl.pitch).toBeGreaterThan(0)
 
+    // getCoalescedEvents on the dispatched event — the sampling arm.
+    fire(canvas, POINTER_EVENTS.POINTERMOVE, {
+      pointerId: 1,
+      clientX: 50,
+      clientY: 200,
+      getCoalescedEvents: () => [
+        { clientX: 20, clientY: 60 },
+        { clientX: 30, clientY: 120 },
+      ],
+    })
+
+    // An empty coalesced batch falls back to the event itself.
+    fire(canvas, POINTER_EVENTS.POINTERMOVE, {
+      pointerId: 1,
+      clientX: 40,
+      clientY: 150,
+      getCoalescedEvents: () => [],
+    })
+
+    ctl.update(1)
+
+    expect(ctl.yaw).toBeLessThan(0)
+
     ctl.dispose()
   })
 
@@ -135,6 +158,37 @@ describe('orbit-controller', () => {
 
     expect(seen).toEqual([1])
 
+    ctl.dispose()
+  })
+
+  test('a zero-span pinch leaves the distance alone; a third pointer drags', () => {
+    const ctl = bindOrbit(canvas, { distance: 100 })
+
+    ctl.update(1 / 60)
+
+    // Both pointers on the same spot → span 0 → the zoom guard's else arm.
+    fire(canvas, POINTER_EVENTS.POINTERDOWN, { pointerId: 1, clientX: 40, clientY: 40 })
+    fire(canvas, POINTER_EVENTS.POINTERDOWN, { pointerId: 2, clientX: 40, clientY: 40 })
+    fire(canvas, POINTER_EVENTS.POINTERMOVE, { pointerId: 2, clientX: 40, clientY: 40 })
+    fire(canvas, POINTER_EVENTS.POINTERDOWN, { pointerId: 3, clientX: 0, clientY: 0 })
+    fire(canvas, POINTER_EVENTS.POINTERMOVE, { pointerId: 3, clientX: 30, clientY: 0 })
+
+    ctl.update(1)
+
+    expect(ctl.distance).toBeCloseTo(100, 5)
+    expect(ctl.yaw).toBeLessThan(0)
+
+    const noZoom = bindOrbit(canvas, { enableZoom: false })
+
+    fire(canvas, POINTER_EVENTS.POINTERDOWN, { pointerId: 1, clientX: 0, clientY: 0 })
+    fire(canvas, POINTER_EVENTS.POINTERDOWN, { pointerId: 2, clientX: 50, clientY: 0 })
+    fire(canvas, POINTER_EVENTS.POINTERMOVE, { pointerId: 2, clientX: 80, clientY: 0 })
+    noZoom.update(1)
+
+    // enableZoom:false — a two-pointer move rotates instead of zooming.
+    expect(noZoom.yaw).toBeLessThan(0)
+
+    noZoom.dispose()
     ctl.dispose()
   })
 
@@ -271,6 +325,17 @@ describe('orbit-controller', () => {
     expect(ctl.distance).toBe(50)
     expect(ctl.yaw).toBe(0.25)
     expect(ctl.pitch).toBe(0.4)
+
+    ctl.dispose()
+  })
+
+  test('autoRotate without a configured speed applies the zero default', () => {
+    const ctl = bindOrbit(canvas)
+
+    ctl.autoRotate = true
+    ctl.update(1)
+
+    expect(ctl.yaw).toBe(0)
 
     ctl.dispose()
   })

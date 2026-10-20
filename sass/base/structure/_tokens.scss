@@ -30,6 +30,9 @@
   --burn-mid: #ffb36b;
   --burn-edge: #e07f3e;
   --burn-scorch: rgba(72, 52, 34, 0.55);
+  // Paper-ash smoke — warm mid-grey that stays readable over the light
+  // card surface without reading as soot.
+  --burn-smoke: rgba(96, 88, 80, 0.5);
 
   // Light theme default tokens
   --bg-primary: #ffffff;
@@ -232,6 +235,35 @@
   // Discharge glow cast around the line — paired box-shadow stops.
   --plasma-glow-near: rgba(95, 218, 255, 0.55);
   --plasma-glow-far: rgba(55, 167, 212, 0.3);
+
+  // Coverage-report palette (light theme) — sanitized istanbul payloads in
+  // the docs portal re-map their baked colors onto these, so the report
+  // follows the theme toggle through inherited custom properties.
+  --cov-low-strong: #{$cov-low-strong};
+  --cov-low-mid: #{$cov-low-mid};
+  --cov-low-soft: #{$cov-low-soft};
+  --cov-high-soft: #{$cov-high-soft};
+  --cov-high-mid: #{$cov-high-mid};
+  --cov-high-strong: #{$cov-high-strong};
+  --cov-med-soft: #{$cov-med-soft};
+  --cov-med-strong: #{$cov-med-strong};
+  --cov-warn: #{$cov-warn};
+  --cov-skip: #{$cov-skip};
+  --cov-neutral: #{$cov-neutral};
+  --cov-stripe: #{$cov-stripe};
+  --cov-missing-bg: #{$cov-missing-bg};
+  --cov-missing-ink: #{$cov-missing-ink};
+  --cov-fraction-bg: #{$cov-fraction-bg};
+  --cov-fraction-ink: #{$cov-fraction-ink};
+  --cov-border: #{$cov-border};
+  --cov-link: #{$cov-link};
+  --cov-syn-str: #{$cov-syn-str};
+  --cov-syn-kwd: #{$cov-syn-kwd};
+  --cov-syn-com: #{$cov-syn-com};
+  --cov-syn-typ: #{$cov-syn-typ};
+  --cov-syn-lit: #{$cov-syn-lit};
+  --cov-syn-pun: #{$cov-syn-pun};
+  --cov-syn-fun: #{$cov-syn-fun};
 }
 
 // Dark theme token overrides — flips all --bg-*/--text-*/--menu-* vars when .dark-mode is on <html>.

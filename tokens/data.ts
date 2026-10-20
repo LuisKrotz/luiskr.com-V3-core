@@ -8,6 +8,7 @@
  */
 /* istanbul ignore file */
 
+export * from './data/animation-ids.js'
 export * from './data/ui-keys.js'
 export * from './data/component-keys.js'
 export * from './data/cms-keys.js'

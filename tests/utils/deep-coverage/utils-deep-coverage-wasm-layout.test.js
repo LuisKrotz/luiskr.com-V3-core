@@ -19,6 +19,7 @@ describe('wasm-layout', () => {
       calc_ease_out_cubic: () => 46,
       calc_draw_text_delay: () => 47,
       calc_draw_text_offset: () => 48,
+      calc_media_scale: () => 0.5,
     }
 
     const origFetch = globalThis.fetch
@@ -45,6 +46,9 @@ describe('wasm-layout', () => {
     expect(mod.calcDrawTextDelay(10, 1000)).toBe(22) // clamped to 22ms max
     expect(mod.calcDrawTextOffset(1, 2, 3)).toBe(48)
     expect(mod.calcDrawTextOrderedOffset(2, 500)).toBe(48) // same WASM op, delay=1 passthrough
+    expect(mod.calcMediaScale(100, 100, 50, 50)).toBe(0.5)
+    expect(mod.calcMediaBox(100, 100, 50, 50)).toEqual({ width: 50, height: 50 })
+    expect(mod.calcMediaScale(0, 100, 50, 50)).toBe(0) // degenerate input → 0
 
     WebAssembly.instantiate = origInstantiate
     globalThis.fetch = origFetch
@@ -94,6 +98,13 @@ describe('wasm-layout', () => {
     expect(mod.calcAspectScaled(0, 100)).toBe(100)
     expect(mod.calcAspectScaled(500, 100)).toBe(100)
     expect(mod.calcAspectScaled(4000, 1000, 2000)).toBe(500)
+    expect(mod.calcMediaScale(400, 300, 800, 600)).toBe(1) // fits → never upscale
+    expect(mod.calcMediaScale(1600, 1200, 800, 600)).toBe(0.5)
+    expect(mod.calcMediaScale(800, 1200, 800, 600)).toBe(0.5) // height-bound
+    expect(mod.calcMediaBox(1600, 1200, 800, 600)).toEqual({ width: 800, height: 600 })
+    expect(mod.calcMediaBox(400, 300, 800, 600)).toEqual({ width: 400, height: 300 })
+    expect(mod.calcMediaScale(0, 0, 100, 100)).toBe(0)
+    expect(mod.calcMediaScale(-1, 100, 50, 50)).toBe(0)
 
     globalThis.fetch = origFetch
   })

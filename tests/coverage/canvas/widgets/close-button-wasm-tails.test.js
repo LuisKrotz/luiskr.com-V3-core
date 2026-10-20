@@ -220,4 +220,37 @@ describe('close-button wasm path', () => {
 
     btn.destroy()
   })
+
+  test('a detached canvas binds itself; destroy disconnects a live RO', async () => {
+    const disconnect = jest.fn()
+
+    globalThis.ResizeObserver = class {
+      constructor(cb) {
+        this.cb = cb
+      }
+      observe() {}
+      disconnect() {
+        disconnect()
+      }
+    }
+
+    const CloseButtonWebGL = await loadClass()
+    const canvas = document.createElement(HTML_TAGS.CANVAS)
+
+    // Detached — no parentElement, so bindEvents' `|| this.canvas` arm binds
+    // the canvas itself and observeResize observes it.
+    const btn = new CloseButtonWebGL(canvas)
+
+    await flush()
+
+    expect(btn.boundTarget).toBe(canvas)
+    expect(btn._ro).not.toBeNull()
+
+    btn.destroy()
+
+    expect(disconnect).toHaveBeenCalled()
+    expect(btn._ro).toBeNull()
+
+    delete globalThis.ResizeObserver
+  })
 })

@@ -46,10 +46,27 @@ export const WASM_ACTIONS = Object.freeze(
  */
 export const WASM_POOL = Object.freeze({
   WORKER_URL: '/scripts/workers/wasm-worker.js',
+  /**
+   * The GPU render worker — owns every widget's OffscreenCanvas, wasm
+   * artifact, shared device, and per-frame draw submissions so the
+   * main thread never runs a widget draw call.
+   */
+  GPU_WORKER_URL: '/scripts/workers/gpu-render-worker.js',
   ENGINE_URL: '/scripts/wasm/engine.wasm',
-  MOBILE_MAX: 2,
+  MOBILE_MAX: 4,
   DESKTOP_MIN: 2,
-  DESKTOP_MAX: 4,
+  /**
+   * Desktop pool ceiling — `hardwareConcurrency - RESERVED` cores are
+   * the real width (below): the browser allows one dedicated worker
+   * per core, but oversubscribing past that only costs context
+   * switches, so the cap keeps huge-core-count boxes sane.
+   */
+  DESKTOP_MAX: 14,
+  /**
+   * Cores left for the main thread + the GPU render worker +
+   * compositor — the pool never takes the last RESERVED cores.
+   */
+  RESERVED_CORES: 2,
   FALLBACK_CORES: 2,
   /**
    * Dispatch reply deadline — a worker that never posts back (broken
@@ -57,6 +74,19 @@ export const WASM_POOL = Object.freeze({
    * after this so callers land on their JS fallback instead of hanging.
    */
   REPLY_TIMEOUT_MS: 8000,
+  /**
+   * Pool respawn cooldown after a full wipeout (every worker dropped
+   * by errors/timeouts). Without it, a persistently failing worker
+   * script re-spawns the whole pool on every dispatch — a spawn storm
+   * that leaves thousands of zombie worker processes in the browser.
+   */
+  RESPAWN_COOLDOWN_MS: 5000,
+  /**
+   * Consecutive full-pool wipeouts tolerated before the pool stops
+   * respawning for the session — a script that can't stay alive is a
+   * permanent failure, not a transient one.
+   */
+  MAX_WIPEOUTS: 3,
 })
 
 /**

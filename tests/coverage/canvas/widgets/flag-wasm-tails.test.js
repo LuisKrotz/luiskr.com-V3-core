@@ -13,6 +13,7 @@ import { describe, test, expect, beforeEach, jest } from '@jest/globals'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { LOCALES } from '@core/tokens/locales.js'
 import { GPU_FLAG_ANIMS } from '@core/tokens/motion/gpu-widgets.js'
+import { MOUSE_EVENTS } from '@core/tokens/events/dom.js'
 import { createMockGL, createMock2D } from '@tests/fixtures/mock-webgl.js'
 import store from '@core/store.js'
 import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
@@ -35,16 +36,27 @@ jest.unstable_mockModule('@core/utils/gpu/webgpu-widget.js', () => ({
   warmWidgetArtifacts: () => undefined,
 }))
 
+/** Mutable decoder throw flag — simulates a rejecting decode. */
+let decodeThrow = false
+
 jest.unstable_mockModule('@core/utils/wasm/wasm-image-decoder.js', () => ({
   wasmImageDecoder: {
-    decodeImageWASM: async () => decodeResult,
+    decodeImageWASM: async () => {
+      if (decodeThrow) throw new Error('decode')
+
+      return decodeResult
+    },
   },
 }))
 
-/** Imports the class + anim module AFTER the mocks are registered. */
+/** Imports the class + anim/loop modules AFTER the mocks are registered. */
 const loadModules = async () => ({
   FlagWebGL: (await import('@core/utils/canvas/widgets/flag-webgl.js')).FlagWebGL,
   wasmAnimType: (await import('@core/utils/canvas/widgets/flag/anim.js')).wasmAnimType,
+  getAnimType: (await import('@core/utils/canvas/widgets/flag/anim.js')).getAnimType,
+  resizeToNaturalAspect: (await import('@core/utils/canvas/widgets/flag/anim.js'))
+    .resizeToNaturalAspect,
+  renderFlagWasm: (await import('@core/utils/canvas/widgets/flag/loop.js')).renderFlagWasm,
 })
 
 /** Flushes the mount + decode promises and a couple of frames. */
@@ -62,6 +74,7 @@ beforeEach(() => {
 
   mountResult = null
   mockGpu = true
+  decodeThrow = false
 
   decodeResult = { width: 120, height: 80, close: () => undefined }
 
@@ -325,5 +338,144 @@ describe('flag wasm path', () => {
     flag.destroy()
 
     parent.remove()
+  })
+
+  test('_tryWasm early-returns when a mount is pending or already live', async () => {
+    const { FlagWebGL } = await loadModules()
+
+    const pending = new FlagWebGL(makeCanvas(), lang(LOCALES.EN, 'us'))
+
+    pending._wasmPending = true
+    pending._tryWasm() // pending operand
+
+    const live = new FlagWebGL(makeCanvas(), lang(LOCALES.EN, 'us'))
+
+    await flush()
+
+    live._tryWasm() // live _wasm operand
+    live.destroy()
+    pending.destroy()
+  })
+
+  test('loadWasmImages guards missing wasm and drops post-decode when paused', async () => {
+    const { FlagWebGL } = await loadModules()
+
+    const flag = new FlagWebGL(makeCanvas(), lang(LOCALES.EN, 'us'))
+
+    flag.loadWasmImages() // !this._wasm arm
+
+    await flush()
+
+    const tex0 = fakeWidget.calls.tex
+
+    flag._paused = true
+    flag.loadWasmImages() // decode resolves → the !this._wasm || this._paused arm
+
+    await flush()
+
+    expect(fakeWidget.calls.tex).toBe(tex0)
+
+    flag.destroy()
+  })
+
+  test('a rejecting decode resolves null through the catch arm', async () => {
+    decodeThrow = true
+
+    const { FlagWebGL } = await loadModules()
+
+    const flag = new FlagWebGL(makeCanvas(), lang(LOCALES.EN, 'us'))
+
+    await flush()
+
+    expect(flag._wasmFailed).toBe(true)
+    expect(flag.renderer).not.toBeNull()
+
+    flag.destroy()
+  })
+
+  test('init2d falls back when the canvas reference is gone', async () => {
+    const { FlagWebGL } = await loadModules()
+
+    const flag = new FlagWebGL(makeCanvas(), lang(LOCALES.EN, 'us'))
+
+    flag.canvas = null
+    flag.init2d()
+
+    expect(flag.useWebGL).toBe(false)
+
+    flag.destroy()
+  })
+
+  test('hover events on the bound target drive setHover', async () => {
+    const { FlagWebGL } = await loadModules()
+    const canvas = makeCanvas()
+    const parent = document.createElement(HTML_TAGS.DIV)
+
+    parent.appendChild(canvas)
+    document.body.appendChild(parent)
+
+    const flag = new FlagWebGL(canvas, lang(LOCALES.EN, 'us'))
+
+    await flush()
+
+    flag.boundTarget.dispatchEvent(new Event(MOUSE_EVENTS.MOUSEENTER))
+
+    expect(flag.isHovered).toBe(true)
+
+    flag.boundTarget.dispatchEvent(new Event(MOUSE_EVENTS.MOUSELEAVE))
+
+    expect(flag.isHovered).toBe(false)
+
+    flag.destroy()
+    parent.remove()
+  })
+
+  test('getAnimType maps every locale code and defaults unknown to EN', async () => {
+    const { getAnimType } = await loadModules()
+    const flag = (code) => ({ lang: { code } })
+
+    expect(getAnimType(flag(LOCALES.EN))).toBe(0)
+    expect(getAnimType(flag(LOCALES.BR))).toBe(1)
+    expect(getAnimType(flag(LOCALES.ES))).toBe(2)
+    expect(getAnimType(flag(LOCALES.DE))).toBe(3)
+    expect(getAnimType(flag(LOCALES.HRK))).toBe(4)
+    expect(getAnimType(flag(LOCALES.CAS))).toBe(5)
+    expect(getAnimType(flag(LOCALES.RIV))).toBe(6)
+    expect(getAnimType(flag(LOCALES.GN))).toBe(7)
+    expect(getAnimType(flag(LOCALES.IT))).toBe(8)
+    expect(getAnimType(flag(LOCALES.RU))).toBe(9)
+    expect(getAnimType(flag(LOCALES.FR))).toBe(10)
+    expect(getAnimType(flag(LOCALES.TLN))).toBe(11)
+    expect(getAnimType(flag(LOCALES.GL))).toBe(12)
+    expect(getAnimType(flag(LOCALES.CA))).toBe(13)
+    expect(getAnimType(flag(LOCALES.NL))).toBe(14)
+    expect(getAnimType(flag(LOCALES.GA))).toBe(15)
+    expect(getAnimType(flag('zz-unknown'))).toBe(0)
+  })
+
+  test('renderFlagWasm no-ops without a handle; resizeToNaturalAspect tolerates missing window/dpr', async () => {
+    const { renderFlagWasm, resizeToNaturalAspect } = await loadModules()
+
+    renderFlagWasm({ _wasm: null }, 0)
+
+    const flag = {
+      height: 32,
+      width: 0,
+      canvas: { width: 0, height: 0 },
+      _displayAspect: () => 1.5,
+      _wasm: null,
+    }
+    const realWindow = globalThis.window
+
+    delete globalThis.window
+    resizeToNaturalAspect(flag) // typeof window undefined → dpr 1
+
+    globalThis.window = realWindow
+
+    const prev = realWindow.devicePixelRatio
+
+    Object.defineProperty(realWindow, 'devicePixelRatio', { value: 0, configurable: true })
+    resizeToNaturalAspect(flag) // 0 || 1 → 1
+    Object.defineProperty(realWindow, 'devicePixelRatio', { value: prev, configurable: true })
   })
 })

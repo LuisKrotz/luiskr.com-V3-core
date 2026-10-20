@@ -68,6 +68,20 @@ export interface ModalMedia {
 }
 
 /**
+ * Viewport-space rectangle the expand-modal genie transition warps
+ * from/to — the clicked figure's `getBoundingClientRect()` snapshot.
+ * Kept on the descriptor (not the media item) because it's transition
+ * state, not media data; null on deep-link auto-opens (the genie
+ * resolves the figure at mount time instead).
+ */
+export interface ModalRect {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+/**
  * Expand-modal descriptor written by MediaExpanded and read by the modal
  * component: `open` drives mount/visibility, `class` carries the figure's
  * orientation class so the lightbox inherits aspect styling, `transform` is
@@ -78,6 +92,7 @@ export interface ModalObject {
   class: string
   open: boolean
   media: ModalMedia | null
+  origin: ModalRect | null
 }
 
 /**
@@ -229,6 +244,7 @@ export const createInitialState = (): StoreState => {
       transform: 0,
       class: ATTR_VALUES.EMPTY,
       open: false,
+      origin: null,
       media: {
         source: ATTR_VALUES.EMPTY,
         thumb: ATTR_VALUES.EMPTY,

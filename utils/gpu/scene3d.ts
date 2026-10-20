@@ -18,7 +18,7 @@
 import { GPU_WIDGET_ARTIFACTS, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { devWarn } from '@core/devlog.js'
-import { hasWebGpu } from './webgpu-widget.js'
+import { getSharedGpuDevice, hasWebGpu } from './webgpu-widget.js'
 import { wasmImageDecoder } from '@core/utils/wasm/wasm-image-decoder.js'
 
 /**
@@ -203,8 +203,17 @@ export interface Scene3dSurface {
 export interface Scene3dModule {
   /** Async initializer returning the wasm exports. */
   default: (input?: RequestInfo) => Promise<unknown>
-  /** Async engine constructor — adapter + device + surface configure. */
-  mount: (canvas: HTMLCanvasElement, w: number, h: number) => Promise<Scene3dSurface>
+  /**
+   * Engine constructor — binds the canvas to the shared GPUDevice and
+   * configures the surface. Sync under the hood (no promises left in
+   * wasm init); `await` tolerates the plain return unchanged.
+   */
+  mount: (
+    canvas: HTMLCanvasElement,
+    device: GPUDevice,
+    w: number,
+    h: number
+  ) => Promise<Scene3dSurface>
 }
 
 /** Live scene handle returned by `mountScene3d`. */
@@ -272,10 +281,17 @@ export async function mountScene3d(
   }
 
   try {
+    const device = await getSharedGpuDevice()
+
+    // No usable device — the engine would init-trap on the dead
+    // handle; three.js keeps rendering instead.
+    if (!device) return null
+
     await mod.default()
 
     const surface = await mod.mount(
       canvas,
+      device,
       Math.max(1, canvas.clientWidth),
       Math.max(1, canvas.clientHeight)
     )

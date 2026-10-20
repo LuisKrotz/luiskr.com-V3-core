@@ -9,6 +9,7 @@ import {
   _B_EXPAND_MODAL_CLOSE,
   _B_EXPAND_MODAL_CLOSE_BAR,
   _B_EXPAND_MODAL_CONTENT,
+  _B_EXPAND_MODAL_GENIE,
   _B_EXPAND_MODAL_MEDIA,
   _B_EXPAND_MODAL_MEDIA_FIGURE,
   _B_EXPAND_MODAL_MEDIA_ITEM,
@@ -35,6 +36,8 @@ export const MODAL_CLASSES = Object.freeze({
 export const EXPAND_MODAL_CLASSES = Object.freeze({
   EXPAND_MODAL_CONTENT: _B_EXPAND_MODAL_CONTENT,
   EXPAND_MODAL_CONTENT_VIDEO: `${_B_EXPAND_MODAL_CONTENT}--video`,
+  /** Staged glass — mounts post-paint so the backdrop-blur snapshot never delays the first frame. */
+  EXPAND_MODAL_CONTENT_GLASS: `${_B_EXPAND_MODAL_CONTENT}--glass`,
   EXPAND_MODAL_CLOSING: `${_B_EXPAND_MODAL}--closing`,
   EXPAND_MODAL_CLOSE_BAR: _B_EXPAND_MODAL_CLOSE_BAR,
   EXPAND_MODAL_CLOSE_BAR_TITLE: `${_B_EXPAND_MODAL_CLOSE_BAR}-title`,
@@ -44,6 +47,8 @@ export const EXPAND_MODAL_CLASSES = Object.freeze({
   EXPAND_MODAL_CLOSE_BOTTOM: `${_B_EXPAND_MODAL_CLOSE}-bottom`,
   EXPAND_MODAL_MEDIA_FIGURE: _B_EXPAND_MODAL_MEDIA_FIGURE,
   EXPAND_MODAL_MEDIA_FIGURE_VIDEO: `${_B_EXPAND_MODAL_MEDIA_FIGURE}--video`,
+  /** Terminal media state — releases the figure's skeleton shimmer. */
+  EXPAND_MODAL_MEDIA_FIGURE_LOADED: `${_B_EXPAND_MODAL_MEDIA_FIGURE}--loaded`,
   EXPAND_MODAL_MEDIA_PLACEHOLDER: `${_B_EXPAND_MODAL_MEDIA}-placeholder`,
   EXPAND_MODAL_MEDIA_ITEM: _B_EXPAND_MODAL_MEDIA_ITEM,
   EXPAND_MODAL_MEDIA_ITEM_VIDEO: `${_B_EXPAND_MODAL_MEDIA_ITEM}--video`,
@@ -51,4 +56,10 @@ export const EXPAND_MODAL_CLASSES = Object.freeze({
   EXPAND_MODAL_OPEN_2: `${_B_EXPAND_MODAL}-open-2`,
   /** WebGPU overlay canvas shared by the modal's corner-bracket buttons. */
   EXPAND_MODAL_BRACKET_CANVAS: `${_B_EXPAND_MODAL}-bracket-canvas`,
+  /** Fullscreen genie-warp transition overlay — the strip-warp/particle canvas. */
+  EXPAND_MODAL_GENIE_CANVAS: `${_B_EXPAND_MODAL_GENIE}-canvas`,
+  /** Veiled content while the genie overlay runs — hidden paint, layout kept. */
+  EXPAND_MODAL_GENIE_VEIL: `${_B_EXPAND_MODAL_GENIE}-veil`,
+  /** Legacy CSS zoom fallback — applied only when the genie cannot run. */
+  EXPAND_MODAL_CSS_ZOOM: `${_B_EXPAND_MODAL_CONTENT}--css-zoom`,
 })

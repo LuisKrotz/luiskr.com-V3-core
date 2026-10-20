@@ -41,13 +41,8 @@ describe('safari-patch — ViewProject _updateModalDOM patch', () => {
 
   test('open modal: dialog moved to body, styled fullscreen, media-expanded injected', () => {
     const above = document.createElement(HTML_TAGS.DIALOG)
-    const below = { style: {} }
     const ctx = {
-      $: (sel) => {
-        if (sel.includes(MODAL_CLASSES.MODAL_ABOVE)) return above
-        if (sel.includes(MODAL_CLASSES.MODAL_BELOW)) return below
-        return null
-      },
+      $: (sel) => (sel.includes(MODAL_CLASSES.MODAL_ABOVE) ? above : null),
       shadowRoot: document.createDocumentFragment(),
     }
 
@@ -57,39 +52,60 @@ describe('safari-patch — ViewProject _updateModalDOM patch', () => {
       media: { source: 's.mp4', thumb: 't.jpg', alt: 'a', width: 10, height: 10, isVideo: true },
     })
 
+    // A non-zero scrollY exercises the body-pin arm — the lifted
+    // dialog never reaches the top layer, so the page is pinned by
+    // hand instead of relying on inert.
+    Object.defineProperty(window, 'scrollY', { value: 42, configurable: true })
+
     patched().call(ctx)
+
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true })
 
     expect(document.body.contains(above)).toBe(true)
     expect(above.style.position).toBe(STATE_STRINGS.FIXED)
     expect(above.open).toBe(true)
     expect(above.querySelector(COMPONENT_TAGS.MEDIA_EXPANDED)).not.toBeNull()
-    expect(below.style.transform).toContain('42')
+    expect(document.body.style.position).toBe(STATE_STRINGS.FIXED)
+    expect(document.body.style.top).toBe('-42px')
+
+    // Repay the pin so later tests see an unpinned body.
+    document.body.style.position = ATTR_VALUES.EMPTY
+    document.body.style.top = ATTR_VALUES.EMPTY
+    document.body.style.left = ATTR_VALUES.EMPTY
+    document.body.style.right = ATTR_VALUES.EMPTY
 
     above.remove()
   })
 
-  test('closed modal: clears transform, closes dialog, reparents to shadow', () => {
+  test('closed modal: closes dialog, reparents to shadow, repays the body pin', () => {
     const above = document.createElement(HTML_TAGS.DIALOG)
     above.open = true
     const shadow = document.createDocumentFragment()
-    const below = { style: { transform: 'translateY(-9px)' } }
     const ctx = {
-      $: (sel) => {
-        if (sel.includes(MODAL_CLASSES.MODAL_ABOVE)) return above
-        if (sel.includes(MODAL_CLASSES.MODAL_BELOW)) return below
-        return null
-      },
+      $: (sel) => (sel.includes(MODAL_CLASSES.MODAL_ABOVE) ? above : null),
       shadowRoot: shadow,
     }
 
     store.commit(MODAL_MUTATIONS.SET_MODAL, { open: false })
 
+    // Simulate the open-branch pin — the close branch reads the parked
+    // offset off body.top, releases the layout, then scrollTo restores.
+    const scrollSpy = { calls: [] }
+    const origScrollTo = window.scrollTo
+
+    window.scrollTo = (...a) => scrollSpy.calls.push(a)
+    document.body.style.position = STATE_STRINGS.FIXED
+    document.body.style.top = '-9px'
+
     patched().call(ctx)
 
-    expect(below.style.transform).toBe(ATTR_VALUES.EMPTY)
+    window.scrollTo = origScrollTo
+
     expect(above.open).toBe(false)
     expect(above.hasAttribute(STATE_STRINGS.OPEN)).toBe(false)
     expect(shadow.contains(above) || above.parentNode === shadow).toBeTruthy()
+    expect(document.body.style.position).toBe(ATTR_VALUES.EMPTY)
+    expect(scrollSpy.calls).toEqual([[0, 9]])
   })
 
   test('onDestroy removes orphaned modal dialogs from document.body', async () => {

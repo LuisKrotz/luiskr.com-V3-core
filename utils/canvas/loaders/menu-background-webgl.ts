@@ -134,7 +134,13 @@ export class MenuBackgroundWebGL {
       if (!handle || this.canvas !== canvas) {
         this._wasmFailed = true
 
-        if (this.canvas === canvas) initGL(this)
+        if (this.canvas === canvas) {
+          initGL(this)
+
+          // The menu may have opened while the artifact was in flight —
+          // start() early-returned on useWebGL then; re-drive it now.
+          if (this._wantsActive) this.start()
+        }
 
         return
       }

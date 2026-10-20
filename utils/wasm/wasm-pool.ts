@@ -9,6 +9,7 @@
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { UA_PATTERNS } from '@core/tokens/motion/gpu.js'
 import { WASM_POOL } from '@core/tokens/data/wasm.js'
+import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 
 // Multi-Threaded WebAssembly Worker Pool Dispatcher
 //
@@ -17,8 +18,9 @@ import { WASM_POOL } from '@core/tokens/data/wasm.js'
 // thread on page load (spawning 6–8 Workers synchronously caused page freezes).
 //
 // Worker count caps:
-//   mobile (iOS / Android)  → max 2 workers
-//   desktop                 → max 4 workers
+//   mobile (iOS / Android)  → max 4 workers
+//   desktop                 → hardwareConcurrency − RESERVED_CORES
+//                             (up to DESKTOP_MAX)
 
 /** In-flight dispatch entry — the resolve that completes the caller's Promise. */
 interface PendingTask {
@@ -51,6 +53,14 @@ class WasmWorkerPool {
   taskIdSeq: number
   /** One-shot latch so _ensurePool spawns at most once. */
   private _poolReady: boolean
+  /**
+   * Monotonic timestamp of the last full-pool wipeout — gates respawn
+   * via RESPAWN_COOLDOWN_MS so a persistently failing worker script
+   * can't spawn-storm (thousands of zombie worker processes).
+   */
+  private _wipedAt: number
+  /** Consecutive full-pool wipeouts — respawns stop at MAX_WIPEOUTS. */
+  private _wipeouts: number
 
   constructor() {
     const cores =
@@ -59,7 +69,10 @@ class WasmWorkerPool {
 
     this.size = _isMobile
       ? Math.min(WASM_POOL.MOBILE_MAX, cores)
-      : Math.min(WASM_POOL.DESKTOP_MAX, Math.max(WASM_POOL.DESKTOP_MIN, cores))
+      : Math.min(
+          WASM_POOL.DESKTOP_MAX,
+          Math.max(WASM_POOL.DESKTOP_MIN, cores - WASM_POOL.RESERVED_CORES)
+        )
 
     this.workers = []
 
@@ -70,6 +83,10 @@ class WasmWorkerPool {
     this.taskIdSeq = 0
 
     this._poolReady = false
+
+    this._wipedAt = 0
+
+    this._wipeouts = 0
     // Lazy init: do NOT spawn workers here — wait until first dispatch()
   }
 
@@ -77,9 +94,17 @@ class WasmWorkerPool {
    * Lazily spawns `size` workers on first dispatch — module eval stays
    * free of Worker construction (mobile page-load freeze fix). SSR /
    * no-Worker engines leave the pool empty; dispatch then resolves null.
+   * After a full-pool wipeout the spawn is cooldown-gated and, past
+   * MAX_WIPEOUTS consecutive wipeouts, latched off for the session —
+   * a worker script that cannot stay alive is a permanent failure,
+   * and respawning the whole pool per dispatch is a spawn storm.
    */
   private _ensurePool(): void {
-    if (this._poolReady) return
+    if (this._poolReady || this._wipeouts >= WASM_POOL.MAX_WIPEOUTS) return
+
+    const now = Date.now()
+
+    if (this._wipedAt && now - this._wipedAt < WASM_POOL.RESPAWN_COOLDOWN_MS) return
 
     this._poolReady = true
 
@@ -155,8 +180,13 @@ class WasmWorkerPool {
     if (this.nextWorkerIdx >= this.workers.length) this.nextWorkerIdx = 0
 
     // An emptied pool re-arms the lazy-spawn latch — a transient failure
-    // (e.g. dev-server restart mid-session) recovers on the next dispatch.
-    if (!this.workers.length) this._poolReady = false
+    // (e.g. dev-server restart mid-session) recovers on the next dispatch,
+    // cooldown-gated so a persistent failure can't spawn-storm.
+    if (!this.workers.length) {
+      this._poolReady = false
+      this._wipeouts++
+      this._wipedAt = Date.now()
+    }
 
     for (const [id, task] of this.pendingTasks) {
       if (task.worker !== worker) continue
@@ -289,6 +319,41 @@ class WasmWorkerPool {
       })
     })
   }
+
+  /**
+   * Tears the pool down for page unload / vite HMR dispose: terminates
+   * every live worker, clears all reply timers, and resolves pending
+   * callers `null` so awaits land on JS fallbacks. Without this hook a
+   * re-evaluated module (HMR) orphans its workers — each lingering
+   * thread keeps its own JS heap, event loop, and browser process slot.
+   */
+  destroy(): void {
+    const workers = this.workers
+    this.workers = []
+    this._poolReady = false
+    // Destroyed pools must not respawn — dispatch resolves null.
+    this._wipeouts = WASM_POOL.MAX_WIPEOUTS
+
+    for (const task of this.pendingTasks.values()) {
+      clearTimeout(task.timeout)
+
+      try {
+        task.resolve(null)
+      } catch {
+        // resolve() cannot throw — the guard keeps teardown total.
+      }
+    }
+
+    this.pendingTasks.clear()
+
+    for (const worker of workers) {
+      try {
+        worker.terminate()
+      } catch {
+        // terminate() is idempotent — wedged workers may throw.
+      }
+    }
+  }
 }
 
 /**
@@ -296,3 +361,12 @@ class WasmWorkerPool {
  * instance so workers are spawned once and round-robin state is global.
  */
 export const wasmPool = new WasmWorkerPool()
+
+// Lifecycle teardown — terminate pooled workers on unload (bfcache-safe
+// 'pagehide' fires even when 'unload' is suppressed) and on vite HMR
+// dispose, so a module re-eval never orphans live threads.
+if (typeof window !== TYPE_STRINGS.UNDEFINED) {
+  window.addEventListener(WINDOW_EVENTS.PAGEHIDE, () => wasmPool.destroy(), { once: true })
+}
+
+if (import.meta.hot) import.meta.hot.dispose(() => wasmPool.destroy())

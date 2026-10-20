@@ -346,7 +346,6 @@
     box-sizing: border-box;
     position: relative;
     overflow: visible;
-    background-color: var(--bg-dark);
     padding: to-rem($space-3xl) to-rem($space-xl);
     min-height: 100vh;
     min-height: 100dvh;
@@ -356,18 +355,81 @@
     justify-content: flex-start;
     transform-origin: center top;
 
-    // Zoom-in on open
-    animation: modal-zoom-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    // Liquid-glass veil — a translucent dark + backdrop-blur layer
+    // painted behind the modal's content, so the live page stays
+    // visible through the dim like frosted glass. It lives on a ::before
+    // pseudo (not on content itself) so it paints independently of the
+    // genie warp: the translucent tint is the FIRST thing the modal
+    // renders, while the funnel carries only the bounded card over it.
+    &::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      // Fallback for engines without color-mix (Chrome ‹ 111): opaque
+      // dark rather than transparent — the older behavior, still correct.
+      background-color: var(--bg-dark);
+      background-color: color-mix(in srgb, var(--bg-dark) 82%, transparent);
+    }
+
+    // The backdrop blur is staged — it arrives with --glass a frame or
+    // two after open. A fullscreen backdrop-filter forces the engine to
+    // snapshot the whole page behind the layer before the pseudo can
+    // composite at all, which is what used to delay the "transparent
+    // background" first paint on weaker GPUs; keeping the blur off the
+    // initial declaration lets the tint paint in the first frame and the
+    // frost land right after.
+    &--glass::before {
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+    }
+
+    // The genie warp is the entrance — the CSS zoom only runs when JS
+    // marks the content with --css-zoom (transition unavailable).
+    &--css-zoom {
+      animation: modal-zoom-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
 
     @include layout-1024() {
       padding: to-rem($space-5xl);
     }
   }
 
-  // Closing state: zoom-out animation
+  // Closing state: zoom-out animation (legacy fallback — the genie
+  // collapse skips this class entirely)
   &--closing {
     transform-origin: center top;
     animation: modal-zoom-out 0.32s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+  }
+
+  // Genie transition surface — a fullscreen fixed canvas inside the
+  // dialog's top layer that paints the media warping between the
+  // origin figure and the modal box. pointer-events: none keeps every
+  // close affordance reachable underneath; aria-hidden + no content.
+  &-genie-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 200;
+    pointer-events: none;
+  }
+
+  // Veiled content while the genie overlay runs. The warp's sheet is
+  // the bounded media card — reference-faithful, only the card itself
+  // hard-hides because the overlay repaints it every frame. The glass
+  // veil and viewport chrome (title bar, bottom close) stay painted:
+  // the transparent background is the FIRST thing the modal renders and
+  // the funnel flies over the live glass, exactly like the desktop
+  // staying lit behind a minimizing window. Layout is preserved
+  // throughout — the warp's destination rect stays measurable.
+  &-genie-veil {
+    .#{$_B_EXPAND}-media-figure {
+      visibility: hidden;
+    }
   }
 
   // Video-specific modal layout: max 100ch minus padding, contained vertically so close button sits below without scrolling
@@ -413,6 +475,28 @@
         box-shadow: none;
         background-color: transparent;
       }
+
+      // Loading shimmer — mirrors the media-figure contract: until the
+      // media layer reports loaded (--loaded stamps on the figure), a
+      // transparent SVG placeholder would leave a blank box on slow
+      // networks. The sweep sits under the placeholder/item layers and
+      // simply gets covered once media paints.
+      &:not(&--loaded)::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          105deg,
+          transparent 30%,
+          var(--skel-bg-2) 45%,
+          var(--skel-bg-2) 55%,
+          transparent 70%
+        );
+        transform: translateX(-100%);
+        animation: expand-modal-shimmer 1.8s linear infinite;
+        will-change: transform;
+        pointer-events: none;
+      }
     }
 
     &-placeholder {
@@ -435,6 +519,17 @@
       width: auto;
       height: auto;
       max-width: 100%;
+      // No max-height on images — the mount path stamps the WASM-computed
+      // box as explicit px (calcMediaBox with an unbounded height), so a
+      // "huge length" capture keeps its full fitted width and overflows
+      // vertically into the dialog's own scroll instead of being squashed
+      // to the viewport. scale-down stays as the intrinsic-dims safety:
+      // `none` when the stamped box is larger than the file, `contain`
+      // when declared metadata overstates it — declared metadata larger
+      // than the real bitmap can never force an upscale. Centered so a
+      // mismatch letterboxes symmetrically instead of top-anchoring.
+      object-fit: scale-down;
+      object-position: center;
 
       @include layout-1024() {
         border-radius: to-rem($space-lg);
@@ -446,7 +541,6 @@
         max-height: calc(100dvh - 12rem);
         width: auto;
         height: auto;
-        object-fit: contain;
         border-radius: to-rem($space-md);
         box-shadow: var(--shadow-card);
       }
@@ -463,6 +557,35 @@
     width: 100%;
     max-width: 100%;
     height: auto;
+  }
+}
+
+// ── Loading shimmer sweep ─────────────────────────────────────────────────
+// Local to this sheet — modal.scss deliberately does not import _structure,
+// so the global `skeleton-shimmer` keyframes never reach <media-expanded>'s
+// shadow root (keyframes do not cross the shadow boundary). The figure's
+// ::before sweep references this emission; a distinct name also avoids a
+// same-name duplicate in <media-figure>'s root, which bundles both sheets.
+@keyframes expand-modal-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{$_B_EXPAND}-media-figure::before {
+    animation: none;
+  }
+}
+
+// The store-driven reduced-motion flag mirrors the media query inside
+// shadow DOM, where the global html.reduced-motion sweep cannot reach.
+:host-context(html.reduced-motion) {
+  .#{$_B_EXPAND}-media-figure::before {
+    animation: none;
   }
 }
 

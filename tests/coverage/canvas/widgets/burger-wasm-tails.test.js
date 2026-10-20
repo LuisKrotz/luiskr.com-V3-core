@@ -13,6 +13,7 @@ import { attachMockGL } from '@tests/fixtures/mock-webgl.js'
 import store from '@core/store.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
+import { GL_EVENTS } from '@core/tokens/events/dom.js'
 
 /** Mutable mount result the mock returns — tests swap per case. */
 let mountResult = null
@@ -127,6 +128,81 @@ describe('burger wasm path', () => {
     burger.destroy()
   })
 
+  test('mount failure re-drives the loop the constructor could not start', async () => {
+    mountResult = null
+
+    const BurgerButtonWebGL = await loadClass()
+    const canvas = makeCanvas()
+
+    attachMockGL(canvas)
+    document.body.appendChild(canvas)
+
+    const burger = new BurgerButtonWebGL(canvas)
+
+    // The constructor's _start() ran while the mount was in flight —
+    // the failure branch must arm the rAF loop after initGLReal.
+    await flush()
+
+    expect(burger._wasmFailed).toBe(true)
+    expect(burger.useWebGL).toBe(true)
+    expect(burger.animId).not.toBeNull()
+
+    burger.destroy()
+    canvas.remove()
+  })
+
+  test('mount failure with no WebGL skips the re-drive and falls back', async () => {
+    mountResult = null
+
+    const BurgerButtonWebGL = await loadClass()
+    const canvas = makeCanvas()
+
+    const burger = new BurgerButtonWebGL(canvas)
+
+    await flush()
+
+    expect(burger.useWebGL).toBe(false)
+    expect(burger.animId).toBeNull()
+    expect(canvas.classList.contains(STATE_CLASSES.IS_FALLBACK)).toBe(true)
+
+    burger.destroy()
+  })
+
+  test('restore through a failed remount rebinds the context-loss watch', async () => {
+    const BurgerButtonWebGL = await loadClass()
+    const canvas = makeCanvas()
+
+    attachMockGL(canvas)
+    document.body.appendChild(canvas)
+
+    const burger = new BurgerButtonWebGL(canvas)
+
+    await flush()
+
+    expect(burger._wasm).not.toBeNull()
+
+    burger.purge()
+
+    expect(burger._onContextLost).toBeNull()
+
+    mountResult = null
+    burger.restore()
+
+    await flush()
+
+    expect(burger._wasmFailed).toBe(true)
+    expect(burger.useWebGL).toBe(true)
+    expect(burger._onContextLost).not.toBeNull()
+
+    // Fire the rebound watch — the lost-context arrow runs _triggerFallback.
+    canvas.dispatchEvent(new Event(GL_EVENTS.WEBGL_CONTEXT_LOST))
+
+    expect(burger.useWebGL).toBe(false)
+
+    burger.destroy()
+    canvas.remove()
+  })
+
   test('purge during the in-flight mount releases the late handle', async () => {
     const BurgerButtonWebGL = await loadClass()
     const canvas = makeCanvas()
@@ -207,5 +283,85 @@ describe('burger wasm path', () => {
     expect(fakeWidget.calls.frame.length).toBeGreaterThan(0)
 
     burger.destroy()
+  })
+
+  test('_tryWasm early-returns when a mount is pending or already live', async () => {
+    const BurgerButtonWebGL = await loadClass()
+    const canvas = makeCanvas()
+
+    const pending = new BurgerButtonWebGL(canvas)
+
+    pending._wasmPending = true
+    pending._tryWasm() // pending operand
+
+    const live = new BurgerButtonWebGL(makeCanvas())
+
+    await flush()
+
+    live._tryWasm() // live _wasm operand
+    live.destroy()
+    pending.destroy()
+  })
+
+  test('_initGL falls back when the canvas reference is gone', () => {
+    const load = async () => loadClass()
+
+    return load().then((BurgerButtonWebGL) => {
+      const burger = new BurgerButtonWebGL(makeCanvas())
+
+      burger.canvas = null
+      burger._initGL()
+
+      expect(burger.useWebGL).toBe(false)
+    })
+  })
+
+  test('_checkResize tolerates a zero dpr and an empty rect', async () => {
+    const BurgerButtonWebGL = await loadClass()
+    const canvas = makeCanvas()
+
+    const burger = new BurgerButtonWebGL(canvas)
+
+    await flush()
+
+    const prev = window.devicePixelRatio
+
+    Object.defineProperty(window, 'devicePixelRatio', { value: 0, configurable: true })
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 0, height: 0 })
+    canvas.width = 1 // dirty the buffer so the no-change guard can't skip set_size
+    burger._checkResize() // dpr || 1 and rect || 34 arms
+
+    Object.defineProperty(window, 'devicePixelRatio', { value: prev, configurable: true })
+
+    burger.destroy()
+  })
+
+  test('_drawFrame skips a zero backing store; _loop guards missing backend', async () => {
+    const BurgerButtonWebGL = await loadClass()
+    const canvas = makeCanvas()
+
+    const burger = new BurgerButtonWebGL(canvas)
+
+    await flush()
+
+    canvas.width = 0
+    burger._drawFrame(1)
+
+    canvas.width = 100
+    canvas.height = 0
+    burger._drawFrame(1) // height-zero || arm
+
+    const bare = new BurgerButtonWebGL(makeCanvas())
+
+    bare.gl = null
+    bare._wasm = null
+    bare._loop() // !gl && !_wasm arm
+
+    bare._wasm = { widget: { frame: jest.fn() }, destroy: jest.fn() }
+    bare.useWebGL = false
+    bare._loop() // !useWebGL arm
+
+    burger.destroy()
+    bare.destroy()
   })
 })

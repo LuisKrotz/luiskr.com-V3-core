@@ -41,6 +41,22 @@ describe('wasm-image-decoder', () => {
     expect(wasmImageDecoder.bitmapCache.has(TEST_URLS.IMG)).toBe(true)
   })
 
+  test('decodeImageWASM resolves null when the worker answers an array payload', async () => {
+    wasmImageDecoder.bitmapCache.clear()
+
+    // `results` as an array is the batch shape — the single-image path
+    // takes the `: undefined` arm and falls through to null.
+    wasmPool.dispatch = jest.fn(async () => ({ results: [] }))
+    globalThis.fetch = jest.fn(async () => ({
+      ok: true,
+      blob: async () => new Blob(['x']),
+    }))
+
+    const res = await wasmImageDecoder.decodeImageWASM(TEST_URLS.IMG)
+
+    expect(res).toBeNull()
+  })
+
   test('decodeImageBatchWASM chunks pending items across workers', async () => {
     wasmImageDecoder.bitmapCache.clear()
 

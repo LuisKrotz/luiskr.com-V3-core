@@ -1,17 +1,16 @@
 /**
  * @file theme-slider-render.ts — render loop for the theme slider:
- * the RAF spring animation (14%/frame geometric decay), the static
- * single-frame path used under reduced motion, and the per-frame
- * WebGL/Canvas2D draw.
+ * the RAF damped-spring animation (SLIDER_SPRING chase, ~4% elastic
+ * overshoot), the static single-frame path used under reduced motion,
+ * and the per-frame WebGL/Canvas2D draw.
  */
 
 import { bindQuad } from '../../gl-program.js'
 import { paintThemeSlider2D } from './paint-2d.js'
+import { springStep } from '../../../motion/spring.js'
+import { SLIDER_SPRING } from '@core/tokens/motion/slider.js'
 import store from '@core/store.js'
 import type { ThemeSliderWebGL } from '../theme-slider.js'
-
-/** Spring constant — each frame closes 14% of the remaining distance. */
-const SPRING = 0.14
 
 /**
  * Snap state to target and draw a single settled frame — used under
@@ -20,6 +19,10 @@ const SPRING = 0.14
  */
 export function renderStatic(host: ThemeSliderWebGL): void {
   host.currentP = host.targetP
+
+  host.velP = 0
+
+  host._animT = 0
 
   host.knobX = host._pToKnobX(host.currentP)
 
@@ -51,12 +54,25 @@ export function animate(host: ThemeSliderWebGL): void {
 
   const now = performance.now()
 
-  // Frame-rate-independent-looking spring: each frame closes 14% of the
-  // remaining distance — an exponential ease-out (geometric decay ≈
-  // time-constant 7 frames, ~95% settled in ~20 frames / 330ms at 60fps).
-  const diff = host.targetP - host.currentP
+  // Damped-spring chase — the shared semi-implicit integrator
+  // (utils/motion/spring.ts). Dragging picks the critically-damped
+  // regime (ζ=1: a ~50ms fluid lag behind the finger, no oscillation);
+  // anything else picks the underdamped snap (ζ≈0.72: ~4% overshoot —
+  // the elastic settle). dt is wall-clock so 120/240Hz displays get
+  // identical motion; a suspended tab clamps to DT_MAX_S instead of
+  // exploding the spring.
+  const dt = host._animT
+    ? Math.min((now - host._animT) * 0.001, SLIDER_SPRING.DT_MAX_S)
+    : SLIDER_SPRING.DT_INIT_S
 
-  host.currentP += diff * SPRING
+  host._animT = now
+
+  springStep(
+    host,
+    host.isDragging ? SLIDER_SPRING.DRAG_K : SLIDER_SPRING.SNAP_K,
+    host.isDragging ? SLIDER_SPRING.DRAG_C : SLIDER_SPRING.SNAP_C,
+    dt
+  )
 
   host.knobX = host._pToKnobX(host.currentP)
 

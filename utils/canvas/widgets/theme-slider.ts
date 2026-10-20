@@ -36,8 +36,12 @@ export class ThemeSliderWebGL {
   height: number
   targetP: number
   currentP: number
+  /** Chase-spring velocity (track units/s) — feeds the elastic settle. */
+  velP = 0
   knobX: number
   isDragging = false
+  /** Last animate() timestamp — the spring's dt source. */
+  _animT = 0
   /**
    * Cached canvas rect for the active drag — captured once at
    * pointerdown so the high-rate pointermove path performs zero layout
@@ -96,7 +100,9 @@ export class ThemeSliderWebGL {
     this.height = 64
 
     // Track position is normalized 0.0–2.0: 0=dark, 1=system, 2=light.
-    // currentP chases targetP with a 0.14 lerp each frame (see animate()).
+    // currentP chases targetP through the shared damped spring —
+    // critically-damped while dragging, slightly underdamped on the
+    // release snap (see theme-slider/render.ts + SLIDER_SPRING).
     this.targetP = this._themeToP(initialTheme)
 
     this.currentP = this.targetP

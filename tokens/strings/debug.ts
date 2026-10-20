@@ -19,6 +19,11 @@ export const DEBUG_PARAMS = Object.freeze({
    *  probing) or `fallback` (every context acquisition returns null, so all
    *  widgets render their CSS/2D fallback). */
   WEBGL_MODE: 'webGLMode',
+  /** `webgpuWidgets:<mode>` gates the WebGPU widget layer —
+   *  `active` opts in; absent/`fallback` keeps every widget on its
+   *  WebGL/CSS path. The layer mounts by default once the worker
+   *  route is verified on real hardware; until then it is opt-in. */
+  WEBGPU_WIDGETS: 'webgpuWidgets',
 })
 
 /** `webGLMode:` values. */

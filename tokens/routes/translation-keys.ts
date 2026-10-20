@@ -8,6 +8,7 @@ import {
   _B_ABOUT,
   _B_DOCS,
   _B_NOT_FOUND,
+  _K_ANIMATIONS,
   _K_HOME,
   _K_LICENSE,
   _K_PRIVACY_POLICY,
@@ -30,4 +31,5 @@ export const TRANSLATION_KEYS = Object.freeze({
   EARTH_PLAYGROUND: 'earth-playground',
   STAR_FIELD: 'star-field',
   DOCS: _B_DOCS,
+  ANIMATIONS: _K_ANIMATIONS,
 })

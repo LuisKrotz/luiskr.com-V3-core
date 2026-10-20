@@ -130,8 +130,19 @@ export class BurgerButtonWebGL {
       if (!handle || this.canvas !== canvas) {
         this._wasmFailed = true
 
-        // Mount failed — plain WebGL init on the same (untouched) canvas.
-        if (this.canvas === canvas) this._initGLReal()
+        if (this.canvas === canvas) {
+          // Mount failed — plain WebGL init on the same (untouched) canvas.
+          this._initGLReal()
+
+          // The constructor's _start() ran while the mount was in flight
+          // (useWebGL was still false) — re-drive it now that GL is live,
+          // and re-arm the context-loss watch a purge() may have released.
+          if (this.useWebGL) {
+            this._onContextLost ??= watchContextLoss(this.canvas, () => this._triggerFallback())
+
+            this._start()
+          }
+        }
 
         return
       }

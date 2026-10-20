@@ -35,6 +35,7 @@ import { TEST_TEXT } from '@tests/fixtures/test-constants.js'
 import { FORM_ATTRS } from '@core/tokens/attrs/form.js'
 import { CDN_URLS } from '@core/tokens/media/urls.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
+import { WASM_POOL } from '@core/tokens/data/wasm.js'
 import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 
 describe('WASM, Math Models, Media & Performance Engine (60+ Tests)', () => {
@@ -232,8 +233,8 @@ describe('WASM, Math Models, Media & Performance Engine (60+ Tests)', () => {
 
   describe('5. WASM Worker Pool & Task Dispatcher', () => {
     test('wasmPool is initialized with positive size', () => {
-      expect(wasmPool.size).toBeGreaterThanOrEqual(2)
-      expect(wasmPool.size).toBeLessThanOrEqual(8)
+      expect(wasmPool.size).toBeGreaterThanOrEqual(WASM_POOL.DESKTOP_MIN)
+      expect(wasmPool.size).toBeLessThanOrEqual(WASM_POOL.DESKTOP_MAX)
     })
 
     test('wasmPool.dispatch returns a promise resolving gracefully in non-worker environment', async () => {

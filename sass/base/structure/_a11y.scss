@@ -1,0 +1,35 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  _a11y.scss — accessibility utility rules for the DOCUMENT stylesheet AND
+//  every component shadow root.
+//
+//  `.sr-only` — the visually-hidden pattern for helper-injected nodes (the
+//  animation-description `<span>`s stamped by core/utils/a11y/animation-desc).
+//  The class token lives in core/tokens/classes/a11y.ts (A11Y_CLASSES.SR_ONLY)
+//  and this rule is its sole declaration site — the spellings match by
+//  construction, same convention as the skeleton selectors.
+//
+//  Two delivery paths consume this one authored file:
+//    1. Document: `@import 'structure/a11y'` inside _structure.scss — the
+//       global <link> sheet, hiding light-DOM description nodes.
+//    2. Shadow: `?inline`-imported into BASE_HOST_STYLES
+//       (core/tokens/styles.ts) — BaseComponent prepends that text to every
+//       component's adopted stylesheet (and to the legacy <style>-node
+//       fallback), so shadow-injected description nodes are hidden too.
+//
+//  `display:none` is deliberately NOT used — it would evict the node from
+//  the accessibility tree; the clipped-1px recipe keeps the text present
+//  for assistive tech, crawlers, AI agents and reader mode while painting
+//  nothing on-screen.
+// ════════════════════════════════════════════════════════════════════════════
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

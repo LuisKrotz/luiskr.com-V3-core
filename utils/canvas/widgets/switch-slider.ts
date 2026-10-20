@@ -36,6 +36,10 @@ export class SwitchWebGL {
   height: number
   targetP: number
   currentP: number
+  /** Chase-spring velocity (track units/s) — feeds the elastic settle. */
+  velP = 0
+  /** Last animate() timestamp — the spring's dt source. */
+  _animT = 0
   knobX: number
   useWebGL = false
   animId: number | null = null
@@ -85,7 +89,9 @@ export class SwitchWebGL {
     this.height = 28
 
     // Progress 0–1 drives knob X, track color mix, and animation amplitude
-    // in the shader; currentP springs toward targetP at 0.18/frame.
+    // in the shader; currentP chases targetP through the shared damped
+    // spring — a slightly underdamped snap (~4% overshoot, see
+    // switch-slider/render.ts + SLIDER_SPRING).
     this.targetP = this.isActive ? 1.0 : 0.0
 
     this.currentP = this.targetP

@@ -23,6 +23,7 @@ export const ROUTE_NAMES = Object.freeze({
   EARTH_PLAYGROUND: 'Earth Playground',
   STAR_FIELD: 'Star Field',
   DOCS: 'In-depth project docs',
+  ANIMATIONS: 'Animations Reference',
 })
 
 /**

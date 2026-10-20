@@ -109,6 +109,7 @@ export const WINDOW_EVENTS = Object.freeze({
   UNHANDLED_REJECTION: 'unhandledrejection',
   LOAD: 'load',
   DOM_CONTENT_LOADED: 'DOMContentLoaded',
+  PAGEHIDE: 'pagehide',
 })
 
 /**

@@ -192,10 +192,12 @@ class GPUAccelerator {
    * primed) is the point.
    */
   private _uploadTextureAndDraw(source: TexImageSource, targetW: number, targetH: number): void {
+    // Callers guard `!this.gl` first, but a torn-down or never-initialized
+    // accelerator must still no-op instead of crashing on a null canvas.
+    if (!this.canvas || !this.gl) return
+
     const canvas = this.canvas
     const gl = this.gl
-
-    if (!canvas || !gl) return
 
     canvas.width = targetW
 

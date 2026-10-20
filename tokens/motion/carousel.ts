@@ -12,14 +12,59 @@
 export const CAROUSEL_TIMING = Object.freeze({
   /** Autoplay interval in milliseconds before advancing to next slide */
   AUTOPLAY_DURATION: 5000,
-  /** Teleport animation duration (ms) — must match CSS transition */
-  TELEPORT_DELAY: 420,
-  /** Window (ms) scroll-handler teleports stay suppressed after a programmatic nav — just under TELEPORT_DELAY so a wrap scroll can finish before scroll events re-arm */
-  NAVIGATION_SETTLE_DELAY: 400,
+  /**
+   * Clone→real teleport watchdog (ms). The scroll spring's settle
+   * callback normally fires the invisible clone→twin jump; this timer
+   * only covers rAF starvation (hidden tab) — sized past the spring's
+   * typical settle so a slow frame cadence can't pop mid-flight.
+   */
+  TELEPORT_DELAY: 1100,
+  /** Watchdog (ms) for the isNavigating suppression window — releases if the spring's settle callback somehow never runs */
+  NAVIGATION_SETTLE_DELAY: 1400,
   /** Scroll-event debounce (ms) before the clone-teleport detector runs — scroll fires per pixel, the check only matters at rest */
   SCROLL_DEBOUNCE_MS: 150,
   /** ringProgress drained per RAF frame when autoplay stops (0–1 scale) — ~25 frames ≈ 0.4s unwind */
   RING_REGRESS_STEP: 0.04,
+})
+
+/**
+ * Px-space chase-spring for the programmatic slide scroll — the organic,
+ * slightly elastic slide travel that replaced the browser's fixed
+ * `behavior:'smooth'` ease (which can't overshoot and ignores velocity
+ * on retarget). Integrated by `springStep` in `core/utils/motion` with
+ * px-space epsilons — same integrator the slider knobs run.
+ *
+ *   ωn = √96 ≈ 9.8 rad/s, ζ = 20/(2·√96) ≈ 1.02
+ *
+ * ζ≈1.02 is the critical-damping boundary — the slide travels fast and
+ * parks on the target with no visible swing-back (a measurable
+ * under-damped overshoot read as bounce on full-slide travel); the
+ * ~0.6s settle keeps single-step navs snappy while multi-slide dot
+ * jumps land without a hard stop.
+ */
+export const CAROUSEL_SPRING = Object.freeze({
+  /** Spring stiffness — ωn² in px-space. */
+  K: 96,
+  /** Spring damping — 2ζωn with ζ≈1.02 (critically damped, no bounce). */
+  C: 20,
+  /**
+   * Settle epsilon (px) — gap under this with velocity under VEL_EPS
+   * snaps to the target so the spring never micro-rings sub-pixel.
+   */
+  SETTLE_PX: 0.5,
+  /** Velocity settle epsilon (px/s) — see SETTLE_PX. */
+  VEL_EPS: 24,
+  /** Per-frame integration step cap (s) — suspended-tab resume safety. */
+  DT_MAX_S: 0.05,
+  /** First-frame step (s) — the loop's initial tick assumes 60Hz. */
+  DT_INIT_S: 1 / 60,
+  /**
+   * Watchdog (ms) — force-settles the scroll when rAF starves (hidden
+   * tab) so isNavigating/pending teleports can never latch.
+   */
+  MAX_MS: 1400,
+  /** Travel floor (px) — sub-2px moves write instantly, no frames burnt. */
+  MIN_TRAVEL_PX: 2,
 })
 
 /**

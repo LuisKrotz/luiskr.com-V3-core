@@ -3,6 +3,7 @@
  * @description Split from coverage-tails-2.test.js — covers the "Component tails" describe.
  */
 import _store from '@core/store.js'
+import { BaseComponent } from '@core/Component.js'
 
 import '@website/components/feedback/CookieBanner.js'
 import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
@@ -64,9 +65,11 @@ describe('Component tails', () => {
   test('constructable stylesheet path adopts and reuses shared sheets', async () => {
     const saved = globalThis.CSSStyleSheet
 
-    globalThis.CSSStyleSheet = window.CSSStyleSheet || class CSSStyleSheet {
-      replaceSync() {}
-    }
+    globalThis.CSSStyleSheet =
+      window.CSSStyleSheet ||
+      class CSSStyleSheet {
+        replaceSync() {}
+      }
 
     try {
       const el = document.createElement(COMPONENT_TAGS.COOKIE_BANNER)
@@ -96,8 +99,22 @@ describe('Component tails', () => {
     el._applyRenderOutput(document.createElement(HTML_TAGS.DIV))
 
     el._contentNode = node
-    el._applyRenderOutput([document.createElement(HTML_TAGS.DIV), null, document.createElement(HTML_TAGS.SPAN)])
+    el._applyRenderOutput([
+      document.createElement(HTML_TAGS.DIV),
+      null,
+      document.createElement(HTML_TAGS.SPAN),
+    ])
 
     el.remove()
+  })
+
+  test('$$ returns an empty array when shadowRoot is absent', () => {
+    // Prototype-call on a bare host — every real element attaches a
+    // shadow root in the constructor, so the null arm only shows for
+    // detached/pre-upgrade instances.
+    const bare = { shadowRoot: null }
+
+    expect(BaseComponent.prototype.$$.call(bare, 'div')).toEqual([])
+    expect(BaseComponent.prototype.$.call(bare, 'div')).toBeNull()
   })
 })

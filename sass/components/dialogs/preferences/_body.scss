@@ -207,6 +207,9 @@
   border: to-rem(2) solid transparent;
   border-radius: to-rem($space-lg);
   color: var(--text-primary);
+  // The lang options render as <a href> (crawlable translated routes);
+  // the rule must read the same on anchors as on buttons.
+  text-decoration: none;
   cursor: pointer;
   transition:
     transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),

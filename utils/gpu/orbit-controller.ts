@@ -150,8 +150,6 @@ export function bindOrbit(canvas: HTMLCanvasElement, spec: OrbitSpec = {}): Orbi
   }
 
   const span = () => {
-    if (pointers.size < 2) return 0
-
     const [a, b] = [...pointers.values()]
 
     return Math.hypot(a.x - b.x, a.y - b.y)

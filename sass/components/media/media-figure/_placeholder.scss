@@ -14,15 +14,18 @@
   display: block;
   position: relative;
   height: auto;
-  // Mobile: full-width so the media fills the screen
+  // Mobile: full-width so the media fills the screen — but never past
+  // the file's own pixel width (--mf-natural-w, published by render):
+  // a small source keeps its native box instead of stretching to the
+  // viewport, which is what used to upscale tiny media everywhere.
   width: 100%;
-  max-width: 100%;
+  max-width: min(100%, var(--mf-natural-w));
 
   @include layout-768() {
     // Tablet+: respect the SVG's intrinsic width/height attributes
     // so small images are not scaled up beyond their native resolution.
     width: auto;
-    max-width: 100%;
+    max-width: min(100%, var(--mf-natural-w));
   }
 }
 
@@ -30,22 +33,29 @@
   :host-context(.internal-extra-item) .render-placeholder {
     position: relative;
     // Carousel strip contract: every slide shares the --mf-h strip height
-    // so media always fills the row. Width stays aspect-driven (auto →
-    // height × intrinsic ratio) capped by --mf-w on mobile/tablet and
-    // --mf-max-w (or the viewport gutter calc) on desktop, with a 320px
-    // floor at ≥375px viewports — very tall media used to collapse to
-    // unusable slivers when only max-* caps applied.
-    height: var(--mf-h, calc(70vh - #{to-rem($space-xl * 2)}));
-    height: var(--mf-h, calc(70dvh - #{to-rem($space-xl * 2)}));
+    // so media always fills the row — clamped at the file's own height
+    // (--mf-natural-h) so a small source shrinks its slide rather than
+    // upscaling. Width stays aspect-driven (auto → height × intrinsic
+    // ratio) capped by --mf-w on mobile/tablet and --mf-max-w (or the
+    // viewport gutter calc) on desktop — and by --mf-natural-w — with a
+    // 320px floor at ≥375px viewports so very tall media keep a usable
+    // touch target instead of collapsing to slivers.
+    height: min(var(--mf-h, calc(70vh - #{to-rem($space-xl * 2)})), var(--mf-natural-h));
+    height: min(var(--mf-h, calc(70dvh - #{to-rem($space-xl * 2)})), var(--mf-natural-h));
     width: auto;
-    max-width: var(--mf-w, calc(90vw - #{to-rem($space-xl * 2)}));
+    max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-xl * 2)})), var(--mf-natural-w));
 
     @include layout-375() {
-      min-width: to-rem(320);
+      // Floor capped at the file's own width — a sub-320px source keeps
+      // its natural box instead of being stretched past its pixels.
+      min-width: min(#{to-rem(320)}, var(--mf-natural-w));
     }
 
     @include layout-1024() {
-      max-width: var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem(48)}));
+      max-width: min(
+        var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem(48)})),
+        var(--mf-natural-w)
+      );
     }
   }
 }
@@ -63,36 +73,49 @@
 :host(.internal-extra-item) .render-placeholder,
 :host([classes*='internal-extra-item']) .render-placeholder {
   position: relative;
-  height: var(--mf-h, calc(70vh - #{to-rem($space-xl * 2)}));
-  height: var(--mf-h, calc(70dvh - #{to-rem($space-xl * 2)}));
+  // Same strip-height contract as the :host-context twin above, with the
+  // natural-size clamps: --mf-natural-h bounds the strip height and
+  // --mf-natural-w composes into every width cap, so the slide can be
+  // *smaller* than the uniform strip but never larger than the file.
+  height: min(var(--mf-h, calc(70vh - #{to-rem($space-xl * 2)})), var(--mf-natural-h));
+  height: min(var(--mf-h, calc(70dvh - #{to-rem($space-xl * 2)})), var(--mf-natural-h));
   width: auto;
-  max-width: var(--mf-w, calc(90vw - #{to-rem($space-xl * 2)}));
+  max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-xl * 2)})), var(--mf-natural-w));
 
   @include layout-375() {
-    min-width: to-rem(320);
+    min-width: min(#{to-rem(320)}, var(--mf-natural-w));
   }
 
   @include layout-768() {
-    height: var(--mf-h, calc(70vh - #{to-rem($space-2xl * 2)}));
-    height: var(--mf-h, calc(70dvh - #{to-rem($space-2xl * 2)}));
-    max-width: var(--mf-w, calc(90vw - #{to-rem($space-2xl * 2)}));
+    height: min(var(--mf-h, calc(70vh - #{to-rem($space-2xl * 2)})), var(--mf-natural-h));
+    height: min(var(--mf-h, calc(70dvh - #{to-rem($space-2xl * 2)})), var(--mf-natural-h));
+    max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-2xl * 2)})), var(--mf-natural-w));
   }
 
   @include layout-1024() {
-    height: var(--mf-h, #{to-rem($space-7xl)});
+    height: min(var(--mf-h, #{to-rem($space-7xl)}), var(--mf-natural-h));
     // --mf-max-w is only declared for landscape items — regular slides get
     // the viewport-gutter cap (padding + 24px margin clearance per side).
-    max-width: var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem(48)}));
+    max-width: min(
+      var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem(48)})),
+      var(--mf-natural-w)
+    );
   }
 
   @include layout-1440() {
-    height: var(--mf-h, #{to-rem($space-8xl)});
-    max-width: var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem(48)}));
+    height: min(var(--mf-h, #{to-rem($space-8xl)}), var(--mf-natural-h));
+    max-width: min(
+      var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem(48)})),
+      var(--mf-natural-w)
+    );
   }
 
   @include layout-2560() {
-    height: var(--mf-h, #{to-rem($space-9xl)});
-    max-width: var(--mf-max-w, calc(100vw - #{to-rem($space-4xl * 2)} - #{to-rem(48)}));
+    height: min(var(--mf-h, #{to-rem($space-9xl)}), var(--mf-natural-h));
+    max-width: min(
+      var(--mf-max-w, calc(100vw - #{to-rem($space-4xl * 2)} - #{to-rem(48)})),
+      var(--mf-natural-w)
+    );
   }
 }
 
@@ -104,18 +127,18 @@
 :host(.internal-extra-item.landscape) .render-placeholder,
 :host([classes*='internal-extra-item'][classes*='landscape']) .render-placeholder {
   @include layout-1024() {
-    max-width: var(--mf-max-w, calc(100vw - #{to-rem($space-3xl)}));
+    max-width: min(var(--mf-max-w, calc(100vw - #{to-rem($space-3xl)})), var(--mf-natural-w));
   }
 
   @include layout-1280() {
-    max-width: var(--mf-max-w, calc(100vw - #{to-rem($space-4xl)}));
+    max-width: min(var(--mf-max-w, calc(100vw - #{to-rem($space-4xl)})), var(--mf-natural-w));
   }
 
   @include layout-1440() {
-    max-width: var(--mf-max-w, calc(100vw - #{to-rem($space-7xl)}));
+    max-width: min(var(--mf-max-w, calc(100vw - #{to-rem($space-7xl)})), var(--mf-natural-w));
   }
 
   @include layout-1920() {
-    max-width: var(--mf-max-w, calc(100vw - #{to-rem($space-6xl)}));
+    max-width: min(var(--mf-max-w, calc(100vw - #{to-rem($space-6xl)})), var(--mf-natural-w));
   }
 }

@@ -11,6 +11,7 @@ import { TEST_URLS, TEST_PROJECTS } from '@tests/fixtures/test-constants.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { LINK_ATTRS } from '@core/tokens/attrs/link.js'
 import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
+import { PREFETCH_CONFIG } from '@core/tokens/motion/prefetch.js'
 import { FOCUS_EVENTS, POINTER_EVENTS, TOUCH_EVENTS } from '@core/tokens/events/dom.js'
 
 describe('predictive-loader tails', () => {
@@ -61,6 +62,19 @@ describe('predictive-loader tails', () => {
 
     delete window.requestIdleCallback
     predictiveLoader._init?.()
+
+    // No rIC → _schedule falls back to a short setTimeout.
+    let fired = 0
+
+    jest.useFakeTimers()
+    predictiveLoader._schedule?.(() => {
+      fired++
+    })
+    await jest.advanceTimersByTimeAsync(PREFETCH_CONFIG.FALLBACK_DELAY + 1)
+    jest.useRealTimers()
+
+    expect(fired).toBe(1)
+
     window.requestIdleCallback = ric
   })
 })

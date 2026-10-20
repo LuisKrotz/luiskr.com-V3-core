@@ -18,6 +18,8 @@ import { webglPool } from '../../webgl-pool.js'
 import { skeletonRenderer } from './renderer.js'
 import type { SkeletonWebGL } from '../skeleton-webgl.js'
 import { SKELETON_RENDER, SKELETON_WARN } from '@core/tokens/motion/skeleton.js'
+import { applyAnimationDesc } from '@core/utils/a11y/animation-desc.js'
+import { ANIMATION_IDS } from '@core/tokens/data/animation-ids.js'
 
 /**
  * Attaches the shared lifecycle every accelerated path uses once its
@@ -25,8 +27,9 @@ import { SKELETON_RENDER, SKELETON_WARN } from '@core/tokens/motion/skeleton.js'
  * skeleton-layer class, first measure+paint, pool registration, and
  * the idle-deferred loop start.
  * @param host The layer whose canvas just gained a working backend.
+ * @param canvas The live overlay canvas — every callsite guarantees it exists.
  */
-function activate(host: SkeletonWebGL): void {
+function activate(host: SkeletonWebGL, canvas: HTMLCanvasElement): void {
   host.useWebGL = true
 
   window.addEventListener(WINDOW_EVENTS.RESIZE, host._onResize, { passive: true })
@@ -48,7 +51,7 @@ function activate(host: SkeletonWebGL): void {
   host._render(0, 0)
 
   // Off-screen layers stop rendering; they resume when scrolled into view
-  if (host.canvas) webglPool.register(host.canvas, host)
+  webglPool.register(canvas, host)
 
   // Let first paint and the critical path finish before the field starts moving
   const begin = () => {
@@ -69,13 +72,14 @@ function activate(host: SkeletonWebGL): void {
  * a failed acquire falls through to the pure-CSS shimmer (the canvas
  * is simply dropped).
  * @param host The layer to bring up on the 2D path.
+ * @param canvas The layer's overlay canvas — every callsite guarantees it exists.
  */
-function init2d(host: SkeletonWebGL): void {
+function init2d(host: SkeletonWebGL, canvas: HTMLCanvasElement): void {
   host.renderer = skeletonRenderer.acquire()
 
-  const canvas = host.canvas
-
-  host.ctx = canvas ? canvas.getContext(WEBGL_STRINGS.CONTEXT_2D) : null
+  // No renderer means no blit target — claiming the 2D context anyway
+  // would burn a context-mode claim on a canvas that gets dropped.
+  host.ctx = host.renderer ? canvas.getContext(WEBGL_STRINGS.CONTEXT_2D) : null
 
   if (!host.renderer || !host.ctx) {
     if (host.renderer) skeletonRenderer.release()
@@ -87,7 +91,7 @@ function init2d(host: SkeletonWebGL): void {
     return
   }
 
-  activate(host)
+  activate(host, canvas)
 }
 
 /** Boot: builds the overlay canvas, prefers the wasm artifact (the FIRST-loading crate — this is the loading placeholder itself), falls back to the shared 2D renderer, then the CSS shimmer. */
@@ -104,13 +108,18 @@ export function init(host: SkeletonWebGL): void {
 
   host.canvas.setAttribute(SKELETON_WARN.ARIA_HIDDEN, STATE_STRINGS.TRUE)
 
+  // The canvas paints the shimmer/glyph morph — still aria-hidden, but
+  // the describedby + injected node keep the animation readable to
+  // crawlers and AI agents.
+  applyAnimationDesc(host.canvas, ANIMATION_IDS.SKELETON)
+
   const canvas = host.canvas
 
   // No WebGPU at all → synchronous 2D fallback (the mount would
   // resolve null a microtask later anyway — running init2d now keeps
   // the first-paint path synchronous for legacy browsers).
   if (!hasWebGpu()) {
-    init2d(host)
+    init2d(host, canvas)
 
     return
   }
@@ -127,13 +136,13 @@ export function init(host: SkeletonWebGL): void {
     if (host._abandoned || host.canvas !== canvas) return
 
     if (!handle) {
-      init2d(host)
+      init2d(host, canvas)
 
       return
     }
 
     host._wasm = handle
 
-    activate(host)
+    activate(host, canvas)
   })
 }

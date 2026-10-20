@@ -230,6 +230,12 @@ describe('BaseComponent (Component.js) — Shadow DOM & Lifecycle', () => {
       const list = el.$$('.nonexistent-xyz')
       expect(list.length).toBe(0)
     })
+
+    test('$$ returns [] when the instance has no shadow root', () => {
+      const bare = Object.create(BaseComponent.prototype)
+
+      expect(bare.$$('.inner')).toEqual([])
+    })
   })
 
   // ── Subscribe & Cleanup ───────────────────────────────────────────────────────

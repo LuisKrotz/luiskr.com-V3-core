@@ -63,6 +63,18 @@ export const SP_EARTH_DEFAULTS = Object.freeze({
   TERRAIN_SHADOW_INTENSITY: 1,
   TERRAIN_SHADOW_OFFSET: 0.002,
   TRUE_INCLINATION: true,
+  // Close-zoom detail ramp — the 2K equirect maps run out of texels far
+  // above the ~100 km zoom floor, so camera-altitude-scaled boosters keep
+  // terrain relief and city clusters readable on the way down.
+  // Distances are world units (10u = 6371 km surface radius):
+  //   DETAIL_START_DIST 12u ≈ 1274 km — ramp begins (previous zoom floor)
+  //   DETAIL_FULL_DIST  10.6u ≈ 382 km — fully boosted below this
+  DETAIL_START_DIST: 12,
+  DETAIL_FULL_DIST: 10.6,
+  DETAIL_BUMP_BOOST: 3,
+  DETAIL_SHADOW_BOOST: 2,
+  DETAIL_SHADOW_OFFSET_BOOST: 2,
+  DETAIL_CITY_BOOST: 2.5,
 })
 
 /**
@@ -84,6 +96,11 @@ export const SP_CAMERA_DEFAULTS = Object.freeze({
   }),
   AUTO_ROTATE: false,
   AUTO_ROTATE_SPEED: 0.05,
+  // Zoom clamps in Earth radii — min 1.016 ≈ 102 km altitude: just inside
+  // the atmosphere shell (10.2u), where its BackSide wall still renders as
+  // a limb ring at the horizon. Max 10× frames the moon orbit.
+  MIN_RADIUS_FACTOR: 1.016,
+  MAX_RADIUS_FACTOR: 10,
 })
 
 /**
