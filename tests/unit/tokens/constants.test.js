@@ -179,8 +179,8 @@ describe('Core Constants — Token coverage', () => {
       expect(CAROUSEL_LAYOUT.SWIPE_THRESHOLD).toBe(40)
     })
 
-    test('TELEPORT_DELAY is 420ms', () => {
-      expect(CAROUSEL_TIMING.TELEPORT_DELAY).toBe(420)
+    test('TELEPORT_DELAY is 1100ms', () => {
+      expect(CAROUSEL_TIMING.TELEPORT_DELAY).toBe(1100)
     })
 
     test('CAROUSEL token groups are frozen', () => {

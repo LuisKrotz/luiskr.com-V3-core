@@ -167,9 +167,11 @@ describe('gpu-accel tails', () => {
       .spyOn(document, 'createElement')
       .mockImplementation((tag) => (tag === 'canvas' ? fakeCanvas : origCreate(tag)))
     const prevReady = gpu._ready
+    const prevProgram = gpu.program
 
     try {
       gpu._ready = false
+      gpu.program = null
       gpu.initGPU()
 
       // compile fails → the custom `warn: () => {}` sink ran, `built` is null.
@@ -179,6 +181,7 @@ describe('gpu-accel tails', () => {
       spy.mockRestore()
 
       gpu._ready = prevReady
+      gpu.program = prevProgram
     }
   })
 })

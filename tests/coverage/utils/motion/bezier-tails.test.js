@@ -8,16 +8,17 @@
  */
 import { describe, test, expect } from '@jest/globals'
 import { cubicBezier } from '@core/utils/motion/bezier.js'
-import { GENIE_TIMING } from '@core/tokens/motion/genie.js'
+
+// accelerate curve — cubic-bezier(0.4, 0, 1, 1): gentle ramp, steep
+// tail (one-off fixture points, same shape class as CSS ease-in).
+const EASE_X1 = 0.4
+const EASE_Y1 = 0
+const EASE_X2 = 1
+const EASE_Y2 = 1
 
 describe('cubicBezier tails', () => {
   test('clamps to the pinned endpoints', () => {
-    const ease = cubicBezier(
-      GENIE_TIMING.EASE_X1,
-      GENIE_TIMING.EASE_Y1,
-      GENIE_TIMING.EASE_X2,
-      GENIE_TIMING.EASE_Y2
-    )
+    const ease = cubicBezier(EASE_X1, EASE_Y1, EASE_X2, EASE_Y2)
 
     expect(ease(0)).toBe(0)
     expect(ease(-0.5)).toBe(0)
@@ -26,12 +27,7 @@ describe('cubicBezier tails', () => {
   })
 
   test('ease-in accelerate — slow start, steep tail', () => {
-    const ease = cubicBezier(
-      GENIE_TIMING.EASE_X1,
-      GENIE_TIMING.EASE_Y1,
-      GENIE_TIMING.EASE_X2,
-      GENIE_TIMING.EASE_Y2
-    )
+    const ease = cubicBezier(EASE_X1, EASE_Y1, EASE_X2, EASE_Y2)
 
     const mid = ease(0.5)
 
