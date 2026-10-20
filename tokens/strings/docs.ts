@@ -39,6 +39,8 @@ export const DOCS_STRINGS = Object.freeze({
   KEY_PRINT_SCREEN: 'PrintScreen',
   /** Editable-breadcrumb input fallback when the URL path can't resolve. */
   CRUMB_PLACEHOLDER: 'docs/…',
+  /** `name` attr for the editable-breadcrumb field (form-field audit). */
+  CRUMB_INPUT_NAME: 'docs-path',
   /** Root-bucket folder exempt from index-file auto-open (source tree). */
   SRC_ROOT: 'src',
   /** Index filename that auto-opens when its folder is entered. */

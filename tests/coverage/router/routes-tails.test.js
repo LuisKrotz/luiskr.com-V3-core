@@ -110,10 +110,11 @@ describe('routes tails', () => {
       afterHooks: [],
       notify: jest.fn(),
       push: jest.fn(async () => {}),
+      replace: jest.fn(async () => {}),
     }
 
     await handleNavigation(host2, '/x')
-    expect(host2.push).toHaveBeenCalledWith('/about')
+    expect(host2.replace).toHaveBeenCalledWith('/about')
 
     const host3 = {
       currentRoute: { path: '/' },
@@ -121,9 +122,10 @@ describe('routes tails', () => {
       afterHooks: [],
       notify: jest.fn(),
       push: jest.fn(async () => {}),
+      replace: jest.fn(async () => {}),
     }
 
     await handleNavigation(host3, '/x')
-    expect(host3.push).toHaveBeenCalledWith('/about')
+    expect(host3.replace).toHaveBeenCalledWith('/about')
   })
 })

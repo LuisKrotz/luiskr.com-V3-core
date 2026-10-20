@@ -852,14 +852,6 @@
         max-width: var(--space-9xl);
         margin-bottom: var(--space-sm);
       }
-
-      // Back-home affordance — first item of the footer's link row so
-      // every internal footer (project + legal) offers a way back.
-      // Paired with -link; the modifier only drops the casing — the
-      // home label reads lowercase beside the social/legal items.
-      &-home {
-        text-transform: lowercase;
-      }
     }
 
     // Docs-portal entry — a dedicated footer area below the legal links:

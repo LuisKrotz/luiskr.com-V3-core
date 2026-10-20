@@ -210,7 +210,10 @@ async function runBeforeHooks(
         // forever (hook → push → hook → …) — treat it as a pass-through.
         if (redirect === to.path) continue
 
-        await host.push(redirect as string)
+        // Redirects replace rather than push — a rewritten entry must
+        // not litter history (Chrome marks interaction-less pushes as
+        // skippable, breaking back/forward semantics).
+        await host.replace(redirect as string)
 
         return false
       }
@@ -220,7 +223,7 @@ async function runBeforeHooks(
       if (redirectPath) {
         if (redirectPath === to.path) continue
 
-        await host.push(redirectPath)
+        await host.replace(redirectPath)
 
         return false
       }
