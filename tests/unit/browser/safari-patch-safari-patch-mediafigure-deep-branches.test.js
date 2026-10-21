@@ -49,8 +49,15 @@ describe('safari-patch — MediaFigure deep branches', () => {
   }
 
   test('loadHighRes via onload marks loaded and hides the thumb', () => {
-    const highEl = { complete: false, naturalWidth: 0, classList: { add: jest.fn() }, style: {} }
+    // Real img — the stacked swap clones it and mounts the clone; the
+    // painted layer retires only when the successor's own load fires.
+    const highEl = document.createElement(HTML_TAGS.IMG)
+    const host = document.createElement(HTML_TAGS.DIV)
     const thumbEl = { style: {} }
+
+    host.appendChild(highEl)
+    document.body.appendChild(host)
+
     const ctx = {
       isVideo: false,
       isLoaded: false,
@@ -67,14 +74,24 @@ describe('safari-patch — MediaFigure deep branches', () => {
     }
 
     cls(COMPONENT_TAGS.MEDIA_FIGURE).prototype.loadHighRes.call(ctx)
-    highEl.onload()
+
+    const successor = highEl.nextElementSibling
+
+    successor.onload()
 
     expect(ctx.isLoaded).toBe(true)
     expect(thumbEl.style.display).toBe(ATTR_VALUES.NONE)
+
+    host.remove()
   })
 
   test('loadHighRes onload tolerates a missing thumb element', () => {
-    const highEl = { complete: false, naturalWidth: 0, classList: { add: jest.fn() }, style: {} }
+    const highEl = document.createElement(HTML_TAGS.IMG)
+    const host = document.createElement(HTML_TAGS.DIV)
+
+    host.appendChild(highEl)
+    document.body.appendChild(host)
+
     const ctx = {
       isVideo: false,
       isLoaded: false,
@@ -86,9 +103,14 @@ describe('safari-patch — MediaFigure deep branches', () => {
     }
 
     cls(COMPONENT_TAGS.MEDIA_FIGURE).prototype.loadHighRes.call(ctx)
-    highEl.onload()
+
+    const successor = highEl.nextElementSibling
+
+    successor.onload()
 
     expect(ctx.isLoaded).toBe(true)
+
+    host.remove()
   })
 
   test('loadHighRes skips _updateDom when unmounted', () => {

@@ -25,6 +25,7 @@ import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { CDN_URLS } from '@core/tokens/media/urls.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
+import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 import { MEDIA } from '@core/tokens/media/suffixes.js'
 import { MEDIA_ATTRS } from '@core/tokens/attrs/media.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
@@ -178,28 +179,42 @@ describe('media utils tails', () => {
       expect(img.classList.contains(loaded)).toBe(true)
       expect(inst.src).toBe(q75Webp)
 
-      // Confirmed webp publishes to the painted img and retires rung-0's
-      // <source> so img.src becomes authoritative from here on.
+      // Confirmed webp mounts a NEW layer stacked over the painted one —
+      // img.src never mutates in place (that's the blank-frame blink).
+      // The painted rung and its <source> stay live until the successor's
+      // own load retires them.
       inst.onload()
 
-      expect(img.src).toBe(q75Webp)
-      expect(registry.get(key)).toBe(q75Webp)
-      expect(pic.querySelector(HTML_TAGS.SOURCE)).toBe(null)
+      const step1 = pic.nextElementSibling
 
-      // Next step — the original rung has no webp, so the jpg is probed.
-      coverLadderStep(registry, key, img, rungs, loaded)
+      expect(step1.getAttribute(MEDIA_ATTRS.SRC)).toBe(q75Webp)
+      expect(img.src).toBe(q50)
+      expect(pic.querySelector(HTML_TAGS.SOURCE)).not.toBe(null)
+      // The registry records painted tiers only — a probe-confirmed URL
+      // lands once the successor's own load retires the rung beneath.
+      expect(registry.get(key)).toBe(q50)
 
+      step1.dispatchEvent(new Event(WINDOW_EVENTS.LOAD))
+
+      // Painted rung retired; the climb re-enters and probes the raw tier.
+      expect(pic.isConnected).toBe(false)
       expect(registry.get(key)).toBe(q75Webp)
       expect(inst.src).toBe(key)
 
       inst.onload()
 
-      expect(img.src).toBe(key)
+      const step2 = step1.nextElementSibling
+
+      expect(step2.getAttribute(MEDIA_ATTRS.SRC)).toBe(key)
+
+      step2.dispatchEvent(new Event(WINDOW_EVENTS.LOAD))
+
+      expect(step1.isConnected).toBe(false)
 
       // Top rung reached — the ladder stops spawning probes.
       inst = null
 
-      coverLadderStep(registry, key, img, rungs, loaded)
+      coverLadderStep(registry, key, step2, rungs, loaded)
 
       expect(inst).toBe(null)
 
@@ -232,6 +247,7 @@ describe('media utils tails', () => {
       const orphan = document.createElement(HTML_TAGS.IMG)
 
       orphan.src = q50
+      document.body.append(orphan)
 
       coverLadderStep(undefined, key, orphan, rungs, loaded)
 
@@ -239,7 +255,29 @@ describe('media utils tails', () => {
 
       inst.onload()
 
-      expect(orphan.src).toBe(q75Webp)
+      const orphanNext = orphan.nextElementSibling
+
+      expect(orphanNext.getAttribute(MEDIA_ATTRS.SRC)).toBe(q75Webp)
+      expect(orphan.getAttribute(MEDIA_ATTRS.SRC)).toBe(q50)
+
+      // Detached before its own load — the mount guard exits without
+      // retiring the layer underneath.
+      orphanNext.remove()
+      orphanNext.dispatchEvent(new Event(WINDOW_EVENTS.LOAD))
+
+      expect(orphan.isConnected).toBe(true)
+
+      // A successor that fails to load removes only itself — the painted
+      // rung never tears.
+      coverLadderStep(undefined, key, orphan, rungs, loaded)
+      inst.onload()
+
+      const orphanNext2 = orphan.nextElementSibling
+
+      orphanNext2.dispatchEvent(new Event(WINDOW_EVENTS.ERROR))
+
+      expect(orphanNext2.isConnected).toBe(false)
+      expect(orphan.isConnected).toBe(true)
 
       // A <source>-selected paint reports through currentSrc — the rung
       // match must read it ahead of the jpg fallback src.
@@ -283,7 +321,15 @@ describe('media utils tails', () => {
     try {
       coverLadderStep(registry, bareKey, bare, rungs, loaded)
 
-      expect(bare.src).toBe(q75)
+      const bareNext = bare.nextElementSibling
+
+      expect(bareNext.getAttribute(MEDIA_ATTRS.SRC)).toBe(q75)
+      expect(registry.get(bareKey)).toBe(q50)
+
+      // The successor's load re-enters the step → painted rung recorded,
+      // and with no Image ctor the jpg climb mounts the next layer too.
+      bareNext.dispatchEvent(new Event(WINDOW_EVENTS.LOAD))
+
       expect(registry.get(bareKey)).toBe(q75)
     } finally {
       window.Image = origImage
@@ -311,7 +357,11 @@ describe('media utils tails', () => {
 
       winInst.onload()
 
-      expect(noWin.getAttribute(MEDIA_ATTRS.SRC)).toBe(q75Webp)
+      // The detached host's successor never connects — the probe still
+      // ran, but the registry keeps the painted tier (q50) for the next
+      // render since nothing confirmed a higher paint.
+      expect(winInst.src).toBe(q75Webp)
+      expect(registry.get(bareKey)).toBe(q50)
     } finally {
       globalThis.window = savedWindow
       window.Image = origImage
