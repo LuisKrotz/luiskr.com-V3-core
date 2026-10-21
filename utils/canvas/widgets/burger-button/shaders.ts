@@ -76,7 +76,7 @@ export const BURGER_FS_BODY = `
         vec2 c1 = mix(vec2(-cell,  cell) + w1, vec2(0.0), u_hover);
         vec2 c2 = mix(vec2( cell,  cell) + w2, vec2(0.0), u_hover);
         vec2 c3 = mix(vec2(-cell, -cell) + w3, vec2(0.0), u_hover);
-        vec2 c4 = mix(vec2( cell,  cell) + w4, vec2(0.0), u_hover);
+        vec2 c4 = mix(vec2( cell, -cell) + w4, vec2(0.0), u_hover);
 
         float k = 0.10;
         float sA = smin(sdRoundBox(p - c1, vec2(sq), cr),
