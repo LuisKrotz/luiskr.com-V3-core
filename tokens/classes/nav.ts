@@ -51,7 +51,7 @@ export const NAV_BURGER_CLASSES = Object.freeze({
   NAV_BURGER_CANVAS: `${_B_NAV_BURGER}-canvas`,
   NAV_BURGER_WRAP: `${_B_NAV_BURGER}-wrap`,
   NAV_BURGER_FALLBACK: `${_B_NAV_BURGER}-fallback`,
-  NAV_BURGER_LINE: `${_B_NAV_BURGER}-line`,
+  NAV_BURGER_SQUARE: `${_B_NAV_BURGER}-square`,
 })
 
 /**

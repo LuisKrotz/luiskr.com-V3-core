@@ -1,14 +1,22 @@
 /**
  * @file burger-button-webgl.js
- * @description WebGL hamburger icon for the nav burger button: three
- * rounded bars with a subtle traveling wave, theme-aware ink color, and a
- * CSS fallback button when WebGL is unavailable or lost.
+ * @description WebGL menu icon for the nav burger button: four rounded
+ * squares that drift with a liquid idle, pool toward the center on
+ * hover/focus, and morph into the close X when the menu opens —
+ * theme-aware ink color, and a CSS fallback button when WebGL is
+ * unavailable or lost.
  */
 
 import { MEDIA_QUERIES } from '@core/tokens/primitives.js'
 import { NAV_CLASSES } from '@core/tokens/classes/nav.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
-import { KEYBOARD_EVENTS, MOUSE_EVENTS, WINDOW_EVENTS } from '@core/tokens/events/dom.js'
+import {
+  FOCUS_EVENTS,
+  KEYBOARD_EVENTS,
+  MOUSE_EVENTS,
+  POINTER_EVENTS,
+  WINDOW_EVENTS,
+} from '@core/tokens/events/dom.js'
 import { KEYS } from '@core/tokens/primitives.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { INPUT_STRINGS } from '@core/tokens/strings/input.js'
@@ -21,14 +29,13 @@ import { webglPool } from '../webgl-pool.js'
 import { BURGER_VS, burgerFsSource } from './burger-button/shaders.js'
 import { glContextOptions } from '@core/utils/gpu/gpu-info.js'
 import { webglContext } from '../webgl-mode.js'
-import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
-import { hasWebGpu, mountWebGpuWidget } from '../../gpu/webgpu-widget.js'
-import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
 
 /**
- * WebGL animated hamburger icon for the mobile burger button.
- * Renders three sleek horizontal lines with rounded pill caps and subtle wave animation.
- * Adapts to the current theme: dark icon in light mode, bright icon in dark mode.
+ * WebGL liquid menu icon for the burger button.
+ * Renders four rounded squares that drift with a liquid idle, pool toward
+ * the center on hover/focus, and morph into the close X when the menu
+ * opens (setOpen). Adapts to the current theme: dark icon in light mode,
+ * bright icon in dark mode.
  */
 export class BurgerButtonWebGL {
   /**
@@ -46,21 +53,25 @@ export class BurgerButtonWebGL {
   uTime: WebGLUniformLocation | null = null
   uResolution: WebGLUniformLocation | null = null
   uDark: WebGLUniformLocation | null = null
+  uHover: WebGLUniformLocation | null = null
+  uOpen: WebGLUniformLocation | null = null
+  /** Smoothed hover convergence — pointer enter/leave + focus/blur drive the target. */
+  _hover = 0
+  _hoverTarget = 0
+  /** Smoothed menu-open morph — setOpen drives the target. */
+  _open = 0
+  _openTarget = 0
+  /** Previous frame's t — the approach easings consume dt, not absolutes. */
+  _prevT = 0
   _onClick: EventListener | null
   _onKeyDown: ((e: Event) => void) | null = null
+  _onHoverIn: EventListener
+  _onHoverOut: EventListener
   _onContextLost: EventListener | null = null
   _onResize: () => void
   _purged = false
   _hasDeriv = false
   useWebGL = false
-  /** Live WebGPU wasm handle — the preferred backend when it mounts. */
-  _wasm: WidgetHandle | null = null
-  /** Latch — a failed wasm mount never retries on this instance. */
-  _wasmFailed = false
-  /** In-flight mount — restore() must not double-mount on re-entry. */
-  _wasmPending = false
-  /** Last wasm-painted t — frame(dt) consumes deltas, not absolutes. */
-  _wasmT = 0
 
   constructor(canvas: HTMLCanvasElement, onClick?: EventListener | null) {
     this.canvas = canvas
@@ -89,6 +100,21 @@ export class BurgerButtonWebGL {
       canvas.addEventListener(KEYBOARD_EVENTS.KEYDOWN, this._onKeyDown)
     }
 
+    // Hover convergence — pointer and keyboard focus both count, so the
+    // squares pool for a hovered mouse the same way they do for a
+    // tab-focused control.
+    this._onHoverIn = () => this._setHover(1)
+
+    this._onHoverOut = () => this._setHover(0)
+
+    canvas.addEventListener(POINTER_EVENTS.POINTERENTER, this._onHoverIn, { passive: true })
+
+    canvas.addEventListener(POINTER_EVENTS.POINTERLEAVE, this._onHoverOut, { passive: true })
+
+    canvas.addEventListener(FOCUS_EVENTS.FOCUS, this._onHoverIn)
+
+    canvas.addEventListener(FOCUS_EVENTS.BLUR, this._onHoverOut)
+
     // A lost context (GPU reset, driver crash) is recoverable UX-wise —
     // the CSS icon takes over. No preventDefault: a prevented loss asks
     // the browser to restore the context, and our deliberate
@@ -106,63 +132,6 @@ export class BurgerButtonWebGL {
     this._start()
   }
 
-  /**
-   * Attempts the WebGPU wasm burger (~50KB artifact, own GPUDevice).
-   * MANUAL drive: this class keeps its own loop/resize logic, so the
-   * bridge only initializes the surface — state setters and frame(dt)
-   * are forwarded by the existing draw path. On any failure the WebGL
-   * path runs exactly as before; on success the canvas gets a webgpu
-   * context (which is mutually exclusive with the webgl one, so the
-   * mount MUST settle before _initGLReal touches getContext).
-   */
-  _tryWasm() {
-    if (this._wasmPending || this._wasm) return
-
-    this._wasmPending = true
-
-    const canvas = this.canvas
-
-    void mountWebGpuWidget(GPU_WIDGET_KINDS.BURGER, canvas, undefined, {
-      drive: GPU_WIDGET_DRIVE.MANUAL,
-    }).then((handle) => {
-      this._wasmPending = false
-
-      if (!handle || this.canvas !== canvas) {
-        this._wasmFailed = true
-
-        if (this.canvas === canvas) {
-          // Mount failed — plain WebGL init on the same (untouched) canvas.
-          this._initGLReal()
-
-          // The constructor's _start() ran while the mount was in flight
-          // (useWebGL was still false) — re-drive it now that GL is live,
-          // and re-arm the context-loss watch a purge() may have released.
-          if (this.useWebGL) {
-            this._onContextLost ??= watchContextLoss(this.canvas, () => this._triggerFallback())
-
-            this._start()
-          }
-        }
-
-        return
-      }
-
-      if (this._purged) {
-        // The canvas went offscreen while the artifact was in flight —
-        // release the freshly-mounted widget; restore() re-mounts.
-        handle.destroy()
-
-        return
-      }
-
-      this._wasm = handle
-
-      this.useWebGL = true
-
-      this._start()
-    })
-  }
-
   /** Creates the WebGL context + shader program; falls back to the CSS/DOM path on failure. */
 
   _initGL() {
@@ -171,17 +140,10 @@ export class BurgerButtonWebGL {
       return
     }
 
-    // WebGPU available → try the wasm artifact first; the canvas must
-    // not get a WebGL context while the mount is in flight.
-    if (hasWebGpu() && !this._wasmFailed) {
-      this._tryWasm()
-      return
-    }
-
     this._initGLReal()
   }
 
-  /** The synchronous WebGL bootstrap — ran directly on no-WebGPU browsers and after a wasm mount failure. */
+  /** The synchronous WebGL bootstrap — context, program, quad, uniform handles. */
 
   _initGLReal() {
     // Re-init after a purge/restore: clear the fallback marks a previous
@@ -232,6 +194,8 @@ export class BurgerButtonWebGL {
       u_time: 'u_time',
       u_res: 'u_res',
       u_dark: 'u_dark',
+      u_hover: 'u_hover',
+      u_open: 'u_open',
     })
 
     this.uTime = u.u_time
@@ -239,6 +203,10 @@ export class BurgerButtonWebGL {
     this.uResolution = u.u_res
 
     this.uDark = u.u_dark
+
+    this.uHover = u.u_hover
+
+    this.uOpen = u.u_open
   }
 
   /** Switches to the non-WebGL path (CSS class on the host / Canvas2D) — used on context loss or init failure. */
@@ -271,7 +239,7 @@ export class BurgerButtonWebGL {
    * cleared buffer blank until the next state change.
    */
   _checkResize() {
-    if (!this.canvas || (!this.gl && !this._wasm)) return
+    if (!this.canvas || !this.gl) return
 
     // Supersample ×4 past DPR: a 34px icon renders at ~136–272px and the
     // CSS downsample smooths the hairline edges on top of the shader's
@@ -289,20 +257,44 @@ export class BurgerButtonWebGL {
 
       this.canvas.height = h
 
-      if (this._wasm) {
-        // Wasm: `res` = CSS px (design units), `rect` = canvas bitmap
-        // px (the frag→uv divisor — supersampling included).
-        this._wasm.widget.set_size(rect.width || 34, rect.height || 34)
-
-        this._wasm.widget.resize(w, h)
-      } else {
-        this.gl?.viewport(0, 0, w, h)
-      }
+      this.gl?.viewport(0, 0, w, h)
 
       // Static mode (reduced motion) has no loop to repaint the cleared buffer
       if (this.animId === null) {
         this._drawFrame(0)
       }
+    }
+  }
+
+  /**
+   * Menu-open driver — the nav calls this on toggle/close so the pooled
+   * droplet morphs into the close X (and back). With no running loop
+   * (reduced motion, pre-start) the state snaps and repaints once.
+   * @param open Whether the menu overlay is open.
+   */
+  setOpen(open: boolean): void {
+    this._openTarget = open ? 1 : 0
+
+    if (this.animId === null) this._settleNow()
+  }
+
+  /** Hover-convergence driver — pointer enter/leave and focus/blur feed it. */
+
+  _setHover(hovered: number): void {
+    this._hoverTarget = hovered
+
+    if (this.animId === null) this._settleNow()
+  }
+
+  /** Snaps the smoothed state to its targets and repaints — the static path. */
+
+  _settleNow(): void {
+    this._hover = this._hoverTarget
+
+    this._open = this._openTarget
+
+    if (this.useWebGL) {
+      this._drawFrame(this._prevT || (performance.now() - this.startTime) / 1000)
     }
   }
 
@@ -346,25 +338,19 @@ export class BurgerButtonWebGL {
         ? 1
         : 0
 
-    if (this._wasm) {
-      const w = this._wasm.widget as { set_dark?: (v: number) => void }
-
-      w.set_dark?.(isDark)
-
-      // dt = time since the last painted frame — the crate keeps its
-      // own accumulated clock.
-      const dt = this._wasmT ? t - this._wasmT : t
-
-      this._wasmT = t
-
-      this._wasm.widget.frame(dt)
-
-      return
-    }
-
     const gl = this.gl
 
     if (!gl) return
+
+    // Exponential approach toward the interaction targets — frame-rate
+    // independent, so the converge/morph feels identical at 60 or 240Hz.
+    const dt = this._prevT ? t - this._prevT : 0
+
+    this._prevT = t
+
+    this._hover += (this._hoverTarget - this._hover) * (1 - Math.exp(-dt * 10))
+
+    this._open += (this._openTarget - this._open) * (1 - Math.exp(-dt * 7))
 
     gl.clearColor(0, 0, 0, 0)
 
@@ -378,13 +364,17 @@ export class BurgerButtonWebGL {
 
     gl.uniform1f(this.uDark, isDark)
 
+    gl.uniform1f(this.uHover, this._hover)
+
+    gl.uniform1f(this.uOpen, this._open)
+
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, QUAD_STRIP.VERTEX_COUNT)
   }
 
   /** rAF callback — repaints each frame while running. */
 
   _loop() {
-    if ((!this.gl && !this._wasm) || !this.useWebGL) return
+    if (!this.gl || !this.useWebGL) return
 
     this.animId = requestAnimationFrame(() => this._loop())
 
@@ -407,14 +397,6 @@ export class BurgerButtonWebGL {
       this.animId = null
     }
 
-    if (this._wasm) {
-      // Offscreen: release the GPU widget entirely — restore()
-      // re-mounts the artifact on re-entry.
-      this._wasm.destroy()
-
-      this._wasm = null
-    }
-
     releaseQuadGL(this.canvas, this, this._onContextLost)
 
     this._onContextLost = null
@@ -429,14 +411,6 @@ export class BurgerButtonWebGL {
     if (!this.canvas?.isConnected) return
 
     this._purged = false
-
-    // A purged wasm widget re-mounts the artifact — the crate's own
-    // module is cached by the browser so this is a re-init, not a
-    // re-fetch.
-    if (hasWebGpu() && !this._wasmFailed) {
-      this._tryWasm()
-      return
-    }
 
     this._initGL()
 
@@ -470,10 +444,14 @@ export class BurgerButtonWebGL {
 
     window.removeEventListener(WINDOW_EVENTS.RESIZE, this._onResize)
 
-    if (this._wasm) {
-      this._wasm.destroy()
+    if (this.canvas) {
+      this.canvas.removeEventListener(POINTER_EVENTS.POINTERENTER, this._onHoverIn)
 
-      this._wasm = null
+      this.canvas.removeEventListener(POINTER_EVENTS.POINTERLEAVE, this._onHoverOut)
+
+      this.canvas.removeEventListener(FOCUS_EVENTS.FOCUS, this._onHoverIn)
+
+      this.canvas.removeEventListener(FOCUS_EVENTS.BLUR, this._onHoverOut)
     }
 
     releaseQuadGL(this.canvas, this, this._onContextLost)

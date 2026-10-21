@@ -1,9 +1,10 @@
 /**
  * @file burger-button-shaders.ts
  * @description GLSL sources for BurgerButtonWebGL, extracted from
- * burger-button-webgl.ts — shared quad vertex shader plus the
- * hairline-bar fragment shader (three bars with per-bar phase-offset
- * wave + breathing, theme-aware ink/glow mix).
+ * burger-button-webgl.ts — shared quad vertex shader plus the liquid
+ * metaball fragment shader (four rounded squares that pool toward the
+ * center on hover and morph into the close X on open, theme-aware
+ * ink/glow mix).
  */
 
 /** Extension prelude enabling pixel-space SDF AA (WebGL1 only). */
@@ -13,7 +14,7 @@ export const BURGER_DERIV_PRELUDE =
 /** Shared fullscreen-quad vertex shader. */
 export const BURGER_VS = 'attribute vec2 a_pos;void main(){gl_Position=vec4(a_pos,0.,1.);}'
 
-/** Hairline menu-icon fragment shader body (prefix with the deriv prelude). */
+/** Liquid menu-icon fragment shader body (prefix with the deriv prelude). */
 export const BURGER_FS_BODY = `
       #ifdef GL_FRAGMENT_PRECISION_HIGH
       precision highp float;
@@ -23,6 +24,8 @@ export const BURGER_FS_BODY = `
       uniform float u_time;
       uniform vec2 u_res;
       uniform float u_dark;
+      uniform float u_hover;
+      uniform float u_open;
 
       float sdCapsule(vec2 p, vec2 a, vec2 b, float r) {
         vec2 pa = p - a, ba = b - a;
@@ -30,61 +33,82 @@ export const BURGER_FS_BODY = `
         return length(pa - ba * h) - r;
       }
 
-      float sdHBar(vec2 p, float y, float w, float h) {
-        float r = h * 0.5;
-        float halfL = max(w * 0.5 - r, 0.0);
-        return sdCapsule(p, vec2(0.5 - halfL, y), vec2(0.5 + halfL, y), r);
+      float sdRoundBox(vec2 p, vec2 b, float r) {
+        vec2 q = abs(p) - b + r;
+        return min(max(q.x, q.y), 0.0) + length(max(q, vec2(0.0))) - r;
+      }
+
+      // Polynomial smooth-min — the liquid merge: two approaching SDFs
+      // blend across a k-wide band instead of meeting at a hard union
+      // seam, which is what makes the squares pool like droplets.
+      float smin(float a, float b, float k) {
+        float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+        return mix(b, a, h) - k * h * (1.0 - h);
       }
 
       void main() {
-        vec2 uv = gl_FragCoord.xy / u_res;
+        // Square-normalized centered coords: both axes share the smaller
+        // dimension so the 2x2 grid never stretches on a non-square box.
+        vec2 p = (gl_FragCoord.xy - 0.5 * u_res) / min(u_res.x, u_res.y);
         float t = u_time;
 
-        // Bar geometry in UV units: 54% width, ~4.5% height, ±0.16 vertical
-        // spacing — hairline-weight but with enough mass for the heavy AA
-        // stack (supersampled buffer + fwidth edge) to stay silky.
-        float barW = 0.54;
-        float barH = 0.045;
-        float gap = 0.16;
+        // Rest geometry: a 2x2 grid of rounded squares — cell offset
+        // 0.165, half-extent 0.075, corner radius 0.03 → the four dots
+        // read as a chunky "grid of apps" glyph inside the round button.
+        float cell = 0.165;
+        float sq = 0.075;
+        float cr = 0.03;
 
-        // Subtle fluid wave: a ripple travels along each bar, out of phase
-        // per bar (1.3 rad offsets ≈ 2π/5 — no two bars crest together),
-        // while the bars gently breathe in length — organic motion.
-        // Period ~9s (t·0.7): on a 34px icon, faster motion makes the
-        // hairline edges crawl faster than the eye can track, which reads
-        // as temporal aliasing even under the supersampled AA stack.
-        // Amplitude stays well under the bar height so edges stay clean.
-        float wave1 = sin(uv.x * 5.0 - t * 0.7) * 0.009;
-        float wave2 = sin(uv.x * 5.0 - t * 0.7 + 1.3) * 0.009;
-        float wave3 = sin(uv.x * 5.0 - t * 0.7 + 2.6) * 0.009;
+        // Organic drift: every square wanders a few mils on its own
+        // phase (the "water" idle — liquid never sits perfectly still).
+        // calm damps the drift as the pieces converge so the pooled
+        // blob settles instead of twitching.
+        float calm = 1.0 - 0.72 * max(u_hover, u_open);
 
-        float bob1 = sin(t * 0.55) * 0.004;
-        float bob2 = sin(t * 0.55 + 1.2) * 0.004;
-        float bob3 = sin(t * 0.55 + 2.4) * 0.004;
+        vec2 w1 = vec2(sin(t * 0.90),        cos(t * 0.72))        * 0.009 * calm;
+        vec2 w2 = vec2(sin(t * 0.72 + 1.7),  cos(t * 0.88 + 0.6))  * 0.009 * calm;
+        vec2 w3 = vec2(sin(t * 0.82 + 3.1),  cos(t * 0.64 + 2.2))  * 0.009 * calm;
+        vec2 w4 = vec2(sin(t * 0.66 + 4.4),  cos(t * 0.80 + 3.7))  * 0.009 * calm;
 
-        // Breathing: outer bars grow ±4% while the middle bar counter-shrinks
-        // via (2.0 − grow) — the trio's total visual mass stays constant.
-        // ~14s period keeps the length change below perception-as-motion.
-        float grow = 1.0 + 0.04 * sin(t * 0.45);
+        // Hover: each square migrates toward the center — the smin field
+        // welds them into one droplet as the gaps close.
+        vec2 c1 = mix(vec2(-cell,  cell) + w1, vec2(0.0), u_hover);
+        vec2 c2 = mix(vec2( cell,  cell) + w2, vec2(0.0), u_hover);
+        vec2 c3 = mix(vec2(-cell, -cell) + w3, vec2(0.0), u_hover);
+        vec2 c4 = mix(vec2( cell,  cell) + w4, vec2(0.0), u_hover);
 
-        float d1 = sdHBar(vec2(uv.x, uv.y + wave1), 0.5 - gap + bob1, barW * grow, barH);
-        float d2 = sdHBar(vec2(uv.x, uv.y + wave2), 0.5 + bob2, (barW + 0.03) * (2.0 - grow), barH);
-        float d3 = sdHBar(vec2(uv.x, uv.y + wave3), 0.5 + gap + bob3, (barW - 0.03) * grow, barH);
+        float k = 0.10;
+        float sA = smin(sdRoundBox(p - c1, vec2(sq), cr),
+                        sdRoundBox(p - c2, vec2(sq), cr), k);
+        float sB = smin(sdRoundBox(p - c3, vec2(sq), cr),
+                        sdRoundBox(p - c4, vec2(sq), cr), k);
+        float blob = smin(sA, sB, k);
 
-        float bar = min(min(d1, d2), d3);
+        // Open: the pooled droplet pours into the close X — two diagonal
+        // capsules whose reach grows and whose radius slims as the menu
+        // opens. Interpolating the distance fields (not the pixels) is
+        // what makes the morph read as fluid reshaping.
+        float open = smoothstep(0.0, 1.0, u_open);
+        float reach = mix(0.05, 0.21, open);
+        float xr = mix(0.06, 0.038, open);
+        float xa = sdCapsule(p, -vec2(reach), vec2(reach), xr);
+        float xb = sdCapsule(p, vec2(-reach, reach), vec2(reach, -reach), xr);
+        float xShape = min(xa, xb);
+
+        float icon = mix(blob, xShape, open);
 
         // Anti-aliased edge: with derivatives, convert the SDF distance to
         // pixel distance so the edge falloff spans ~2.2px — deliberately
-        // wider than a standard 1px band; on the ×4-supersampled buffer
-        // this yields a very soft, heavily anti-aliased hairline after the
+        // wider than a standard 1px band; on the x4-supersampled buffer
+        // this yields a very soft, heavily anti-aliased edge after the
         // CSS downsample adds a second smoothing pass.
         #ifdef HAS_DERIV
-        float px = max(fwidth(bar), 1e-4);
-        float alpha = 1.0 - smoothstep(-px * 1.1, px * 1.1, bar);
-        float glow = (1.0 - smoothstep(0.0, px * 5.5, bar)) * 0.2;
+        float px = max(fwidth(icon), 1e-4);
+        float alpha = 1.0 - smoothstep(-px * 1.1, px * 1.1, icon);
+        float glow = (1.0 - smoothstep(0.0, px * 5.5, icon)) * 0.2;
         #else
-        float alpha = smoothstep(0.02, 0.0, bar);
-        float glow = smoothstep(0.06, 0.0, bar) * 0.2;
+        float alpha = smoothstep(0.02, 0.0, icon);
+        float glow = smoothstep(0.06, 0.0, icon) * 0.2;
         #endif
 
         // Barely-there breathing: ±2% luminance over ~12s. A stronger pulse
@@ -100,8 +124,8 @@ export const BURGER_FS_BODY = `
         vec3 col = mix(colLight, colDark, u_dark);
 
         // Glow stays in the ink's own hue family — a saturated tinted halo
-        // against the bars produces a chromatic fringe that reads as
-        // broken anti-aliasing, so both themes use a desaturated ink tint.
+        // produces a chromatic fringe that reads as broken anti-aliasing,
+        // so both themes use a desaturated ink tint.
         vec3 glowDark = vec3(0.55, 0.58, 0.65);
         vec3 glowLight = vec3(0.15, 0.15, 0.22);
         vec3 glowCol = mix(glowLight, glowDark, u_dark);
