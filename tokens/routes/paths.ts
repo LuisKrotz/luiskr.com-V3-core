@@ -71,4 +71,8 @@ export const ASSET_PATHS = Object.freeze({
   WASM_WIDGETS_PREFIX: '/wasm/',
   /** `rust/diagram` artifacts — the mermaid-subset SVG engine. */
   WASM_DIAGRAM_PREFIX: '/wasm/diagram/',
+  /** ONNX Runtime wasm/glue binaries — `/ort/ort-wasm-…`. */
+  ORT_WASM_PREFIX: '/ort/',
+  /** Generated ONNX model files — `/models/<slug>.onnx`. */
+  ML_MODELS_PREFIX: '/models/',
 })
