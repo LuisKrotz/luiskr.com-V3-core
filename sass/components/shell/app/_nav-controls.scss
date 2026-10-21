@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  app/_nav-controls.scss — nav right-side controls: the WebGL burger
-//  canvas + CSS hamburger fallback, the always-visible mobile strip, and
-//  the 4-column language-dialog variant shared with preferences.
+//  canvas + the CSS four-squares fallback icon, the always-visible mobile
+//  strip, and the 4-column language-dialog variant shared with preferences.
 //  Imported by app.scss (manifest) — uses $_B_NAV defined there.
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -57,37 +57,45 @@
   position: relative;
 
   // Four rounded squares on a 2x2 grid — the CSS mirror of the shader's
-  // metaball icon. Squares center-anchored via 50% + negative half
-  // margins; the per-corner offsets come from the nth-of-type rules.
+  // metaball icon. Every transform begins with translate(-50%,-50%) so
+  // centering survives the width stretch when the squares become the
+  // close-X bars; the per-corner offsets follow the recentering.
   .#{$_B_NAV}-burger-square {
     position: absolute;
-    top: calc(50% - var(--space-2xs) / 2);
-    left: calc(50% - var(--space-2xs) / 2);
-    width: var(--space-2xs);
-    height: var(--space-2xs);
+    top: 50%;
+    left: 50%;
+    width: var(--space-md);
+    height: var(--space-md);
     background: var(--text-primary);
     border-radius: var(--radius-2xs);
     transition:
       transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      background 0.3s ease,
       border-radius 0.45s ease;
     transition:
       transform 0.45s $ease-spring,
+      width 0.45s $ease-spring,
+      height 0.45s $ease-spring,
+      background 0.3s ease,
       border-radius 0.45s ease;
 
     &:nth-of-type(1) {
-      transform: translate(calc(-1 * var(--space-xs)), calc(-1 * var(--space-xs)));
+      transform: translate(-50%, -50%)
+        translate(calc(-1 * var(--space-md)), calc(-1 * var(--space-md)));
     }
 
     &:nth-of-type(2) {
-      transform: translate(var(--space-xs), calc(-1 * var(--space-xs)));
+      transform: translate(-50%, -50%) translate(var(--space-md), calc(-1 * var(--space-md)));
     }
 
     &:nth-of-type(3) {
-      transform: translate(calc(-1 * var(--space-xs)), var(--space-xs));
+      transform: translate(-50%, -50%) translate(calc(-1 * var(--space-md)), var(--space-md));
     }
 
     &:nth-of-type(4) {
-      transform: translate(var(--space-xs), var(--space-xs));
+      transform: translate(-50%, -50%) translate(var(--space-md), var(--space-md));
     }
   }
 
@@ -96,25 +104,31 @@
   &:hover,
   &:focus-visible {
     .#{$_B_NAV}-burger-square {
-      transform: translate(0, 0) scale(1.6);
+      transform: translate(-50%, -50%) scale(1.6);
       border-radius: var(--radius-round);
     }
   }
 
-  // Open: the pooled blob morphs into the close X — diagonal pairs
-  // stretch along their own diagonal (nth 1+4 = \, nth 2+3 = /).
+  // Open: the pooled squares pour into THE existing close X — each
+  // diagonal pair converges on center and stretches into that bar's
+  // exact geometry (the 21px × 2px stroke of the close button), nth
+  // 1+4 forming the \ arm and nth 2+3 the / arm. --text-secondary is
+  // the same ink the close button's own CSS fallback paints.
   &[aria-expanded='true'] {
     .#{$_B_NAV}-burger-square {
+      width: var(--space-xl);
+      height: var(--space-2xs);
       border-radius: var(--radius-round);
+      background: var(--text-secondary);
 
       &:nth-of-type(1),
       &:nth-of-type(4) {
-        transform: translate(0, 0) rotate(45deg) scaleX(3);
+        transform: translate(-50%, -50%) rotate(45deg);
       }
 
       &:nth-of-type(2),
       &:nth-of-type(3) {
-        transform: translate(0, 0) rotate(-45deg) scaleX(3);
+        transform: translate(-50%, -50%) rotate(-45deg);
       }
     }
   }

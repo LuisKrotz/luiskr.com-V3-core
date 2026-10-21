@@ -84,13 +84,14 @@ export const BURGER_FS_BODY = `
                         sdRoundBox(p - c4, vec2(sq), cr), k);
         float blob = smin(sA, sB, k);
 
-        // Open: the pooled droplet pours into the close X — two diagonal
-        // capsules whose reach grows and whose radius slims as the menu
-        // opens. Interpolating the distance fields (not the pixels) is
-        // what makes the morph read as fluid reshaping.
+        // Open: the pooled droplet pours into THE close X — the same
+        // strokes the menu's close button paints: bars reaching ±0.19
+        // of the box (its 21px arm on the 55px disc) at a ~2px hairline
+        // thickness (stroke radius 0.018). Interpolating the distance
+        // fields (not the pixels) makes the morph read as fluid reshape.
         float open = smoothstep(0.0, 1.0, u_open);
-        float reach = mix(0.05, 0.21, open);
-        float xr = mix(0.06, 0.038, open);
+        float reach = mix(0.05, 0.19, open);
+        float xr = mix(0.06, 0.018, open);
         float xa = sdCapsule(p, -vec2(reach), vec2(reach), xr);
         float xb = sdCapsule(p, vec2(-reach, reach), vec2(reach, -reach), xr);
         float xShape = min(xa, xb);
@@ -123,6 +124,12 @@ export const BURGER_FS_BODY = `
         vec3 colLight = vec3(0.10, 0.10, 0.14) * pulse;
         vec3 col = mix(colLight, colDark, u_dark);
 
+        // The opened icon IS the existing close button — its strokes are
+        // white over its own grey disc, so the ink converges to white and
+        // the canvas fills in that disc (vec3(0.22,0.23,0.27) is the close
+        // button's painted background) behind whatever the X doesn't cover.
+        col = mix(col, vec3(1.0), open);
+
         // Glow stays in the ink's own hue family — a saturated tinted halo
         // produces a chromatic fringe that reads as broken anti-aliasing,
         // so both themes use a desaturated ink tint.
@@ -132,6 +139,11 @@ export const BURGER_FS_BODY = `
 
         vec3 finalCol = col * alpha + glowCol * glow;
         float finalAlpha = max(alpha, glow * 0.25);
+
+        float disc = open * (1.0 - smoothstep(0.47, 0.49, length(p)));
+
+        finalCol = mix(finalCol, vec3(0.22, 0.23, 0.27), disc * (1.0 - alpha));
+        finalAlpha = max(finalAlpha, disc);
 
         gl_FragColor = vec4(finalCol, finalAlpha);
       }
