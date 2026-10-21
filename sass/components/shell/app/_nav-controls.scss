@@ -31,8 +31,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--space-3xl);
-  height: var(--space-3xl);
+  width: var(--space-2xl);
+  height: var(--space-2xl);
   border-radius: var(--radius-round);
   background: var(--border-color);
   transition: background 0.2s ease;
@@ -65,8 +65,8 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: var(--space-md);
-    height: var(--space-md);
+    width: var(--space-sm);
+    height: var(--space-sm);
     background: var(--text-primary);
     border-radius: var(--radius-2xs);
     transition:
@@ -84,19 +84,19 @@
 
     &:nth-of-type(1) {
       transform: translate(-50%, -50%)
-        translate(calc(-1 * var(--space-md)), calc(-1 * var(--space-md)));
+        translate(calc(-1 * var(--space-sm)), calc(-1 * var(--space-sm)));
     }
 
     &:nth-of-type(2) {
-      transform: translate(-50%, -50%) translate(var(--space-md), calc(-1 * var(--space-md)));
+      transform: translate(-50%, -50%) translate(var(--space-sm), calc(-1 * var(--space-sm)));
     }
 
     &:nth-of-type(3) {
-      transform: translate(-50%, -50%) translate(calc(-1 * var(--space-md)), var(--space-md));
+      transform: translate(-50%, -50%) translate(calc(-1 * var(--space-sm)), var(--space-sm));
     }
 
     &:nth-of-type(4) {
-      transform: translate(-50%, -50%) translate(var(--space-md), var(--space-md));
+      transform: translate(-50%, -50%) translate(var(--space-sm), var(--space-sm));
     }
   }
 
@@ -112,13 +112,13 @@
 
   // Open: the pooled squares pour into THE existing close X — each
   // diagonal pair converges on center and stretches into that bar's
-  // exact geometry (the 21px × 2px stroke of the close button), nth
-  // 1+4 forming the \ arm and nth 2+3 the / arm. --text-secondary is
+  // exact geometry (the ~17px × 2.6px stroke of the 34px close button),
+  // nth 1+4 forming the \ arm and nth 2+3 the / arm. --text-secondary is
   // the same ink the close button's own CSS fallback paints.
   &[aria-expanded='true'] {
     .#{$_B_NAV}-burger-square {
       width: var(--space-xl);
-      height: var(--space-2xs);
+      height: var(--space-xs);
       border-radius: var(--radius-round);
       background: var(--text-secondary);
 

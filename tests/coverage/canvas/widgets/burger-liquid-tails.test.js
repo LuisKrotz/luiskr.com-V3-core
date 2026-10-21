@@ -12,7 +12,7 @@ import { attachMockGL } from '@tests/fixtures/mock-webgl.js'
 import store from '@core/store.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
-import { FOCUS_EVENTS, GL_EVENTS, POINTER_EVENTS } from '@core/tokens/events/dom.js'
+import { FOCUS_EVENTS, GL_EVENTS, MOUSE_EVENTS, POINTER_EVENTS } from '@core/tokens/events/dom.js'
 import { BURGER_FS_BODY } from '@core/utils/canvas/widgets/burger-button/shaders.js'
 
 /** Imports the class under test (module-level import is fine — no mocks). */
@@ -51,6 +51,19 @@ describe('burger liquid icon', () => {
     expect(new Set(centers).size).toBe(4)
   })
 
+  test('the shader carries the close-state channels and the shared close paint', () => {
+    // The opened burger IS a close button — it must consume the shared
+    // lkClosePaint library (liquid fill, foam crest, bubbles, rotating
+    // X, click shockwave) through the same uniforms CloseButtonWebGL
+    // drives. u_ss converts the supersampled buffer into close px.
+    for (const uniform of ['u_liquid', 'u_rot', 'u_click_time', 'u_ss']) {
+      expect(BURGER_FS_BODY).toContain(`uniform float ${uniform}`)
+    }
+
+    expect(BURGER_FS_BODY).toContain('lkClosePaint(')
+    expect(BURGER_FS_BODY).toContain('lkDistSegment')
+  })
+
   test('GL path eases hover convergence and the open morph toward their targets', async () => {
     const BurgerButtonWebGL = await loadClass()
     const canvas = makeCanvas()
@@ -80,6 +93,45 @@ describe('burger liquid icon', () => {
 
     expect(burger._hover).toBeLessThan(0.9)
     expect(burger._open).toBeLessThan(0.9)
+
+    burger.destroy()
+    canvas.remove()
+  })
+
+  test('open + hover pours the close-state liquid and spins the X', async () => {
+    const BurgerButtonWebGL = await loadClass()
+    const canvas = makeCanvas()
+
+    attachMockGL(canvas)
+    document.body.appendChild(canvas)
+
+    const burger = new BurgerButtonWebGL(canvas, jest.fn())
+
+    expect(burger._liquid).toBe(0)
+    expect(burger._rot).toBe(0)
+
+    // Hover alone must NOT charge the liquid — the fill only exists on
+    // the opened close state, never behind the closed squares.
+    canvas.dispatchEvent(new Event(POINTER_EVENTS.POINTERENTER))
+    burger._drawFrame(0.05)
+    burger._drawFrame(0.5)
+
+    expect(burger._liquid).toBe(0)
+    expect(burger._rot).toBe(0)
+
+    // Open the menu while hovered — the pour starts and the X spins.
+    burger.setOpen(true)
+    burger._drawFrame(1.0)
+    burger._drawFrame(2.0)
+    burger._drawFrame(3.0)
+
+    expect(burger._liquid).toBeGreaterThan(0.5)
+    expect(burger._rot).toBeGreaterThan(0.5)
+
+    // Click records the shockwave timestamp (close-button parity).
+    canvas.dispatchEvent(new Event(MOUSE_EVENTS.CLICK))
+
+    expect(burger._clickT).toBeGreaterThan(0)
 
     burger.destroy()
     canvas.remove()

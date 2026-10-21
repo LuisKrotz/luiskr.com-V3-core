@@ -16,40 +16,36 @@ export const CLOSE_BUTTON_VS = `
         }
       `
 
-/** Liquid-fill fragment shader (see class docblock for the effect layers). */
-export const CLOSE_BUTTON_FS = `
-        #ifdef GL_FRAGMENT_PRECISION_HIGH
-        precision highp float;
-        #else
-        precision mediump float;
-        #endif
-
-        varying vec2 v_uv;
-        uniform vec2 u_resolution;
-        uniform float u_time;
-        uniform float u_liquid;
-        uniform float u_draw;
-        uniform float u_rot;
-        uniform float u_click_time;
-
-        float distSegment(vec2 p, vec2 a, vec2 b) {
+/**
+ * GLSL helper library for the close-button look — shared between
+ * CLOSE_BUTTON_FS (the dedicated close widget) and the burger's open
+ * state, which morphs into this exact control and must paint it
+ * pixel-identically (turquoise pour, foam crest, rising bubbles, inset
+ * rim, rotating X strokes, click shockwave).
+ *
+ * `lkClosePaint` works in "close pixels": the same pixel basis the
+ * close widget's backing store uses (CSS box × capped DPR). Callers on
+ * supersampled buffers divide fragcoord/res by their supersample factor
+ * before calling so one unit here is always one close-widget pixel.
+ *
+ * @param pRel Fragment position relative to the disc center, in close px.
+ * @param minRes Shorter canvas dimension in close px — derives the disc
+ *   radius (`minRes/2 - 1`) exactly like the standalone close shader.
+ * @returns vec4 — premultiplied=false rgba; alpha is the disc's borderAA
+ *   mask (0 outside the disc edge — no discard inside, so callers can
+ *   composite other layers around the disc).
+ */
+export const CLOSE_PAINT_GLSL = `
+        float lkDistSegment(vec2 p, vec2 a, vec2 b) {
           vec2 pa = p - a;
           vec2 ba = b - a;
           float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
           return length(pa - ba * h);
         }
 
-        void main() {
-          vec2 pixel = v_uv * u_resolution;
-          vec2 center = u_resolution * 0.5;
-          vec2 pRel = pixel - center;
-          float radius = min(center.x, center.y) - 1.0;
+        vec4 lkClosePaint(vec2 pRel, float minRes, float u_time, float u_liquid, float u_draw, float u_rot, float u_click_time) {
+          float radius = minRes * 0.5 - 1.0;
           float d = length(pRel);
-
-          if (d > radius) {
-            discard;
-          }
-
           float borderAA = 1.0 - smoothstep(radius - 1.0, radius, d);
 
           // Neutral background
@@ -108,11 +104,11 @@ export const CLOSE_BUTTON_FS = `
 
           vec2 l1A = vec2(-halfLen, -halfLen);
           vec2 l1B = l1A + vec2(halfLen * 2.0, halfLen * 2.0) * progress;
-          float d1 = distSegment(pRot, l1A, l1B);
+          float d1 = lkDistSegment(pRot, l1A, l1B);
 
           vec2 l2A = vec2(-halfLen, halfLen);
           vec2 l2B = l2A + vec2(halfLen * 2.0, -halfLen * 2.0) * progress;
-          float d2 = distSegment(pRot, l2A, l2B);
+          float d2 = lkDistSegment(pRot, l2A, l2B);
 
           // Sharp vector-like 1.8px stroke width with crisp 0.7px AA edge
           float stroke1 = (1.0 - smoothstep(0.9, 1.7, d1)) * step(0.01, progress);
@@ -129,6 +125,40 @@ export const CLOSE_BUTTON_FS = `
             col += vec3(0.40, 0.988, 0.945) * waveShock * 0.8;
           }
 
-          gl_FragColor = vec4(col, borderAA);
+          return vec4(col, borderAA);
+        }
+      `
+
+/** Liquid-fill fragment shader (see class docblock for the effect layers). */
+export const CLOSE_BUTTON_FS = `
+        #ifdef GL_FRAGMENT_PRECISION_HIGH
+        precision highp float;
+        #else
+        precision mediump float;
+        #endif
+
+        varying vec2 v_uv;
+        uniform vec2 u_resolution;
+        uniform float u_time;
+        uniform float u_liquid;
+        uniform float u_draw;
+        uniform float u_rot;
+        uniform float u_click_time;
+        ${CLOSE_PAINT_GLSL}
+
+        void main() {
+          vec2 pixel = v_uv * u_resolution;
+          vec2 center = u_resolution * 0.5;
+          vec2 pRel = pixel - center;
+          float radius = min(center.x, center.y) - 1.0;
+
+          if (length(pRel) > radius) {
+            discard;
+          }
+
+          gl_FragColor = lkClosePaint(
+            pRel, min(u_resolution.x, u_resolution.y),
+            u_time, u_liquid, u_draw, u_rot, u_click_time
+          );
         }
       `

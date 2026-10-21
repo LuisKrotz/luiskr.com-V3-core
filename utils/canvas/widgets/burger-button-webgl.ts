@@ -31,6 +31,30 @@ import { glContextOptions } from '@core/utils/gpu/gpu-info.js'
 import { webglContext } from '../webgl-mode.js'
 
 /**
+ * Backing-store supersample factor on top of the capped DPR — a 34px
+ * icon renders at ~136–272 buffer px so the CSS downsample adds a
+ * second AA pass. The shader divides by it to recover the "close px"
+ * basis the shared close-paint library is authored in.
+ */
+const SUPERSAMPLE = 4
+
+/**
+ * Liquid pour speed, per second — matches CloseButtonWebGL's 1.6%/frame
+ * at 60fps so the open-state water fill pours at the same rate every
+ * close button does (~1s to fill on hover, same on drain).
+ */
+const LIQUID_RATE_PER_S = 1.0
+
+/**
+ * X-spin speed, per second — matches CloseButtonWebGL's 4%/frame at
+ * 60fps so the half-turn lands near the end of the pour.
+ */
+const ROT_RATE_PER_S = 2.4
+
+/** Timestamp that disables the click shockwave (far past sentinel). */
+const CLICK_TIME_OFF = -10
+
+/**
  * WebGL liquid menu icon for the burger button.
  * Renders four rounded squares that drift with a liquid idle, pool toward
  * the center on hover/focus, and morph into the close X when the menu
@@ -55,12 +79,29 @@ export class BurgerButtonWebGL {
   uDark: WebGLUniformLocation | null = null
   uHover: WebGLUniformLocation | null = null
   uOpen: WebGLUniformLocation | null = null
+  uLiquid: WebGLUniformLocation | null = null
+  uRot: WebGLUniformLocation | null = null
+  uClickTime: WebGLUniformLocation | null = null
+  uSS: WebGLUniformLocation | null = null
   /** Smoothed hover convergence — pointer enter/leave + focus/blur drive the target. */
   _hover = 0
   _hoverTarget = 0
   /** Smoothed menu-open morph — setOpen drives the target. */
   _open = 0
   _openTarget = 0
+  /**
+   * Close-state liquid pour (u_liquid) — the turquoise water fill every
+   * close button shows on hover. Target follows hover ONLY while the
+   * menu is open, so the fill never pre-charges behind the closed icon.
+   */
+  _liquid = 0
+  /**
+   * Close-state X rotation (u_rot) — the half-turn the real close
+   * button's X performs while its liquid fills on hover.
+   */
+  _rot = 0
+  /** Seconds since startTime of the last press — drives the click shockwave. */
+  _clickT = CLICK_TIME_OFF
   /** Previous frame's t — the approach easings consume dt, not absolutes. */
   _prevT = 0
   _onClick: EventListener | null
@@ -83,7 +124,16 @@ export class BurgerButtonWebGL {
     if (onClick) {
       canvas.style.cursor = INPUT_STRINGS.POINTER
 
-      canvas.addEventListener(MOUSE_EVENTS.CLICK, onClick)
+      // Record the press timestamp before delegating — the shader reads
+      // u_click_time to expand the shockwave ring over its 0.4s window,
+      // matching the real close button's triggerClick() semantics.
+      this._onClick = (e: Event) => {
+        this._clickT = (performance.now() - this.startTime) / 1000
+
+        onClick(e)
+      }
+
+      canvas.addEventListener(MOUSE_EVENTS.CLICK, this._onClick)
 
       // The canvas is the focusable control when WebGL renders (the CSS
       // fallback <button> is display:none) — Enter/Space must activate it.
@@ -93,7 +143,7 @@ export class BurgerButtonWebGL {
         if (key === KEYS.ENTER || key === KEYS.SPACE) {
           e.preventDefault()
 
-          onClick(e)
+          this._onClick?.(e)
         }
       }
 
@@ -196,6 +246,10 @@ export class BurgerButtonWebGL {
       u_dark: 'u_dark',
       u_hover: 'u_hover',
       u_open: 'u_open',
+      u_liquid: 'u_liquid',
+      u_rot: 'u_rot',
+      u_click_time: 'u_click_time',
+      u_ss: 'u_ss',
     })
 
     this.uTime = u.u_time
@@ -207,6 +261,14 @@ export class BurgerButtonWebGL {
     this.uHover = u.u_hover
 
     this.uOpen = u.u_open
+
+    this.uLiquid = u.u_liquid
+
+    this.uRot = u.u_rot
+
+    this.uClickTime = u.u_click_time
+
+    this.uSS = u.u_ss
   }
 
   /** Switches to the non-WebGL path (CSS class on the host / Canvas2D) — used on context loss or init failure. */
@@ -244,7 +306,7 @@ export class BurgerButtonWebGL {
     // Supersample ×4 past DPR: a 34px icon renders at ~136–272px and the
     // CSS downsample smooths the hairline edges on top of the shader's
     // analytic AA — a tiny canvas makes this essentially free.
-    const dpr = Math.min(window.devicePixelRatio || 1, 2) * 4
+    const dpr = Math.min(window.devicePixelRatio || 1, 2) * SUPERSAMPLE
 
     const rect = this.canvas.getBoundingClientRect()
 
@@ -292,6 +354,10 @@ export class BurgerButtonWebGL {
     this._hover = this._hoverTarget
 
     this._open = this._openTarget
+
+    this._liquid = this._hoverTarget * this._openTarget
+
+    this._rot = this._liquid * Math.PI
 
     if (this.useWebGL) {
       this._drawFrame(this._prevT || (performance.now() - this.startTime) / 1000)
@@ -352,6 +418,16 @@ export class BurgerButtonWebGL {
 
     this._open += (this._openTarget - this._open) * (1 - Math.exp(-dt * 7))
 
+    // Close-state pour: the liquid target follows hover only while the
+    // menu is open (a hover on the closed burger must not pre-charge the
+    // fill). The X's half-turn tracks the pour — same choreography the
+    // standalone close button runs in its own render loop.
+    const liquidTarget = this._hoverTarget * this._openTarget
+
+    this._liquid += (liquidTarget - this._liquid) * (1 - Math.exp(-dt * LIQUID_RATE_PER_S))
+
+    this._rot += (this._liquid * Math.PI - this._rot) * (1 - Math.exp(-dt * ROT_RATE_PER_S))
+
     gl.clearColor(0, 0, 0, 0)
 
     gl.clear(gl.COLOR_BUFFER_BIT)
@@ -367,6 +443,14 @@ export class BurgerButtonWebGL {
     gl.uniform1f(this.uHover, this._hover)
 
     gl.uniform1f(this.uOpen, this._open)
+
+    gl.uniform1f(this.uLiquid, this._liquid)
+
+    gl.uniform1f(this.uRot, this._rot)
+
+    gl.uniform1f(this.uClickTime, this._clickT)
+
+    gl.uniform1f(this.uSS, SUPERSAMPLE)
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, QUAD_STRIP.VERTEX_COUNT)
   }
