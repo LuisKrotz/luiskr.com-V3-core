@@ -18,9 +18,11 @@ import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { WASM_ACTIONS } from '@core/tokens/data/wasm.js'
 import { WEBGL_STRINGS } from '@core/tokens/strings/webgl.js'
 import { GENERIC_DIMENSIONS } from '@core/tokens/media/dimensions.js'
+import { ML } from '@core/tokens/data/ml.js'
 import { wasmPool } from '@core/utils/wasm/wasm-pool.js'
 import { gpuAccel } from './gpu-accel.js'
 import { wasmImageDecoder } from '@core/utils/wasm/wasm-image-decoder.js'
+import { runMlModel } from '@core/utils/ml/ort-engine.js'
 
 /** Minimal WebNN surface used by this predictor (navigator.ml). */
 interface WebNNNavigator {
@@ -227,12 +229,28 @@ class NPUPredictor {
 
     if (this.hasNPU && this.mlContext) {
       // ── 1. Hardware NPU Execution Target ────────────────────────────────────
-      probability = Math.min(
-        NPU_PREDICT.NPU_CAP,
-        NPU_PREDICT.NPU_BASE +
-          hoverNorm * NPU_PREDICT.NPU_HOVER_W +
-          (1.0 - speedNorm) * NPU_PREDICT.NPU_SPEED_W
-      )
+      // Real ONNX inference first — the intent MLP runs on the WebNN NPU
+      // (or WebGPU/wasm EP when the NPU driver rejects the graph). A null
+      // result falls through to the deterministic heuristic so a missing
+      // model/runtime degrades instead of blocking prediction.
+      const ml = await runMlModel(ML.MODEL_INTENT, {
+        [ML.IN_FEATURES]: {
+          data: new Float32Array([hoverNorm, speedNorm, 1]),
+          dims: [1, ML.INTENT_FEATURE_DIM],
+        },
+      })
+
+      const mlProb = ml?.[ML.OUT_PROBABILITY]?.[0]
+
+      probability =
+        mlProb != null
+          ? Math.min(NPU_PREDICT.NPU_CAP, Math.max(0, mlProb))
+          : Math.min(
+              NPU_PREDICT.NPU_CAP,
+              NPU_PREDICT.NPU_BASE +
+                hoverNorm * NPU_PREDICT.NPU_HOVER_W +
+                (1.0 - speedNorm) * NPU_PREDICT.NPU_SPEED_W
+            )
     } else if (this.gpuAvailable()) {
       // ── 2. Hardware GPU Execution Target (when NPU is unavailable) ─────────
       this.hasGPU = true

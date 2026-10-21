@@ -8,6 +8,8 @@ import '@website/components/feedback/CookieBanner.js'
 
 import { npuPredict } from '@core/utils/gpu/npu-predict.js'
 import { gpuAccel } from '@core/utils/gpu/gpu-accel.js'
+import { resetMlEngine } from '@core/utils/ml/ort-engine.js'
+import { __ortState } from 'onnxruntime-web'
 
 import { TEST_TEXT, TEST_PROJECTS } from '@tests/fixtures/test-constants.js'
 import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
@@ -28,6 +30,24 @@ describe('npu-predict tails', () => {
     const viaNpu = await npuPredict.predictTargetLikelihood(`${url}-npu`, null, 500)
 
     expect(viaNpu.probability).toBeGreaterThan(0)
+
+    // ML-model arm — the stub returns a real probability tensor, so the
+    // score comes from inference output rather than the heuristic floor.
+    resetMlEngine()
+    __ortState.outputs = { prob: { data: new Float32Array([0.9]) } }
+
+    const viaMl = await npuPredict.predictTargetLikelihood(`${url}-ml`, null, 500)
+
+    expect(viaMl.probability).toBeCloseTo(0.9)
+
+    __ortState.outputs = { prob: { data: new Float32Array([-1]) } }
+
+    const viaNeg = await npuPredict.predictTargetLikelihood(`${url}-ml-neg`, null, 500)
+
+    expect(viaNeg.probability).toBe(0)
+
+    __ortState.outputs = null
+    resetMlEngine()
 
     npuPredict.hasNPU = false
     npuPredict.hasGPU = true
