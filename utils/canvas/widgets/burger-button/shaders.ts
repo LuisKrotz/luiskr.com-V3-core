@@ -53,9 +53,10 @@ export const BURGER_FS_BODY = `
         float t = u_time;
 
         // Rest geometry: a 2x2 grid of rounded squares — cell offset
-        // 0.165, half-extent 0.075, corner radius 0.03 → the four dots
-        // read as a chunky "grid of apps" glyph inside the round button.
-        float cell = 0.165;
+        // 0.145 (8px on the 55px disc, matching the CSS fallback's
+        // --space-md corner offsets), half-extent 0.075 (8px squares),
+        // corner radius 0.03 → a chunky "grid of apps" glyph.
+        float cell = 0.145;
         float sq = 0.075;
         float cr = 0.03;
 
@@ -85,13 +86,13 @@ export const BURGER_FS_BODY = `
         float blob = smin(sA, sB, k);
 
         // Open: the pooled droplet pours into THE close X — the same
-        // strokes the menu's close button paints: bars reaching ±0.19
-        // of the box (its 21px arm on the 55px disc) at a ~2px hairline
-        // thickness (stroke radius 0.018). Interpolating the distance
+        // strokes the menu's close button paints: its halfLen is
+        // radius*0.38 = 10.07px of the 55px box (±0.183), its stroke a
+        // ~0.9px radius hairline (0.016). Interpolating the distance
         // fields (not the pixels) makes the morph read as fluid reshape.
         float open = smoothstep(0.0, 1.0, u_open);
-        float reach = mix(0.05, 0.19, open);
-        float xr = mix(0.06, 0.018, open);
+        float reach = mix(0.05, 0.183, open);
+        float xr = mix(0.06, 0.016, open);
         float xa = sdCapsule(p, -vec2(reach), vec2(reach), xr);
         float xb = sdCapsule(p, vec2(-reach, reach), vec2(reach, -reach), xr);
         float xShape = min(xa, xb);
@@ -127,7 +128,8 @@ export const BURGER_FS_BODY = `
         // The opened icon IS the existing close button — its strokes are
         // white over its own grey disc, so the ink converges to white and
         // the canvas fills in that disc (vec3(0.22,0.23,0.27) is the close
-        // button's painted background) behind whatever the X doesn't cover.
+        // button's painted background; its radius is min-center − 1px =
+        // 26.5px → the 0.464→0.482 band below matches its borderAA fade).
         col = mix(col, vec3(1.0), open);
 
         // Glow stays in the ink's own hue family — a saturated tinted halo
@@ -140,7 +142,7 @@ export const BURGER_FS_BODY = `
         vec3 finalCol = col * alpha + glowCol * glow;
         float finalAlpha = max(alpha, glow * 0.25);
 
-        float disc = open * (1.0 - smoothstep(0.47, 0.49, length(p)));
+        float disc = open * (1.0 - smoothstep(0.464, 0.482, length(p)));
 
         finalCol = mix(finalCol, vec3(0.22, 0.23, 0.27), disc * (1.0 - alpha));
         finalAlpha = max(finalAlpha, disc);
