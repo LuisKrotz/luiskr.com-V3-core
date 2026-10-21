@@ -3,7 +3,7 @@
  * @description Intro loader class tokens — token group.
  */
 
-import { _B_LOADER } from '../base.js'
+import { _B_BOOT_VEIL, _B_LOADER } from '../base.js'
 
 /**
  * Frozen loader class-name map — sole declaration site for these tokens; consumers read
@@ -11,6 +11,7 @@ import { _B_LOADER } from '../base.js'
  * the token contract immutable at runtime.
  */
 export const LOADER_CLASSES = Object.freeze({
+  BOOT_VEIL: _B_BOOT_VEIL,
   INTRO_LOADER: _B_LOADER,
   INTRO_LOADER_GLOW: `${_B_LOADER}-glow`,
   INTRO_LOADER_GRID: `${_B_LOADER}-grid`,
