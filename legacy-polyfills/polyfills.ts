@@ -6,8 +6,10 @@
  * iOS 15.0–15.3 is missing: structuredClone, Array.prototype.at, Object.hasOwn
  * iOS 15.4+ has all of these natively.
  *
- * These must run BEFORE any app module evaluates — they're imported first in
- * main.js so ES module evaluation order guarantees they're in place.
+ * These must run BEFORE any app module evaluates — the inline
+ * browser-loader (scripts/build/browser-loader.js) fetches this file as a
+ * guarded classic script before the tier bundle, so old engines get the
+ * shims first and modern engines never download them.
  */
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
