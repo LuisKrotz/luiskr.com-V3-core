@@ -159,6 +159,27 @@ export function coverRungs(stemJpg: string): CoverRung[] {
 }
 
 /**
+ * Fully manifest-gated quality ladder for an extensionless media stem
+ * (`folder/pic` — the figure/video grammar where derived files are
+ * `stem-mozjpg-<quality>.jpg`). Unlike coverRungs even the raw
+ * `{stem}.jpg` is proven by mediaKeyExists — the pipeline emits only
+ * suffixed tiers, so an untrusted passthrough could 404. Returns [] when
+ * the manifest is absent or proves nothing; callers then fall back to
+ * the historic "the request IS the check" probe.
+ * @param stem Emission-encoded media URL without an extension.
+ * @returns Ascending proven rungs — lowest quality first, highest last.
+ */
+export function mediaRungs(stem: string): CoverRung[] {
+  return LADDER_SUFFIXES.flatMap((suffix) => {
+    const jpg = encodeMediaUrl(
+      `${stem}${suffix ? `${MEDIA.MOZ}${suffix}` : ATTR_VALUES.EMPTY}${MEDIA.EXT}`
+    )
+
+    return mediaKeyExists(jpg) ? [{ jpg, webp: webpIfExists(jpg) }] : []
+  })
+}
+
+/**
  * Resolves the progressive cover matrix for one `covers/<stem>.jpg` URL:
  * the kodak LQIP blur-up (plus its 768px mobile tier and webp siblings)
  * as the first paint, and `rungs` as the ascending quality ladder the

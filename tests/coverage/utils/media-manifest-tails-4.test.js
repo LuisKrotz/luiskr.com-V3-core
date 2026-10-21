@@ -4,11 +4,12 @@
  * coverVariants(): the LQIP matrix (thumb + mobile + webp arms), the
  * jpg-only arm (webp falls back to the original's probe), the
  * mobile-without-thumb arm, the non-.jpg stem-strip false arm, and
- * coverRungs(): the ascending quality ladder (q50 → q75 → original →
- * uncompressed) — each derivative gated on the manifest, the original
- * always trusted. One manifest fetch populates `keys` for every probe —
- * the module latches the first payload, so each stem exercises a
- * different combo.
+ * coverRungs()/mediaRungs(): the ascending quality ladders (q50 → q75 →
+ * original → uncompressed) — derivatives gated on the manifest; the
+ * cover original is always trusted while the media-stem '' rung gates on
+ * the manifest like every other tier. One manifest fetch populates
+ * `keys` for every probe — the module latches the first payload, so each
+ * stem exercises a different combo.
  */
 import { jest } from '@jest/globals'
 import { CDN_URLS } from '@core/tokens/media/urls.js'
@@ -56,6 +57,13 @@ describe('media manifest tails 4', () => {
       `covers/h${Q75}`,
       `covers/h${Q100}`,
       `covers/h${Q100_WEBP}`,
+      // 'media/x' — extensionless-figure stem: q50 + q75 (+webp) + q100
+      // proven, the raw stem.jpg deliberately absent (the pipeline never
+      // emits it) so the '' rung must gate out.
+      `media/x${Q50}`,
+      `media/x${Q75}`,
+      `media/x${MEDIA.MOZ}${MEDIA.Q75}${MEDIA.WEBP_EXT}`,
+      `media/x${Q100}`,
     ]
 
     globalThis.fetch = jest.fn(async () => ({ ok: true, json: async () => keys }))
@@ -169,6 +177,20 @@ describe('media manifest tails 4', () => {
     expect(m.coverRungs(url('covers/e.png'))).toEqual([
       { jpg: url('covers/e.png'), webp: ATTR_VALUES.EMPTY },
     ])
+
+    // mediaRungs — the figure ladder: every tier (incl. the raw stem.jpg)
+    // is manifest-gated, so x climbs q50 → q75(+webp) → uncompressed and
+    // an unproven stem resolves to no ladder at all.
+    expect(m.mediaRungs(url('media/x'))).toEqual([
+      { jpg: url(`media/x${Q50}`), webp: ATTR_VALUES.EMPTY },
+      {
+        jpg: url(`media/x${Q75}`),
+        webp: url(`media/x${MEDIA.MOZ}${MEDIA.Q75}${MEDIA.WEBP_EXT}`),
+      },
+      { jpg: url(`media/x${Q100}`), webp: ATTR_VALUES.EMPTY },
+    ])
+
+    expect(m.mediaRungs(url('media/unconverted'))).toEqual([])
 
     globalThis.fetch = realFetch
   })
