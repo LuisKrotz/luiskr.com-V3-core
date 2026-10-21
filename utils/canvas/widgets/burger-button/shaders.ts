@@ -3,9 +3,12 @@
  * @description GLSL sources for BurgerButtonWebGL, extracted from
  * burger-button-webgl.ts — shared quad vertex shader plus the liquid
  * metaball fragment shader (four rounded squares that pool toward the
- * center on hover and morph into the close X on open, theme-aware
- * ink/glow mix).
+ * center on hover and morph into THE close button on open — same disc,
+ * water fill, rotating X and click shockwave, painted by the shared
+ * CLOSE_PAINT_GLSL library so both controls can never drift apart).
  */
+
+import { CLOSE_PAINT_GLSL } from '../close-button/shaders.js'
 
 /** Extension prelude enabling pixel-space SDF AA (WebGL1 only). */
 export const BURGER_DERIV_PRELUDE =
@@ -26,6 +29,17 @@ export const BURGER_FS_BODY = `
       uniform float u_dark;
       uniform float u_hover;
       uniform float u_open;
+      // Close-state channels — identical in meaning to CloseButtonWebGL:
+      // u_liquid is the turquoise pour level, u_rot the X's half-turn on
+      // hover, u_click_time the last press timestamp (shockwave window).
+      uniform float u_liquid;
+      uniform float u_rot;
+      uniform float u_click_time;
+      // Backing-store supersample factor: the buffer is CSS px × DPR ×
+      // u_ss — dividing by it converts buffer px into "close px" so the
+      // shared paint library sees the same pixel basis as the real
+      // close button (radius, stroke widths, bubbles all authored there).
+      uniform float u_ss;
 
       float sdCapsule(vec2 p, vec2 a, vec2 b, float r) {
         vec2 pa = p - a, ba = b - a;
@@ -46,15 +60,26 @@ export const BURGER_FS_BODY = `
         return mix(b, a, h) - k * h * (1.0 - h);
       }
 
+      ${CLOSE_PAINT_GLSL}
+
       void main() {
         // Square-normalized centered coords: both axes share the smaller
         // dimension so the 2x2 grid never stretches on a non-square box.
-        vec2 p = (gl_FragCoord.xy - 0.5 * u_res) / min(u_res.x, u_res.y);
+        float minRes = min(u_res.x, u_res.y);
+        vec2 p = (gl_FragCoord.xy - 0.5 * u_res) / minRes;
         float t = u_time;
 
+        // "Close px" basis — the pixel space the close-button paint
+        // library is authored in (buffer px ÷ supersample). All
+        // pixel-derived constants (disc edge, X reach, stroke width)
+        // are computed from it so the open state matches a real close
+        // button at ANY disc size, not just the one it was tuned on.
+        float closeRes = minRes / u_ss;
+        vec2 pClose = p * closeRes;
+
         // Rest geometry: a 2x2 grid of rounded squares — cell offset
-        // 0.145 (8px on the 55px disc, matching the CSS fallback's
-        // --space-md corner offsets), half-extent 0.075 (8px squares),
+        // 0.145 (≈5px on the 34px disc, matching the CSS fallback's
+        // --space-sm corner offsets), half-extent 0.075 (≈5px squares),
         // corner radius 0.03 → a chunky "grid of apps" glyph.
         float cell = 0.145;
         float sq = 0.075;
@@ -86,13 +111,14 @@ export const BURGER_FS_BODY = `
         float blob = smin(sA, sB, k);
 
         // Open: the pooled droplet pours into THE close X — the same
-        // strokes the menu's close button paints: its halfLen is
-        // radius*0.38 = 10.07px of the 55px box (±0.183), its stroke a
-        // ~0.9px radius hairline (0.016). Interpolating the distance
-        // fields (not the pixels) makes the morph read as fluid reshape.
+        // strokes every close button paints: halfLen = radius*0.38 of
+        // the disc (in close px, (0.5 - 1/closeRes) * 0.38 normalized),
+        // its stroke a ~1.3px hairline (1.3/closeRes). Interpolating
+        // the distance fields (not the pixels) makes the morph read as
+        // fluid reshape.
         float open = smoothstep(0.0, 1.0, u_open);
-        float reach = mix(0.05, 0.183, open);
-        float xr = mix(0.06, 0.016, open);
+        float reach = mix(0.05, (0.5 - 1.0 / closeRes) * 0.38, open);
+        float xr = mix(0.06, 1.3 / closeRes, open);
         float xa = sdCapsule(p, -vec2(reach), vec2(reach), xr);
         float xb = sdCapsule(p, vec2(-reach, reach), vec2(reach, -reach), xr);
         float xShape = min(xa, xb);
@@ -128,8 +154,8 @@ export const BURGER_FS_BODY = `
         // The opened icon IS the existing close button — its strokes are
         // white over its own grey disc, so the ink converges to white and
         // the canvas fills in that disc (vec3(0.22,0.23,0.27) is the close
-        // button's painted background; its radius is min-center − 1px =
-        // 26.5px → the 0.464→0.482 band below matches its borderAA fade).
+        // button's painted background; the shared lkClosePaint below owns
+        // the final disc edge/borderAA fade).
         col = mix(col, vec3(1.0), open);
 
         // Glow stays in the ink's own hue family — a saturated tinted halo
@@ -142,10 +168,26 @@ export const BURGER_FS_BODY = `
         vec3 finalCol = col * alpha + glowCol * glow;
         float finalAlpha = max(alpha, glow * 0.25);
 
-        float disc = open * (1.0 - smoothstep(0.464, 0.482, length(p)));
+        // The opened disc edge matches the close button's: radius is
+        // (min-center − 1px) with a 1px borderAA fade — in normalized
+        // coords, 0.5 − 1/closeRes and 0.5 − 2/closeRes.
+        float disc = open * (1.0 - smoothstep(0.5 - 2.0 / closeRes, 0.5 - 1.0 / closeRes, length(p)));
 
         finalCol = mix(finalCol, vec3(0.22, 0.23, 0.27), disc * (1.0 - alpha));
         finalAlpha = max(finalAlpha, disc);
+
+        // Fully opened, this IS a CloseButtonWebGL: the shared paint
+        // library draws the disc, the turquoise liquid pour with foam
+        // crest and bubbles, the rotating X, and the click shockwave —
+        // identical to the standalone close widget (u_draw = 1: the
+        // metaball morph above already delivered the draw-in). Mixing
+        // by open crossfades the morph into the real close paint.
+        vec4 closePx = lkClosePaint(
+          pClose, closeRes, u_time, u_liquid, 1.0, u_rot, u_click_time
+        );
+
+        finalCol = mix(finalCol, closePx.rgb, open * closePx.a);
+        finalAlpha = mix(finalAlpha, closePx.a, open);
 
         gl_FragColor = vec4(finalCol, finalAlpha);
       }
