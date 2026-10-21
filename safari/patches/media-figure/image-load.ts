@@ -2,9 +2,9 @@
  * @file safari/patches/media-figure/image-load.ts
  * @description Safari image-loading overrides for MediaFigure: a
  * loadHighRes that requests the Q50 (medium) variant instead of the
- * uncompressed source — iOS Safari hard-fails canvas/decode on images
- * above ~4096px and the Q100 asset frequently exceeds texture memory —
- * and the lazy-thumbnail / img-observer wiring for non-hero images.
+ * uncompressed source — the medium tier stays under WebKit's ~4096px
+ * decode ceiling — and the lazy-thumbnail / img-observer wiring for
+ * non-hero images.
  */
 
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
@@ -13,31 +13,26 @@ import { MEDIA_CLASSES } from '@core/tokens/classes/media.js'
 import { MEDIA } from '@core/tokens/media/suffixes.js'
 import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+import { encodeMediaUrl } from '@core/utils/media.js'
 import store from '@core/store.js'
 import type { SafariPatchableEl } from '../../types.js'
 import { isCarouselHosted, eagerizeCarouselFigure } from '../carousel-media.js'
 
 /**
  * Safari loadHighRes: requests the Q50 (medium) variant instead of the
- * uncompressed source — iOS Safari hard-fails canvas/decode on images
- * above ~4096px and the Q100 asset frequently exceeds texture memory.
+ * uncompressed source — the medium tier is the decode-safe asset for
+ * WebKit's ~4096px image ceiling, so every source (however large the
+ * original) gets a real high-res paint instead of a permanent thumb.
+ * The URL is emission-encoded exactly like load.ts's path — raw
+ * concatenation breaks on bucket keys carrying spaces/non-ASCII, which
+ * Safari resolves to a 404 where Chromium tolerated the literal.
  */
 export function safariLoadHighRes(el: SafariPatchableEl): void {
   if (el.isVideo || el.isLoaded) return
 
-  const height = el.mediaHeight || 0
-
-  const width = el.mediaWidth || 0
-
-  // 4096px is the practical WebKit image-decode ceiling; beyond it the
-  // request is skipped entirely and the thumb stays visible.
-  if (height > 4096 || width > 4096) {
-    return
-  }
-
   const storage = store.getters.getStorage()
 
-  const targetUrl = storage + el.mediaSrc + MEDIA.MOZ + MEDIA.Q50 + MEDIA.EXT
+  const targetUrl = encodeMediaUrl(storage + el.mediaSrc + MEDIA.MOZ + MEDIA.Q50 + MEDIA.EXT)
 
   el.highResSrc = targetUrl
 

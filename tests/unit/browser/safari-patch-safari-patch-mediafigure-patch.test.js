@@ -45,10 +45,23 @@ describe('safari-patch — MediaFigure patch', () => {
     expect(ctx2.highResSrc).toBeUndefined()
   })
 
-  test('loadHighRes bails on >4096px media', () => {
-    const ctx = { isVideo: false, isLoaded: false, mediaHeight: 5000, mediaWidth: 0, $: () => null }
+  test('loadHighRes still loads the Q50 variant for >4096px originals', () => {
+    const ctx = {
+      isVideo: false,
+      isLoaded: false,
+      mediaHeight: 5000,
+      mediaWidth: 5000,
+      mediaSrc: 'p/big',
+      $: () => null,
+      _isMounted: true,
+      _updateDom: jest.fn(),
+    }
+
     proto().loadHighRes.call(ctx)
-    expect(ctx.highResSrc).toBeUndefined()
+
+    expect(ctx.highResSrc).toContain('p/big')
+    expect(ctx.isLoaded).toBe(true)
+    expect(ctx._updateDom).toHaveBeenCalled()
   })
 
   test('loadHighRes builds the Q50 storage URL and marks loaded when element exists', () => {

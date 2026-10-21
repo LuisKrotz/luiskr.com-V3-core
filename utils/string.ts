@@ -5,6 +5,7 @@
  * slug/case helpers for id generation.
  */
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
+import { MEDIA_SLUG_MAX_LENGTH } from '@core/tokens/routes/aliases.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
@@ -186,6 +187,11 @@ export const splitDrawSentences = (text: string): string[] => {
  * silently drop the second item's indexable URL everywhere. The first
  * occurrence keeps the base slug; later ones gain `-2`, `-3`, … in
  * document order — every labelled item stays uniquely addressable.
+ * The base slug is first capped at MEDIA_SLUG_MAX_LENGTH so
+ * prerendered dist paths stay under Windows MAX_PATH — the cap cuts at
+ * the length then drops the trailing partial word (and a dangling
+ * hyphen) so the slug always ends on a hyphen boundary; ordinal suffixes
+ * disambiguate any collisions the cut introduces.
  * Callers iterate items in traversal order sharing one `seen` map; the
  * same map/count convention is mirrored in the build scripts
  * (generate-sitemap.js + build-locale-pages.mjs) so emitted file names,
@@ -195,7 +201,11 @@ export const splitDrawSentences = (text: string): string[] => {
  * @returns The item's unique deep-link slug ('' when unslugifiable).
  */
 export const mediaSlugSeq = (seen: Map<string, number>, label: string): string => {
-  const base = slugify(label)
+  let base = slugify(label)
+
+  if (base.length > MEDIA_SLUG_MAX_LENGTH) {
+    base = base.slice(0, MEDIA_SLUG_MAX_LENGTH).replace(/-[^-]*$/u, ATTR_VALUES.EMPTY)
+  }
 
   if (!base) return ATTR_VALUES.EMPTY
 

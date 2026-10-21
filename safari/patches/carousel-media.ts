@@ -57,6 +57,15 @@ export const eagerizeCarouselFigure = (el: SafariPatchableEl): void => {
 
   if (thumb) {
     thumb.setAttribute(MEDIA_ATTRS.LOADING, MEDIA_ATTRS.LOADING_EAGER)
+
+    // iOS WebKit snapshots the lazy/eager decision at parse time — an
+    // <img> painted with loading="lazy" inside the transform track keeps
+    // its deferred fetch even after the attribute flips. Re-assigning
+    // src is a no-op for the URL but forces the loader to re-evaluate
+    // under the new eager policy, unpinning slides stuck on the skeleton.
+    const src = thumb.getAttribute('src')
+
+    if (src) thumb.src = src
   }
 
   el.loadHighRes?.()
@@ -75,9 +84,15 @@ export const eagerizeCarouselFigure = (el: SafariPatchableEl): void => {
 const eagerizeShadowTree = (host: SafariPatchableEl): void => {
   if (!host.shadowRoot) return
 
-  host.shadowRoot
-    .querySelectorAll(HTML_TAGS.IMG)
-    .forEach((img) => img.setAttribute(MEDIA_ATTRS.LOADING, MEDIA_ATTRS.LOADING_EAGER))
+  host.shadowRoot.querySelectorAll(HTML_TAGS.IMG).forEach((img) => {
+    img.setAttribute(MEDIA_ATTRS.LOADING, MEDIA_ATTRS.LOADING_EAGER)
+
+    // Same parse-time lazy snapshot as eagerizeCarouselFigure — re-set
+    // src so Safari re-evaluates the request under the eager policy.
+    const src = img.getAttribute('src')
+
+    if (src) img.src = src
+  })
 
   host.shadowRoot
     .querySelectorAll(COMPONENT_TAGS.MEDIA_FIGURE)

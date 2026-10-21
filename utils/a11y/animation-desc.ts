@@ -25,8 +25,18 @@
  *   4. `<canvas>` also gets `role="img"`, `aria-label`, and the
  *      longdesc as its fallback content — canvas children render
  *      nowhere but are exactly what crawlers/no-JS readers see.
- *   5. Other elements get `aria-label` when they carry no accessible
- *      name of their own.
+ *   5. Links, buttons and hosts holding interactive descendants never
+ *      get `aria-label` — their own content/children are the accessible
+ *      name (stamping the same animation label on every tile made
+ *      axe's `identical-links-same-purpose` rule fire, and a name on a
+ *      control-bearing container swallows the descendants' semantics).
+ *      Leaf generic hosts (div/span…) DO get `aria-label`, plus
+ *      `role="img"` when they carry no role — a bare generic element
+ *      is prohibited from holding a label (axe `aria-prohibited-attr`),
+ *      while role=img on a container would nest its interactive
+ *      children inside an image (axe `nested-interactive`). Shadow-host
+ *      custom elements keep the label (their only name) but never take
+ *      the role — their controls live in the shadow root.
  *
  * Everything is additive and idempotent — re-applying updates the
  * description text in place (locale switch) without duplicating nodes.
@@ -41,6 +51,7 @@ import { DATA_ATTRS } from '@core/tokens/attrs/data.js'
 import { MEDIA_ATTRS } from '@core/tokens/attrs/media.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { HTML_TAGS, HTML_PHRASING_TAGS } from '@core/tokens/elements/html.js'
+import { COMMON_SELECTORS } from '@core/tokens/selectors/common.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { componentText } from '@core/locale/ui-text.js'
@@ -84,6 +95,18 @@ export const animationAlt = (id: string): string => record(id).alt
  * @returns The localized longdesc text, or ''.
  */
 export const animationLongDesc = (id: string): string => record(id).longdesc
+
+/**
+ * Ensures the element carries `role="img"` so an applied `aria-label`
+ * is legal on a generic host — an author-provided role is never
+ * overwritten. Shared by the canvas and generic-element branches.
+ * @param el The animated element.
+ */
+const ensureImgRole = (el: Element): void => {
+  if (!el.getAttribute(ARIA_ATTRS.ROLE)) {
+    el.setAttribute(ARIA_ATTRS.ROLE, ARIA_ATTRS.ROLE_IMG)
+  }
+}
 
 /**
  * Finds-or-creates the longdesc node inside `root` and refreshes its
@@ -209,6 +232,26 @@ export const applyAnimationDesc = (el: Element, id: string): void => {
 
   const isCanvas = el.tagName === HTML_TAGS.CANVAS.toUpperCase()
 
+  // Links/buttons own their accessible name through their content — the
+  // helper must never stamp one, or every labelled tile reads the same
+  // animation text (axe `identical-links-same-purpose`). describedby
+  // still applies below.
+  const isLinkOrButton =
+    el.tagName === HTML_TAGS.A.toUpperCase() || el.tagName === HTML_TAGS.BUTTON.toUpperCase()
+
+  // A host that wraps interactive content keeps the descendants'
+  // semantics as its name — stamping a name or role=img on it would
+  // nest controls inside an image (axe `nested-interactive`).
+  const hostsInteractive = !!el.querySelector?.(COMMON_SELECTORS.INTERACTIVE_CONTENT)
+
+  const isNamedHost = !isLinkOrButton && !hostsInteractive
+
+  // Shadow-host custom elements keep the label (their only accessible
+  // name) but never role=img — the controls axe counts live in the
+  // shadow root, populated at mount time or later, so a descendant
+  // probe cannot be trusted here.
+  const isShadowHost = !!(el as HTMLElement).shadowRoot
+
   // Accessible name — img → alt, everything else → aria-label. The
   // data-anim-label stamp records what the helper applied: a re-apply
   // refreshes the name only when the current value is empty or still
@@ -220,11 +263,15 @@ export const applyAnimationDesc = (el: Element, id: string): void => {
 
   const curName = el.getAttribute(nameAttr)
 
-  if (alt && (!curName || curName === stamped)) {
+  if (isNamedHost && alt && (!curName || curName === stamped)) {
     el.setAttribute(nameAttr, alt)
 
     el.setAttribute(DATA_ATTRS.DATA_ANIM_LABEL, alt)
   }
+
+  // A leaf generic host (div/span…) is prohibited from holding a name —
+  // it needs role=img for the label to be legal (axe `aria-prohibited-attr`).
+  if (isNamedHost && !isShadowHost && !isImg && !isCanvas) ensureImgRole(el)
 
   if (nodeId) {
     // describedby takes an id list — merge rather than replace so an
@@ -242,9 +289,7 @@ export const applyAnimationDesc = (el: Element, id: string): void => {
   }
 
   if (isCanvas) {
-    if (!el.getAttribute(ARIA_ATTRS.ROLE)) {
-      el.setAttribute(ARIA_ATTRS.ROLE, ARIA_ATTRS.ROLE_IMG)
-    }
+    ensureImgRole(el)
 
     // Canvas fallback content — the element's inner text only surfaces
     // to no-canvas readers, which is exactly the crawler/AI audience.

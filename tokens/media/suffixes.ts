@@ -19,6 +19,8 @@ export const MEDIA = Object.freeze({
   Q50: '-50',
   /** Q100 / uncompressed lossless suffix */
   Q100: '-uncompressed',
+  /** Small-viewport derivative suffix (appended after the quality tag) */
+  MOBILE_SUFFIX: '-mobile',
   /** Static image extension */
   EXT: '.jpg',
   /** Video extension */

@@ -191,13 +191,26 @@ main {
   }
 }
 
+// Offscreen parking for the reader article — DOM-present for Readability
+// and AI agents (they cannot pierce the app's shadow DOM) but never
+// painted and never intercepting input.
+%reader-offscreen {
+  position: absolute;
+  right: 100vw;
+  top: 0;
+  width: 75ch;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 // Reader-mode content — the prerendered <article class="reader-content">
-// emitted into #app. Before the SPA mounts it IS the page, so it gets a
-// readable baseline (constrained measure, comfortable rhythm). After
-// mount, main.ts hoists it out of #app and adds --offscreen: the copy
-// stays DOM-present for reader mode and AI agents (Readability cannot
-// pierce the app's shadow DOM) without being painted or intercepting
-// input. Not aria-hidden — that would filter it out of Readability too.
+// emitted into #app. No-JS documents (crawlers, reader mode) keep the
+// readable baseline below (constrained measure, comfortable rhythm).
+// With JS, the head inline script flips <html> to .js before first paint
+// so the article parks offscreen immediately — no flash of the 75ch
+// copy — and after mount main.ts adds --offscreen as the runtime hoist
+// marker. Not aria-hidden — that would filter it out of Readability too.
 .reader-content {
   max-width: 75ch;
   margin: 0 auto;
@@ -211,12 +224,10 @@ main {
   }
 
   &--offscreen {
-    position: absolute;
-    right: 100vw;
-    top: 0;
-    width: 75ch;
-    height: 100vh;
-    overflow: hidden;
-    pointer-events: none;
+    @extend %reader-offscreen;
+  }
+
+  html.js & {
+    @extend %reader-offscreen;
   }
 }

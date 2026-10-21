@@ -24,4 +24,8 @@ export const STATE_CLASSES = Object.freeze({
   PAGE_FADE_IN: 'page-fade-in',
   PAGE_FADE_OUT: 'page-fade-out',
   CYRILLIC_FONT: 'cyrillic-font',
+  /** Document-level JS-capability marker — set by the head inline script. */
+  JS: 'js',
+  /** Document-level no-JS marker shipped in index.html until JS flips it. */
+  NO_JS: 'no-js',
 })

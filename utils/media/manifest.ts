@@ -10,6 +10,7 @@
 import { CDN_URLS } from '@core/tokens/media/urls.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+import { MEDIA } from '@core/tokens/media/suffixes.js'
 import { webpSibling, webmSibling, encodeMediaUrl } from '../media.js'
 
 /** Parsed bucket key set — null until (or unless) the manifest fetch lands. */
@@ -96,4 +97,53 @@ export function webmIfExists(url: string): string {
   const webm = webmSibling(url)
 
   return webm && mediaKeyExists(webm) ? encodeMediaUrl(webm) : ATTR_VALUES.EMPTY
+}
+
+/** Manifest-gated cover URL matrix — see coverVariants(). */
+export interface CoverVariants {
+  /** URL for <img src> — full-res mozjpeg when proven, else the original. */
+  src: string
+  /** webp matching `src`, '' when not proven. */
+  webp: string
+  /** ≤768px jpg for a media-scoped <source>, '' when not proven. */
+  mobileJpg: string
+  /** ≤768px webp — preferred over mobileJpg when both exist. */
+  mobileWebp: string
+}
+
+/**
+ * Resolves the responsive cover matrix for one `covers/<stem>.jpg` URL:
+ * the mozjpeg full-res derivative (same pixels, ~70% fewer bytes) plus
+ * its 768px mobile tier and webp siblings — each gated on
+ * `mediaKeyExists` so an unproven object can never become the card's
+ * only image. A missing/never-loaded manifest yields the original URL
+ * with its own webp probe — exactly today's behavior.
+ * @param coverJpg Emission-encoded covers/*.jpg URL (original).
+ * @returns Bound URLs for picture/img — empty strings mean "omit".
+ */
+export function coverVariants(coverJpg: string): CoverVariants {
+  const stem = coverJpg.endsWith(MEDIA.EXT) ? coverJpg.slice(0, -MEDIA.EXT.length) : coverJpg
+
+  const thumbJpg = encodeMediaUrl(`${stem}${MEDIA.MOZ}${MEDIA.THUMB_SUFFIX}${MEDIA.EXT}`)
+
+  const thumbWebp = webpIfExists(thumbJpg)
+
+  const mobileJpg = encodeMediaUrl(
+    `${stem}${MEDIA.MOZ}${MEDIA.THUMB_SUFFIX}${MEDIA.MOBILE_SUFFIX}${MEDIA.EXT}`
+  )
+
+  const mobileWebp = webpIfExists(mobileJpg)
+
+  // The jpg is the <img> fallback — only its own manifest hit may promote
+  // a variant into `src`; a webp sibling gates itself on the jpg below.
+  const hasThumb = mediaKeyExists(thumbJpg)
+
+  const hasMobile = mediaKeyExists(mobileJpg)
+
+  return {
+    src: hasThumb ? thumbJpg : coverJpg,
+    webp: hasThumb ? thumbWebp : webpIfExists(coverJpg),
+    mobileJpg: hasMobile ? mobileJpg : ATTR_VALUES.EMPTY,
+    mobileWebp: hasMobile ? mobileWebp : ATTR_VALUES.EMPTY,
+  }
 }

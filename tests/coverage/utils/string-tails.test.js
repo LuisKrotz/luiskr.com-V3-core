@@ -13,6 +13,7 @@ import {
   toMetaDescription,
 } from '@core/utils/string.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
+import { MEDIA_SLUG_MAX_LENGTH } from '@core/tokens/routes/aliases.js'
 
 describe('string utils tails', () => {
   test('stripHtml iterates until no reassembled tag survives', () => {
@@ -58,6 +59,36 @@ describe('string utils tails', () => {
     expect(mediaSlugSeq(seen, 'Mobile tour')).toBe('mobile-tour')
     expect(mediaSlugSeq(seen, '!!!')).toBe(CHAR_STRINGS.EMPTY)
     expect(mediaSlugSeq(seen, '')).toBe(CHAR_STRINGS.EMPTY)
+  })
+
+  test('mediaSlugSeq caps monster labels on a hyphen boundary', () => {
+    const seen = new Map()
+    const long = `${'word '.repeat(50)}tail` // 200+ char label → over-long slug
+
+    const slug = mediaSlugSeq(seen, long)
+    const full = slugify(long)
+
+    expect(slug.length).toBeLessThanOrEqual(MEDIA_SLUG_MAX_LENGTH)
+    expect(slug.endsWith('-')).toBe(false)
+    // Ends on a word boundary: it is a prefix of the full slug followed by '-'.
+    expect(full.startsWith(`${slug}-`)).toBe(true)
+  })
+
+  test('mediaSlugSeq still ordinals labels whose caps collide', () => {
+    const seen = new Map()
+    const sharedHead = 'same '.repeat(30)
+
+    const first = mediaSlugSeq(seen, `${sharedHead}alpha`)
+    const second = mediaSlugSeq(seen, `${sharedHead}beta`)
+
+    expect(first.length).toBeLessThanOrEqual(MEDIA_SLUG_MAX_LENGTH)
+    expect(second).toBe(`${first}-2`)
+  })
+
+  test('mediaSlugSeq leaves short labels untouched', () => {
+    const seen = new Map()
+
+    expect(mediaSlugSeq(seen, 'Mobile tour')).toBe('mobile-tour')
   })
 
   test('toMetaDescription strips markup, decodes entities, collapses whitespace', () => {

@@ -100,6 +100,22 @@ describe('safari-patch — carousel media', () => {
       expect(loadHighRes).toHaveBeenCalled()
     })
 
+    test('re-sets a parsed src so WebKit re-evaluates under the eager policy', () => {
+      const thumb = document.createElement(HTML_TAGS.IMG)
+
+      thumb.setAttribute('src', '/covers/unit-thumb.jpg')
+
+      const loadHighRes = jest.fn()
+
+      eagerizeCarouselFigure({ $: () => thumb, loadHighRes })
+
+      // The attr value is untouched — the re-assignment lands on the
+      // resolved property, which forces the deferred fetch to re-arm.
+      expect(thumb.getAttribute('src')).toBe('/covers/unit-thumb.jpg')
+      expect(thumb.src).toContain('unit-thumb.jpg')
+      expect(loadHighRes).toHaveBeenCalled()
+    })
+
     test('still fires the swap when the thumbnail is absent', () => {
       const loadHighRes = jest.fn()
 
@@ -132,11 +148,13 @@ describe('safari-patch — carousel media', () => {
       const img = document.createElement(HTML_TAGS.IMG)
 
       img.setAttribute(MEDIA_ATTRS.LOADING, MEDIA_ATTRS.LOADING_LAZY)
+      img.setAttribute('src', '/covers/unit-slide.jpg')
       el.shadowRoot.appendChild(img)
 
       el._updateDom()
 
       expect(img.getAttribute(MEDIA_ATTRS.LOADING)).toBe(MEDIA_ATTRS.LOADING_EAGER)
+      expect(img.src).toContain('unit-slide.jpg')
 
       el.remove()
     })

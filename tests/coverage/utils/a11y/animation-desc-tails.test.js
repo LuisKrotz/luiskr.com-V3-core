@@ -130,16 +130,69 @@ describe('animation-desc tails', () => {
     expect(canvas.textContent).toBe(animationLongDesc(TEST_ID))
   })
 
-  test('generic elements get aria-label but no longdesc/alt attrs', () => {
+  test('generic elements get aria-label + role=img but no longdesc/alt attrs', () => {
     const div = document.createElement(HTML_TAGS.DIV)
 
     document.body.appendChild(div)
     applyAnimationDesc(div, TEST_ID)
 
     expect(div.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBe(animationAlt(TEST_ID))
+    expect(div.getAttribute(ARIA_ATTRS.ROLE)).toBe(ARIA_ATTRS.ROLE_IMG)
     expect(div.getAttribute(MEDIA_ATTRS.ALT)).toBeNull()
     expect(div.getAttribute(COMMON_ATTRS.LONGDESC)).toBeNull()
     expect(div.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
+  })
+
+  test('generic elements keep an author-provided role', () => {
+    const div = document.createElement(HTML_TAGS.DIV)
+
+    div.setAttribute(ARIA_ATTRS.ROLE, 'presentation')
+    document.body.appendChild(div)
+    applyAnimationDesc(div, TEST_ID)
+
+    expect(div.getAttribute(ARIA_ATTRS.ROLE)).toBe('presentation')
+    expect(div.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBe(animationAlt(TEST_ID))
+  })
+
+  test('links and buttons keep their content name — no aria-label', () => {
+    for (const tag of [HTML_TAGS.A, HTML_TAGS.BUTTON]) {
+      const el = document.createElement(tag)
+
+      el.textContent = 'Read more'
+      document.body.appendChild(el)
+      applyAnimationDesc(el, TEST_ID)
+
+      expect(el.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBeNull()
+      expect(el.getAttribute(DATA_ATTRS.DATA_ANIM_LABEL)).toBeNull()
+      expect(el.getAttribute(ARIA_ATTRS.ROLE)).toBeNull()
+      expect(el.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
+    }
+  })
+
+  test('hosts wrapping interactive descendants get no name or role', () => {
+    const div = document.createElement(HTML_TAGS.DIV)
+    const link = document.createElement(HTML_TAGS.A)
+
+    link.setAttribute('href', '/x')
+    link.textContent = 'tile'
+    div.appendChild(link)
+    document.body.appendChild(div)
+    applyAnimationDesc(div, TEST_ID)
+
+    expect(div.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBeNull()
+    expect(div.getAttribute(ARIA_ATTRS.ROLE)).toBeNull()
+    expect(div.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
+  })
+
+  test('shadow hosts keep the label but never take role=img', () => {
+    const host = document.createElement('awards-carousel')
+
+    host.attachShadow({ mode: 'open' })
+    document.body.appendChild(host)
+    applyAnimationDesc(host, TEST_ID)
+
+    expect(host.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBe(animationAlt(TEST_ID))
+    expect(host.getAttribute(ARIA_ATTRS.ROLE)).toBeNull()
   })
 
   test('existing accessible names are never overwritten', () => {

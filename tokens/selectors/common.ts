@@ -21,4 +21,7 @@ export const COMMON_SELECTORS = Object.freeze({
   MEDIA_ELEMENTS: 'img, video, audio',
   ID_ABOUT: `#${_B_ABOUT}`,
   ID_CONTACT: `#${_B_CONTACT}`,
+  /** Focusable/interactive descendants — marks a host as non-leaf. */
+  INTERACTIVE_CONTENT:
+    'a[href], button, input, select, textarea, summary, details, video[controls], audio[controls], [tabindex], [contenteditable]',
 })
