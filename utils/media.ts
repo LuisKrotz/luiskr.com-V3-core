@@ -7,6 +7,7 @@
  * rendered box (and at 1×/2×/3× for srcset).
  */
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
+import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { MEDIA } from '@core/tokens/media/suffixes.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
@@ -155,9 +156,11 @@ export const webmSibling = (url: string): string =>
  * publishes the loaded class driving the CSS crossfade. When rungs
  * remain above the painted one it preloads the next tier through a
  * detached Image — the probe request doubles as the webp decode check —
- * and swaps `src` only once bytes confirm, so a painted rung can never
- * tear. The swap re-fires the img's own `load`, re-entering this step
- * until the highest proven tier is reached.
+ * and only once bytes confirm does the tier go live. The upgrade never
+ * reassigns the painted img's `src` (that blanks the box while the new
+ * resource re-decodes); instead the confirmed tier mounts as a NEW
+ * stacked sibling whose own `load` retires the layer underneath, so no
+ * frame ever paints empty.
  * @param registry Host map of cover key → highest confirmed painted URL
  * (undefined-tolerant: a bare host still gets the class + the climb, it
  * just can't persist the reached tier across re-renders).
@@ -189,17 +192,47 @@ export function coverLadderStep(
 
   let target = next.webp || next.jpg
 
-  /** Publishes a confirmed tier — the emitted rung-0 <source> has served
-   *  by now, so its <source> nodes go and img.src becomes authoritative;
-   *  the resulting `load` re-enters this step to climb the next rung. */
+  /** Publishes a confirmed tier as a new layer stacked over the painted
+   *  one. Reassigning the live img.src would drop its painted frame while
+   *  the upgraded resource re-decodes — the visible blink — so instead a
+   *  clone (every attribute carried: classes, sizes, loading, aria-hidden)
+   *  mounts empty on top — an img with no resolved bitmap paints nothing,
+   *  the rung below stays visible — and only when its own `load` fires
+   *  does the layer underneath retire, making the swap atomic per frame.
+   *  On `error` the successor removes itself and the painted rung stands.
+   *  The clone carries no listeners (cloneNode doesn't copy them), so the
+   *  climb continues through the explicit re-entry below. */
   const advance = (): void => {
-    const pic = img.closest(HTML_TAGS.PICTURE)
+    const layer = img.closest(HTML_TAGS.PICTURE) ?? img
 
-    pic?.querySelectorAll(HTML_TAGS.SOURCE).forEach((source) => source.remove())
+    const successor = img.cloneNode(false) as HTMLImageElement
 
-    img.src = target
+    successor.addEventListener(
+      WINDOW_EVENTS.LOAD,
+      () => {
+        // A wholesale _updateDom between probe-confirm and mount leaves
+        // the successor detached — the registry's reached tier drives the
+        // rebuilt DOM instead, so a detached successor just exits.
+        if (!successor.isConnected) return
 
-    registry?.set(coverKey, target)
+        layer.remove()
+
+        coverLadderStep(registry, coverKey, successor, rungs, loadedClass)
+      },
+      { once: true }
+    )
+
+    successor.addEventListener(
+      WINDOW_EVENTS.ERROR,
+      () => {
+        successor.remove()
+      },
+      { once: true }
+    )
+
+    layer.after(successor)
+
+    successor.src = target
   }
 
   // Match loadHighRes: no Image constructor means no probe — assign the

@@ -39,12 +39,19 @@ export function safariLoadHighRes(el: SafariPatchableEl): void {
   const highEl = el.$(`.${MEDIA_CLASSES.RENDER_MEDIA_HIGH}`) as HTMLImageElement | null
 
   if (highEl) {
-    highEl.src = targetUrl
+    // Stacked swap like load.ts's ladder: reassigning the live img.src
+    // blanks the painted frame while the Q50 bytes re-decode. The clone
+    // mounts empty on top and takes over only once its own `load` fires.
+    const successor = highEl.cloneNode(false) as HTMLImageElement
 
     const onFinish = () => {
       el.isLoaded = true
 
-      highEl.classList.add(MEDIA_CLASSES.RENDER_MEDIA_LOADED)
+      if (!successor.isConnected) return
+
+      successor.classList.add(MEDIA_CLASSES.RENDER_MEDIA_LOADED)
+
+      highEl.remove()
 
       const thumbEl = el.$(`.${MEDIA_CLASSES.RENDER_MEDIA_THUMB}`)
 
@@ -53,16 +60,20 @@ export function safariLoadHighRes(el: SafariPatchableEl): void {
       }
     }
 
-    if (highEl.complete && highEl.naturalWidth > 0) {
-      onFinish()
-    } else {
-      highEl.onload = () => {
-        onFinish()
-      }
+    successor.onload = onFinish
 
-      highEl.onerror = () => {
-        el.isLoaded = true
-      }
+    successor.onerror = () => {
+      el.isLoaded = true
+
+      successor.remove()
+    }
+
+    highEl.after(successor)
+
+    successor.src = targetUrl
+
+    if (successor.complete && successor.naturalWidth > 0) {
+      onFinish()
     }
   } else if (el._isMounted) {
     el.isLoaded = true

@@ -12,6 +12,7 @@ import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { MEDIA_CLASSES } from '@core/tokens/classes/media.js'
+import { HTML_TAGS } from '@core/tokens/elements/html.js'
 
 // The patch registers whenDefined() callbacks at module-eval — the component
 // imports above ensure the tags already resolve when it installs.
@@ -65,7 +66,14 @@ describe('safari-patch — MediaFigure patch', () => {
   })
 
   test('loadHighRes builds the Q50 storage URL and marks loaded when element exists', () => {
-    const highEl = { complete: true, naturalWidth: 800, classList: { add: jest.fn() }, style: {} }
+    // Real elements — the stacked swap clones the painted img and mounts
+    // the clone as a connected sibling, so the stub needs live DOM.
+    const highEl = document.createElement(HTML_TAGS.IMG)
+    const host = document.createElement(HTML_TAGS.DIV)
+
+    host.appendChild(highEl)
+    document.body.appendChild(host)
+
     const ctx = {
       isVideo: false,
       isLoaded: false,
@@ -79,12 +87,28 @@ describe('safari-patch — MediaFigure patch', () => {
     proto().loadHighRes.call(ctx)
 
     expect(ctx.highResSrc).toContain('p/img')
+
+    const successor = highEl.nextElementSibling
+
+    expect(successor).not.toBeNull()
+    expect(typeof successor.onload).toBe(TYPE_STRINGS.FUNCTION)
+
+    successor.onload()
+
     expect(ctx.isLoaded).toBe(true)
-    expect(highEl.classList.add).toHaveBeenCalledWith(MEDIA_CLASSES.RENDER_MEDIA_LOADED)
+    expect(successor.classList.contains(MEDIA_CLASSES.RENDER_MEDIA_LOADED)).toBe(true)
+    expect(highEl.isConnected).toBe(false)
+
+    host.remove()
   })
 
   test('loadHighRes marks loaded via onerror when the image fails', () => {
-    const highEl = { complete: false, naturalWidth: 0, classList: { add: jest.fn() }, style: {} }
+    const highEl = document.createElement(HTML_TAGS.IMG)
+    const host = document.createElement(HTML_TAGS.DIV)
+
+    host.appendChild(highEl)
+    document.body.appendChild(host)
+
     const ctx = {
       isVideo: false,
       isLoaded: false,
@@ -96,11 +120,19 @@ describe('safari-patch — MediaFigure patch', () => {
     }
 
     proto().loadHighRes.call(ctx)
-    expect(typeof highEl.onload).toBe(TYPE_STRINGS.FUNCTION)
-    expect(typeof highEl.onerror).toBe(TYPE_STRINGS.FUNCTION)
 
-    highEl.onerror()
+    const successor = highEl.nextElementSibling
+
+    expect(successor).not.toBeNull()
+    expect(typeof successor.onload).toBe(TYPE_STRINGS.FUNCTION)
+    expect(typeof successor.onerror).toBe(TYPE_STRINGS.FUNCTION)
+
+    successor.onerror()
+
     expect(ctx.isLoaded).toBe(true)
+    expect(successor.isConnected).toBe(false)
+
+    host.remove()
   })
 
   test('loadHighRes falls back to _updateDom when no high-res element exists', () => {
