@@ -24,6 +24,7 @@ export const QUERY_STRINGS = Object.freeze({
   META_OG_IMAGE_ALT: 'meta[property="og:image:alt"]',
   META_OG_URL: 'meta[property="og:url"]',
   META_TW_URL: 'meta[name="twitter:url"]',
+  ROOT_MARGIN_600: '600px 0px',
   ROOT_MARGIN_200: '200px 0px',
   ROOT_MARGIN_100: '100px 0px',
   ROOT_MARGIN_50: '50px 0px',
