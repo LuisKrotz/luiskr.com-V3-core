@@ -18,6 +18,7 @@ import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
+import { ARIA_ATTRS } from '@core/tokens/attrs/aria.js'
 import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
 import { LOCALES } from '@core/tokens/locales.js'
 import { FALLBACK_APP, FALLBACK_LOADERS } from '@core/locale/fallback.js'
@@ -119,6 +120,14 @@ export class IntroLoader {
     this.container = document.createElement(HTML_TAGS.DIV)
 
     this.container.className = LOADER_CLASSES.INTRO_LOADER
+
+    // Named region landmark — the statically-emitted veil carries the
+    // same attrs so the axe `region` rule sees landmark-contained
+    // content in either shape (and the counter's per-frame text churn
+    // never enters a live region).
+    this.container.setAttribute(ARIA_ATTRS.ROLE, ARIA_ATTRS.ROLE_REGION)
+
+    this.container.setAttribute(ARIA_ATTRS.ARIA_LABEL, this.copy.title)
 
     const glow = document.createElement(HTML_TAGS.DIV)
 

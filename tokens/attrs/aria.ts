@@ -30,6 +30,7 @@ export const ARIA_ATTRS = Object.freeze({
   ROLE_NAVIGATION: 'navigation',
   ROLE_ALERT: 'alert',
   ROLE_STATUS: 'status',
+  ROLE_REGION: 'region',
   /** `tree`/`treeitem`/`none` — the ARIA treeview contract for the docs nav. */
   ROLE_TREE: 'tree',
   ROLE_TREEITEM: 'treeitem',
