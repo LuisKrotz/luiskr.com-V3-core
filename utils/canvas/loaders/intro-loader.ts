@@ -13,6 +13,7 @@
  */
 
 import { LOADER_CLASSES } from '@core/tokens/classes/loader.js'
+import { LOADER_SELECTORS } from '@core/tokens/selectors/loader.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
@@ -67,18 +68,28 @@ export class IntroLoader {
     this.init()
   }
 
-  /** Builds the overlay DOM + starts the progress sequence. */
+  /** Builds or adopts the overlay DOM + starts the progress sequence. */
   init(): void {
     if (typeof window === TYPE_STRINGS.UNDEFINED || typeof document === TYPE_STRINGS.UNDEFINED)
       return
 
+    // Prerendered pages ship the loader markup statically so the veil
+    // paints before the JS bundle — adopt that node instead of mounting
+    // a second overlay. The early-return paths must still remove it or
+    // the static veil would cover the page for the whole document.
+    const existing = document.querySelector<HTMLElement>(LOADER_SELECTORS.INTRO_LOADER)
+
     if (sessionStorage.getItem(CACHE_STORAGE_KEYS.INTRO_SHOWN)) {
+      existing?.remove()
+
       this.onComplete?.()
 
       return
     }
 
     if (store.getters.getReducedMotion()) {
+      existing?.remove()
+
       sessionStorage.setItem(CACHE_STORAGE_KEYS.INTRO_SHOWN, CHAR_STRINGS.ONE)
 
       this.onComplete?.()
@@ -86,6 +97,25 @@ export class IntroLoader {
       return
     }
 
+    if (existing) {
+      this.container = existing
+      this.percentEl = existing.querySelector<HTMLElement>(LOADER_SELECTORS.PERCENT)
+      this.msgEl = existing.querySelector<HTMLElement>(LOADER_SELECTORS.MSG)
+      this.barEl = existing.querySelector<HTMLElement>(LOADER_SELECTORS.BAR)
+    } else {
+      this.buildOverlay()
+    }
+
+    // Spinner/counter/bar are all part of the one boot overlay —
+    // the container carries the animation description.
+    applyAnimationDesc(this.container as HTMLElement, ANIMATION_IDS.INTRO_LOADER)
+
+    this.runAnimation()
+  }
+
+  /** Builds the overlay DOM from scratch — used when the document did not
+   *  ship the static loader markup (dev server, non-prerendered shells). */
+  buildOverlay(): void {
     this.container = document.createElement(HTML_TAGS.DIV)
 
     this.container.className = LOADER_CLASSES.INTRO_LOADER
@@ -152,12 +182,6 @@ export class IntroLoader {
     this.container.appendChild(content)
 
     this.rootContainer.appendChild(this.container)
-
-    // Spinner/counter/bar are all part of the one boot overlay —
-    // the container carries the animation description.
-    applyAnimationDesc(this.container, ANIMATION_IDS.INTRO_LOADER)
-
-    this.runAnimation()
   }
 
   /** Steps percent + the localized stage line across the boot budget. */

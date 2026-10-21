@@ -27,7 +27,18 @@ $_B_LOADER: 'intro-loader';
 // layer including dialogs. The exit transition fades + scales 1→1.05: the
 // overlay appears to lift toward the viewer as it dissolves (ease-out-quart
 // curve: fast start, soft landing).
+// The markup also ships statically in prerendered pages (adopted by
+// IntroLoader on boot), so two gates keep it honest before JS runs:
+// no-js documents (crawlers, reader mode) must never see the veil — the
+// reader-content article is their surface — and .intro-skip (stamped by
+// the head script when the intro already ran this session or reduced
+// motion disables it) suppresses a repeat flash until mount removes it.
 .#{$_B_LOADER} {
+  html.no-js &,
+  html.intro-skip & {
+    display: none;
+  }
+
   position: fixed;
   inset: 0;
   width: 100vw;

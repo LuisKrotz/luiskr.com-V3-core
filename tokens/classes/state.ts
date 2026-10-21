@@ -28,4 +28,8 @@ export const STATE_CLASSES = Object.freeze({
   JS: 'js',
   /** Document-level no-JS marker shipped in index.html until JS flips it. */
   NO_JS: 'no-js',
+  /** Document-level intro-skip marker — the head script stamps it when the
+   *  boot intro already ran this session or reduced-motion disables it, so
+   *  the statically-emitted loader markup never paints. */
+  INTRO_SKIP: 'intro-skip',
 })
