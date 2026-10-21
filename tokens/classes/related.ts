@@ -17,6 +17,13 @@ export const RELATED_CLASSES = Object.freeze({
   RELATED_MOSAIC_ITEM_FEATURED: `${_B_RELATED}-item--featured`,
   RELATED_MOSAIC_MEDIA: `${_B_RELATED}-media`,
   RELATED_MOSAIC_IMG: `${_B_RELATED}-img`,
+  /** Progressive-cover layers — intrinsic-size SVG reserves the painted
+   *  box, LQIP first paint, then the display ladder fades in over it. */
+  RELATED_MOSAIC_IMG_PLACEHOLDER: `${_B_RELATED}-img--placeholder`,
+  RELATED_MOSAIC_IMG_THUMB: `${_B_RELATED}-img--thumb`,
+  RELATED_MOSAIC_IMG_HIGH: `${_B_RELATED}-img--high`,
+  /** Published on the high layer's `load` — the CSS crossfade trigger. */
+  RELATED_MOSAIC_IMG_LOADED: `${_B_RELATED}-img--loaded`,
   RELATED_MOSAIC_OVERLAY: `${_B_RELATED}-overlay`,
   RELATED_MOSAIC_INFO: `${_B_RELATED}-info`,
   RELATED_MOSAIC_TITLE: `${_B_RELATED}-title`,

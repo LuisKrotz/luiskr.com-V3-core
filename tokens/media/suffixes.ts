@@ -17,6 +17,8 @@ export const MEDIA = Object.freeze({
   THUMB_SUFFIX: '3-MSSIM-tuned-kodak',
   /** Q50 medium-res suffix */
   Q50: '-50',
+  /** Q75 high-res suffix */
+  Q75: '-75',
   /** Q100 / uncompressed lossless suffix */
   Q100: '-uncompressed',
   /** Small-viewport derivative suffix (appended after the quality tag) */

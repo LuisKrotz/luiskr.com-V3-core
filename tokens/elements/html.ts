@@ -25,6 +25,8 @@ export const HTML_TAGS = Object.freeze({
   A: 'a',
   P: 'p',
   CANVAS: 'canvas',
+  PICTURE: 'picture',
+  SOURCE: 'source',
   SELECT: 'select',
   OPTION: 'option',
   INPUT: _K_INPUT,

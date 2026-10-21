@@ -7,10 +7,12 @@
  * rendered box (and at 1×/2×/3× for srcset).
  */
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
+import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { MEDIA } from '@core/tokens/media/suffixes.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { GRAVATAR_SIZES } from '@core/tokens/media/dimensions.js'
+import type { CoverRung } from './media/manifest.js'
 
 /**
  * A media entry's URL-relevant fields as stored in the DB: `src` is the
@@ -144,6 +146,95 @@ export const webmSibling = (url: string): string =>
   url.endsWith(MEDIA.VIDEO_EXT)
     ? `${url.slice(0, -MEDIA.VIDEO_EXT.length)}${MEDIA.WEBM_EXT}`
     : ATTR_VALUES.EMPTY
+
+/**
+ * `load` step on a progressive cover's high layer — the ladder walker.
+ * Records the painted URL in the host registry (re-renders rebuild the
+ * shadow DOM wholesale via replaceChildren, so the registry is what
+ * re-emits the reached tier instead of replaying from the LQIP) and
+ * publishes the loaded class driving the CSS crossfade. When rungs
+ * remain above the painted one it preloads the next tier through a
+ * detached Image — the probe request doubles as the webp decode check —
+ * and swaps `src` only once bytes confirm, so a painted rung can never
+ * tear. The swap re-fires the img's own `load`, re-entering this step
+ * until the highest proven tier is reached.
+ * @param registry Host map of cover key → highest confirmed painted URL
+ * (undefined-tolerant: a bare host still gets the class + the climb, it
+ * just can't persist the reached tier across re-renders).
+ * @param coverKey Stable identity of the cover (the original URL).
+ * @param img The high-layer img that fired `load` (event currentTarget).
+ * @param rungs Ascending proven tiers from coverVariants — last is top.
+ * @param loadedClass Class token that turns the layer's opacity on.
+ */
+export function coverLadderStep(
+  registry: Map<string, string> | undefined,
+  coverKey: string,
+  img: HTMLImageElement | null,
+  rungs: CoverRung[],
+  loadedClass: string
+): void {
+  if (!img || !rungs.length) return
+
+  const painted = img.currentSrc || img.src
+
+  registry?.set(coverKey, painted)
+
+  img.classList.add(loadedClass)
+
+  const idx = rungs.findIndex((rung) => rung.jpg === painted || rung.webp === painted)
+
+  if (idx < 0 || idx >= rungs.length - 1) return
+
+  const next = rungs[idx + 1]
+
+  let target = next.webp || next.jpg
+
+  /** Publishes a confirmed tier — the emitted rung-0 <source> has served
+   *  by now, so its <source> nodes go and img.src becomes authoritative;
+   *  the resulting `load` re-enters this step to climb the next rung. */
+  const advance = (): void => {
+    const pic = img.closest(HTML_TAGS.PICTURE)
+
+    pic?.querySelectorAll(HTML_TAGS.SOURCE).forEach((source) => source.remove())
+
+    img.src = target
+
+    registry?.set(coverKey, target)
+  }
+
+  // Match loadHighRes: no Image constructor means no probe — assign the
+  // universally-decodable jpg directly and let the img's own load drive.
+  const ImageCtor =
+    typeof window !== TYPE_STRINGS.UNDEFINED && window.Image
+      ? window.Image
+      : typeof Image !== TYPE_STRINGS.UNDEFINED
+        ? Image
+        : null
+
+  if (!ImageCtor) {
+    target = next.jpg
+
+    advance()
+
+    return
+  }
+
+  const probe = new ImageCtor()
+
+  probe.onload = advance
+
+  probe.onerror = () => {
+    // A manifest-proven webp can still fail to decode — retry the jpg
+    // once; a dead jpg leaves the painted rung standing.
+    if (target !== next.jpg) {
+      target = next.jpg
+
+      probe.src = target
+    }
+  }
+
+  probe.src = target
+}
 
 /**
  * Constructs media URLs for images and videos following the project's

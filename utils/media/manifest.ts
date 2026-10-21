@@ -99,25 +99,74 @@ export function webmIfExists(url: string): string {
   return webm && mediaKeyExists(webm) ? encodeMediaUrl(webm) : ATTR_VALUES.EMPTY
 }
 
+/**
+ * One proven rung on a progressive-cover quality ladder — the jpg URL
+ * plus its webp sibling ('' when the manifest can't prove it).
+ */
+export interface CoverRung {
+  /** Proven .jpg variant URL for the tier. */
+  jpg: string
+  /** Proven .webp sibling, '' when the manifest can't prove it. */
+  webp: string
+}
+
 /** Manifest-gated cover URL matrix — see coverVariants(). */
 export interface CoverVariants {
-  /** URL for <img src> — full-res mozjpeg when proven, else the original. */
+  /** URL for the LQIP <img src> — kodak blur thumb when proven, else the original. */
   src: string
   /** webp matching `src`, '' when not proven. */
   webp: string
-  /** ≤768px jpg for a media-scoped <source>, '' when not proven. */
+  /** ≤768px LQIP jpg for a media-scoped <source>, '' when not proven. */
   mobileJpg: string
-  /** ≤768px webp — preferred over mobileJpg when both exist. */
+  /** ≤768px LQIP webp — preferred over mobileJpg when both exist. */
   mobileWebp: string
+  /** Ascending display-quality rungs the high layer climbs (coverLadderStep
+   *  walks them, highest proven quality last) — empty when no LQIP
+   *  exists, since `src` is then already the original. */
+  rungs: CoverRung[]
 }
 
 /**
- * Resolves the responsive cover matrix for one `covers/<stem>.jpg` URL:
- * the mozjpeg full-res derivative (same pixels, ~70% fewer bytes) plus
- * its 768px mobile tier and webp siblings — each gated on
- * `mediaKeyExists` so an unproven object can never become the card's
- * only image. A missing/never-loaded manifest yields the original URL
- * with its own webp probe — exactly today's behavior.
+ * Ascending quality-tier suffixes for a cover ladder — q50 → q75 → the
+ * raw original → uncompressed, mirroring the build-time IMAGE_VARIANTS
+ * quality order in shared/scripts/build/media-manifest.mjs (uncompressed
+ * pass preferred, then raw original). The '' entry is the original URL.
+ */
+const LADDER_SUFFIXES: readonly string[] = Object.freeze([
+  MEDIA.Q50,
+  MEDIA.Q75,
+  ATTR_VALUES.EMPTY,
+  MEDIA.Q100,
+])
+
+/**
+ * Builds the ascending upgrade ladder for one `covers/<stem>.jpg` URL —
+ * every derivative rung is `mediaKeyExists`-proven so a swapped-in src
+ * can never 404; the original row ('' suffix) is always trusted because
+ * it IS the URL the database points at. Non-.jpg input keeps its stem
+ * whole and resolves to just the passthrough original rung.
+ * @param stemJpg Emission-encoded media URL ending in .jpg (original).
+ * @returns Ascending rungs — lowest quality first, highest last.
+ */
+export function coverRungs(stemJpg: string): CoverRung[] {
+  const stem = stemJpg.endsWith(MEDIA.EXT) ? stemJpg.slice(0, -MEDIA.EXT.length) : stemJpg
+
+  return LADDER_SUFFIXES.flatMap((suffix) => {
+    const jpg = suffix ? encodeMediaUrl(`${stem}${MEDIA.MOZ}${suffix}${MEDIA.EXT}`) : stemJpg
+
+    return jpg === stemJpg || mediaKeyExists(jpg) ? [{ jpg, webp: webpIfExists(jpg) }] : []
+  })
+}
+
+/**
+ * Resolves the progressive cover matrix for one `covers/<stem>.jpg` URL:
+ * the kodak LQIP blur-up (plus its 768px mobile tier and webp siblings)
+ * as the first paint, and `rungs` as the ascending quality ladder the
+ * high layer climbs once bytes confirm — q50 → q75 → original →
+ * uncompressed, highest proven tier last. Every variant is gated on
+ * `mediaKeyExists` so an unproven object can never become a card's only
+ * image; a missing/never-loaded manifest yields the original URL with
+ * its own webp probe and no ladder (`rungs` stays empty).
  * @param coverJpg Emission-encoded covers/*.jpg URL (original).
  * @returns Bound URLs for picture/img — empty strings mean "omit".
  */
@@ -126,13 +175,9 @@ export function coverVariants(coverJpg: string): CoverVariants {
 
   const thumbJpg = encodeMediaUrl(`${stem}${MEDIA.MOZ}${MEDIA.THUMB_SUFFIX}${MEDIA.EXT}`)
 
-  const thumbWebp = webpIfExists(thumbJpg)
-
   const mobileJpg = encodeMediaUrl(
     `${stem}${MEDIA.MOZ}${MEDIA.THUMB_SUFFIX}${MEDIA.MOBILE_SUFFIX}${MEDIA.EXT}`
   )
-
-  const mobileWebp = webpIfExists(mobileJpg)
 
   // The jpg is the <img> fallback — only its own manifest hit may promote
   // a variant into `src`; a webp sibling gates itself on the jpg below.
@@ -142,8 +187,9 @@ export function coverVariants(coverJpg: string): CoverVariants {
 
   return {
     src: hasThumb ? thumbJpg : coverJpg,
-    webp: hasThumb ? thumbWebp : webpIfExists(coverJpg),
+    webp: hasThumb ? webpIfExists(thumbJpg) : webpIfExists(coverJpg),
     mobileJpg: hasMobile ? mobileJpg : ATTR_VALUES.EMPTY,
-    mobileWebp: hasMobile ? mobileWebp : ATTR_VALUES.EMPTY,
+    mobileWebp: hasMobile ? webpIfExists(mobileJpg) : ATTR_VALUES.EMPTY,
+    rungs: hasThumb ? coverRungs(coverJpg) : [],
   }
 }
