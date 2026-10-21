@@ -115,12 +115,6 @@ export const _B_FLAG = 'flag'
  */
 export const _B_LOADER = 'intro-loader'
 /**
- * BEM block fragment "b boot veil" — the static pre-mount splash emitted in
- * index.html (no JS available to compose the name there; the runtime matches
- * it through this token when it dismisses the veil after boot).
- */
-export const _B_BOOT_VEIL = 'boot-veil'
-/**
  * BEM block fragment "b fluid bg" — composed by the token groups below into full class names.
  */
 export const _B_FLUID_BG = 'fluid-background'
