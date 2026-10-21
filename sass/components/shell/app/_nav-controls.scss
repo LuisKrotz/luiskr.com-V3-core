@@ -11,60 +11,116 @@
 
 // ── Burger button (WebGL canvas) ──────────────────────────────────────────
 .#{$_B_NAV}-burger-canvas {
-  width: var(--space-2xl);
-  height: var(--space-2xl);
+  width: 100%;
+  height: 100%;
   cursor: pointer;
   display: block;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-round);
 
   &.is-fallback {
     display: none;
   }
 }
 
-// ── Burger button wrapper ───────────────────────────────────────────────────
+// ── Burger button wrapper — the shared round disc (like the close button):
+// the WebGL canvas paints the liquid squares on top of it, the CSS
+// fallback button mirrors the same icon when GL is unavailable. ─────────
 .#{$_B_NAV}-burger-wrap {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: var(--space-3xl);
+  height: var(--space-3xl);
+  border-radius: var(--radius-round);
+  background: var(--border-color);
+  transition: background 0.2s ease;
+
+  &:hover,
+  &:focus-within {
+    background: var(--border-color-hover, var(--border-color));
+  }
 }
 
-// ── Burger button fallback (CSS-based hamburger icon) ───────────────────
+// ── Burger button fallback (CSS-based four-squares liquid icon) ──────────
 .#{$_B_NAV}-burger-fallback {
   @extend %RESETBTN;
 
   display: none;
-  width: var(--space-2xl);
-  height: var(--space-2xl);
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: var(--space-xs);
+  width: 100%;
+  height: 100%;
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-round);
   background: transparent;
   border: none;
   padding: 0;
+  position: relative;
 
-  &:before,
-  &:after,
-  .#{$_B_NAV}-burger-line {
-    content: '';
-    display: block;
-    width: var(--space-lg);
+  // Four rounded squares on a 2x2 grid — the CSS mirror of the shader's
+  // metaball icon. Squares center-anchored via 50% + negative half
+  // margins; the per-corner offsets come from the nth-of-type rules.
+  .#{$_B_NAV}-burger-square {
+    position: absolute;
+    top: calc(50% - var(--space-2xs) / 2);
+    left: calc(50% - var(--space-2xs) / 2);
+    width: var(--space-2xs);
     height: var(--space-2xs);
     background: var(--text-primary);
     border-radius: var(--radius-2xs);
+    transition:
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      border-radius 0.45s ease;
+    transition:
+      transform 0.45s $ease-spring,
+      border-radius 0.45s ease;
+
+    &:nth-of-type(1) {
+      transform: translate(calc(-1 * var(--space-xs)), calc(-1 * var(--space-xs)));
+    }
+
+    &:nth-of-type(2) {
+      transform: translate(var(--space-xs), calc(-1 * var(--space-xs)));
+    }
+
+    &:nth-of-type(3) {
+      transform: translate(calc(-1 * var(--space-xs)), var(--space-xs));
+    }
+
+    &:nth-of-type(4) {
+      transform: translate(var(--space-xs), var(--space-xs));
+    }
   }
 
-  // Make fallback distinct from animated version - simpler, cleaner lines
-  .#{$_B_NAV}-burger-line {
-    height: var(--space-3xs);
+  // Hover/focus: the squares migrate to the center and round into
+  // overlapping circles — the CSS approximation of the liquid merge.
+  &:hover,
+  &:focus-visible {
+    .#{$_B_NAV}-burger-square {
+      transform: translate(0, 0) scale(1.6);
+      border-radius: var(--radius-round);
+    }
+  }
+
+  // Open: the pooled blob morphs into the close X — diagonal pairs
+  // stretch along their own diagonal (nth 1+4 = \, nth 2+3 = /).
+  &[aria-expanded='true'] {
+    .#{$_B_NAV}-burger-square {
+      border-radius: var(--radius-round);
+
+      &:nth-of-type(1),
+      &:nth-of-type(4) {
+        transform: translate(0, 0) rotate(45deg) scaleX(3);
+      }
+
+      &:nth-of-type(2),
+      &:nth-of-type(3) {
+        transform: translate(0, 0) rotate(-45deg) scaleX(3);
+      }
+    }
   }
 
   .#{$_B_NAV}-burger-wrap:has(.#{$_B_NAV}-burger-canvas.is-fallback) & {
-    display: flex;
+    display: block;
   }
 }
 

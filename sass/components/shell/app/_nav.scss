@@ -255,9 +255,7 @@
     }
 
     .#{$_B_NAV}-burger-fallback {
-      &:before,
-      &:after,
-      .#{$_B_NAV}-burger-line {
+      .#{$_B_NAV}-burger-square {
         background: var(--grey-2);
       }
     }
