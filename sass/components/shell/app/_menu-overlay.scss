@@ -414,8 +414,8 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
 
   position: relative;
   flex-shrink: 0;
-  width: var(--space-2xl);
-  height: var(--space-2xl);
+  width: var(--space-3xl);
+  height: var(--space-3xl);
   border-radius: var(--radius-round);
   display: flex;
   align-items: center;
@@ -454,7 +454,7 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
     position: absolute;
     inset: 50% auto auto 50%;
     translate: -50% -50%;
-    width: var(--space-md);
+    width: var(--space-xl);
     height: var(--space-2xs);
     background: var(--text-primary);
     border-radius: var(--radius-2xs);

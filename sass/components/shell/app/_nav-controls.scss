@@ -27,6 +27,7 @@
 // fallback button mirrors the same icon when GL is unavailable. ─────────
 .#{$_B_NAV}-burger-wrap {
   position: relative;
+  z-index: var(--z-nav);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -13,6 +13,7 @@ import store from '@core/store.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
 import { FOCUS_EVENTS, GL_EVENTS, POINTER_EVENTS } from '@core/tokens/events/dom.js'
+import { BURGER_FS_BODY } from '@core/utils/canvas/widgets/burger-button/shaders.js'
 
 /** Imports the class under test (module-level import is fine — no mocks). */
 const loadClass = async () =>
@@ -36,6 +37,20 @@ afterEach(() => {
 })
 
 describe('burger liquid icon', () => {
+  test('the fragment shader anchors four distinct square centers — one per corner', () => {
+    // Regression guard: c4 once duplicated c2's (cell, cell) corner so
+    // only three squares ever painted. Each mix() must seed a unique
+    // sign pair — the 2x2 grid the CSS fallback mirrors.
+    const centers = [
+      ...BURGER_FS_BODY.matchAll(
+        /vec2 c[1-4] = mix\(vec2\(\s*(-?)cell,\s*(-?)cell\)/g
+      ),
+    ].map((m) => `${m[1]}|${m[2]}`)
+
+    expect(centers).toHaveLength(4)
+    expect(new Set(centers).size).toBe(4)
+  })
+
   test('GL path eases hover convergence and the open morph toward their targets', async () => {
     const BurgerButtonWebGL = await loadClass()
     const canvas = makeCanvas()
