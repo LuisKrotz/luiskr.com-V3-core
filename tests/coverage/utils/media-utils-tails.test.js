@@ -11,6 +11,7 @@ import {
   getOptimizedGravatar,
   buildMediaUrls,
   encodeMediaUrl,
+  webpSibling,
   coverLadderStep,
 } from '@core/utils/media.js'
 
@@ -26,6 +27,7 @@ import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { MEDIA } from '@core/tokens/media/suffixes.js'
 import { MEDIA_ATTRS } from '@core/tokens/attrs/media.js'
+import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { HOME_MOSAIC_CLASSES } from '@core/tokens/classes/mosaic.js'
 
 jest.unstable_mockModule('@core/firebase.js', () => ({
@@ -104,6 +106,15 @@ describe('media utils tails', () => {
     // must not double-encode to %2520 (idempotent).
     expect(encodeMediaUrl(`${CDN_URLS.CDN_BASE}a%zz.jpg`)).toContain('a%25zz.jpg')
     expect(encodeMediaUrl(`${CDN_URLS.CDN_BASE}a%20b.jpg`)).toBe(`${CDN_URLS.CDN_BASE}a%20b.jpg`)
+  })
+
+  test('webpSibling swaps only the .jpg extension', () => {
+    expect(webpSibling(`${CDN_URLS.CDN_BASE}x${MEDIA.EXT}`)).toBe(
+      `${CDN_URLS.CDN_BASE}x${MEDIA.WEBP_EXT}`
+    )
+    // Non-.jpg input can't claim a webp sibling → empty string.
+    expect(webpSibling(`${CDN_URLS.CDN_BASE}x.png`)).toBe(ATTR_VALUES.EMPTY)
+    expect(webpSibling(ATTR_VALUES.EMPTY)).toBe(ATTR_VALUES.EMPTY)
   })
 
   test('buildMediaUrls encodes spaced bucket keys in its outputs', () => {
@@ -239,6 +250,20 @@ describe('media utils tails', () => {
       coverLadderStep(registry, strayKey, srcPicked, rungs, loaded)
 
       expect(inst.src).toBe(q75Webp)
+
+      // Nothing painted at all — happy-dom mirrors src into currentSrc,
+      // so an unset src is the only way down the `|| img.src` arm.
+      const unpainted = document.createElement(HTML_TAGS.IMG)
+
+      coverLadderStep(
+        registry,
+        `${CDN_URLS.CDN_BASE}covers/blank${MEDIA.EXT}`,
+        unpainted,
+        rungs,
+        loaded
+      )
+
+      expect(unpainted.classList.contains(loaded)).toBe(true)
     } finally {
       window.Image = origImage
       globalThis.Image = origGlobalImage
