@@ -31,4 +31,9 @@ export const APP_IDS = Object.freeze({
   /** Star-field navigator item description id PREFIX — the per-body
    *  describedby target is `<prefix><body-id>` inside each row button. */
   SF_ITEM_DESC_PREFIX: 'sf-item-desc-',
+  /** Nav menu overlay — aria-controls target for the burger toggles. */
+  NAV_MENU_PANEL: 'nav-menu-panel',
+  /** Nav menu overlay title — aria-labelledby target for the open menu
+   *  navigation landmark. */
+  NAV_MENU_TITLE: 'nav-menu-title',
 })
