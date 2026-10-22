@@ -29,6 +29,7 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_CRUMB_EDIT: `${_B_DOCS}-crumb-edit`,
   DOCS_GRID: `${_B_DOCS}-grid`,
   DOCS_CARD: `${_B_DOCS}-card`,
+  DOCS_CARD_HEADING: `${_B_DOCS}-card-heading`,
   DOCS_CARD_LABEL: `${_B_DOCS}-card-label`,
   DOCS_CARD_ART: `${_B_DOCS}-card-art`,
   DOCS_FOLDER: `${_B_DOCS}-folder`,

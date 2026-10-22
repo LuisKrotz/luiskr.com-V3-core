@@ -63,6 +63,7 @@ export const SF_CLASSES = Object.freeze({
   SF_NAV_LIST: `${_B_SF}-nav-list`,
   SF_NAV_ITEM: `${_B_SF}-nav-item`,
   SF_NAV_ITEM_ACTIVE: `${_B_SF}-nav-item--active`,
+  SF_NAV_ITEM_HEADING: `${_B_SF}-nav-item-heading`,
   SF_NAV_ITEM_META: `${_B_SF}-nav-item-meta`,
   SF_NAV_MORE: `${_B_SF}-nav-more`,
   SF_NAV_SEARCH: `${_B_SF}-nav-search`,

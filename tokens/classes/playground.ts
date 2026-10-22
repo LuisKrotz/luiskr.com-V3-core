@@ -43,6 +43,7 @@ export const SP_CLASSES = Object.freeze({
   // ── Collapsible groups ────────────────────────────────────────────────────
   SP_GROUP: `${_B_SPP}-group`,
   SP_GROUP_COLLAPSED: `${_B_SPP}-group--collapsed`,
+  SP_GROUP_HEADING: `${_B_SPP}-group-heading`,
   SP_GROUP_HEADER: `${_B_SPP}-group-header`,
   SP_GROUP_CHEVRON: `${_B_SPP}-group-chevron`,
   SP_GROUP_LABEL: `${_B_SPP}-group-label`,
