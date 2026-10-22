@@ -11,6 +11,7 @@ import {
   mediaSlugSeq,
   splitDrawSentences,
   toMetaDescription,
+  excerptHeading,
 } from '@core/utils/string.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { MEDIA_SLUG_MAX_LENGTH } from '@core/tokens/routes/aliases.js'
@@ -111,5 +112,25 @@ describe('string utils tails', () => {
     expect(toMetaDescription('short', 160)).toBe('short')
     expect(toMetaDescription('')).toBe(CHAR_STRINGS.EMPTY)
     expect(toMetaDescription(null)).toBe(CHAR_STRINGS.EMPTY)
+  })
+
+  test('excerptHeading keeps short text whole and ellipsizes long leads', () => {
+    expect(excerptHeading('Dell Design System v2: Card component')).toBe(
+      'Dell Design System v2: Card component'
+    )
+
+    const long = 'one two three four five six seven eight nine ten'
+
+    expect(excerptHeading(long)).toBe(
+      `one two three four five six seven eight${CHAR_STRINGS.ELLIPSIS}`
+    )
+  })
+
+  test('excerptHeading strips markup, collapses whitespace, guards empty input', () => {
+    expect(excerptHeading('  <b>Alpha</b>   beta\n\ngamma  ')).toBe('Alpha beta gamma')
+    expect(excerptHeading('')).toBe(CHAR_STRINGS.EMPTY)
+    expect(excerptHeading(null)).toBe(CHAR_STRINGS.EMPTY)
+    expect(excerptHeading('   ')).toBe(CHAR_STRINGS.EMPTY)
+    expect(excerptHeading('<br/><br/>')).toBe(CHAR_STRINGS.EMPTY)
   })
 })
