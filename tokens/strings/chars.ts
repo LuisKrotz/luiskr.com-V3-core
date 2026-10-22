@@ -19,6 +19,7 @@ export const CHAR_STRINGS = Object.freeze({
   DOT: '.',
   DASH: '-',
   EM_DASH: '—',
+  ELLIPSIS: '…',
   UNDERSCORE: '_',
   EQUALS: '=',
   QUESTION: '?',

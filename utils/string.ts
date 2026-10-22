@@ -40,6 +40,38 @@ export const stripHtml = (str: string): string => {
 const META_DESCRIPTION_MAX = 160
 
 /**
+ * Word budget for a generated a11y heading — enough leading content to
+ * identify the block in a heading list, short enough to stay a label.
+ */
+const HEADING_EXCERPT_WORDS = 8
+
+/**
+ * Builds a short heading from a block of content text: markup strips via
+ * the iterated sanitizer, whitespace collapses, and the first
+ * HEADING_EXCERPT_WORDS words are kept with a trailing ellipsis when the
+ * text runs longer — the incipit names the block after its own content
+ * ("Joining Dell on June 6th, 2022…") instead of a meaningless ordinal.
+ * Returns '' for empty/non-string input so callers can fall back to a
+ * generic localized label.
+ * Pure ESM utility function, tree-shakeable.
+ * @param text Raw block text (markup tolerated).
+ * @returns Heading excerpt or ''.
+ */
+export const excerptHeading = (text: string): string => {
+  const words = stripHtml(String(text || ATTR_VALUES.EMPTY))
+    .replace(/\s+/g, CHAR_STRINGS.SPACE_CHAR)
+    .trim()
+    .split(CHAR_STRINGS.SPACE_CHAR)
+    .filter(Boolean)
+
+  if (!words.length) return ATTR_VALUES.EMPTY
+
+  const head = words.slice(0, HEADING_EXCERPT_WORDS).join(CHAR_STRINGS.SPACE_CHAR)
+
+  return words.length > HEADING_EXCERPT_WORDS ? `${head}${CHAR_STRINGS.ELLIPSIS}` : head
+}
+
+/**
  * Compacts markup-bearing CMS text into a meta-description string:
  * `<br>` collapses to a space (it is a line break, not a word boundary),
  * remaining tags strip via the iterated sanitizer, named/numeric entities
