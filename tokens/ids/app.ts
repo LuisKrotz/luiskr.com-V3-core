@@ -21,4 +21,14 @@ export const APP_IDS = Object.freeze({
   SF_INSTRUCTIONS_PANEL: 'sf-instructions-panel',
   /** Star-field dossier panel title — aria-labelledby target for the aside landmark. */
   SF_PANEL_TITLE: 'sf-panel-title',
+  /** Star-field navigator description node — aria-describedby target for
+   *  the drawer landmark and its toggle button. */
+  SF_NAV_DESC: 'sf-nav-desc',
+  /** Star-field dossier tagline — aria-describedby target for the panel. */
+  SF_PANEL_TAGLINE: 'sf-panel-tagline',
+  /** Star-field instructions hint — aria-describedby target for the dialog. */
+  SF_INSTRUCTIONS_HINT: 'sf-instructions-hint',
+  /** Star-field navigator item description id PREFIX — the per-body
+   *  describedby target is `<prefix><body-id>` inside each row button. */
+  SF_ITEM_DESC_PREFIX: 'sf-item-desc-',
 })
