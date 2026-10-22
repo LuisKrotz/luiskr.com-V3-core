@@ -98,10 +98,8 @@ const defaultOrtLoader = async (): Promise<OrtModule> =>
  * @returns true when ML inference may run on this browser tier.
  */
 const mlTierAllowed = (): boolean => {
-  const tier = (
-    (typeof window !== TYPE_STRINGS.UNDEFINED ? window : undefined) as
-      (Window & TieredWindow) | undefined
-  )?.[ML.WINDOW_TIER]
+  // ensureOrt already proves `window` exists before calling — no re-guard.
+  const tier = (window as unknown as TieredWindow)[ML.WINDOW_TIER]
 
   if (!tier || tier === ML.TIER_ESNEXT) return true
 

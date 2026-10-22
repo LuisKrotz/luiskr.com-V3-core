@@ -8,7 +8,9 @@
 
 import {
   _B_CONTACT,
+  _B_CAROUSEL,
   _B_PREF,
+  _K_A11Y,
   _K_CLOSE,
   _K_EARTH_PLAYGROUND,
   _K_RELATED,
@@ -152,4 +154,17 @@ export const NOTIFY_UI_KEYS = Object.freeze({
   NOTIFY_LOAD_FAILED: 'notify.loadFailed',
   NOTIFY_TITLE: 'notify.title',
   NOTIFY_DISMISS: 'notify.dismiss',
+})
+
+/**
+ * Frozen a11y ui key map — sole declaration site for these tokens; consumers read members
+ * and never re-declare the strings (zero-hardcoding rules 4–5). Object.freeze makes the
+ * token contract immutable at runtime. Each value is a template carrying
+ * the `{index}` placeholder (see A11Y_INDEX_TOKEN) — resolved by
+ * indexedText() into the hidden navigation headings.
+ */
+export const A11Y_UI_KEYS = Object.freeze({
+  A11Y_SECTION: `${_K_A11Y}.section`,
+  A11Y_CAROUSEL: `${_K_A11Y}.${_B_CAROUSEL}`,
+  A11Y_PARAGRAPH: `${_K_A11Y}.paragraph`,
 })

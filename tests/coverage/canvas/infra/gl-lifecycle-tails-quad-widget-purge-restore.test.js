@@ -24,6 +24,13 @@ let mock2D
 let origGetContext
 
 beforeEach(() => {
+  // webglAllowed() reads two ambient inputs — the URL's webGLMode debug
+  // flag and the documentElement reduced-motion class. Both are per-file
+  // fresh under the node env, but pinning them keeps the assertions
+  // deterministic if a suite ever shares ambient state mid-run.
+  window.history.replaceState(null, '', '/')
+  document.documentElement.classList.remove(STATE_CLASSES.REDUCED_MOTION)
+
   mockGL = createMockGL()
   mock2D = createMock2D()
 

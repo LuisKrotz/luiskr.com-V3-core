@@ -66,6 +66,13 @@ export const SOURCE_COMPONENT_KEYS = Object.freeze({
 export const SOURCE_YEAR_TOKEN = '{year}'
 
 /**
+ * Placeholder inside the `a11y.*` heading templates — renderers swap it for
+ * the 1-based ordinal so translators may position the number freely
+ * ('Section {index}' vs '{index}. Bölüm').
+ */
+export const A11Y_INDEX_TOKEN = '{index}'
+
+/**
  * Frozen section component key map — sole declaration site for these tokens; consumers read
  * members and never re-declare the strings (zero-hardcoding rules 4–5). Object.freeze makes
  * the token contract immutable at runtime.

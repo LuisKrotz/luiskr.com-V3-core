@@ -7,6 +7,7 @@ import store from '@core/store.js'
 import {
   appText,
   componentText,
+  indexedText,
   rightsParts,
   rightsText,
   routeSlugs,
@@ -18,7 +19,7 @@ import '@website/components/home/ContactSection.js'
 import '@website/views/not-found/NotFound.js'
 import { LANG_MUTATIONS } from '@core/tokens/events/mutations.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
-import { SECTION_UI_KEYS } from '@core/tokens/data/ui-keys.js'
+import { A11Y_UI_KEYS, SECTION_UI_KEYS } from '@core/tokens/data/ui-keys.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
 describe('ui-text tails', () => {
@@ -34,6 +35,17 @@ describe('ui-text tails', () => {
     const slugs = routeSlugs({})
 
     expect(slugs).toBeTruthy()
+  })
+
+  test('indexedText substitutes the ordinal into the a11y heading templates', () => {
+    store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, {})
+
+    expect(indexedText(A11Y_UI_KEYS.A11Y_SECTION, 2)).toBe('Section 2')
+    expect(indexedText(A11Y_UI_KEYS.A11Y_CAROUSEL, 1)).toBe('Carousel 1')
+    expect(indexedText(A11Y_UI_KEYS.A11Y_PARAGRAPH, 4)).toBe('Paragraph 4')
+
+    // Missing-key arm — resolves to the empty string, never undefined.
+    expect(indexedText(TEST_TEXT.MISSING_KEY, 1)).toBe(CHAR_STRINGS.EMPTY)
   })
 
   test('rightsText substitutes the live year into the rights template', () => {
