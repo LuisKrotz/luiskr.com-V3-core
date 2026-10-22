@@ -128,9 +128,14 @@ export const _B_CURSOR = 'magnetic-cursor'
  */
 export const _B_DISTORT = 'image-distort'
 /**
+ * BEM block fragment "b footer" — composed by the token groups below into full class names
+ * and dotted ui keys (e.g. `a11y.footer`).
+ */
+export const _B_FOOTER = 'footer'
+/**
  * BEM block fragment "b footer source" — composed by the token groups below into full class names.
  */
-export const _B_FOOTER_SOURCE = 'footer-source'
+export const _B_FOOTER_SOURCE = `${_B_FOOTER}-source`
 /**
  * BEM block fragment `sp` — declared once here; every domain class token composes from this
  * fragment (zero-hardcoding rule 9).

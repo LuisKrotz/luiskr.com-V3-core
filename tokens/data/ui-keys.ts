@@ -9,6 +9,7 @@
 import {
   _B_CONTACT,
   _B_CAROUSEL,
+  _B_FOOTER,
   _B_PREF,
   _K_A11Y,
   _K_CLOSE,
@@ -167,4 +168,5 @@ export const A11Y_UI_KEYS = Object.freeze({
   A11Y_SECTION: `${_K_A11Y}.section`,
   A11Y_CAROUSEL: `${_K_A11Y}.${_B_CAROUSEL}`,
   A11Y_PARAGRAPH: `${_K_A11Y}.paragraph`,
+  A11Y_FOOTER: `${_K_A11Y}.${_B_FOOTER}`,
 })
