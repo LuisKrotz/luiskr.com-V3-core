@@ -45,6 +45,11 @@
   // Muted ink for always-dark surfaces (contact band, modals, photo
   // overlays, loaders): 7.6:1 on --bg-dark in both themes.
   --text-muted-on-dark: #b8b8b8;
+  // Hairline surface tone for controls pinned on always-dark surfaces
+  // (nav burger disc over playground canvases, contact band): mirrors
+  // the dark-theme --border-color so --on-dark variants match across
+  // themes.
+  --border-color-on-dark: color-mix(in srgb, var(--color-white-raw) 14%, transparent);
   --border-color: #e2e2e2;
   --border-item: transparent;
   --border-item-hover: rgba(255, 255, 255, 0.22);

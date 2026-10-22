@@ -13,30 +13,38 @@ import { ML } from '@core/tokens/data/ml.js'
 const makeImg = (w = 4, h = 4) => ({ naturalWidth: w, naturalHeight: h })
 
 /**
- * Stubs document.createElement('canvas') with a 2d-capable fake and
- * records putImageData payloads. Returns the swap-out restorer.
+ * Shared canvas stub state — the module under test memoizes its scratch
+ * canvas (`scratch ??=`), so only the FIRST stubbed createElement wins the
+ * cached instance; every later call's getContext/drawImage must consult
+ * this shared state rather than a per-stub closure.
  */
-const stubCanvas = ({ ctx = true, drawThrows = false } = {}) => {
+const canvasState = { ctx: true, drawThrows: false, calls: { put: [] } }
+
+/**
+ * Stubs document.createElement('canvas') with a 2d-capable fake driven by
+ * canvasState — toggle `canvasState.ctx`/`drawThrows` per test; the winning
+ * canvas keeps consulting them. Returns the swap-out restorer.
+ */
+const stubCanvas = () => {
   const real = document.createElement
-  const calls = { put: [] }
   const fakeCtx = {
     drawImage: () => {
-      if (drawThrows) throw new Error('tainted')
+      if (canvasState.drawThrows) throw new Error('tainted')
     },
     getImageData: (_x, _y, w, h) => ({
       data: new Uint8ClampedArray(w * h * 4).fill(128),
     }),
-    putImageData: (d) => calls.put.push(d),
+    putImageData: (d) => canvasState.calls.put.push(d),
   }
   const fakeCanvas = {
     width: 0,
     height: 0,
-    getContext: () => (ctx ? fakeCtx : null),
+    getContext: () => (canvasState.ctx ? fakeCtx : null),
   }
 
   document.createElement = () => fakeCanvas
 
-  return { calls, restore: () => (document.createElement = real) }
+  return { calls: canvasState.calls, restore: () => (document.createElement = real) }
 }
 
 /** Stubs createImageBitmap — records calls, optional failure. */
@@ -81,7 +89,12 @@ const okRun = (w, h) => async () => ({
 describe('super-res upscaleImage2x', () => {
   let restores = []
 
-  beforeEach(() => (restores = []))
+  beforeEach(() => {
+    restores = []
+    canvasState.ctx = true
+    canvasState.drawThrows = false
+    canvasState.calls.put = []
+  })
   afterEach(() => restores.forEach((r) => r()))
 
   test('null image, missing document and missing createImageBitmap gate out', async () => {
@@ -101,6 +114,12 @@ describe('super-res upscaleImage2x', () => {
   })
 
   test('zero-size and over-cap inputs skip inference entirely', async () => {
+    // The createImageBitmap gate precedes dimsOf — stub it or the test
+    // exits early and never reaches the size checks it means to cover.
+    const b = stubBitmap()
+
+    restores.push(b.restore)
+
     let ran = false
     const run = async () => {
       ran = true
@@ -116,24 +135,45 @@ describe('super-res upscaleImage2x', () => {
     expect(ran).toBe(false)
   })
 
-  test('no 2d context resolves null', async () => {
-    const { restore } = stubCanvas({ ctx: false })
+  test('a drawable with no dimension fields reads as 0×0 → null', async () => {
+    const b = stubBitmap()
 
-    restores.push(restore)
+    restores.push(b.restore)
+
+    let ran = false
+    const run = async () => {
+      ran = true
+
+      return {}
+    }
+
+    expect(await upscaleImage2x({}, run)).toBeNull()
+    expect(ran).toBe(false)
+  })
+
+  test('no 2d context resolves null', async () => {
+    const c = stubCanvas()
+    const b = stubBitmap()
+
+    canvasState.ctx = false
+    restores.push(c.restore, b.restore)
     expect(await upscaleImage2x(makeImg(), okRun(4, 4))).toBeNull()
   })
 
   test('a throwing drawImage (tainted source) resolves null', async () => {
-    const { restore } = stubCanvas({ drawThrows: true })
+    const c = stubCanvas()
+    const b = stubBitmap()
 
-    restores.push(restore)
+    canvasState.drawThrows = true
+    restores.push(c.restore, b.restore)
     expect(await upscaleImage2x(makeImg(), okRun(4, 4))).toBeNull()
   })
 
   test('null model output and wrong output length resolve null', async () => {
-    const { restore } = stubCanvas()
+    const c = stubCanvas()
+    const b = stubBitmap()
 
-    restores.push(restore)
+    restores.push(c.restore, b.restore)
     expect(await upscaleImage2x(makeImg(), async () => null)).toBeNull()
     expect(
       await upscaleImage2x(makeImg(), async () => ({ [ML.OUT_HR_IMAGE]: new Float32Array(3) }))

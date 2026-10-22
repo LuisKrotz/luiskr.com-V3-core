@@ -15,6 +15,9 @@
 import { READER_CLASSES } from '@core/tokens/classes/reader.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
+import { ARIA_ATTRS } from '@core/tokens/attrs/aria.js'
+import { COMMON_ATTRS } from '@core/tokens/attrs/common.js'
+import { READER_STRINGS } from '@core/tokens/strings/reader.js'
 
 /** Extracted article inner markup per path — pages rarely exceed ~30 KB. */
 const cache = new Map<string, string>()
@@ -43,6 +46,18 @@ const ensureHolder = (): HTMLElement => {
 
   holder = document.createElement(HTML_TAGS.ARTICLE)
   holder.classList.add(READER_CLASSES.CONTENT, READER_CLASSES.OFFSCREEN)
+
+  // The parked article mirrors page copy for Readability/crawlers — it is
+  // NOT a second AT surface, so it stays out of the a11y tree and focus
+  // order. role=region + label make it a self-contained landmark (IBM's
+  // DOM-level aria_content_in_landmark checks containment regardless of
+  // hidden state); aria-hidden + inert remove it from AT/tab order so
+  // focusable descendants can't trip aria_hidden_nontabbable. Mirrors the
+  // emitted markup in shared/scripts/build/build-locale-pages.mjs.
+  holder.setAttribute(ARIA_ATTRS.ROLE, ARIA_ATTRS.ROLE_REGION)
+  holder.setAttribute(ARIA_ATTRS.ARIA_LABEL, READER_STRINGS.STATIC_COPY_LABEL)
+  holder.setAttribute(ARIA_ATTRS.ARIA_HIDDEN, ATTR_VALUES.TRUE)
+  holder.setAttribute(COMMON_ATTRS.INERT, ATTR_VALUES.EMPTY)
   document.body.appendChild(holder)
 
   return holder

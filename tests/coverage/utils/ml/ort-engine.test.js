@@ -58,6 +58,37 @@ describe('ort-engine', () => {
     globalThis.window = saved
   })
 
+  test('stamped tiers below the es2025 floor never import the ORT chunk', async () => {
+    let called = false
+    const loader = async () => {
+      called = true
+
+      return makeOrt().ort
+    }
+
+    window[ML.WINDOW_TIER] = `${ML.TIER_PREFIX}2020`
+    expect(await ensureOrt(loader)).toBeNull()
+
+    window[ML.WINDOW_TIER] = 'ie'
+    expect(await ensureOrt(loader)).toBeNull()
+    expect(called).toBe(false)
+
+    delete window[ML.WINDOW_TIER]
+  })
+
+  test('esnext and the es2025 floor tier still allow ML', async () => {
+    const { ort } = makeOrt()
+
+    window[ML.WINDOW_TIER] = ML.TIER_ESNEXT
+    expect(await ensureOrt(loaderOf(ort))).toBe(ort)
+
+    resetMlEngine()
+    window[ML.WINDOW_TIER] = `${ML.TIER_PREFIX}${ML.MIN_ES_TIER}`
+    expect(await ensureOrt(loaderOf(ort))).toBe(ort)
+
+    delete window[ML.WINDOW_TIER]
+  })
+
   test('ensureOrt configures wasmPaths, single thread, warn log level', async () => {
     const { ort } = makeOrt()
 
@@ -118,6 +149,19 @@ describe('ort-engine', () => {
     const nav = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
 
     Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {} })
+
+    await mlSession('frametime', loaderOf(ort))
+
+    expect(state.creates[0].opts.executionProviders).toEqual([ML.EP_WASM])
+
+    if (nav) Object.defineProperty(globalThis, 'navigator', nav)
+  })
+
+  test('EP list resolves wasm-only when navigator itself is absent', async () => {
+    const { ort, state } = makeOrt()
+    const nav = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+
+    Object.defineProperty(globalThis, 'navigator', { configurable: true, value: undefined })
 
     await mlSession('frametime', loaderOf(ort))
 

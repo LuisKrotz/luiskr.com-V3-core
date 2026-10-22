@@ -24,3 +24,9 @@ $_B_NAV: 'nav';
 @import 'nav-controls';
 @import 'menu-overlay';
 @import 'flag';
+
+// Keyboard focus affordance for everything tabbable in this shadow —
+// the WebGL burger canvas is [role=button][tabindex=0], the CSS fallback
+// a real <button>, and menu links real <a>s; document-level focus rules
+// never cross the shadow boundary, so the ring is emitted here.
+@include focus-ring-scope;

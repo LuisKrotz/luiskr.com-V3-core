@@ -73,4 +73,29 @@ describe('BurgerButtonWebGL — program failure + static resize guards', () => {
 
     burger.destroy()
   })
+
+  test('_settleNow takes the WebGL repaint — cold and warm prevT', () => {
+    const canvas = makeCanvas()
+
+    attachMockGL(canvas)
+
+    const burger = new BurgerButtonWebGL(canvas)
+
+    burger.animId = null
+
+    // _prevT=0 → the `|| fallback` computes a fresh time (init may already
+    // have run a loop frame, so pin it explicitly rather than assume).
+    burger._prevT = 0
+    burger._settleNow()
+
+    // _prevT>0 → the `||` first arm reuses the last timestamp.
+    burger._prevT = 3
+    burger._settleNow()
+
+    // useWebGL=false → the `if` else-arm skips the repaint entirely.
+    burger.useWebGL = false
+    burger._settleNow()
+
+    burger.destroy()
+  })
 })

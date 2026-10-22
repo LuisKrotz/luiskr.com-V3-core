@@ -79,6 +79,18 @@ export const ML = Object.freeze({
   DIAGRAM_NORM_SELF: 8,
   /** Render-time threshold (ms) above which a diagram defers to idle. */
   DIAGRAM_DEFER_MS: 24,
+  /**
+   * Minimum ES bundle tier for ML inference — the enhancements are
+   * modern-browser-only progressive layers; the loader-stamped tier
+   * (window.__LK_TIER) below this year never fetches the ORT chunk and
+   * keeps the heuristic path. 'esnext' always qualifies.
+   */
+  MIN_ES_TIER: 2025,
+  /** Tier-name prefix and the non-numeric newest tier name. */
+  TIER_PREFIX: 'es',
+  TIER_ESNEXT: 'esnext',
+  /** Window property the ES5 browser-loader stamps with the picked tier name. */
+  WINDOW_TIER: '__LK_TIER',
 })
 
 /**

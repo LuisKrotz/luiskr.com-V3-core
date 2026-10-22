@@ -16,6 +16,7 @@
  * fallbacks and never need try/catch around inference itself.
  */
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { ASSET_PATHS } from '@core/tokens/routes/paths.js'
 import { ML, ML_SESSION } from '@core/tokens/data/ml.js'
 import { devWarn } from '@core/devlog.js'
@@ -56,6 +57,11 @@ interface MlNavigator {
   gpu?: unknown
 }
 
+/** Loader-stamped ES tier surface — `browser-loader.js` writes `window.__LK_TIER`. */
+interface TieredWindow {
+  [key: string]: string | undefined
+}
+
 /** Feeds entry — raw data + dims; the engine wraps it in an ort Tensor. */
 export interface MlFeed {
   data: Float32Array
@@ -81,6 +87,30 @@ const defaultOrtLoader = async (): Promise<OrtModule> =>
   (await import('onnxruntime-web/webgpu')) as unknown as OrtModule
 
 /**
+ * Modern-tier gate — ML inference is a progressive enhancement reserved
+ * for es2025+ bundles. The loader stamps `window.__LK_TIER` with the
+ * picked tier name ('esnext' always qualifies; `es<year>` qualifies at
+ * `ML.MIN_ES_TIER` and up). When the stamp is absent (dev server,
+ * prerender, tests) ML stays allowed — the EP capability probes remain
+ * the real gate. A stamped older tier returns false so the ~1MB ORT
+ * chunk is never fetched and callers keep their heuristic paths with
+ * zero polyfills.
+ * @returns true when ML inference may run on this browser tier.
+ */
+const mlTierAllowed = (): boolean => {
+  const tier = (
+    (typeof window !== TYPE_STRINGS.UNDEFINED ? window : undefined) as
+      (Window & TieredWindow) | undefined
+  )?.[ML.WINDOW_TIER]
+
+  if (!tier || tier === ML.TIER_ESNEXT) return true
+
+  const year = Number(tier.replace(ML.TIER_PREFIX, CHAR_STRINGS.EMPTY))
+
+  return Number.isFinite(year) && year >= ML.MIN_ES_TIER
+}
+
+/**
  * Lazily imports and configures the ORT runtime — wasm binary paths,
  * single wasm thread (the models are tiny; the proxy worker isn't worth
  * a thread slot), and warning-level logging. Concurrent callers share
@@ -92,7 +122,7 @@ const defaultOrtLoader = async (): Promise<OrtModule> =>
 export const ensureOrt = async (
   loadModule: () => Promise<OrtModule> = defaultOrtLoader
 ): Promise<OrtModule | null> => {
-  if (typeof window === TYPE_STRINGS.UNDEFINED) return null
+  if (typeof window === TYPE_STRINGS.UNDEFINED || !mlTierAllowed()) return null
 
   ortModule ??= loadModule().then((ort) => {
     ort.env.wasm.wasmPaths = ASSET_PATHS.ORT_WASM_PREFIX

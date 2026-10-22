@@ -80,4 +80,17 @@ export const ANIMATION_DURATIONS = Object.freeze({
   BRACKET_MS: 250,
   /** Faster bracket ramp (ms) — the 0.2s variant on expand-modal/cookies bracket buttons */
   BRACKET_FAST_MS: 200,
+  /**
+   * Media-figure cross-fade (ms) — the 0.5s opacity transition on
+   * .render-media--high in media-figure/_media.scss. Under-layers are
+   * retired only after the successor is fully opaque, never mid-fade
+   * (the quality-swap blink).
+   */
+  MEDIA_LAYER_FADE: 500,
+  /**
+   * Under-layer retire fallback (ms) — transitionend normally ends the
+   * cross-fade; this timeout covers reduced-motion/no-transition engines
+   * where the event never lands. Must outlast MEDIA_LAYER_FADE.
+   */
+  MEDIA_LAYER_RETIRE: 750,
 })

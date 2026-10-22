@@ -15,7 +15,7 @@ html.dark-mode {
   --text-primary: #ffffff;
   --text-secondary: #e2e8f0;
   --text-muted: #b8b1ac;
-  --border-color: rgba(255, 255, 255, 0.14);
+  --border-color: var(--border-color-on-dark);
   --color-accent-contrast: #{$cms-accent};
   --btn-accent-fill: rgba(255, 255, 255, 0.08);
   --glass-bg: rgba(11, 12, 16, 0.92);
