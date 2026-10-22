@@ -52,4 +52,11 @@ export const KEYS = Object.freeze({
   ARROW_RIGHT: 'ArrowRight',
   ARROW_UP: 'ArrowUp',
   ARROW_DOWN: 'ArrowDown',
+  /** Printable single-key shortcuts — matched case-folded, never with
+   *  Ctrl/Meta/Alt held so browser/system chords pass through. */
+  SLASH: '/',
+  KEY_I: 'i',
+  KEY_N: 'n',
+  KEY_O: 'o',
+  KEY_S: 's',
 })

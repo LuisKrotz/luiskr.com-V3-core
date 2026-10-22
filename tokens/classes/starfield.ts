@@ -113,4 +113,10 @@ export const SF_CLASSES = Object.freeze({
   SF_INSTRUCTIONS_BODY: `${_B_SF}-instructions-body`,
   SF_INSTRUCTIONS_HINT: `${_B_SF}-instructions-hint`,
   SF_INSTRUCTIONS_DISCLAIMER: `${_B_SF}-instructions-disclaimer`,
+  /** Keyboard-shortcut definition list inside the instructions modal. */
+  SF_INSTRUCTIONS_KEYS: `${_B_SF}-instructions-keys`,
+  /** One shortcut row — <kbd> keycap + action description. */
+  SF_INSTRUCTIONS_KEY: `${_B_SF}-instructions-key`,
+  /** The <kbd> keycap itself. */
+  SF_INSTRUCTIONS_KEYCAP: `${_B_SF}-instructions-keycap`,
 })

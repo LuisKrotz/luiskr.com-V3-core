@@ -29,6 +29,9 @@ export const CHAR_STRINGS = Object.freeze({
   PIPE_SEP: '|',
   DOT_SEP: '•',
   COPYRIGHT: '©',
+  /** Keycap glyph rows for shortcut documentation (arrows + Escape). */
+  ARROW_KEYS: '← → ↑ ↓',
+  ESC_KEYCAP: 'Esc',
   SPACE_CHAR: ' ',
   NBSP: ' ',
   ZERO: '0',
