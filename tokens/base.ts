@@ -522,6 +522,12 @@ export const _K_POINTERENTER = 'pointerenter'
  */
 export const _K_FOCUS = 'focus'
 /**
+ * Shared key token `a11y` — the APP dictionary node holding the hidden
+ * navigation-heading templates (a11y.section / a11y.carousel /
+ * a11y.paragraph).
+ */
+export const _K_A11Y = 'a11y'
+/**
  * Token key "k site url" — single source for the repeated literal.
  */
 export const _K_SITE_URL = 'https://luiskr.com'

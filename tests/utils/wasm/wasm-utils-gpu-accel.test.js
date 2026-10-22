@@ -2,11 +2,13 @@
  * @file wasm-utils-gpu-accel.test.js
  * @description Split from wasm-utils.test.js — covers the "gpu-accel" describe.
  */
+import { describe, test, expect, beforeEach } from '@jest/globals'
 import { gpuAccel } from '@core/utils/gpu/gpu-accel.js'
 import { attachMockGL } from '@tests/fixtures/mock-webgl.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
+import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 
 // The shared setup rAF stub calls cb() with no timestamp — wasm-scroll's
 // easing math needs `now`. Re-stub here to pass monotonic timestamps.
@@ -24,6 +26,14 @@ const _installTimedRaf = () => {
 
 // ─── gpu-accel ───────────────────────────────────────────────────────────────
 describe('gpu-accel', () => {
+  beforeEach(() => {
+    // webglAllowed()'s ambient gates — URL debug flag + the documentElement
+    // reduced-motion class — are pinned so initGPU()'s context probe is
+    // deterministic regardless of suite-scheduling ambient state.
+    window.history.replaceState(null, '', '/')
+    document.documentElement.classList.remove(STATE_CLASSES.REDUCED_MOTION)
+  })
+
   test('lazily creates the GL context on first use', () => {
     const origCreate = document.createElement.bind(document)
 

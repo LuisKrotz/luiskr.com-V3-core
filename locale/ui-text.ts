@@ -7,7 +7,11 @@
 
 import { LOCALES } from '@core/tokens/locales.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
-import { SOURCE_COMPONENT_KEYS, SOURCE_YEAR_TOKEN } from '@core/tokens/data/component-keys.js'
+import {
+  A11Y_INDEX_TOKEN,
+  SOURCE_COMPONENT_KEYS,
+  SOURCE_YEAR_TOKEN,
+} from '@core/tokens/data/component-keys.js'
 import store from '@core/store.js'
 import { FALLBACK_APP, FALLBACK_COMPONENTS } from './fallback.js'
 import { LANG_SLUGS, type LangSlugMap } from '@core/i18n.js'
@@ -53,6 +57,19 @@ export const componentText = (path: string): unknown => {
 
   return live ?? _dig(FALLBACK_COMPONENTS, path)
 }
+
+/**
+ * Resolves an indexed a11y template (`a11y.section` / `a11y.carousel` /
+ * `a11y.paragraph`) and substitutes the `{index}` placeholder with the
+ * 1-based ordinal — the hidden navigation headings that let assistive-tech
+ * users jump straight to a section, carousel, or paragraph. Templates keep
+ * the placeholder so translators position the number freely.
+ * @param path  dotted APP path, e.g. A11Y_UI_KEYS.A11Y_SECTION
+ * @param index 1-based ordinal inserted at the {index} placeholder
+ * @returns the localized label, e.g. 'Section 2' / 'Seção 2'
+ */
+export const indexedText = (path: string, index: number): string =>
+  String(appText(path) || CHAR_STRINGS.EMPTY).replace(A11Y_INDEX_TOKEN, String(index))
 
 /**
  * Route slugs for a locale: CMS-editable overrides (translations/<loc>/slugs,
