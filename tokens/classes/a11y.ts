@@ -10,4 +10,7 @@
  */
 export const A11Y_CLASSES = Object.freeze({
   SR_ONLY: 'sr-only',
+  SR_ONLY_ALPHA: 'sr-only-alpha',
+  /** Keyboard skip-link — visually hidden until :focus-visible. */
+  SKIP_LINK: 'skip-link',
 })

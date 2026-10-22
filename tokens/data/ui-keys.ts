@@ -42,6 +42,8 @@ export const NAV_UI_KEYS = Object.freeze({
   LANGUAGE: 'language',
   MENU: 'menu',
   CLOSE: _K_CLOSE,
+  /** Keyboard skip-link label ('skip' in the APP dictionary). */
+  SKIP: 'skip',
   SITE_PREFERENCES: 'sitePreferences',
 })
 
@@ -54,6 +56,7 @@ export const COOKIE_UI_KEYS = Object.freeze({
   COOKIES_ACCEPT: 'cookies.accept',
   COOKIES_REFUSE: 'cookies.refuse',
   COOKIES_MESSAGE: 'cookies.message',
+  COOKIES_REGION: 'cookies.region',
 })
 
 /**

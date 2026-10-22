@@ -156,12 +156,14 @@ $_B_LOADER: 'intro-loader';
   }
 
   // Brand line under the counter — same register as the experiment titles.
+  // 0.7 alpha keeps it inside WCAG AA on the near-black veil (13px / 200w
+  // needs 4.5:1 — 0.4 measured 3.68:1).
   &-title {
     @extend %TTL_XS;
 
     letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: rgba($color-white, 0.4);
+    color: rgba($color-white, 0.7);
     margin-bottom: to-rem($space-xs);
   }
 

@@ -60,6 +60,8 @@ export const COMMON_ATTRS = Object.freeze({
   TOUCH: 'touch',
   /** `pointer` input-method value — fine pointer (mouse/trackpad) primary input. */
   POINTER: 'pointer',
+  /** `inert` — global boolean attribute: subtree is non-interactive and non-focusable. */
+  INERT: 'inert',
   /** `fit` — sizing/fit field name used by media layout contracts. */
   FIT: 'fit',
   /**

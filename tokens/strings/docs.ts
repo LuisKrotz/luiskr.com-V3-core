@@ -30,6 +30,10 @@ export const DOCS_STRINGS = Object.freeze({
   CRUMB_INPUT_HINT: 'Type a docs path segment and press Enter',
   TREE_LABEL: 'Documentation tree',
   GRID_LABEL: 'Folders and files',
+  /** aria-label on the docs content area — the shell already owns the
+   *  sole <main> landmark, so the portal's content region is a named
+   *  section (region landmark) rather than a second main. */
+  MAIN_LABEL: 'Document content',
   NAV_TOGGLE: 'Browse the docs tree',
   VIEWER_BACK: 'Back',
   SOURCE_PROTECTED_LABEL: 'Copy protection active',

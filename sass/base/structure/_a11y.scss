@@ -3,10 +3,11 @@
 //  every component shadow root.
 //
 //  `.sr-only` — the visually-hidden pattern for helper-injected nodes (the
-//  animation-description `<span>`s stamped by core/utils/a11y/animation-desc).
-//  The class token lives in core/tokens/classes/a11y.ts (A11Y_CLASSES.SR_ONLY)
-//  and this rule is its sole declaration site — the spellings match by
-//  construction, same convention as the skeleton selectors.
+//  animation-description `<span>`s stamped by core/utils/a11y/animation-desc,
+//  and draw-text's accessible real-text twin). The class token lives in
+//  core/tokens/classes/a11y.ts (A11Y_CLASSES.SR_ONLY) and this rule is its
+//  sole declaration site — the spellings match by construction, same
+//  convention as the skeleton selectors.
 //
 //  Two delivery paths consume this one authored file:
 //    1. Document: `@import 'structure/a11y'` inside _structure.scss — the
@@ -16,10 +17,21 @@
 //       component's adopted stylesheet (and to the legacy <style>-node
 //       fallback), so shadow-injected description nodes are hidden too.
 //
-//  `display:none` is deliberately NOT used — it would evict the node from
-//  the accessibility tree; the clipped-1px recipe keeps the text present
-//  for assistive tech, crawlers, AI agents and reader mode while painting
-//  nothing on-screen.
+//  `display:none` is deliberately NOT used — the clipped-1px recipe keeps
+//  the node in the rendered DOM for crawlers/AI readers and (when the node
+//  is not aria-hidden, e.g. draw-text's accessible twin) for assistive
+//  tech, while painting nothing on-screen. The anim-desc nodes carry
+//  aria-hidden themselves: their text is crawler-only by contract.
+//
+//  `.sr-only-alpha` — opacity-based variant used ONLY for text twins that
+//  must feed an ancestor's accessible name inside shadow DOM. Chromium's
+//  `innerText` returns "" for shadow-tree content, so accessibility
+//  engines that lean on it (IBM ace's <a> fast-path) fall back to a
+//  content walk that treats `clip-path`-clipped nodes as hidden-from-AT
+//  and never sees the twin. `opacity:0` stays invisible to users but is
+//  counted by both Chromium's acc-name walk and IBM's isNodeVisible —
+//  while `isNodeVisuallyHidden` (opacity<0.1) still exempts it from
+//  contrast checks. position:absolute keeps it out of layout.
 // ════════════════════════════════════════════════════════════════════════════
 
 .sr-only {
@@ -32,4 +44,37 @@
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
+}
+
+.sr-only-alpha {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+// `.skip-link` — the keyboard jump-to-main anchor, first focusable node
+// inside the app-root shadow. Off-canvas until :focus-visible (pointer
+// users never see it); on keyboard focus it slides onto the page with
+// the themed surface/ink so the jump affordance is readable on any
+// theme or dark-surface scene.
+.skip-link {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-top);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: var(--space-hairline) solid var(--border-color);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transform: translateY(-110%);
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+
+  &:focus-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

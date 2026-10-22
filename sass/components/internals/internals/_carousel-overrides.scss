@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  internals/_carousel-overrides.scss — internals items rendered inside
 //  a .carousel track: symmetric item padding restoration, slide-loading
-//  state, the no-WebGL carousel fallback, and the .project section reset.
+//  state, and the no-WebGL carousel fallback.
 //  Imported by internals.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -77,10 +77,4 @@
   @extend %MAXAREA;
 
   box-sizing: border-box;
-}
-
-// Parallax effect removed: sections render with full opacity and normal layout flow
-.project section {
-  opacity: 1;
-  transform: none;
 }

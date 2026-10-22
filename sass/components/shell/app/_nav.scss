@@ -254,6 +254,19 @@
       color: var(--color-white-raw);
     }
 
+    // Burger disc: the shared wrap paints --border-color which is the
+    // light hairline in light mode — invisible over always-dark scenes.
+    // --on-dark pins the dark-surface tone; :hover/:focus-within are
+    // restated so the wrap's own hover rule (a later partial) can't
+    // re-flip it to the light token.
+    .#{$_B_NAV}-burger-wrap {
+      &,
+      &:hover,
+      &:focus-within {
+        background: var(--border-color-on-dark);
+      }
+    }
+
     .#{$_B_NAV}-burger-fallback {
       .#{$_B_NAV}-burger-square {
         background: var(--grey-2);

@@ -1,13 +1,14 @@
 /**
  * @file animation-desc-tails.test.js
  * @description Coverage for core/utils/a11y/animation-desc.ts — the
- * translated animation-description binder. Covers: the record lookup
+ * translated animation-description injector. Covers: the record lookup
  * (live locale dictionary + bundled EN fallback + missing id), the
  * hidden desc node lifecycle (document root, shadow root, reuse +
- * re-text on locale switch, non-queryable root), the element contract
- * (img alt + longdesc + describedby, canvas role/label/fallback text,
- * generic aria-label), accessible-name preservation, idempotent
- * re-application and the empty-record no-op.
+ * re-text on locale switch, non-queryable root), the crawler-only
+ * contract (aria-hidden + sr-only node, ZERO ARIA wiring on targets —
+ * no describedby/longdesc/label/role is ever stamped), the no-canvas-
+ * inner-text rule (inner text on a labelled canvas mismatches the
+ * accessible name — Label-in-Name), and the empty-record no-op.
  */
 import { describe, test, expect, beforeEach, afterEach } from '@jest/globals'
 import store from '@core/store.js'
@@ -34,6 +35,15 @@ const liveRecord = (alt, longdesc) => {
   store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, {
     animations: { [TEST_ID]: { alt, longdesc } },
   })
+}
+
+/** Every attribute the old contract used to stamp must stay unset. */
+const expectNoAriaWiring = (el) => {
+  expect(el.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBeNull()
+  expect(el.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBeNull()
+  expect(el.getAttribute(ARIA_ATTRS.ROLE)).toBeNull()
+  expect(el.getAttribute(COMMON_ATTRS.LONGDESC)).toBeNull()
+  expect(el.getAttribute(DATA_ATTRS.DATA_ANIM_LABEL)).toBeNull()
 }
 
 describe('animation-desc tails', () => {
@@ -81,9 +91,16 @@ describe('animation-desc tails', () => {
 
     expect(animationAlt(TEST_ID)).toBe(ATTR_VALUES.EMPTY)
     expect(animationLongDesc(TEST_ID)).toBe(ATTR_VALUES.EMPTY)
+
+    const div = document.createElement(HTML_TAGS.DIV)
+
+    document.body.appendChild(div)
+    applyAnimationDesc(div, TEST_ID)
+
+    expect(document.getElementById(DESC_ID)).toBeNull()
   })
 
-  test('document-root: img gets alt, longdesc ref and the hidden node', () => {
+  test('document-root img: crawler node lands, zero a11y wiring on the image', () => {
     const img = document.createElement(HTML_TAGS.IMG)
 
     document.body.appendChild(img)
@@ -94,10 +111,23 @@ describe('animation-desc tails', () => {
     expect(node).not.toBeNull()
     expect(node.tagName).toBe(HTML_TAGS.SPAN.toUpperCase())
     expect(node.classList.contains(A11Y_CLASSES.SR_ONLY)).toBe(true)
+    expect(node.getAttribute(ARIA_ATTRS.ARIA_HIDDEN)).toBe(ATTR_VALUES.TRUE)
     expect(node.textContent.length).toBeGreaterThan(0)
-    expect(img.getAttribute(MEDIA_ATTRS.ALT)).toBe(animationAlt(TEST_ID))
-    expect(img.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
-    expect(img.getAttribute(COMMON_ATTRS.LONGDESC)).toBe(`#${DESC_ID}`)
+
+    // The image keeps exactly the semantics its author gave it.
+    expectNoAriaWiring(img)
+    expect(img.getAttribute(MEDIA_ATTRS.ALT)).toBeNull()
+  })
+
+  test('an author-provided alt is preserved and never clobbered', () => {
+    const img = document.createElement(HTML_TAGS.IMG)
+
+    img.setAttribute(MEDIA_ATTRS.ALT, 'author-provided alt')
+    document.body.appendChild(img)
+    applyAnimationDesc(img, TEST_ID)
+
+    expect(img.getAttribute(MEDIA_ATTRS.ALT)).toBe('author-provided alt')
+    expectNoAriaWiring(img)
   })
 
   test('shadow-root: the desc node lands inside the same root', () => {
@@ -115,46 +145,35 @@ describe('animation-desc tails', () => {
 
     expect(node).not.toBeNull()
     expect(document.getElementById(DESC_ID)).toBeNull()
-    expect(img.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
+    expectNoAriaWiring(img)
   })
 
-  test('canvas gets role=img, aria-label and fallback text content', () => {
+  test('canvas gets the crawler node only — inner text and attrs untouched', () => {
     const canvas = document.createElement(HTML_TAGS.CANVAS)
 
     document.body.appendChild(canvas)
     applyAnimationDesc(canvas, TEST_ID)
 
-    expect(canvas.getAttribute(ARIA_ATTRS.ROLE)).toBe(ARIA_ATTRS.ROLE_IMG)
-    expect(canvas.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBe(animationAlt(TEST_ID))
-    expect(canvas.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
-    expect(canvas.textContent).toBe(animationLongDesc(TEST_ID))
+    // The sibling desc node carries the text; the canvas itself stays
+    // pristine — inner text on a labelled canvas mismatches its
+    // accessible name (Label-in-Name / IBM label_name_visible).
+    expect(document.getElementById(DESC_ID)).not.toBeNull()
+    expect(canvas.textContent).toBe(ATTR_VALUES.EMPTY)
+    expect(canvas.getAttribute(DATA_ATTRS.DATA_ANIM_DESC)).toBeNull()
+    expectNoAriaWiring(canvas)
   })
 
-  test('generic elements get aria-label + role=img but no longdesc/alt attrs', () => {
+  test('generic elements get the crawler node and nothing else', () => {
     const div = document.createElement(HTML_TAGS.DIV)
 
     document.body.appendChild(div)
     applyAnimationDesc(div, TEST_ID)
 
-    expect(div.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBe(animationAlt(TEST_ID))
-    expect(div.getAttribute(ARIA_ATTRS.ROLE)).toBe(ARIA_ATTRS.ROLE_IMG)
-    expect(div.getAttribute(MEDIA_ATTRS.ALT)).toBeNull()
-    expect(div.getAttribute(COMMON_ATTRS.LONGDESC)).toBeNull()
-    expect(div.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
+    expect(document.getElementById(DESC_ID)).not.toBeNull()
+    expectNoAriaWiring(div)
   })
 
-  test('generic elements keep an author-provided role', () => {
-    const div = document.createElement(HTML_TAGS.DIV)
-
-    div.setAttribute(ARIA_ATTRS.ROLE, 'presentation')
-    document.body.appendChild(div)
-    applyAnimationDesc(div, TEST_ID)
-
-    expect(div.getAttribute(ARIA_ATTRS.ROLE)).toBe('presentation')
-    expect(div.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBe(animationAlt(TEST_ID))
-  })
-
-  test('links and buttons keep their content name — no aria-label', () => {
+  test('links and buttons keep exactly their own semantics', () => {
     for (const tag of [HTML_TAGS.A, HTML_TAGS.BUTTON]) {
       const el = document.createElement(tag)
 
@@ -162,14 +181,11 @@ describe('animation-desc tails', () => {
       document.body.appendChild(el)
       applyAnimationDesc(el, TEST_ID)
 
-      expect(el.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBeNull()
-      expect(el.getAttribute(DATA_ATTRS.DATA_ANIM_LABEL)).toBeNull()
-      expect(el.getAttribute(ARIA_ATTRS.ROLE)).toBeNull()
-      expect(el.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
+      expectNoAriaWiring(el)
     }
   })
 
-  test('hosts wrapping interactive descendants get no name or role', () => {
+  test('hosts wrapping interactive descendants are untouched', () => {
     const div = document.createElement(HTML_TAGS.DIV)
     const link = document.createElement(HTML_TAGS.A)
 
@@ -179,38 +195,18 @@ describe('animation-desc tails', () => {
     document.body.appendChild(div)
     applyAnimationDesc(div, TEST_ID)
 
-    expect(div.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBeNull()
-    expect(div.getAttribute(ARIA_ATTRS.ROLE)).toBeNull()
-    expect(div.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
+    expectNoAriaWiring(div)
   })
 
-  test('shadow hosts keep the label but never take role=img', () => {
+  test('shadow hosts get the crawler node and nothing else', () => {
     const host = document.createElement('awards-carousel')
 
     host.attachShadow({ mode: 'open' })
     document.body.appendChild(host)
     applyAnimationDesc(host, TEST_ID)
 
-    expect(host.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBe(animationAlt(TEST_ID))
-    expect(host.getAttribute(ARIA_ATTRS.ROLE)).toBeNull()
-  })
-
-  test('existing accessible names are never overwritten', () => {
-    const img = document.createElement(HTML_TAGS.IMG)
-
-    img.setAttribute(MEDIA_ATTRS.ALT, 'author-provided alt')
-    document.body.appendChild(img)
-    applyAnimationDesc(img, TEST_ID)
-
-    expect(img.getAttribute(MEDIA_ATTRS.ALT)).toBe('author-provided alt')
-
-    const div = document.createElement(HTML_TAGS.DIV)
-
-    div.setAttribute(ARIA_ATTRS.ARIA_LABEL, 'author-provided label')
-    document.body.appendChild(div)
-    applyAnimationDesc(div, TEST_ID)
-
-    expect(div.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBe('author-provided label')
+    expect(document.getElementById(DESC_ID)).not.toBeNull()
+    expectNoAriaWiring(host)
   })
 
   test('existing canvas role is preserved', () => {
@@ -221,18 +217,6 @@ describe('animation-desc tails', () => {
     applyAnimationDesc(canvas, TEST_ID)
 
     expect(canvas.getAttribute(ARIA_ATTRS.ROLE)).toBe('presentation')
-  })
-
-  test('img with existing alt still gains longdesc + describedby', () => {
-    const img = document.createElement(HTML_TAGS.IMG)
-
-    img.setAttribute(MEDIA_ATTRS.ALT, 'kept')
-    document.body.appendChild(img)
-    applyAnimationDesc(img, TEST_ID)
-
-    expect(img.getAttribute(MEDIA_ATTRS.ALT)).toBe('kept')
-    expect(img.getAttribute(COMMON_ATTRS.LONGDESC)).toBe(`#${DESC_ID}`)
-    expect(img.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
   })
 
   test('re-application is idempotent — one node, refreshed text', () => {
@@ -252,11 +236,10 @@ describe('animation-desc tails', () => {
 
     expect(second).toBe(first)
     expect(second.textContent).toBe('novo texto longo')
-    expect(div.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBe('novo alt')
     expect(document.querySelectorAll(`#${DESC_ID}`).length).toBe(1)
   })
 
-  test('empty longdesc produces no node and no describedby', () => {
+  test('alt-only records produce no node — longdesc is the payload', () => {
     liveRecord('alt only', ATTR_VALUES.EMPTY)
 
     const div = document.createElement(HTML_TAGS.DIV)
@@ -264,12 +247,11 @@ describe('animation-desc tails', () => {
     document.body.appendChild(div)
     applyAnimationDesc(div, TEST_ID)
 
-    expect(div.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBe('alt only')
-    expect(div.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBeNull()
     expect(document.getElementById(DESC_ID)).toBeNull()
+    expectNoAriaWiring(div)
   })
 
-  test('canvas fallback text is not overwritten when already set', () => {
+  test('canvas author fallback content is left untouched', () => {
     const canvas = document.createElement(HTML_TAGS.CANVAS)
 
     canvas.textContent = 'author fallback'
@@ -277,6 +259,7 @@ describe('animation-desc tails', () => {
     applyAnimationDesc(canvas, TEST_ID)
 
     expect(canvas.textContent).toBe('author fallback')
+    expect(canvas.getAttribute(DATA_ATTRS.DATA_ANIM_DESC)).toBeNull()
   })
 
   test('detached element hosts the desc node inside its own root', () => {
@@ -284,35 +267,11 @@ describe('animation-desc tails', () => {
 
     applyAnimationDesc(div, TEST_ID)
 
-    expect(div.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBe(animationAlt(TEST_ID))
     expect(div.querySelector(`#${DESC_ID}`)).not.toBeNull()
     expect(document.getElementById(DESC_ID)).toBeNull()
   })
 
-  test('alt-less records still bind describedby + longdesc', () => {
-    liveRecord(ATTR_VALUES.EMPTY, 'only the long text')
-
-    const img = document.createElement(HTML_TAGS.IMG)
-
-    document.body.appendChild(img)
-    applyAnimationDesc(img, TEST_ID)
-
-    expect(img.getAttribute(MEDIA_ATTRS.ALT)).toBeNull()
-    expect(img.getAttribute(ARIA_ATTRS.ARIA_LABEL)).toBeNull()
-    expect(img.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
-  })
-
-  test('describedby merges with a pre-existing ref instead of replacing it', () => {
-    const div = document.createElement(HTML_TAGS.DIV)
-
-    div.setAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY, 'other-ref')
-    document.body.appendChild(div)
-    applyAnimationDesc(div, TEST_ID)
-
-    expect(div.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(`other-ref ${DESC_ID}`)
-  })
-
-  test('canvas fallback text refreshes on re-apply when helper-owned', () => {
+  test('canvas re-apply refreshes the node text, never the canvas', () => {
     const canvas = document.createElement(HTML_TAGS.CANVAS)
 
     document.body.appendChild(canvas)
@@ -321,8 +280,9 @@ describe('animation-desc tails', () => {
     liveRecord('x', 'refreshed canvas text')
     applyAnimationDesc(canvas, TEST_ID)
 
-    expect(canvas.textContent).toBe('refreshed canvas text')
-    expect(canvas.getAttribute(DATA_ATTRS.DATA_ANIM_DESC)).toBe(TEST_ID)
+    expect(document.getElementById(DESC_ID).textContent).toBe('refreshed canvas text')
+    expect(canvas.textContent).toBe(ATTR_VALUES.EMPTY)
+    expect(canvas.getAttribute(DATA_ATTRS.DATA_ANIM_DESC)).toBeNull()
   })
 
   test('canvas text owned by a different animation id is left alone', () => {
@@ -337,7 +297,7 @@ describe('animation-desc tails', () => {
     expect(canvas.getAttribute(DATA_ATTRS.DATA_ANIM_DESC)).toBe('other-animation')
   })
 
-  test('falsy root skips the desc node but still applies the name', () => {
+  test('falsy root skips the desc node', () => {
     const el = {
       getRootNode: () => null,
       tagName: HTML_TAGS.DIV.toUpperCase(),
@@ -350,7 +310,6 @@ describe('animation-desc tails', () => {
 
     applyAnimationDesc(el, TEST_ID)
 
-    expect(el.attrs[ARIA_ATTRS.ARIA_LABEL]).toBe(animationAlt(TEST_ID))
     expect(el.attrs[ARIA_ATTRS.ARIA_DESCRIBEDBY]).toBeUndefined()
   })
 
@@ -367,7 +326,7 @@ describe('animation-desc tails', () => {
 
     applyAnimationDesc(el, TEST_ID)
 
-    expect(el.attrs[ARIA_ATTRS.ARIA_DESCRIBEDBY]).toBeUndefined()
+    expect(Object.keys(el.attrs).length).toBe(0)
   })
 
   test('root without an ownerDocument yields no desc node', () => {
@@ -383,7 +342,7 @@ describe('animation-desc tails', () => {
 
     applyAnimationDesc(el, TEST_ID)
 
-    expect(el.attrs[ARIA_ATTRS.ARIA_DESCRIBEDBY]).toBeUndefined()
+    expect(Object.keys(el.attrs).length).toBe(0)
   })
 
   test('document-like root with no element host yields no desc node', () => {
@@ -404,7 +363,7 @@ describe('animation-desc tails', () => {
 
     applyAnimationDesc(el, TEST_ID)
 
-    expect(el.attrs[ARIA_ATTRS.ARIA_DESCRIBEDBY]).toBeUndefined()
+    expect(Object.keys(el.attrs).length).toBe(0)
   })
 
   test('documentElement hosts the node when body is missing', () => {
@@ -428,7 +387,6 @@ describe('animation-desc tails', () => {
     applyAnimationDesc(el, TEST_ID)
 
     expect(hostEl.querySelector(`#${DESC_ID}`)).not.toBeNull()
-    expect(el.attrs[ARIA_ATTRS.ARIA_DESCRIBEDBY]).toBe(DESC_ID)
   })
 
   test('desc node climbs out of phrasing parents — heading text stays clean', () => {
@@ -452,7 +410,6 @@ describe('animation-desc tails', () => {
     // every text-bearing element.
     expect(node.parentElement).toBe(section)
     expect(heading.textContent).toBe('Section title')
-    expect(img.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
   })
 
   test('the document body itself anchors the node via the document host', () => {
@@ -465,6 +422,5 @@ describe('animation-desc tails', () => {
     const node = main.querySelector(`#${DESC_ID}`)
 
     expect(node).not.toBeNull()
-    expect(document.body.getAttribute(ARIA_ATTRS.ARIA_DESCRIBEDBY)).toBe(DESC_ID)
   })
 })

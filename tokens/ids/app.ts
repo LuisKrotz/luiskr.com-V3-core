@@ -19,4 +19,6 @@ export const APP_IDS = Object.freeze({
   SF_NAV_PANEL: 'sf-nav-panel',
   /** Star-field mobile instructions drawer — aria-controls target for its toggle. */
   SF_INSTRUCTIONS_PANEL: 'sf-instructions-panel',
+  /** Star-field dossier panel title — aria-labelledby target for the aside landmark. */
+  SF_PANEL_TITLE: 'sf-panel-title',
 })
