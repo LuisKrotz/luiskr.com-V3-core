@@ -67,6 +67,13 @@ export const DOCS_STRINGS = Object.freeze({
   /** Visible chip captioning the backdrop scene so the interactive
    *  architecture map is obvious to a first-time viewer. */
   SCENE_HINT: 'Architecture map — drag to orbit, click a node to navigate',
+  /** sr-only heading + landmark names for the complete document index —
+   *  every manifest node rendered as a heading link so AT heading-jump
+   *  and crawlers reach all docs without walking the tree. */
+  INDEX_TITLE: 'All documents',
+  INDEX_LABEL: 'Complete documentation index',
+  /** Viewer heading shown when a file is open — labels the content region. */
+  VIEWER_HEADING_PREFIX: 'Viewing',
 })
 
 /**
