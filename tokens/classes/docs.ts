@@ -64,4 +64,6 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_LOADER_MSG: `${_B_DOCS}-loader-msg`,
   DOCS_LOADER_BAR: `${_B_DOCS}-loader-bar`,
   DOCS_LOADER_BAR_FILL: `${_B_DOCS}-loader-bar-fill`,
+  /** Complete-document index nav — offscreen + content-visibility skipped. */
+  DOCS_INDEX: `${_B_DOCS}-index`,
 })

@@ -151,6 +151,10 @@ export const DOCS_UNITS = Object.freeze({
    *  the ambient autorotate. Restored poses skip the intro entirely. */
   SCENE_INTRO_TURN: -Math.PI * 0.75,
   SCENE_INTRO_MS: 11000,
+  /** scene3d/WebGPU mount deadline — adapter+device+artifact acquisition
+   *  can wedge on a wedged GPU process; past this bound the canvas mounts
+   *  the proven three.js arm instead of waiting forever on a blank map. */
+  SCENE3D_MOUNT_TIMEOUT: 4000,
   /** Camera framing — distance = graphR·FIT and height = dist·LIFT.
    *  FIT is deliberately under the full-fit ratio: deep manifests push
    *  graphR past 100, and fitting the whole tree shrinks every ring to

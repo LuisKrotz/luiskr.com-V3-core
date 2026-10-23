@@ -252,4 +252,30 @@ describe('shared-renderer purge/restore', () => {
     expect(layer.renderer).toBeNull()
     expect(layer.canvas).toBeNull()
   })
+
+  test('SkeletonWebGL destroy clears the idle handle via clearTimeout when no rIC api exists', () => {
+    const { host, root, content } = makeSkeletonHost()
+    const layer = new SkeletonWebGL(host, root, content)
+
+    // The idle handle was scheduled through setTimeout — the matching
+    // cancel path must be clearTimeout, exercised with both rIC globals
+    // absent (mirrors init.ts's schedule predicate).
+    layer._idleId = setTimeout(() => {}, 0)
+
+    const savedCancel = globalThis.cancelIdleCallback
+    const savedRic = globalThis.requestIdleCallback
+
+    delete globalThis.cancelIdleCallback
+    delete globalThis.requestIdleCallback
+
+    layer.destroy()
+
+    if (savedCancel === undefined) delete globalThis.cancelIdleCallback
+    else globalThis.cancelIdleCallback = savedCancel
+
+    if (savedRic === undefined) delete globalThis.requestIdleCallback
+    else globalThis.requestIdleCallback = savedRic
+
+    expect(layer._idleId).toBeNull()
+  })
 })
