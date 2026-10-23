@@ -315,9 +315,16 @@ export class SkeletonWebGL {
     this._observed.clear()
 
     if (this._idleId) {
-      if (typeof cancelIdleCallback === TYPE_STRINGS.FUNCTION) cancelIdleCallback(this._idleId)
-
-      clearTimeout(this._idleId)
+      // The id came from requestIdleCallback when the API existed at
+      // schedule time, setTimeout otherwise — cancel through the SAME
+      // api only. rIC and timer ids are independent counters; a blind
+      // clearTimeout() on an rIC handle can kill an unrelated pending
+      // setTimeout (observed: the route progress-bar completion).
+      if (typeof cancelIdleCallback === TYPE_STRINGS.FUNCTION) {
+        cancelIdleCallback(this._idleId)
+      } else {
+        clearTimeout(this._idleId)
+      }
 
       this._idleId = null
     }
