@@ -124,6 +124,11 @@ export interface CoverVariants {
    *  walks them, highest proven quality last) — empty when no LQIP
    *  exists, since `src` is then already the original. */
   rungs: CoverRung[]
+  /** Ascending rungs on the 768px `{stem}-mobile` derivative ladder —
+   *  the correct climb for boxes ≤768 CSS px (the same stem grammar, so
+   *  every rung is a fraction of its full-width twin's bytes). Empty when
+   *  the manifest proves no mobile tier. */
+  mobileRungs: CoverRung[]
 }
 
 /**
@@ -212,5 +217,9 @@ export function coverVariants(coverJpg: string): CoverVariants {
     mobileJpg: hasMobile ? mobileJpg : ATTR_VALUES.EMPTY,
     mobileWebp: hasMobile ? webpIfExists(mobileJpg) : ATTR_VALUES.EMPTY,
     rungs: hasThumb ? coverRungs(coverJpg) : [],
+    // mediaRungs, not coverRungs: the `{stem}-mobile.jpg` original is NOT
+    // unconditionally trusted — several buckets carry only the suffixed
+    // mobile tiers, so every rung needs its own manifest proof.
+    mobileRungs: hasThumb ? mediaRungs(`${stem}${MEDIA.MOBILE_SUFFIX}`) : [],
   }
 }

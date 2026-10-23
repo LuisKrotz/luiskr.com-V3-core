@@ -53,10 +53,12 @@
 }
 
 // `.skip-link` — the keyboard jump-to-main anchor, first focusable node
-// inside the app-root shadow. Off-canvas until :focus-visible (pointer
-// users never see it); on keyboard focus it slides onto the page with
-// the themed surface/ink so the jump affordance is readable on any
-// theme or dark-surface scene.
+// inside the app-root shadow. Off-canvas until :focus (pointer users
+// never see it — the link can't be clicked while invisible, and :focus
+// also covers programmatic .focus() from AT/script, which
+// :focus-visible deliberately does not); on focus it slides onto the
+// page with the themed surface/ink so the jump affordance is readable
+// on any theme or dark-surface scene.
 .skip-link {
   position: fixed;
   top: 0;
@@ -73,7 +75,7 @@
     transform 0.2s ease,
     opacity 0.2s ease;
 
-  &:focus-visible {
+  &:focus {
     opacity: 1;
     transform: translateY(0);
   }

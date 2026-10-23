@@ -13,7 +13,7 @@ import { MEDIA } from '@core/tokens/media/suffixes.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { GRAVATAR_SIZES } from '@core/tokens/media/dimensions.js'
-import { ladderCeiling } from './media/policy.js'
+import { ladderCeiling, smallMediaBox } from './media/policy.js'
 import type { CoverRung } from './media/manifest.js'
 
 /**
@@ -169,15 +169,25 @@ export const webmSibling = (url: string): string =>
  * @param img The high-layer img that fired `load` (event currentTarget).
  * @param rungs Ascending proven tiers from coverVariants — last is top.
  * @param loadedClass Class token that turns the layer's opacity on.
+ * @param mobileRungs Ascending rungs on the `{stem}-mobile` ladder —
+ *   when the rendered box is ≤768 CSS px and the manifest proves mobile
+ *   tiers exist, this ladder replaces `rungs` wholesale: every mobile
+ *   rung is a fraction of its full-width twin's bytes and the box cannot
+ *   resolve the difference anyway.
  */
 export function coverLadderStep(
   registry: Map<string, string> | undefined,
   coverKey: string,
   img: HTMLImageElement | null,
   rungs: CoverRung[],
-  loadedClass: string
+  loadedClass: string,
+  mobileRungs: CoverRung[] = []
 ): void {
-  if (!img || !rungs.length) return
+  if (!img) return
+
+  const ladder = smallMediaBox(img.clientWidth) && mobileRungs.length ? mobileRungs : rungs
+
+  if (!ladder.length) return
 
   const painted = img.currentSrc || img.src
 
@@ -185,16 +195,34 @@ export function coverLadderStep(
 
   img.classList.add(loadedClass)
 
-  const idx = rungs.findIndex((rung) => rung.jpg === painted || rung.webp === painted)
+  const onRung = (rung: CoverRung): boolean => rung.jpg === painted || rung.webp === painted
+
+  let idx = ladder.findIndex(onRung)
+
+  if (idx < 0) {
+    // Off-ladder paint — the <source media> mobile entry rung, a
+    // registry tier from a different box class (viewport crossed 768px
+    // between loads), or a foreign URL. A painted rung from the OTHER
+    // stem rebases to the chosen ladder's entry: a small box switches to
+    // the mobile stem (probe its cheapest tier — every byte saved past
+    // the box's resolution is pure waste), and a big box that painted a
+    // mobile rung restarts the full ladder so the climb upgrades toward
+    // real resolution. A truly foreign URL on the full ladder still
+    // stalls — it may already be the best resolvable answer.
+    if (ladder === mobileRungs || mobileRungs.some(onRung)) {
+      idx = -1
+    } else {
+      return
+    }
+  }
 
   // Budget ceiling — the climb stops once the painted rung reaches the
   // connection/box policy's top tier; rungs above it (raw original +
   // uncompressed are the multi-MB tiers) can never be resolved by a box
   // this small or afforded by a link this constrained.
-  if (idx < 0 || idx >= rungs.length - 1 || idx >= ladderCeiling(rungs.length, img.clientWidth))
-    return
+  if (idx >= ladder.length - 1 || idx >= ladderCeiling(ladder.length, img.clientWidth)) return
 
-  const next = rungs[idx + 1]
+  const next = ladder[idx + 1]
 
   let target = next.webp || next.jpg
 
@@ -223,7 +251,7 @@ export function coverLadderStep(
 
         layer.remove()
 
-        coverLadderStep(registry, coverKey, successor, rungs, loadedClass)
+        coverLadderStep(registry, coverKey, successor, rungs, loadedClass, mobileRungs)
       },
       { once: true }
     )
