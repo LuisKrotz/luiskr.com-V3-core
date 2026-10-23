@@ -9,6 +9,7 @@ import { IntroLoader } from '@core/utils/canvas/loaders/intro-loader.js'
 
 import '@website/components/feedback/CookieBanner.js'
 import { PREF_MUTATIONS, LANG_MUTATIONS } from '@core/tokens/events/mutations.js'
+import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
 
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
 
@@ -35,6 +36,21 @@ describe('intro-loader tails', () => {
     expect(done).toHaveBeenCalled()
 
     store.commit(PREF_MUTATIONS.SET_REDUCED_MOTION, false)
+  })
+
+  test('adopts the head-script boot stamp as startTime', () => {
+    sessionStorage.setItem('lk_intro_shown', '1')
+
+    const stamp = 1234.5
+
+    window[CACHE_STORAGE_KEYS.INTRO_T0] = stamp
+
+    const loader = new IntroLoader(document.body, jest.fn())
+
+    expect(loader.startTime).toBe(stamp)
+
+    delete window[CACHE_STORAGE_KEYS.INTRO_T0]
+    sessionStorage.removeItem('lk_intro_shown')
   })
 
   test('full path builds the overlay and starts animating', async () => {

@@ -31,6 +31,12 @@ export const CACHE_STORAGE_KEYS = Object.freeze({
   /** Boot loader shown-once flag (session-scoped). */
   INTRO_SHOWN: 'lk_intro_shown',
   /**
+   * Boot-loader animation start stamp — a `window` field (not storage)
+   * written by the index.html head script at parse time so the veil's
+   * duration budget measures the whole boot, not just post-mount.
+   */
+  INTRO_T0: 'lk_intro_t0',
+  /**
    * CMS OAuth-redirect marker (session-scoped) — set just before the
    * signInWithRedirect navigation; still present when the login mounts
    * means the return leg couldn't restore a session (blocked storage),
