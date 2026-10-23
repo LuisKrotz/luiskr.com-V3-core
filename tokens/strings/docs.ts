@@ -67,6 +67,11 @@ export const DOCS_STRINGS = Object.freeze({
   /** Visible chip captioning the backdrop scene so the interactive
    *  architecture map is obvious to a first-time viewer. */
   SCENE_HINT: 'Architecture map — drag to orbit, click a node to navigate',
+  /** Instanced-attribute names on the scene's node geometries — the
+   *  names are part of the patched GLSL program (attribute decls read
+   *  them too), so a rename must land in both streams at once. */
+  SCENE_ATTR_ALPHA: 'aAlpha',
+  SCENE_ATTR_ACTIVE: 'aActive',
   /** sr-only heading + landmark names for the complete document index —
    *  every manifest node rendered as a heading link so AT heading-jump
    *  and crawlers reach all docs without walking the tree. */
@@ -111,6 +116,11 @@ export const DOCS_UNITS = Object.freeze({
   LABEL_DEPTH_STEP: 7,
   LABEL_REVEAL_MIN: 16,
   LABEL_FADE: 12,
+  /** deepest ring that gets a sprite label — each label is a canvas
+   *  texture (~85kB VRAM), so an unlabeled deep tier keeps the scene
+   *  inside low-power GPU memory; deep dirs stay navigable via the
+   *  treeview and the dots themselves. */
+  SCENE_LABEL_MAX_DEPTH: 3,
   /** radial-tree geometry shared with the wasm worker op */
   SCENE_BASE_RADIUS: 6,
   SCENE_DEPTH_STEP: 9,
