@@ -76,8 +76,53 @@ export const webglContext = (
   const primary = alsoWebGL2 ? WEBGL_STRINGS.WEBGL2 : WEBGL_STRINGS.WEBGL
   const secondary = alsoWebGL2 ? WEBGL_STRINGS.WEBGL : WEBGL_STRINGS.EXPERIMENTAL_WEBGL
 
-  return (
+  const ctx =
     (canvas.getContext(primary, attrs) as WebGLRenderingContext | null) ||
     (canvas.getContext(secondary, attrs) as WebGLRenderingContext | null)
-  )
+
+  // A canvas binds one context per mode for life — after an intentional
+  // loseContext() (pool purge, deliberate teardown) the same canvas keeps
+  // handing out the DEAD context object, which silently fails every
+  // program/buffer call downstream. Revive it through WEBGL_lose_context;
+  // a loss that stays lost (real GPU eviction) resolves null so the
+  // caller takes the honest fallback instead of drawing to a zombie.
+  if (ctx && typeof ctx.isContextLost === TYPE_STRINGS.FUNCTION && ctx.isContextLost()) {
+    const lose = ctx.getExtension(WEBGL_STRINGS.WEBGL_LOSE_CONTEXT) as WEBGL_lose_context | null
+
+    if (lose && typeof lose.restoreContext === TYPE_STRINGS.FUNCTION) {
+      lose.restoreContext()
+    }
+
+    return ctx.isContextLost() ? null : ctx
+  }
+
+  return ctx
+}
+
+/**
+ * Whether `canvas` holds a context binding that is lost and could NOT be
+ * revived — the signature of a real GPU eviction. Distinct from an
+ * intentional `loseContext()` (which `webglContext()` restores on demand,
+ * so this probe resolves false) and from a WebGL-less device (getContext
+ * returns null — also false, since a canvas swap would fail identically).
+ * True means the element's binding is permanently dead and the caller
+ * should replace the canvas rather than retry it.
+ * @param canvas The canvas whose bound context to probe.
+ * @returns True when the bound context is unrestorably lost.
+ */
+export const webglContextDead = (canvas: HTMLCanvasElement | null): boolean => {
+  if (!webglAllowed() || !canvas || typeof canvas.getContext !== TYPE_STRINGS.FUNCTION) return false
+
+  const ctx = canvas.getContext(WEBGL_STRINGS.WEBGL) as WebGLRenderingContext | null
+
+  if (!ctx || typeof ctx.isContextLost !== TYPE_STRINGS.FUNCTION || !ctx.isContextLost())
+    return false
+
+  const lose = ctx.getExtension(WEBGL_STRINGS.WEBGL_LOSE_CONTEXT) as WEBGL_lose_context | null
+
+  if (lose && typeof lose.restoreContext === TYPE_STRINGS.FUNCTION) {
+    lose.restoreContext()
+  }
+
+  return ctx.isContextLost()
 }

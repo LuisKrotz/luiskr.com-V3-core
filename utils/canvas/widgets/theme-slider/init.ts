@@ -17,6 +17,7 @@ import { webglPool } from '../../webgl-pool.js'
 import { THEME_SLIDER_FS, THEME_SLIDER_VS } from './shaders.js'
 import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
 import { hasWebGpu, mountWebGpuWidget } from '../../../gpu/webgpu-widget.js'
+import { framePool } from '../../../motion/frame.js'
 import type { ThemeSliderWebGL } from '../theme-slider.js'
 import { devWarn } from '@core/devlog.js'
 
@@ -184,7 +185,7 @@ export function initRest(host: ThemeSliderWebGL): void {
 export function triggerFallback(host: ThemeSliderWebGL): void {
   host.useWebGL = false
 
-  if (host.animId) cancelAnimationFrame(host.animId)
+  if (host.animId) framePool.cancel(host.animId)
 
   releaseQuadGL(host.canvas, host, host._onContextLost)
 

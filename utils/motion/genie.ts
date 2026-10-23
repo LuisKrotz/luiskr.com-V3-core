@@ -13,6 +13,7 @@ import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 import store from '@core/store.js'
 import { ANIMATION_DURATIONS } from '@core/tokens/motion/animation.js'
+import { framePool } from './frame.js'
 
 /** Any component exposing the shadow-scoped `$` selector helper. */
 interface GenieHost {
@@ -62,8 +63,8 @@ export const genieEnter = (component: GenieHost): void => {
 
   backdrop.style.transition = CHAR_STRINGS.EMPTY
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => backdrop.classList.remove(PREF_CLASSES.PREF_BACKDROP_ENTER))
+  framePool.request(() => {
+    framePool.request(() => backdrop.classList.remove(PREF_CLASSES.PREF_BACKDROP_ENTER))
   })
 }
 

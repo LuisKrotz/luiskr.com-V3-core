@@ -16,7 +16,18 @@ import { ARROW_TYPES } from '@core/tokens/theme/arrows.js'
 import store from '@core/store.js'
 import { paintCarouselArrow2D } from './carousel-controls/paint-2d.js'
 import { webglPool } from '../webgl-pool.js'
+import { framePool } from '../../motion/frame.js'
 import { webglAllowed } from '../webgl-mode.js'
+
+/**
+ * Sleep threshold for the hover channel — below the paint gate's own
+ * `hoverAlpha > 0.01` cutoff (alpha = level × 1.2), so a sleeping loop
+ * is pixel-identical to a running one.
+ */
+const HOVER_FLOOR = 0.008
+
+/** Click shockwave window in seconds — matches the painter's `clickElapsed < 0.45` gate. */
+const CLICK_WAVE_S = 0.45
 
 /**
  * WebGL Carousel Arrow Controls with Circular Loading Progress & Gestural Microinteractions
@@ -39,6 +50,8 @@ export class CarouselArrowWebGL {
   isPlaying = true
   clickTime = -10.0
   animId: number | null = null
+  /** Bound per-frame tick — allocated once so the pooled re-arm never allocs. */
+  _frameTick = (): void => this.animate()
   startTime = performance.now()
   ctx: CanvasRenderingContext2D | null | undefined
   gl: WebGLRenderingContext | null = null
@@ -127,7 +140,7 @@ export class CarouselArrowWebGL {
     this._paused = true
 
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }
@@ -143,7 +156,7 @@ export class CarouselArrowWebGL {
   /** Switches to the non-WebGL path (CSS class on the host / Canvas2D) — used on context loss or init failure. */
 
   _triggerFallback() {
-    if (this.animId) cancelAnimationFrame(this.animId)
+    if (this.animId) framePool.cancel(this.animId)
 
     this.canvas.style.display = STATE_STRINGS.NONE
 
@@ -156,15 +169,15 @@ export class CarouselArrowWebGL {
 
   bindEvents() {
     this.onMouseEnter = () => {
-      this.isHovered = true
+      this.setHover(true)
     }
 
     this.onMouseLeave = () => {
-      this.isHovered = false
+      this.setHover(false)
     }
 
     this.onClick = () => {
-      this.clickTime = (performance.now() - this.startTime) * 0.001
+      this.triggerClick()
 
       if (this.canvas === this.boundTarget) {
         this.onAction?.()
@@ -184,18 +197,30 @@ export class CarouselArrowWebGL {
 
   setHover(hovered: boolean): void {
     this.isHovered = Boolean(hovered)
+
+    // Hover-in wakes the settled loop — the touch ripples/glove need
+    // live frames again. Hover-out needs no wake: the running loop
+    // decays the fill to the sleep threshold on its own.
+    if (hovered && !this.animId) this.animate()
   }
 
   /** Programmatic activation — runs the bound onAction. */
 
   triggerClick() {
     this.clickTime = (performance.now() - this.startTime) * 0.001
+
+    // Keyboard/programmatic clicks land without hover — wake the settled
+    // loop so the 0.45s shockwave ring actually animates.
+    if (!this.animId) this.animate()
   }
 
   /** Morphs the icon between play and pause states. */
 
   setPlaying(playing: boolean): void {
     this.isPlaying = Boolean(playing)
+
+    // The glyph swaps on the next painted frame — wake a settled loop.
+    if (!this.animId) this.animate()
   }
 
   /** Updates the progress ring's fill fraction (and syncs play state). */
@@ -206,6 +231,10 @@ export class CarouselArrowWebGL {
     }
 
     this.progress = Math.max(0, Math.min(1, Number(p) || 0))
+
+    // The arc only exists on the painted canvas — a settled loop must
+    // wake for the new fraction to appear.
+    if (!this.animId) this.animate()
   }
 
   /**
@@ -240,19 +269,16 @@ export class CarouselArrowWebGL {
   /** Starts the requestAnimationFrame render loop (skipped under reduced motion). */
 
   animate() {
+    // The tick consumed its own pool id before running — clearing it
+    // keeps `animId` honest and lets a wake call re-arm the loop if
+    // this frame ever throws before the re-arm at the bottom.
+    this.animId = null
+
     if (store.getters.getReducedMotion() || this._paused) {
-      if (this.animId) {
-        cancelAnimationFrame(this.animId)
-
-        this.animId = null
-      }
-
       this._renderStatic()
 
       return
     }
-
-    this.animId = requestAnimationFrame(() => this.animate())
 
     const now = performance.now()
 
@@ -265,9 +291,26 @@ export class CarouselArrowWebGL {
       this.progress = Math.max(0, this.progress - 0.04)
     }
 
+    // Settle-sleep — unhovered, decayed past the paint gate, shockwave
+    // expired and not mid-regression: the frame is time-invariant (t
+    // only feeds the hover-gated ripple/glove layers), so the frame
+    // painted below is the terminal one. Hover, click, progress and
+    // play state changes re-arm through their setters.
+    const settled =
+      !this.isHovered &&
+      this.hoverLevel < HOVER_FLOOR &&
+      (this.isPlaying || this.progress <= 0) &&
+      (now - this.startTime) * 0.001 - this.clickTime >= CLICK_WAVE_S
+
+    if (settled) this.hoverLevel = 0
+
     if (this.ctx) {
       this._renderCanvas2D(now)
     }
+
+    if (settled) return
+
+    this.animId = framePool.request(this._frameTick)
   }
 
   /** Per-frame Canvas2D fallback render — same visual language as the shader. */
@@ -296,7 +339,7 @@ export class CarouselArrowWebGL {
   /** Releases the context, buffers, listeners and rAF handle so the canvas can be GC'd. */
 
   destroy() {
-    if (this.animId) cancelAnimationFrame(this.animId)
+    if (this.animId) framePool.cancel(this.animId)
 
     webglPool.unregister(this.canvas)
 

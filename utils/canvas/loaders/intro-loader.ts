@@ -20,6 +20,7 @@ import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { ARIA_ATTRS } from '@core/tokens/attrs/aria.js'
 import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
+import { framePool } from '../../motion/frame.js'
 import { LOCALES } from '@core/tokens/locales.js'
 import { FALLBACK_APP, FALLBACK_LOADERS } from '@core/locale/fallback.js'
 import type { LoaderCopy } from '@core/locale/fallback.js'
@@ -219,7 +220,7 @@ export class IntroLoader {
       }
 
       if (t < 1.0) {
-        this.animId = requestAnimationFrame(update)
+        this.animId = framePool.request(update)
       } else {
         sessionStorage.setItem(CACHE_STORAGE_KEYS.INTRO_SHOWN, CHAR_STRINGS.ONE)
 
@@ -229,7 +230,7 @@ export class IntroLoader {
       }
     }
 
-    this.animId = requestAnimationFrame(update)
+    this.animId = framePool.request(update)
   }
 
   /** Completes the loader: fades the overlay and calls onComplete. */
@@ -252,7 +253,7 @@ export class IntroLoader {
   /** Releases the rAF handle and removes the overlay so it can be GC'd. */
   destroy(): void {
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }

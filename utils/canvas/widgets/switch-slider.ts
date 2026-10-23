@@ -14,6 +14,7 @@ import { SWITCH_TYPES } from '@core/tokens/theme/switches.js'
 import store from '@core/store.js'
 import { releaseQuadGL, watchContextLoss } from '../gl-lifecycle.js'
 import { webglPool } from '../webgl-pool.js'
+import { framePool } from '../../motion/frame.js'
 import { init, initWebGL, triggerFallback, tryWasm } from './switch-slider/init.js'
 import { hasWebGpu } from '../../gpu/webgpu-widget.js'
 import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
@@ -43,6 +44,8 @@ export class SwitchWebGL {
   knobX: number
   useWebGL = false
   animId: number | null = null
+  /** Bound per-frame tick — allocated once so the pooled re-arm never allocs. */
+  _frameTick = () => this.animate()
   startTime: number
   dpr = 2
   gl: WebGLRenderingContext | null = null
@@ -251,7 +254,7 @@ export class SwitchWebGL {
     this.ctx = null
 
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }
@@ -317,7 +320,7 @@ export class SwitchWebGL {
   destroy(): void {
     webglPool.unregister(this.canvas)
 
-    if (this.animId) cancelAnimationFrame(this.animId)
+    if (this.animId) framePool.cancel(this.animId)
 
     if (this.onClick) this.canvas?.removeEventListener(MOUSE_EVENTS.CLICK, this.onClick)
 

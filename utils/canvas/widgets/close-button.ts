@@ -14,6 +14,7 @@ import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { releaseQuadGL, watchContextLoss } from '../gl-lifecycle.js'
 import { webglPool } from '../webgl-pool.js'
+import { framePool } from '../../motion/frame.js'
 import { init, initWebGL, onContextLost, tryWasm } from './close-button/init.js'
 import { hasWebGpu } from '../../gpu/webgpu-widget.js'
 import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
@@ -40,6 +41,8 @@ export class CloseButtonWebGL {
   clickTime: number
   useWebGL: boolean
   animId: number | null
+  /** Bound per-frame tick — allocated once so the pooled re-arm never allocs. */
+  _frameTick = (): void => this.animate()
   startTime: number
   gl: WebGLRenderingContext | null = null
   program: WebGLProgram | null = null
@@ -153,6 +156,11 @@ export class CloseButtonWebGL {
 
   setHover(hovered: boolean): void {
     this.isHovered = Boolean(hovered)
+
+    // Hover-in wakes the settled loop — the pour/bubbles need live
+    // frames again. Hover-out needs no wake: the running loop decays
+    // the fill to the sleep threshold on its own.
+    if (hovered && !this.animId) this.animate()
   }
 
   /**
@@ -166,6 +174,10 @@ export class CloseButtonWebGL {
     const w = this._wasm?.widget as { click?: (t: number) => void } | undefined
 
     w?.click?.(this.clickTime)
+
+    // Keyboard/programmatic clicks land without hover — wake the settled
+    // loop so the 0.4s shockwave ring actually animates.
+    if (!this.animId) this.animate()
   }
 
   /**
@@ -213,7 +225,7 @@ export class CloseButtonWebGL {
     this.useWebGL = false
 
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }
@@ -265,7 +277,7 @@ export class CloseButtonWebGL {
   destroy(): void {
     webglPool.unregister(this.canvas)
 
-    if (this.animId) cancelAnimationFrame(this.animId)
+    if (this.animId) framePool.cancel(this.animId)
 
     this.boundTarget?.removeEventListener(MOUSE_EVENTS.MOUSEENTER, this.onMouseEnter)
 

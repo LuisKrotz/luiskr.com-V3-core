@@ -36,6 +36,7 @@ import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widg
 import { hasWebGpu, mountWebGpuWidget } from '@core/utils/gpu/webgpu-widget.js'
 import { applyAnimationDesc } from '@core/utils/a11y/animation-desc.js'
 import { ANIMATION_IDS } from '@core/tokens/data/animation-ids.js'
+import { framePool } from '../motion/frame.js'
 import type { WidgetHandle } from '@core/utils/gpu/webgpu-widget.js'
 
 /** Tile-sheet stride — mirrors rust/ring-sheen's `TILE_F32S`. */
@@ -185,14 +186,14 @@ export function mountRingSheen(
     const alive = handle.widget.frame(dt) !== false
 
     if (alive && !dead && !document.hidden) {
-      raf = requestAnimationFrame(tick)
+      raf = framePool.request(tick)
     }
   }
 
   /** Schedules the next frame when idle (dirty flips, visibility return). */
   const poke = () => {
     if (!raf && !dead && handle && !document.hidden) {
-      raf = requestAnimationFrame(tick)
+      raf = framePool.request(tick)
     }
   }
 
@@ -298,7 +299,7 @@ export function mountRingSheen(
 
       dead = true
 
-      if (raf) cancelAnimationFrame(raf)
+      if (raf) framePool.cancel(raf)
       raf = 0
 
       io?.disconnect()

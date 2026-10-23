@@ -13,6 +13,7 @@ import { THEME } from '@core/tokens/theme/theme.js'
 import store from '@core/store.js'
 import { releaseQuadGL, watchContextLoss } from '../gl-lifecycle.js'
 import { webglPool } from '../webgl-pool.js'
+import { framePool } from '../../motion/frame.js'
 import { bindThemeSliderEvents } from './theme-slider/events.js'
 import { init, initWebGL, triggerFallback, tryWasm } from './theme-slider/init.js'
 import { hasWebGpu } from '../../gpu/webgpu-widget.js'
@@ -52,6 +53,8 @@ export class ThemeSliderWebGL {
   startX = 0
   useWebGL = false
   animId: number | null = null
+  /** Bound per-frame tick — allocated once so the pooled re-arm never allocs. */
+  _frameTick = () => this.animate()
   startTime: number
   rippleTime: number
   ripplePos: number
@@ -276,7 +279,7 @@ export class ThemeSliderWebGL {
     this.useWebGL = false
 
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }
@@ -338,7 +341,7 @@ export class ThemeSliderWebGL {
       this._resizeObserver = null
     }
 
-    if (this.animId) cancelAnimationFrame(this.animId)
+    if (this.animId) framePool.cancel(this.animId)
 
     if (this.onPointerDown)
       this.canvas.removeEventListener(POINTER_EVENTS.POINTERDOWN, this.onPointerDown)

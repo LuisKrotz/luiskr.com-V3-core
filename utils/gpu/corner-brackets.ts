@@ -36,6 +36,7 @@ import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widg
 import { hasWebGpu, mountWebGpuWidget } from '@core/utils/gpu/webgpu-widget.js'
 import { applyAnimationDesc } from '@core/utils/a11y/animation-desc.js'
 import { ANIMATION_IDS } from '@core/tokens/data/animation-ids.js'
+import { framePool } from '../motion/frame.js'
 import type { WidgetHandle } from '@core/utils/gpu/webgpu-widget.js'
 
 /**
@@ -250,7 +251,7 @@ export function mountCornerBrackets(button: HTMLElement, spec: CornerBracketSpec
     handle.widget.frame(0)
 
     if (p < 1) {
-      raf = requestAnimationFrame(tick)
+      raf = framePool.request(tick)
     }
   }
 
@@ -278,7 +279,7 @@ export function mountCornerBrackets(button: HTMLElement, spec: CornerBracketSpec
     rampAt = performance.now()
 
     if (handle && !raf && !dead) {
-      raf = requestAnimationFrame(tick)
+      raf = framePool.request(tick)
     }
   }
 
@@ -359,7 +360,7 @@ export function mountCornerBrackets(button: HTMLElement, spec: CornerBracketSpec
 
     dead = true
 
-    if (raf) cancelAnimationFrame(raf)
+    if (raf) framePool.cancel(raf)
     raf = 0
 
     io?.disconnect()

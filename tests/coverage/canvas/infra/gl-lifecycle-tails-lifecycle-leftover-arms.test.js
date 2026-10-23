@@ -227,8 +227,10 @@ describe('lifecycle leftover arms', () => {
     btn.setReducedMotion(true)
     btn.setReducedMotion(false)
 
-    // !animId arm: a stopped button re-arms the loop when motion returns.
+    // !animId arm: a stopped button re-arms the loop when motion returns
+    // — hover-in unsettles it first since a settled widget stays asleep.
     btn.animId = null
+    btn.isHovered = true
     btn.setReducedMotion(false)
 
     expect(btn.animId).not.toBeNull()

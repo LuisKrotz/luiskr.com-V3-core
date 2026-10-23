@@ -14,6 +14,7 @@ import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 import { SKELETON_SELECTORS } from '@core/tokens/selectors/skeleton.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { webglPool } from '../webgl-pool.js'
+import { framePool } from '../../motion/frame.js'
 import { measureSkeleton } from './skeleton/measure.js'
 import { type SkeletonRenderer, skeletonRenderer } from './skeleton/renderer.js'
 import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
@@ -109,6 +110,8 @@ export class SkeletonWebGL {
   _wasmT = 0
   /** rAF handle for the shimmer loop — null while paused/destroyed. */
   animId: number | null = null
+  /** Bound per-frame tick — allocated once so the pooled re-arm never allocs. */
+  _frameTick = (): void => this._loop()
   /** Measured placeholder list — rebuilt by refresh(). */
   rects: SkelRect[] = []
   /** Flat xyzw rect data uploaded as the u_rects uniform array. */
@@ -186,7 +189,7 @@ export class SkeletonWebGL {
     this._paused = true
 
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }
@@ -244,7 +247,7 @@ export class SkeletonWebGL {
   _scheduleRefresh() {
     if (this._refreshId || !this.useWebGL) return
 
-    this._refreshId = requestAnimationFrame(() => {
+    this._refreshId = framePool.request(() => {
       this._refreshId = null
 
       this.refresh()
@@ -298,7 +301,7 @@ export class SkeletonWebGL {
     this._abandoned = true
 
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }
@@ -322,7 +325,7 @@ export class SkeletonWebGL {
     if (this.canvas) webglPool.unregister(this.canvas)
 
     if (this._refreshId) {
-      cancelAnimationFrame(this._refreshId)
+      framePool.cancel(this._refreshId)
 
       this._refreshId = null
     }

@@ -21,6 +21,7 @@
  * gesture always wins over the animation.
  */
 import { CAROUSEL_SPRING } from '@core/tokens/motion/carousel.js'
+import { framePool } from './frame.js'
 import { springStep, type SpringChase } from './spring.js'
 
 /**
@@ -29,8 +30,10 @@ import { springStep, type SpringChase } from './spring.js'
  * as the running flag (0 = idle).
  */
 interface ScrollSpring extends SpringChase {
-  /** Pending rAF id — 0 while the loop is stopped. */
+  /** Pending frame-pool id — 0 while the loop is stopped. */
   raf: number
+  /** Bound tick — allocated once per spring so re-arms never alloc. */
+  tick: ((ts: number) => void) | null
   /** Timestamp (ms) of the previous tick — 0 marks the first frame. */
   last: number
   /** Wall-clock runtime (ms) for the MAX_MS watchdog. */
@@ -53,6 +56,12 @@ const states = new WeakMap<Element, ScrollSpring>()
  * @param ts rAF timestamp (ms).
  */
 const tickSpring = (track: Element, s: ScrollSpring, animClass: string, ts: number): void => {
+  // The queued id is consumed — clearing it first keeps `springScrollTo`
+  // honest: a mid-tick throw leaves `s.raf` at 0 so the next call falls
+  // through the live-guard and re-arms instead of returning early on a
+  // dead handle (the frozen-spring wedge).
+  s.raf = 0
+
   const dt = s.last
     ? Math.min((ts - s.last) / 1000, CAROUSEL_SPRING.DT_MAX_S)
     : CAROUSEL_SPRING.DT_INIT_S
@@ -87,7 +96,7 @@ const tickSpring = (track: Element, s: ScrollSpring, animClass: string, ts: numb
     return
   }
 
-  s.raf = requestAnimationFrame((t) => tickSpring(track, s, animClass, t))
+  s.raf = framePool.request(s.tick as (ts: number) => void)
 }
 
 /**
@@ -116,7 +125,7 @@ export const springScrollTo = (
   let s = states.get(track)
 
   if (instant || Math.abs(target - t.scrollLeft) < CAROUSEL_SPRING.MIN_TRAVEL_PX) {
-    if (s && s.raf) cancelAnimationFrame(s.raf)
+    if (s && s.raf) framePool.cancel(s.raf)
 
     t.classList.remove(animClass)
 
@@ -135,11 +144,14 @@ export const springScrollTo = (
       velP: 0,
       targetP: t.scrollLeft,
       raf: 0,
+      tick: null,
       last: 0,
       elapsed: 0,
       onSettle: null,
     }
   }
+
+  s.tick = (ts) => tickSpring(track, s as ScrollSpring, animClass, ts)
 
   s.targetP = target
   s.onSettle = onSettle
@@ -155,7 +167,7 @@ export const springScrollTo = (
 
   t.classList.add(animClass)
 
-  s.raf = requestAnimationFrame((ts) => tickSpring(track, s as ScrollSpring, animClass, ts))
+  s.raf = framePool.request(s.tick as (ts: number) => void)
 }
 
 /**
@@ -171,7 +183,7 @@ export const cancelSpringScroll = (track: Element, animClass: string): void => {
 
   if (!s) return
 
-  if (s.raf) cancelAnimationFrame(s.raf)
+  if (s.raf) framePool.cancel(s.raf)
 
   track.classList.remove(animClass)
 

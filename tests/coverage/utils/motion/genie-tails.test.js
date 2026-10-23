@@ -13,6 +13,7 @@ import '@website/views/not-found/NotFound.js'
 import { MODAL_MUTATIONS, PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { PREF_CLASSES } from '@core/tokens/classes/preferences.js'
+import { framePool } from '@core/utils/motion/frame.js'
 
 jest.unstable_mockModule('@core/firebase.js', () => ({
   signInWithGoogle: jest.fn(async () => ({ user: { uid: 'u1' } })),
@@ -61,7 +62,7 @@ describe('genie tails', () => {
     genieLeave(component, jest.fn())
   })
 
-  test('genieEnter removes the enter class after two animation frames', () => {
+  test('genieEnter removes the enter class after two animation frames', async () => {
     const backdrop = document.createElement(HTML_TAGS.DIV)
     const dialog = document.createElement(HTML_TAGS.DIV)
 
@@ -76,9 +77,17 @@ describe('genie tails', () => {
             : null,
     }
 
+    // The pool may still be armed by earlier genieEnter calls — drain it
+    // to idle so the next request re-arms through the stub below.
+    for (let i = 0; i < 10 && framePool.size(); i++) {
+      await new Promise((r) => setTimeout(r, 20))
+    }
+
     const frames = []
     const originalRaf = globalThis.requestAnimationFrame
 
+    // The pool arms the real rAF once — capturing it hands the test the
+    // pump itself, so each invocation runs one shared frame drain.
     globalThis.requestAnimationFrame = (cb) => {
       frames.push(cb)
 
@@ -93,12 +102,12 @@ describe('genie tails', () => {
     expect(backdrop.classList.contains(PREF_CLASSES.PREF_BACKDROP_ENTER)).toBe(true)
     expect(frames).toHaveLength(1)
 
-    frames.shift()()
+    frames.shift()(performance.now())
 
     expect(backdrop.classList.contains(PREF_CLASSES.PREF_BACKDROP_ENTER)).toBe(true)
     expect(frames).toHaveLength(1)
 
-    frames.shift()()
+    frames.shift()(performance.now())
 
     expect(backdrop.classList.contains(PREF_CLASSES.PREF_BACKDROP_ENTER)).toBe(false)
 

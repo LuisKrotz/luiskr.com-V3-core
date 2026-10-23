@@ -9,6 +9,7 @@
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 import store from '@core/store.js'
+import { framePool } from '../../../motion/frame.js'
 import { flagRenderer } from './renderer.js'
 import { wasmAnimType } from './anim.js'
 import type { FlagWebGL } from '../flag-webgl.js'
@@ -18,7 +19,7 @@ export function triggerFlagFallback(flag: FlagWebGL): void {
   flag.useWebGL = false
 
   if (flag.animId) {
-    cancelAnimationFrame(flag.animId)
+    framePool.cancel(flag.animId)
 
     flag.animId = null
   }
@@ -88,13 +89,13 @@ export function renderFlagWebGL(flag: FlagWebGL, now: number): void {
   flag.renderer.draw(flag, (now - flag.startTime) * 0.001)
 }
 
-/** Starts the requestAnimationFrame render loop (skipped under reduced motion). */
+/** Starts the shared-pool render loop (skipped under reduced motion). */
 export function animateFlag(flag: FlagWebGL): void {
   if (flag._paused) return
 
   if (store.getters.getReducedMotion()) {
     if (flag.animId) {
-      cancelAnimationFrame(flag.animId)
+      framePool.cancel(flag.animId)
 
       flag.animId = null
     }
@@ -104,7 +105,7 @@ export function animateFlag(flag: FlagWebGL): void {
     return
   }
 
-  flag.animId = requestAnimationFrame(() => flag.animate())
+  flag.animId = framePool.request(flag._frameTick)
 
   const now = performance.now()
 

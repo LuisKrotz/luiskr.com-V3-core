@@ -37,6 +37,13 @@ export const GENERIC_DIMENSIONS = Object.freeze({
 export const IMAGE_DIMENSIONS = Object.freeze({
   /** 4096² pixels: preserves the former memory ceiling without rejecting tall, narrow screenshots. */
   MAX_DECODE_PIXELS: 4096 * 4096,
+  /**
+   * CSS-pixel media-box edge at/below which a ladder climb skips the
+   * heaviest rungs (original + uncompressed). Matches the 768px
+   * `-mobile` cover tier: a box this small can never resolve the extra
+   * resolution a top rung carries, so the bytes are pure waste.
+   */
+  SMALL_BOX_PX: 768,
 })
 
 /**

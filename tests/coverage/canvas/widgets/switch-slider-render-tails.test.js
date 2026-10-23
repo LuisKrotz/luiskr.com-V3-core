@@ -48,37 +48,45 @@ const makeGl = () => {
   }
 }
 
-const makeHost = (over = {}) => ({
-  canvas: { width: 108, height: 56 },
-  dpr: 2,
-  width: 54,
-  height: 28,
-  useWebGL: false,
-  gl: null,
-  ctx: null,
-  animId: null,
-  program: null,
-  quadBuffer: null,
-  aPos: 0,
-  uResolution: null,
-  uTime: null,
-  uProgress: null,
-  uKnobX: null,
-  uContext: null,
-  currentP: 0,
-  targetP: 1,
-  velP: 0,
-  _animT: 0,
-  knobX: 0,
-  contextType: 'stats',
-  startTime: 0,
-  _wasm: null,
-  _wasmT: 0,
-  _pToKnobX: (p) => p * 26,
-  _contextCode: () => 2,
-  animate: jest.fn(),
-  ...over,
-})
+const makeHost = (over = {}) => {
+  const host = {
+    canvas: { width: 108, height: 56 },
+    dpr: 2,
+    width: 54,
+    height: 28,
+    useWebGL: false,
+    gl: null,
+    ctx: null,
+    animId: null,
+    program: null,
+    quadBuffer: null,
+    aPos: 0,
+    uResolution: null,
+    uTime: null,
+    uProgress: null,
+    uKnobX: null,
+    uContext: null,
+    currentP: 0,
+    targetP: 1,
+    velP: 0,
+    _animT: 0,
+    knobX: 0,
+    contextType: 'stats',
+    startTime: 0,
+    _wasm: null,
+    _wasmT: 0,
+    _pToKnobX: (p) => p * 26,
+    _contextCode: () => 2,
+    animate: jest.fn(),
+    ...over,
+  }
+
+  // Same wiring the real widget installs — the pooled frame tick
+  // delegates back to the loop's own animate method.
+  host._frameTick = () => host.animate()
+
+  return host
+}
 
 beforeEach(() => {
   reducedMotion = false
@@ -173,22 +181,17 @@ describe('switch-slider render tail', () => {
 
     expect(paintCalls.length).toBe(0)
 
-    // A synchronous rAF runs the schedule arrow — the loop's next-frame hook.
-    const prevRaf = globalThis.requestAnimationFrame
-
-    globalThis.requestAnimationFrame = (cb) => {
-      cb()
-
-      return 1
-    }
-
+    // The shared pool arms the next frame — animId holds a live pool id,
+    // and the queued _frameTick delegates back into the loop's animate.
     const bare = makeHost()
 
     animate(bare)
 
-    expect(bare.animate).toHaveBeenCalled()
+    expect(bare.animId).not.toBeNull()
 
-    globalThis.requestAnimationFrame = prevRaf
+    bare._frameTick()
+
+    expect(bare.animate).toHaveBeenCalled()
   })
 
   test('animate overshoots the target then settles — the elastic snap', () => {

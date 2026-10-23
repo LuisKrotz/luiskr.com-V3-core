@@ -43,31 +43,39 @@ const makeGl = () => {
   }
 }
 
-const makeHost = (over = {}) => ({
-  canvas: { width: 110, height: 110 },
-  isHovered: false,
-  hoverLevel: 0,
-  rotation: 0,
-  drawProgress: 0,
-  clickTime: -10,
-  useWebGL: true,
-  gl: null,
-  program: null,
-  quadBuffer: null,
-  aPos: 0,
-  uResolution: null,
-  uTime: null,
-  uLiquid: null,
-  uDraw: null,
-  uRot: null,
-  uClickTime: null,
-  animId: null,
-  startTime: 0,
-  _wasm: null,
-  _wasmT: 0,
-  animate: jest.fn(),
-  ...over,
-})
+const makeHost = (over = {}) => {
+  const host = {
+    canvas: { width: 110, height: 110 },
+    isHovered: false,
+    hoverLevel: 0,
+    rotation: 0,
+    drawProgress: 0,
+    clickTime: -10,
+    useWebGL: true,
+    gl: null,
+    program: null,
+    quadBuffer: null,
+    aPos: 0,
+    uResolution: null,
+    uTime: null,
+    uLiquid: null,
+    uDraw: null,
+    uRot: null,
+    uClickTime: null,
+    animId: null,
+    startTime: 0,
+    _wasm: null,
+    _wasmT: 0,
+    animate: jest.fn(),
+    ...over,
+  }
+
+  // Same wiring the real widget installs — the pooled frame tick
+  // delegates back to the loop's own animate method.
+  host._frameTick = () => host.animate()
+
+  return host
+}
 
 beforeEach(() => {
   reducedMotion = false
@@ -135,22 +143,17 @@ describe('close-button render tail', () => {
     // useWebGL true but no backend — neither arm fires.
     animate(makeHost({ gl: null, _wasm: null }))
 
-    // A synchronous rAF runs the schedule arrow.
-    const prevRaf = globalThis.requestAnimationFrame
-
-    globalThis.requestAnimationFrame = (cb) => {
-      cb()
-
-      return 1
-    }
-
-    const bare = makeHost()
+    // The shared pool arms the next frame — the queued _frameTick
+    // delegates back into the loop's animate.
+    const bare = makeHost({ isHovered: true })
 
     animate(bare)
 
-    expect(bare.animate).toHaveBeenCalled()
+    expect(bare.animId).not.toBeNull()
 
-    globalThis.requestAnimationFrame = prevRaf
+    bare._frameTick()
+
+    expect(bare.animate).toHaveBeenCalled()
   })
 
   test('renderWasm no-ops without a handle and measures dt deltas', () => {

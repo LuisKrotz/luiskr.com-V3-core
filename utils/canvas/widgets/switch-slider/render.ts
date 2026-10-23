@@ -8,6 +8,7 @@
 import store from '@core/store.js'
 import { bindQuad } from '../../gl-program.js'
 import { paintSwitchSlider2D } from './paint-2d.js'
+import { framePool } from '../../../motion/frame.js'
 import { springStep } from '../../../motion/spring.js'
 import { SLIDER_SPRING } from '@core/tokens/motion/slider.js'
 import type { SwitchWebGL } from '../switch-slider.js'
@@ -40,7 +41,7 @@ export function renderStatic(host: SwitchWebGL): void {
 export function animate(host: SwitchWebGL): void {
   if (store.getters.getReducedMotion()) {
     if (host.animId) {
-      cancelAnimationFrame(host.animId)
+      framePool.cancel(host.animId)
 
       host.animId = null
     }
@@ -50,7 +51,7 @@ export function animate(host: SwitchWebGL): void {
     return
   }
 
-  host.animId = requestAnimationFrame(() => host.animate())
+  host.animId = framePool.request(host._frameTick)
 
   const now = performance.now()
 

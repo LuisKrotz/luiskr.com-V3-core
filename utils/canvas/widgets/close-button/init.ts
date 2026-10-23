@@ -15,6 +15,7 @@ import { CLOSE_BUTTON_FS, CLOSE_BUTTON_VS } from './shaders.js'
 import { glContextOptions } from '@core/utils/gpu/gpu-info.js'
 import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
 import { hasWebGpu, mountWebGpuWidget } from '../../../gpu/webgpu-widget.js'
+import { framePool } from '../../../motion/frame.js'
 import type { CloseButtonWebGL } from '../close-button.js'
 import { webglContext } from '../../webgl-mode.js'
 import { devWarn } from '@core/devlog.js'
@@ -91,7 +92,7 @@ export function onContextLost(host: CloseButtonWebGL): void {
   host.gl = null
 
   if (host.animId) {
-    cancelAnimationFrame(host.animId)
+    framePool.cancel(host.animId)
 
     host.animId = null
   }

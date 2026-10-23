@@ -171,6 +171,24 @@ describe('scene3d facade', () => {
     window.devicePixelRatio = 1
   })
 
+  test('a zero devicePixelRatio falls back to dpr 1 in the mount sizing', async () => {
+    const surface = makeSurface()
+    const prev = window.devicePixelRatio
+
+    Object.defineProperty(window, 'devicePixelRatio', { value: 0, configurable: true })
+
+    const handle = await mod.mountScene3d(canvas, loader(surface))
+
+    Object.defineProperty(window, 'devicePixelRatio', { value: prev, configurable: true })
+
+    expect(handle).not.toBeNull()
+    // The pre-mount bitmap sizing resolved through the `|| 1` fallback.
+    expect(canvas.width).toBe(320)
+    expect(canvas.height).toBe(240)
+
+    handle.destroy()
+  })
+
   test('the RO arm re-pushes the device size and destroy tears down', async () => {
     const surface = makeSurface()
     let captured = null

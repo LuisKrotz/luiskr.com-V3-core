@@ -27,4 +27,9 @@ export const NET_STRINGS = Object.freeze({
   MIME_JSON: 'application/json',
   JOB_RUNNING: 'running',
   JOB_UPLOADING: 'uploading',
+  /** Network Information API effectiveType values (connection quality tiers). */
+  EFFECTIVE_SLOW_2G: 'slow-2g',
+  EFFECTIVE_2G: '2g',
+  EFFECTIVE_3G: '3g',
+  EFFECTIVE_4G: '4g',
 })
