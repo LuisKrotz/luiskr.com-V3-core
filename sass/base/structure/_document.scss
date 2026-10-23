@@ -207,10 +207,11 @@ main {
 // Reader-mode content — the prerendered <article class="reader-content">
 // emitted into #app. No-JS documents (crawlers, reader mode) keep the
 // readable baseline below (constrained measure, comfortable rhythm).
-// With JS, the head inline script flips <html> to .js before first paint
-// so the article parks offscreen immediately — no flash of the 75ch
-// copy — and after mount main.ts adds --offscreen as the runtime hoist
-// marker. Not aria-hidden — that would filter it out of Readability too.
+// With JS it stays PAINTED but out of flow at the viewport top: the
+// opaque intro veil covers it from user view while its text/posters
+// still count as early FCP/LCP candidates, and view.ts parks it with
+// --offscreen only once the JS view lands in the outlet. Not
+// aria-hidden — that would filter it out of Readability too.
 .reader-content {
   max-width: 75ch;
   margin: 0 auto;
@@ -228,6 +229,11 @@ main {
   }
 
   html.js & {
-    @extend %reader-offscreen;
+    // Absolute top-anchored: out of flow so parking it later reflows
+    // nothing (zero CLS), still painted so its content is an LCP
+    // candidate under the intro veil.
+    position: absolute;
+    inset: 0 0 auto;
+    pointer-events: none;
   }
 }
