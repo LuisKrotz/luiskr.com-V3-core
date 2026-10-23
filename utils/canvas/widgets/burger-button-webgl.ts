@@ -56,6 +56,25 @@ const ROT_RATE_PER_S = 2.4
 const CLICK_TIME_OFF = -10
 
 /**
+ * Seconds of post-click shockwave the shader animates — the ambient
+ * throttle must keep every shockwave frame on the fast path.
+ */
+const CLICK_SHOCKWAVE_S = 0.5
+
+/**
+ * Convergence epsilon for the eased scalars — below this the residual
+ * exponential motion is sub-pixel on a 34px icon.
+ */
+const SETTLE_EPSILON = 0.002
+
+/**
+ * Consecutive settled frames before the ambient drift drops to half
+ * rate — ~0.5s at 60Hz, so a just-landed transition still renders its
+ * tail at full speed before the throttle engages.
+ */
+const SETTLE_GRACE_FRAMES = 30
+
+/**
  * WebGL liquid menu icon for the burger button.
  * Renders four rounded squares that drift with a liquid idle, pool toward
  * the center on hover/focus, and morph into the close X when the menu
@@ -115,6 +134,14 @@ export class BurgerButtonWebGL {
   _onResize: () => void
   _purged = false
   _hasDeriv = false
+  /**
+   * Consecutive frames with every eased scalar converged and no live
+   * shockwave — once it clears SETTLE_GRACE_FRAMES the ambient liquid
+   * drift repaints on alternating frames only.
+   */
+  _settleStreak = 0
+  /** Alternating-frame parity used by the settled-state half-rate path. */
+  _parity = false
   useWebGL = false
 
   constructor(canvas: HTMLCanvasElement, onClick?: EventListener | null) {
@@ -465,7 +492,26 @@ export class BurgerButtonWebGL {
 
     this.animId = framePool.request(this._frameTick)
 
-    this._drawFrame((performance.now() - this.startTime) / 1000)
+    const t = (performance.now() - this.startTime) / 1000
+
+    // Ambient-idle throttle: with every eased scalar converged and no
+    // click shockwave in flight, the only remaining motion is the
+    // shader's slow liquid drift — repainting on alternating frames
+    // halves the loop's steady-state main-thread cost while the drift
+    // stays visually continuous (u_time is absolute, not frame-indexed).
+    const settled =
+      Math.abs(this._hoverTarget - this._hover) < SETTLE_EPSILON &&
+      Math.abs(this._openTarget - this._open) < SETTLE_EPSILON &&
+      Math.abs(this._liquid * Math.PI - this._rot) < SETTLE_EPSILON &&
+      t - this._clickT > CLICK_SHOCKWAVE_S
+
+    this._settleStreak = settled ? this._settleStreak + 1 : 0
+
+    this._parity = !this._parity
+
+    if (this._settleStreak <= SETTLE_GRACE_FRAMES || this._parity) {
+      this._drawFrame(t)
+    }
   }
 
   /**
