@@ -2,7 +2,7 @@
  * @file wasm-utils-gpu-accel.test.js
  * @description Split from wasm-utils.test.js — covers the "gpu-accel" describe.
  */
-import { describe, test, expect, beforeEach } from '@jest/globals'
+import { describe, test, expect, beforeEach, afterAll } from '@jest/globals'
 import { gpuAccel } from '@core/utils/gpu/gpu-accel.js'
 import { attachMockGL } from '@tests/fixtures/mock-webgl.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
@@ -26,12 +26,27 @@ const _installTimedRaf = () => {
 
 // ─── gpu-accel ───────────────────────────────────────────────────────────────
 describe('gpu-accel', () => {
+  // `navigator` under testEnvironment 'node' is Node's real global — shared
+  // across every test file in a worker. Any earlier suite that stubs
+  // userAgent to a mobile value and restores late (or not at all) makes
+  // initGPU()'s mobile gate early-return here; pin a desktop UA per test.
+  const uaDesc = Object.getOwnPropertyDescriptor(navigator, 'userAgent')
+
   beforeEach(() => {
     // webglAllowed()'s ambient gates — URL debug flag + the documentElement
     // reduced-motion class — are pinned so initGPU()'s context probe is
     // deterministic regardless of suite-scheduling ambient state.
     window.history.replaceState(null, '', '/')
     document.documentElement.classList.remove(STATE_CLASSES.REDUCED_MOTION)
+
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'jest-desktop',
+      configurable: true,
+    })
+  })
+
+  afterAll(() => {
+    if (uaDesc) Object.defineProperty(navigator, 'userAgent', uaDesc)
   })
 
   test('lazily creates the GL context on first use', () => {
