@@ -132,6 +132,106 @@ describe('media utils tails', () => {
     expect(vid.thumb).not.toContain(' ')
   })
 
+  test('coverLadderStep swaps to the -mobile stem ladder for ≤768px boxes', () => {
+    const registry = new Map()
+    const loaded = HOME_MOSAIC_CLASSES.HOME_MOSAIC_IMG_LOADED
+
+    const key = `${CDN_URLS.CDN_BASE}covers/mob${MEDIA.EXT}`
+    const d50 = `${CDN_URLS.CDN_BASE}covers/mob${MEDIA.MOZ}${MEDIA.Q50}${MEDIA.EXT}`
+    const d75 = `${CDN_URLS.CDN_BASE}covers/mob${MEDIA.MOZ}${MEDIA.Q75}${MEDIA.EXT}`
+    const d100 = `${CDN_URLS.CDN_BASE}covers/mob${MEDIA.MOZ}${MEDIA.Q100}${MEDIA.EXT}`
+    const m50 = `${CDN_URLS.CDN_BASE}covers/mob${MEDIA.MOBILE_SUFFIX}${MEDIA.MOZ}${MEDIA.Q50}${MEDIA.EXT}`
+    const m50Webp = `${m50.slice(0, -MEDIA.EXT.length)}${MEDIA.WEBP_EXT}`
+    const mOrig = `${CDN_URLS.CDN_BASE}covers/mob${MEDIA.MOBILE_SUFFIX}${MEDIA.EXT}`
+    const rungs = [
+      { jpg: d50, webp: CHAR_STRINGS.EMPTY },
+      { jpg: d75, webp: CHAR_STRINGS.EMPTY },
+      { jpg: key, webp: CHAR_STRINGS.EMPTY },
+      { jpg: d100, webp: CHAR_STRINGS.EMPTY },
+    ]
+    const mobileRungs = [
+      { jpg: m50, webp: m50Webp },
+      { jpg: mOrig, webp: CHAR_STRINGS.EMPTY },
+    ]
+
+    const pic = document.createElement(HTML_TAGS.PICTURE)
+    const img = document.createElement(HTML_TAGS.IMG)
+
+    pic.append(img)
+    document.body.append(pic)
+
+    Object.defineProperty(img, 'clientWidth', { value: 385, configurable: true })
+    img.src = d50
+
+    const origImage = window.Image
+    const origGlobalImage = globalThis.Image
+    const probes = []
+
+    window.Image = class {
+      constructor() {
+        probes.push(this)
+      }
+    }
+
+    try {
+      // Small box painted a DESKTOP rung — off-ladder on the mobile stem,
+      // so the rebase probes the mobile entry rung (webp preferred).
+      coverLadderStep(registry, key, img, rungs, loaded, mobileRungs)
+
+      expect(probes.length).toBe(1)
+      expect(probes[0].src).toBe(m50Webp)
+
+      probes[0].onload()
+
+      const step = pic.nextElementSibling
+
+      expect(step.getAttribute(MEDIA_ATTRS.SRC)).toBe(m50Webp)
+
+      // The mobile rung painted → ceiling for a ≤768px box is rung 0, so
+      // the climb stops there — the upper mobile tiers stay unfetched.
+      // (The clone's clientWidth is layout-derived in a real browser;
+      // happy-dom needs it defined on the mounted successor.)
+      Object.defineProperty(step, 'clientWidth', { value: 385, configurable: true })
+      step.dispatchEvent(new Event(WINDOW_EVENTS.LOAD))
+
+      expect(probes.length).toBe(1)
+      expect(registry.get(key)).toBe(m50Webp)
+
+      // Big box painted a MOBILE rung (the <source media> entry, or the
+      // viewport crossed 768px) — rebases onto the full ladder's entry
+      // rung so the climb upgrades toward real resolution.
+      const big = document.createElement(HTML_TAGS.IMG)
+
+      Object.defineProperty(big, 'clientWidth', { value: 1200, configurable: true })
+      document.body.append(big)
+      big.src = m50
+
+      coverLadderStep(registry, key, big, rungs, loaded, mobileRungs)
+
+      expect(probes.at(-1).src).toBe(d50)
+
+      big.remove()
+
+      // Small box WITHOUT a proven mobile stem — the mobileRungs.length
+      // false arm keeps the desktop ladder (4 rungs, ceiling 1 → climbs).
+      const noMob = document.createElement(HTML_TAGS.IMG)
+
+      Object.defineProperty(noMob, 'clientWidth', { value: 385, configurable: true })
+      document.body.append(noMob)
+      noMob.src = d50
+
+      coverLadderStep(registry, key, noMob, rungs, loaded)
+
+      expect(probes.at(-1).src).toBe(d75)
+
+      noMob.remove()
+    } finally {
+      window.Image = origImage
+      globalThis.Image = origGlobalImage
+      pic.remove()
+    }
+  })
+
   test('coverLadderStep marks the painted rung and climbs via detached probe', () => {
     const registry = new Map()
     const pic = document.createElement(HTML_TAGS.PICTURE)

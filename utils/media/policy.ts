@@ -67,6 +67,20 @@ export function videoAutoplayAllowed(): boolean {
 }
 
 /**
+ * Whether a rendered media box is small enough that the 768px-wide
+ * `-mobile` derivative stem already over-resolves it — at ≤768 CSS px
+ * every full-width rung (original/uncompressed are multi-MB) is
+ * guaranteed waste regardless of connection. A 0/unknown width stays
+ * false: the ladder then keeps the full stem and only the connection
+ * term applies.
+ * @param boxWidthCssPx Rendered width of the media box in CSS px.
+ * @returns True when the mobile stem is the correct ladder.
+ */
+export function smallMediaBox(boxWidthCssPx: number): boolean {
+  return boxWidthCssPx > 0 && boxWidthCssPx <= IMAGE_DIMENSIONS.SMALL_BOX_PX
+}
+
+/**
  * Highest ladder index the climb may reach. Rung order is fixed
  * (q50 → q75 → original → uncompressed), so the ceiling counts DOWN
  * from the top:
@@ -94,7 +108,7 @@ export function ladderCeiling(rungCount: number, boxWidthCssPx: number): number 
 
   if (budget === MEDIA_BUDGET.MEDIUM) drop += 1
 
-  if (boxWidthCssPx > 0 && boxWidthCssPx <= IMAGE_DIMENSIONS.SMALL_BOX_PX) drop += 2
+  if (smallMediaBox(boxWidthCssPx)) drop += 2
 
   return Math.max(0, last - drop)
 }

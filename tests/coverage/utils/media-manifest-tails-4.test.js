@@ -51,12 +51,18 @@ describe('media manifest tails 4', () => {
       // 'g' — thumb + original webp: the ladder is the original rung
       `covers/g${THUMB}`,
       `covers/g${MEDIA.WEBP_EXT}`,
-      // 'h' — thumb + every tier: the full q50 → q75 → orig → q100 climb
+      // 'h' — thumb + every tier: the full q50 → q75 → orig → q100
+      // climb; the -mobile stem proves two ladder tiers of its own so
+      // mobileRungs populates (≤768px boxes climb the compact stem).
       `covers/h${THUMB}`,
       `covers/h${Q50}`,
       `covers/h${Q75}`,
       `covers/h${Q100}`,
       `covers/h${Q100_WEBP}`,
+      `covers/h${MEDIA.MOBILE_SUFFIX}${Q50}`,
+      `covers/h${MEDIA.MOBILE_SUFFIX}${Q75}`,
+      `covers/h${MEDIA.MOBILE_SUFFIX}${MEDIA.MOZ}${MEDIA.Q75}${MEDIA.WEBP_EXT}`,
+      `covers/h${MEDIA.MOBILE_SUFFIX}${MEDIA.EXT}`,
       // 'media/x' — extensionless-figure stem: q50 + q75 (+webp) + q100
       // proven, the raw stem.jpg deliberately absent (the pipeline never
       // emits it) so the '' rung must gate out.
@@ -81,6 +87,7 @@ describe('media manifest tails 4', () => {
       mobileJpg: url(`covers/a${MOBILE}`),
       mobileWebp: url(`covers/a${MOBILE_WEBP}`),
       rungs: [{ jpg: url(`covers/a${MEDIA.EXT}`), webp: ATTR_VALUES.EMPTY }],
+      mobileRungs: [],
     })
 
     // Thumb jpg without webp/mobile — src swaps, webp/mobile stay empty.
@@ -92,6 +99,7 @@ describe('media manifest tails 4', () => {
       mobileJpg: ATTR_VALUES.EMPTY,
       mobileWebp: ATTR_VALUES.EMPTY,
       rungs: [{ jpg: url(`covers/b${MEDIA.EXT}`), webp: ATTR_VALUES.EMPTY }],
+      mobileRungs: [],
     })
 
     // Mobile without thumb — original src, mobile source still offered;
@@ -104,6 +112,7 @@ describe('media manifest tails 4', () => {
       mobileJpg: url(`covers/c${MOBILE}`),
       mobileWebp: ATTR_VALUES.EMPTY,
       rungs: [],
+      mobileRungs: [],
     })
 
     // Original webp only — webp probes the original when no thumb lands.
@@ -115,6 +124,7 @@ describe('media manifest tails 4', () => {
       mobileJpg: ATTR_VALUES.EMPTY,
       mobileWebp: ATTR_VALUES.EMPTY,
       rungs: [],
+      mobileRungs: [],
     })
 
     // Non-.jpg input — the endsWith false arm keeps the stem whole and
@@ -127,6 +137,7 @@ describe('media manifest tails 4', () => {
       mobileJpg: ATTR_VALUES.EMPTY,
       mobileWebp: ATTR_VALUES.EMPTY,
       rungs: [],
+      mobileRungs: [],
     })
 
     // Thumb + q50 pair — the ladder opens on the proven q50 (with its
@@ -142,6 +153,7 @@ describe('media manifest tails 4', () => {
         { jpg: url(`covers/f${Q50}`), webp: url(`covers/f${Q50_WEBP}`) },
         { jpg: url(`covers/f${MEDIA.EXT}`), webp: ATTR_VALUES.EMPTY },
       ],
+      mobileRungs: [],
     })
 
     // Thumb + original webp — the single rung carries the proven webp.
@@ -153,6 +165,7 @@ describe('media manifest tails 4', () => {
       mobileJpg: ATTR_VALUES.EMPTY,
       mobileWebp: ATTR_VALUES.EMPTY,
       rungs: [{ jpg: url(`covers/g${MEDIA.EXT}`), webp: url(`covers/g${MEDIA.WEBP_EXT}`) }],
+      mobileRungs: [],
     })
 
     // Every tier proven — the ladder climbs q50 → q75 → original →
@@ -169,6 +182,22 @@ describe('media manifest tails 4', () => {
         { jpg: url(`covers/h${Q75}`), webp: ATTR_VALUES.EMPTY },
         { jpg: url(`covers/h${MEDIA.EXT}`), webp: ATTR_VALUES.EMPTY },
         { jpg: url(`covers/h${Q100}`), webp: url(`covers/h${Q100_WEBP}`) },
+      ],
+      // -mobile stem proves q50 → q75(+webp) → raw stem original —
+      // its own manifest-gated ladder in ascending quality order.
+      mobileRungs: [
+        {
+          jpg: url(`covers/h${MEDIA.MOBILE_SUFFIX}${Q50}`),
+          webp: ATTR_VALUES.EMPTY,
+        },
+        {
+          jpg: url(`covers/h${MEDIA.MOBILE_SUFFIX}${Q75}`),
+          webp: url(`covers/h${MEDIA.MOBILE_SUFFIX}${MEDIA.MOZ}${MEDIA.Q75}${MEDIA.WEBP_EXT}`),
+        },
+        {
+          jpg: url(`covers/h${MEDIA.MOBILE_SUFFIX}${MEDIA.EXT}`),
+          webp: ATTR_VALUES.EMPTY,
+        },
       ],
     })
 
