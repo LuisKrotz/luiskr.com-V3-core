@@ -13,6 +13,7 @@ import { MEDIA } from '@core/tokens/media/suffixes.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { GRAVATAR_SIZES } from '@core/tokens/media/dimensions.js'
+import { ladderCeiling } from './media/policy.js'
 import type { CoverRung } from './media/manifest.js'
 
 /**
@@ -186,7 +187,12 @@ export function coverLadderStep(
 
   const idx = rungs.findIndex((rung) => rung.jpg === painted || rung.webp === painted)
 
-  if (idx < 0 || idx >= rungs.length - 1) return
+  // Budget ceiling — the climb stops once the painted rung reaches the
+  // connection/box policy's top tier; rungs above it (raw original +
+  // uncompressed are the multi-MB tiers) can never be resolved by a box
+  // this small or afforded by a link this constrained.
+  if (idx < 0 || idx >= rungs.length - 1 || idx >= ladderCeiling(rungs.length, img.clientWidth))
+    return
 
   const next = rungs[idx + 1]
 

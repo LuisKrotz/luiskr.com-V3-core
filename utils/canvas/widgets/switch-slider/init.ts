@@ -13,6 +13,7 @@ import { releaseQuadGL, watchContextLoss } from '../../gl-lifecycle.js'
 import { webglPool } from '../../webgl-pool.js'
 import { SWITCH_SLIDER_FS, SWITCH_SLIDER_VS } from './shaders.js'
 import { glContextOptions } from '@core/utils/gpu/gpu-info.js'
+import { framePool } from '../../../motion/frame.js'
 import { GPU_WIDGET_DRIVE, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
 import { hasWebGpu, mountWebGpuWidget } from '../../../gpu/webgpu-widget.js'
 import type { SwitchWebGL } from '../switch-slider.js'
@@ -34,7 +35,7 @@ function backingDpr(): number {
 export function triggerFallback(host: SwitchWebGL): void {
   host.useWebGL = false
 
-  if (host.animId) cancelAnimationFrame(host.animId)
+  if (host.animId) framePool.cancel(host.animId)
 
   releaseQuadGL(host.canvas, host, host._onContextLost)
 

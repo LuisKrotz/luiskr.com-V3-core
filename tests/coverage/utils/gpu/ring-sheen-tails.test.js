@@ -398,4 +398,38 @@ describe('ring-sheen mount', () => {
     globalThis.requestAnimationFrame = prevRaf
     globalThis.IntersectionObserver = PrevIO
   })
+
+  test('a refresh armed mid-tick queues a second chain — destroy cancels one, the orphan early-returns dead', async () => {
+    makeWidget()
+
+    let s = null
+    let poked = false
+
+    widget.frame = (dt) => {
+      widget.frames.push(dt)
+
+      // Inside the tick `raf` reads 0 — refresh→poke queues a parallel
+      // tick the session's single `raf` slot never tracks.
+      if (!poked && s) {
+        poked = true
+        s.refresh()
+      }
+
+      return true
+    }
+
+    mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+    s = mount()
+
+    await flush(80)
+
+    expect(poked).toBe(true)
+
+    // destroy() cancels only the id in `raf` — the refresh-queued chain
+    // fires once more into the `!handle || dead` early return.
+    s.destroy()
+
+    await flush(40)
+  })
 })

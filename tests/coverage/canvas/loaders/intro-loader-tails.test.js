@@ -164,31 +164,18 @@ describe('intro-loader tails', () => {
     // stages is captured at runAnimation() entry — set it before re-calling.
     loader.copy.stages = []
 
-    // Drive exactly one update tick under these conditions: the first
-    // rAF runs the callback synchronously, the re-schedule inside update
-    // is swallowed so the loop can't recurse.
-    const origRaf = globalThis.requestAnimationFrame
-    let first = true
-
-    globalThis.requestAnimationFrame = (cb) => {
-      if (!first) return 1
-
-      first = false
-      cb(performance.now())
-
-      return 1
-    }
-
+    // One real framePool pump runs an update tick under these
+    // conditions — update() always writes progress first, so even the
+    // t=0 frame lands at >= 0.
     loader.progress = -1
 
     loader.runAnimation()
 
-    globalThis.requestAnimationFrame = origRaf
+    await flush(20)
 
-    // update() ran the tick — it always writes progress first.
     expect(loader.progress).toBeGreaterThanOrEqual(0)
 
-    await flush(30)
+    await flush(10)
 
     loader.destroy()
 

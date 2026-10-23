@@ -13,6 +13,7 @@ import { WASM_STRINGS } from '@core/tokens/strings/wasm.js'
 import { ANIMATION_DURATIONS } from '@core/tokens/motion/animation.js'
 import { calcEaseOutCubic } from './wasm-layout.js'
 import { gpuAccel } from '@core/utils/gpu/gpu-accel.js'
+import { framePool } from '../motion/frame.js'
 import { npuPredict } from '@core/utils/gpu/npu-predict.js'
 import { deepQuerySelector } from '@core/utils/dom.js'
 
@@ -118,7 +119,7 @@ export const wasmSmoothScroll = (options: WasmScrollOptions = {}): void => {
     }
 
     if (progress < 1.0) {
-      requestAnimationFrame(step)
+      framePool.request(step)
     } else {
       gpuAccel.releaseElementGPU(rootEl)
 
@@ -128,7 +129,7 @@ export const wasmSmoothScroll = (options: WasmScrollOptions = {}): void => {
     }
   }
 
-  requestAnimationFrame(step)
+  framePool.request(step)
 }
 
 export default wasmSmoothScroll

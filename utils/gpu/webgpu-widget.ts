@@ -20,6 +20,7 @@ import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { WASM_POOL } from '@core/tokens/data/wasm.js'
 import { DEBUG_PARAMS, WEBGL_MODES } from '@core/tokens/strings/debug.js'
 import { devWarn } from '@core/devlog.js'
+import { framePool } from '../motion/frame.js'
 
 /**
  * The generated wasm-pack glue module shape. Each crate exports a
@@ -454,7 +455,7 @@ function wire(widget: WasmWidget, canvas: HTMLCanvasElement, manual: boolean): W
   const kick = () => {
     if (!rafId && onScreen && !document.hidden) {
       last = performance.now()
-      rafId = requestAnimationFrame(tick)
+      rafId = framePool.request(tick)
     }
   }
 
@@ -481,7 +482,7 @@ function wire(widget: WasmWidget, canvas: HTMLCanvasElement, manual: boolean): W
     last = now
 
     if (!document.hidden && onScreen) {
-      rafId = requestAnimationFrame(tick)
+      rafId = framePool.request(tick)
     } else {
       rafId = 0
     }
@@ -507,7 +508,7 @@ function wire(widget: WasmWidget, canvas: HTMLCanvasElement, manual: boolean): W
   // Observe only AFTER the initial tick is scheduled — a synchronous
   // observer callback (happy-dom, polyfills) would kick while rafId is
   // still 0 and orphan a second loop destroy can never cancel.
-  rafId = requestAnimationFrame(tick)
+  rafId = framePool.request(tick)
   io?.observe(canvas)
 
   const onVisible = () => {
@@ -520,7 +521,7 @@ function wire(widget: WasmWidget, canvas: HTMLCanvasElement, manual: boolean): W
     canvas,
     widget,
     destroy: () => {
-      if (rafId) cancelAnimationFrame(rafId)
+      if (rafId) framePool.cancel(rafId)
       rafId = 0
 
       io?.disconnect()

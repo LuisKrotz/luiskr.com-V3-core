@@ -7,6 +7,7 @@
 
 import store from '@core/store.js'
 import { bindQuad } from '../../gl-program.js'
+import { framePool } from '../../../motion/frame.js'
 import type { CloseButtonWebGL } from '../close-button.js'
 
 /** Liquid fill rate — deliberately slowest so the wash pours. */
@@ -17,6 +18,17 @@ const ROT_RATE = 0.04
 
 /** One-time stroke draw-in rate (~50 frames ≈ 830ms on mount). */
 const DRAW_RATE = 0.02
+
+/**
+ * Sleep threshold for the liquid channel — mirrors the shader's own
+ * `u_liquid > 0.01` gate: below it the liquid region (and every
+ * u_time-driven wave/bubble inside it) is already invisible, so the
+ * loop may stop without changing a single pixel.
+ */
+const LIQUID_FLOOR = 0.01
+
+/** Click shockwave window in seconds — matches the shader's `clickElapsed < 0.4` gate. */
+const CLICK_WAVE_S = 0.4
 
 /**
  * Draws one settled frame with the X fully drawn — used under reduced
@@ -38,23 +50,20 @@ export function renderStatic(host: CloseButtonWebGL): void {
   }
 }
 
-/** Starts the requestAnimationFrame render loop (skipped under reduced motion). */
+/** Starts the shared-pool render loop (skipped under reduced motion). */
 export function animate(host: CloseButtonWebGL): void {
+  // The tick consumed its own pool id before running — clearing it here
+  // both keeps `animId` honest and lets a wake call re-arm the loop if
+  // this frame ever throws before the re-arm at the bottom.
+  host.animId = null
+
   if (!host.useWebGL) return
 
   if (store.getters.getReducedMotion()) {
-    if (host.animId) {
-      cancelAnimationFrame(host.animId)
-
-      host.animId = null
-    }
-
     renderStatic(host)
 
     return
   }
-
-  host.animId = requestAnimationFrame(() => host.animate())
 
   const now = performance.now()
 
@@ -78,9 +87,31 @@ export function animate(host: CloseButtonWebGL): void {
     host.drawProgress = Math.min(1.0, host.drawProgress + DRAW_RATE)
   }
 
+  // Settle-sleep — with the X fully drawn, no hover and the shockwave
+  // expired, the shader output is time-invariant (u_time only feeds the
+  // liquid interior and the click ring, both gated off at this state).
+  // Snap the asymptotic eases to their exact rest values so the frame
+  // painted below is the terminal one: hover/click/restore re-arm
+  // through setHover/triggerClick/restore.
+  const settled =
+    !host.isHovered &&
+    host.hoverLevel < LIQUID_FLOOR &&
+    host.drawProgress >= 1.0 &&
+    (now - host.startTime) * 0.001 - host.clickTime >= CLICK_WAVE_S
+
+  if (settled) {
+    host.hoverLevel = 0
+
+    host.rotation = 0
+  }
+
   if (host.useWebGL && (host.gl || host._wasm)) {
     renderWebGL(host, now)
   }
+
+  if (settled) return
+
+  host.animId = framePool.request(host._frameTick)
 }
 
 /** Per-frame wasm render: pushes the three eased channels + one frame tick. */

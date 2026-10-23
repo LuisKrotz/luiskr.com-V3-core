@@ -7,6 +7,7 @@
 
 import { SKELETON_CLASSES } from '@core/tokens/classes/skeleton.js'
 import store from '@core/store.js'
+import { framePool } from '../../../motion/frame.js'
 import type { SkeletonWebGL } from '../skeleton-webgl.js'
 import { SKELETON_RENDER, SKELETON_RESOLVE } from '@core/tokens/motion/skeleton.js'
 
@@ -53,7 +54,7 @@ export function upload(host: SkeletonWebGL): void {
 export function loop(host: SkeletonWebGL): void {
   if (!host.useWebGL) return
 
-  host.animId = requestAnimationFrame(() => host._loop())
+  host.animId = framePool.request(host._frameTick)
 
   // The field is slow by design: a reduced frame rate is invisible and cuts the cost
   host._frame += 1
@@ -82,7 +83,7 @@ export function loop(host: SkeletonWebGL): void {
 
   // Static frame is enough under reduced motion; keep looping only while resolving
   if (reduced && !host.resolveStart) {
-    cancelAnimationFrame(host.animId)
+    framePool.cancel(host.animId)
 
     host.animId = null
   }

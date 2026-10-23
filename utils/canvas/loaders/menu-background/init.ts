@@ -17,6 +17,7 @@ import { watchContextLoss } from '../../gl-lifecycle.js'
 import { MENU_BG_VS, menuBgFsSource } from './shaders.js'
 import { QUAD_STRIP } from '@core/tokens/motion/gpu.js'
 import { glContextOptions } from '@core/utils/gpu/gpu-info.js'
+import { framePool } from '../../../motion/frame.js'
 import type { MenuBackgroundWebGL } from '../menu-background-webgl.js'
 import { webglContext } from '../../webgl-mode.js'
 
@@ -118,7 +119,7 @@ export function triggerFallback(host: MenuBackgroundWebGL): void {
   host.useWebGL = false
 
   if (host.animId) {
-    cancelAnimationFrame(host.animId)
+    framePool.cancel(host.animId)
 
     host.animId = null
   }

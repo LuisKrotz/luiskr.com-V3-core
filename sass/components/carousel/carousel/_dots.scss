@@ -20,7 +20,10 @@
     font-family: var(--font-primary);
     font-weight: 900;
     font-size: to-rem($space-md);
-    color: var(--text-muted);
+    // Renders on the always-dark project/related surfaces — the plain
+    // --text-muted token is AAA on light pages only; the -on-dark
+    // variant holds 7.6:1 on --bg-dark in both themes.
+    color: var(--text-muted-on-dark);
     letter-spacing: to-rem($space-pixel);
     white-space: nowrap;
     text-transform: uppercase;

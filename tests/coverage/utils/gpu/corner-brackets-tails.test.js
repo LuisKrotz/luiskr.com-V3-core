@@ -498,6 +498,42 @@ describe('corner-brackets', () => {
 
       globalThis.requestAnimationFrame = prevRaf
     })
+
+    test('a teardown inside a ramp frame leaves an orphan tick that early-returns dead', async () => {
+      makeWidget()
+      mountResult = { canvas: null, widget, destroy: jest.fn() }
+
+      mount()
+
+      await flush()
+
+      const td = teardowns.pop()
+
+      button.matches = () => true
+
+      // Teardown re-entrantly inside the painted frame: `raf` was already
+      // consumed (0) so cancel is a no-op, and the p<1 re-arm below it
+      // queues a tick the teardown never saw — the dead-guard's prey.
+      let tore = false
+
+      widget.frame = (dt) => {
+        widget.frames.push(dt)
+
+        if (!tore) {
+          tore = true
+          td()
+        }
+
+        return true
+      }
+
+      button.dispatchEvent(new Event(POINTER_EVENTS.POINTERENTER))
+
+      // Two pumps: the tear-down tick re-arms, the orphan early-returns.
+      await flush(60)
+
+      expect(tore).toBe(true)
+    })
   })
 
   describe('batch mount + teardown', () => {

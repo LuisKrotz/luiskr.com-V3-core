@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  draw-text/_core.scss — the DrawText shadow host and .draw-text core:
-//  word/space/char spans, inline link underline (drawn at rest, wipes on
+//  word/char spans, inline link underline (drawn at rest, wipes on
 //  hover), link word redraw, and button-context redraw.
 //  Imported by draw-text.scss (manifest) — not compiled standalone.
 //
@@ -35,11 +35,6 @@
   &__word {
     display: inline-block;
     white-space: nowrap; // keeps all chars of this word on one line — never splits mid-word
-  }
-
-  &__space {
-    display: inline-block;
-    width: 0.3em; // one space-width gap between words; breakable line-break point
   }
 
   &__char {

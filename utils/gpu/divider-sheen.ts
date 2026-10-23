@@ -33,6 +33,7 @@ import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { MEDIA_QUERIES } from '@core/tokens/primitives.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+import { framePool } from '../motion/frame.js'
 import { WINDOW_EVENTS, CLIPBOARD_EVENTS } from '@core/tokens/events/dom.js'
 import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 import { parseCssColor } from '@core/utils/canvas/css-color.js'
@@ -75,8 +76,10 @@ interface DividerMount {
   canvas: HTMLCanvasElement
   /** The IntersectionObserver gating mount + the loop. */
   io: IntersectionObserver
-  /** Live rAF id, 0 when the loop is idle. */
+  /** Live frame-pool id, 0 when the loop is idle. */
   raf: number
+  /** Bound tick — allocated once per mount so re-arms never alloc. */
+  tick: () => void
   /** Last frame timestamp for dt. */
   last: number
   /** True while the hr is on screen (drives the loop). */
@@ -143,7 +146,7 @@ function tickDivider(m: DividerMount): void {
   m.raf = 0
 
   if (m.handle?.widget.frame(dt) !== false && m.visible && !document.hidden && !m.dead) {
-    m.raf = requestAnimationFrame(() => tickDivider(m))
+    m.raf = framePool.request(m.tick)
   }
 }
 
@@ -156,7 +159,7 @@ function pumpDivider(m: DividerMount): void {
   if (m.raf || m.dead || !m.visible || document.hidden || !m.handle) return
 
   m.last = performance.now()
-  m.raf = requestAnimationFrame(() => tickDivider(m))
+  m.raf = framePool.request(m.tick)
 }
 
 /**
@@ -164,7 +167,7 @@ function pumpDivider(m: DividerMount): void {
  * @param m The live mount state.
  */
 function stopDivider(m: DividerMount): void {
-  if (m.raf) cancelAnimationFrame(m.raf)
+  if (m.raf) framePool.cancel(m.raf)
 
   m.raf = 0
 }
@@ -262,6 +265,7 @@ export function mountDividerSheen(hr: HTMLElement, canvasClass: string): () => v
       }
     }),
     raf: 0,
+    tick: () => tickDivider(m),
     last: 0,
     visible: false,
     dead: false,

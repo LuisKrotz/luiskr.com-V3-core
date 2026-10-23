@@ -52,6 +52,8 @@ export class MenuBackgroundWebGL {
   program: WebGLProgram | null = null
   quadBuffer: WebGLBuffer | null = null
   animId: number | null = null
+  /** Bound per-frame tick — allocated once so the pooled re-arm never allocs. */
+  _frameTick = (): void => this._loop()
   uTime: WebGLUniformLocation | null = null
   uResolution: WebGLUniformLocation | null = null
   uColor: WebGLUniformLocation | null = null

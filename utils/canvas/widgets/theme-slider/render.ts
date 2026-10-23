@@ -7,6 +7,7 @@
 
 import { bindQuad } from '../../gl-program.js'
 import { paintThemeSlider2D } from './paint-2d.js'
+import { framePool } from '../../../motion/frame.js'
 import { springStep } from '../../../motion/spring.js'
 import { SLIDER_SPRING } from '@core/tokens/motion/slider.js'
 import store from '@core/store.js'
@@ -36,11 +37,11 @@ export function renderStatic(host: ThemeSliderWebGL): void {
   }
 }
 
-/** Starts the requestAnimationFrame render loop (skipped under reduced motion). */
+/** Starts the shared-pool render loop (skipped under reduced motion). */
 export function animate(host: ThemeSliderWebGL): void {
   if (store.getters.getReducedMotion()) {
     if (host.animId) {
-      cancelAnimationFrame(host.animId)
+      framePool.cancel(host.animId)
 
       host.animId = null
     }
@@ -50,7 +51,7 @@ export function animate(host: ThemeSliderWebGL): void {
     return
   }
 
-  host.animId = requestAnimationFrame(() => host.animate())
+  host.animId = framePool.request(host._frameTick)
 
   const now = performance.now()
 

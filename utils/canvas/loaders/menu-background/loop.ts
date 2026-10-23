@@ -9,6 +9,7 @@ import { MEDIA_QUERIES } from '@core/tokens/primitives.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { QUAD_STRIP } from '@core/tokens/motion/gpu.js'
+import { framePool } from '../../../motion/frame.js'
 import type { MenuBackgroundWebGL } from '../menu-background-webgl.js'
 
 /** Reveal durations: slow bloom on open, quicker dissolve on close. */
@@ -113,7 +114,7 @@ export function stop(host: MenuBackgroundWebGL): void {
   host.isActive = false
 
   if (host.animId) {
-    cancelAnimationFrame(host.animId)
+    framePool.cancel(host.animId)
 
     host.animId = null
   }
@@ -168,7 +169,7 @@ export function handleResize(host: MenuBackgroundWebGL): void {
 export function loop(host: MenuBackgroundWebGL): void {
   if (!host.isActive || !(host.gl || host._wasm) || !host.useWebGL) return
 
-  host.animId = requestAnimationFrame(() => host._loop())
+  host.animId = framePool.request(host._frameTick)
 
   host._renderFrame()
 }

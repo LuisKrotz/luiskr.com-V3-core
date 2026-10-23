@@ -15,6 +15,7 @@ import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { WEBGL_STRINGS } from '@core/tokens/strings/webgl.js'
 import type { LangOption } from '@core/i18n.js'
 import { webglPool } from '../webgl-pool.js'
+import { framePool } from '../../motion/frame.js'
 import { FlagRenderer, flagRenderer } from './flag/renderer.js'
 import { displayAspect, getAnimType, resizeToNaturalAspect, splitPoint } from './flag/anim.js'
 import { animateFlag, renderFlagWebGL, renderStaticFlag, triggerFlagFallback } from './flag/loop.js'
@@ -55,6 +56,8 @@ export class FlagWebGL {
   useWebGL = false
   _paused = false
   animId: number | null = null
+  /** Bound per-frame tick — allocated once so the pooled re-arm never allocs. */
+  _frameTick = (): void => this.animate()
   startTime: number
   ctx: CanvasRenderingContext2D | null = null
   renderer: FlagRenderer | null = null
@@ -310,7 +313,7 @@ export class FlagWebGL {
     this._paused = true
 
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }
@@ -470,7 +473,7 @@ export class FlagWebGL {
     webglPool.unregister(this.canvas)
 
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }

@@ -11,6 +11,7 @@
  */
 import { describe, test, expect, jest, beforeEach, afterEach } from '@jest/globals'
 import { springScrollTo, cancelSpringScroll } from '@core/utils/motion/scroll-spring.js'
+import { framePool } from '@core/utils/motion/frame.js'
 import { CAROUSEL_SPRING } from '@core/tokens/motion/carousel.js'
 import { CAROUSEL_CLASSES } from '@core/tokens/classes/carousel.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
@@ -196,13 +197,13 @@ describe('scroll-spring tails', () => {
   })
 
   test('cancelSpringScroll clears a state whose frame never armed', () => {
-    // A rAF returning 0 leaves the state registered with raf = 0 — the
-    // cancel path must still lift the class and drop the state.
+    // framePool.request returning 0 leaves the state registered with
+    // raf = 0 — cancel must skip `if (s.raf)` and still drop the state.
     const el = makeTrack()
-
-    globalThis.requestAnimationFrame = () => 0
+    const spy = jest.spyOn(framePool, 'request').mockImplementation(() => 0)
 
     springScrollTo(el, 400, ANIM)
+    spy.mockRestore()
 
     expect(el.classList.contains(ANIM)).toBe(true)
 

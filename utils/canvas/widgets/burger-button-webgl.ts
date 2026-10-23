@@ -26,6 +26,7 @@ import { QUAD_STRIP } from '@core/tokens/motion/gpu.js'
 import { bindQuad, createQuadProgram, getUniforms } from '../gl-program.js'
 import { releaseQuadGL, watchContextLoss } from '../gl-lifecycle.js'
 import { webglPool } from '../webgl-pool.js'
+import { framePool } from '../../motion/frame.js'
 import { BURGER_VS, burgerFsSource } from './burger-button/shaders.js'
 import { glContextOptions } from '@core/utils/gpu/gpu-info.js'
 import { webglContext } from '../webgl-mode.js'
@@ -73,6 +74,8 @@ export class BurgerButtonWebGL {
   program: WebGLProgram | null = null
   quadBuffer: WebGLBuffer | null = null
   animId: number | null = null
+  /** Bound per-frame tick — allocated once so the pooled re-arm never allocs. */
+  _frameTick = (): void => this._loop()
   startTime = performance.now()
   uTime: WebGLUniformLocation | null = null
   uResolution: WebGLUniformLocation | null = null
@@ -277,7 +280,7 @@ export class BurgerButtonWebGL {
     this.useWebGL = false
 
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }
@@ -373,7 +376,7 @@ export class BurgerButtonWebGL {
 
     // Layout may not be settled on the very first frame (fonts, shadow DOM
     // adoption); re-measure once more before the loop settles.
-    requestAnimationFrame(() => this._checkResize())
+    framePool.request(() => this._checkResize())
 
     const reduced =
       document.documentElement.classList.contains(STATE_CLASSES.REDUCED_MOTION) ||
@@ -460,7 +463,7 @@ export class BurgerButtonWebGL {
   _loop() {
     if (!this.gl || !this.useWebGL) return
 
-    this.animId = requestAnimationFrame(() => this._loop())
+    this.animId = framePool.request(this._frameTick)
 
     this._drawFrame((performance.now() - this.startTime) / 1000)
   }
@@ -476,7 +479,7 @@ export class BurgerButtonWebGL {
     this._purged = true
 
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }
@@ -511,7 +514,7 @@ export class BurgerButtonWebGL {
     webglPool.unregister(this.canvas)
 
     if (this.animId) {
-      cancelAnimationFrame(this.animId)
+      framePool.cancel(this.animId)
 
       this.animId = null
     }

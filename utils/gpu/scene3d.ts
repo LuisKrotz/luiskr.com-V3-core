@@ -249,7 +249,23 @@ export function resizeScene3d(surface: Scene3dSurface, canvas: HTMLCanvasElement
   const h = Math.max(1, canvas.clientHeight)
   const dpr = typeof window === TYPE_STRINGS.UNDEFINED ? 1 : window.devicePixelRatio || 1
 
-  surface.resize(Math.max(1, Math.round(w * dpr)), Math.max(1, Math.round(h * dpr)))
+  const dw = Math.max(1, Math.round(w * dpr))
+
+  const dh = Math.max(1, Math.round(h * dpr))
+
+  // The canvas BITMAP follows the CSS box × DPR — the engine's
+  // configure() + rebuilt depth attachment must match the texture
+  // getCurrentTexture hands back, and that texture tracks the bitmap.
+  // A canvas left at its default 300×150 made every frame's render
+  // pass fail attachment-size validation (the production "blank
+  // architecture map + depth-stencil spam" regression). Writes happen
+  // only on a real change — assigning canvas.width clears the bitmap
+  // even when re-assigned the same value.
+  if (canvas.width !== dw) canvas.width = dw
+
+  if (canvas.height !== dh) canvas.height = dh
+
+  surface.resize(dw, dh)
 }
 
 /**
@@ -289,12 +305,18 @@ export async function mountScene3d(
 
     await mod.default()
 
-    const surface = await mod.mount(
-      canvas,
-      device,
-      Math.max(1, canvas.clientWidth),
-      Math.max(1, canvas.clientHeight)
-    )
+    // Size the bitmap before mount so the engine's initial configure +
+    // depth bake land on final dims — resizeScene3d re-asserts the same
+    // values right after, then the RO owns further changes.
+    {
+      const dpr = window.devicePixelRatio || 1
+
+      canvas.width = Math.max(1, Math.round(Math.max(1, canvas.clientWidth) * dpr))
+
+      canvas.height = Math.max(1, Math.round(Math.max(1, canvas.clientHeight) * dpr))
+    }
+
+    const surface = await mod.mount(canvas, device, canvas.width, canvas.height)
 
     resizeScene3d(surface, canvas)
 

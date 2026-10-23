@@ -122,6 +122,12 @@ export const DOCS_UNITS = Object.freeze({
   SCENE_ROTATE_SPEED: 0.005,
   SCENE_PULSE_SPEED: 0.021875,
   SCENE_PULSE_AMP: 0.05,
+  /** semantic-index streaming — elements appended per idle slice (~a few
+   *  ms each, far under a frame budget), the rIC starvation bound per
+   *  slice, and the setTimeout fallback delay where rIC is absent */
+  INDEX_CHUNK: 400,
+  INDEX_IDLE_TIMEOUT: 250,
+  INDEX_FALLBACK_DELAY: 0,
   /** node sphere radii (chart units) — sized to read at the mid-zoom
    *  camera distance without smearing into blobs at near clip */
   SCENE_DIR_RADIUS: 1.15,
