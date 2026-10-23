@@ -65,7 +65,15 @@ export class IntroLoader {
     this.onComplete = onComplete
     this.copy = loaderCopy()
 
-    this.startTime = performance.now()
+    // The head script stamps window.lk_intro_t0 at HTML parse time so the
+    // fixed-duration budget covers the whole boot — on slow engines the
+    // 1600ms is already spent by mount and the veil lifts ~immediately
+    // instead of holding a static page hostage for another ~2.3s.
+    const stamped = Number(
+      (window as unknown as Record<string, unknown>)[CACHE_STORAGE_KEYS.INTRO_T0]
+    )
+
+    this.startTime = Number.isFinite(stamped) ? stamped : performance.now()
 
     this.init()
   }
