@@ -9,8 +9,12 @@
  * Execution-provider chain: WebNN NPU → WebGPU → WASM SIMD — ORT picks
  * the first live target; when `navigator.ml`/`navigator.gpu` are absent
  * those EPs are never requested, so unsupported browsers take the wasm
- * path with no failed-probe cost. wasm binaries are served from
- * `/ort/` (public dir, immutable-cacheable) via `env.wasm.wasmPaths`.
+ * path with no failed-probe cost. Interactive-path slugs listed in
+ * `ML_WASM_EP_MODELS` bypass the chain entirely (wasm only) — their
+ * sessions must never hit the synchronous GPU pipeline-compile IPC,
+ * which can deadlock the renderer while the GPU process is busy.
+ * wasm binaries are served from `/ort/` (public dir, immutable-cacheable)
+ * via `env.wasm.wasmPaths`.
  *
  * Everything resolves `null` on failure — callers keep their heuristic
  * fallbacks and never need try/catch around inference itself.
@@ -18,7 +22,7 @@
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { ASSET_PATHS } from '@core/tokens/routes/paths.js'
-import { ML, ML_SESSION } from '@core/tokens/data/ml.js'
+import { ML, ML_SESSION, ML_WASM_EP_MODELS } from '@core/tokens/data/ml.js'
 import { devWarn } from '@core/devlog.js'
 
 /** Minimal ORT tensor surface this engine creates and reads back. */
@@ -172,6 +176,10 @@ const executionProviders = (): string[] => {
  * tries the full EP chain; if the accelerator session throws (e.g. a
  * WebNN driver rejects the graph) it retries wasm-only before giving
  * up — a broken NPU path must not take the model down with it.
+ * `ML_WASM_EP_MODELS` slugs skip the accelerator chain entirely: those
+ * interactive-path models must never issue the synchronous
+ * pipeline-compile IPCs a webgpu/webnn session create performs, since
+ * a busy GPU process wedges the renderer main thread.
  * @param slug Model slug from `ML.MODEL_*` — resolves to `/models/<slug>.onnx`.
  * @param loadModule Injectable ORT loader (forwarded to ensureOrt).
  * @returns The session, or null when every EP failed.
@@ -192,7 +200,9 @@ export const mlSession = async (
     const uri = `${ASSET_PATHS.ML_MODELS_PREFIX}${slug}${ML.MODEL_EXT}`
 
     const opts = {
-      executionProviders: executionProviders(),
+      // Pinned models jump straight to wasm — no accelerator probes, no
+      // GPU IPC. Everything else keeps the webnn → webgpu → wasm chain.
+      executionProviders: ML_WASM_EP_MODELS.has(slug) ? [ML.EP_WASM] : executionProviders(),
       graphOptimizationLevel: ML_SESSION.OPT_ALL,
     }
 

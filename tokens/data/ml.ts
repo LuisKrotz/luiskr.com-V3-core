@@ -94,6 +94,22 @@ export const ML = Object.freeze({
 })
 
 /**
+ * Slugs pinned to the wasm EP — the interaction-path models (frametime
+ * every 30 frames, diagram-cost mid-render). ORT's webgpu/webnn session
+ * create issues synchronous pipeline-compile IPCs that can deadlock the
+ * renderer main thread while the GPU process is busy (scene shader
+ * compiles) — observed as a full-page freeze on docs routes with
+ * mermaid blocks and on weak Android GPUs. These models are
+ * single-layer MLPs: wasm answers in microseconds, so the accelerator
+ * EPs buy nothing and only add contention. Larger/idle-time models
+ * (intent, superres) keep the full webnn → webgpu → wasm chain.
+ */
+export const ML_WASM_EP_MODELS: ReadonlySet<string> = new Set([
+  ML.MODEL_FRAMETIME,
+  ML.MODEL_DIAGRAM,
+])
+
+/**
  * ORT session-option literal names — the `executionProviders` array and
  * `graphOptimizationLevel` enum value live here so no string is repeated
  * between the engine and its tests.

@@ -2,8 +2,10 @@
  * @file core/utils/ml/frame-time.ts
  * @description ML-driven adaptive render quality for the WebGL/three.js
  * surfaces (star-field, earth-playground, scene3d). A ring buffer of
- * the last five frame times feeds the `frametime` ONNX model — WebNN
- * NPU → WebGPU → wasm EP — which predicts the next frame's cost; the
+ * the last five frame times feeds the `frametime` ONNX model — wasm EP
+ * (the slug is in ML_WASM_EP_MODELS: inference runs every 30 frames, so
+ * the session must never contend with the render surface's own GPU
+ * pipeline-compile IPCs) — which predicts the next frame's cost; the
  * predictor nudges a quality scalar (renderer pixel-ratio multiplier)
  * down when the projection clears the frame budget and back up when
  * there's headroom. Inference is throttled to one pass per

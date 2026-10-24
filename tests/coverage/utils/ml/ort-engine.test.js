@@ -26,8 +26,7 @@ const makeOrt = ({ failCreate = 0, failRun = false, outputs } = {}) => {
       create: async (uri, opts) => {
         state.creates.push({ uri, opts })
 
-        if (failCreate === Infinity || state.creates.length <= failCreate)
-          throw new Error('create')
+        if (failCreate === Infinity || state.creates.length <= failCreate) throw new Error('create')
 
         return {
           run: async (feeds) => {
@@ -131,9 +130,7 @@ describe('ort-engine', () => {
 
     expect(s1).toBe(s2)
     expect(state.creates).toHaveLength(1)
-    expect(state.creates[0].uri).toBe(
-      `${ASSET_PATHS.ML_MODELS_PREFIX}intent${ML.MODEL_EXT}`
-    )
+    expect(state.creates[0].uri).toBe(`${ASSET_PATHS.ML_MODELS_PREFIX}intent${ML.MODEL_EXT}`)
     expect(state.creates[0].opts.executionProviders).toEqual([
       ML.EP_WEBNN,
       ML.EP_WEBGPU,
@@ -170,6 +167,29 @@ describe('ort-engine', () => {
     if (nav) Object.defineProperty(globalThis, 'navigator', nav)
   })
 
+  test('wasm-pinned slugs skip the accelerator chain even with ml+gpu', async () => {
+    const { ort, state } = makeOrt()
+
+    const nav = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+
+    Object.defineProperty(globalThis, 'navigator', {
+      configurable: true,
+      value: { ml: {}, gpu: {} },
+    })
+
+    await mlSession(ML.MODEL_FRAMETIME, loaderOf(ort))
+    await mlSession(ML.MODEL_DIAGRAM, loaderOf(ort))
+
+    // Both interactive-path models must create wasm-only sessions — a
+    // webgpu/webnn create issues synchronous pipeline-compile IPCs that
+    // can deadlock the renderer while the GPU process is busy.
+    expect(state.creates).toHaveLength(2)
+    expect(state.creates[0].opts.executionProviders).toEqual([ML.EP_WASM])
+    expect(state.creates[1].opts.executionProviders).toEqual([ML.EP_WASM])
+
+    if (nav) Object.defineProperty(globalThis, 'navigator', nav)
+  })
+
   test('accelerated create failure retries wasm-only', async () => {
     const { ort, state } = makeOrt({ failCreate: 1 })
 
@@ -186,9 +206,11 @@ describe('ort-engine', () => {
 
   test('mlSession returns null when the runtime itself is unavailable', async () => {
     expect(await mlSession('intent', async () => null)).toBeNull()
-    expect(await mlSession('intent', async () => {
-      throw new Error('no chunk')
-    })).toBeNull()
+    expect(
+      await mlSession('intent', async () => {
+        throw new Error('no chunk')
+      })
+    ).toBeNull()
   })
 
   test('runMlModel wraps feeds in tensors and unwraps outputs', async () => {
