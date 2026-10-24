@@ -212,7 +212,12 @@ describe('scene3d facade', () => {
     expect(handle).not.toBeNull()
 
     Object.defineProperty(canvas, 'clientWidth', { value: 100, configurable: true })
+    // Two notifications in one frame — the rAF deferral coalesces them
+    // into a single re-fit (the pending-flag early-return arm).
     captured.fire()
+    captured.fire()
+
+    await new Promise((r) => setTimeout(r, 25))
 
     expect(surface.resizes.length).toBe(2)
     expect(surface.resizes[1]).toEqual([100, 240])

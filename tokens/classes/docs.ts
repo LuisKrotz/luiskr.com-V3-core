@@ -23,6 +23,7 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_TREE: `${_B_DOCS}-tree`,
   DOCS_TREE_ITEM: `${_B_DOCS}-tree-item`,
   DOCS_TREE_OPEN: `${_B_DOCS}-tree-open`,
+  DOCS_STACK: `${_B_DOCS}-stack`,
   DOCS_MAIN: `${_B_DOCS}-main`,
   DOCS_CRUMBS: `${_B_DOCS}-crumbs`,
   DOCS_CRUMB: `${_B_DOCS}-crumb`,
@@ -43,8 +44,34 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_SCENE: `${_B_DOCS}-scene`,
   DOCS_SCENE_OFF: `${_B_DOCS}-scene-off`,
   DOCS_SCENE_HINT: `${_B_DOCS}-scene-hint`,
+  // ── Architecture-map column + zoom modal ──────────────────────────────
+  /** The right-hand map column — interactive alternative nav surface. */
+  DOCS_MAP: `${_B_DOCS}-map`,
+  /** Canvas seat inside the column OR the zoom dialog — the persistent
+   *  scene node re-parents here on every render. */
+  DOCS_MAP_STAGE: `${_B_DOCS}-map-stage`,
+  /** Map header row — caption + zoom trigger. */
+  DOCS_MAP_HEAD: `${_B_DOCS}-map-head`,
+  /** Zoom trigger — opens the centered glass modal. */
+  DOCS_MAP_ZOOM: `${_B_DOCS}-map-zoom`,
+  /** Fullscreen overlay behind the zoom dialog (dismiss target). */
+  DOCS_MAP_MODAL: `${_B_DOCS}-map-modal`,
+  /** The centered glass dialog hosting the enlarged scene. */
+  DOCS_MAP_DIALOG: `${_B_DOCS}-map-dialog`,
+  /** Dialog close control. */
+  DOCS_MAP_CLOSE: `${_B_DOCS}-map-close`,
   DOCS_NAV_TOGGLE: `${_B_DOCS}-nav-toggle`,
   DOCS_NAV_OPEN: `${_B_DOCS}-nav-open`,
+  /** Combobox dropdown container — the toggle's aria-controls target
+   *  (merged crumbs row + treeview); the sticky left column ≥1281px. */
+  DOCS_NAV_PANEL: `${_B_DOCS}-nav-panel`,
+  /** Crumb row cloned inside the combobox dropdown — the merged
+   *  tree+breadcrumb surface shown ≤1280px (the main crumb bar hides). */
+  DOCS_NAV_CRUMBS: `${_B_DOCS}-nav-crumbs`,
+  /** Per-row node icon — the animated SVG glyph (folder/file by ext). */
+  DOCS_TREE_ICON: `${_B_DOCS}-tree-icon`,
+  /** Child-count badge drawn inside the folder glyph. */
+  DOCS_TREE_COUNT: `${_B_DOCS}-tree-count`,
   DOCS_PROTECTED: `${_B_DOCS}-protected`,
   DOCS_MERMAID: `${_B_DOCS}-mermaid`,
   DOCS_MERMAID_LOADING: `${_B_DOCS}-mermaid-loading`,

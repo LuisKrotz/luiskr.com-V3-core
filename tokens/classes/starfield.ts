@@ -136,12 +136,30 @@ export const SF_CLASSES = Object.freeze({
   // ── Ambient playlist (bottom-left glass card above the nav toggle) ───
   /** The playlist card — track list plus the persistent native audio. */
   SF_MUSIC: `${_B_SF}-music`,
+  /** Header row — the transport cluster + collapse toggle. */
+  SF_MUSIC_HEAD: `${_B_SF}-music-head`,
+  /** Playlist title/collapse toggle — expands or folds the track list. */
+  SF_MUSIC_TOGGLE: `${_B_SF}-music-toggle`,
+  /** Expanded state — the track list is out; collapsed keeps the bar. */
+  SF_MUSIC_OPEN: `${_B_SF}-music--open`,
   /** The <ul> track list — one button per track. */
   SF_MUSIC_LIST: `${_B_SF}-music-list`,
   /** One track button — loads + plays that track on click. */
   SF_MUSIC_TRACK: `${_B_SF}-music-track`,
   /** Active-track marker — the row currently loaded in the player. */
   SF_MUSIC_TRACK_ACTIVE: `${_B_SF}-music-track--active`,
+  /** Transport row — play/pause, prev/next and the repeat toggle. */
+  SF_MUSIC_CONTROLS: `${_B_SF}-music-controls`,
+  /** One transport button in the controls row. */
+  SF_MUSIC_BTN: `${_B_SF}-music-btn`,
+  /** Repeat-loop engaged state on the repeat transport button. */
+  SF_MUSIC_BTN_ON: `${_B_SF}-music-btn--on`,
   /** The persistent native <audio> element (survives render rebuilds). */
   SF_MUSIC_AUDIO: `${_B_SF}-music-audio`,
+
+  // ── Instructions modality sections (pointer / keyboard / gestures) ──
+  /** Pointer-copy sections — rendered only under any-pointer:fine. */
+  SF_POINTER_ONLY: `${_B_SF}-pointer-only`,
+  /** Gesture-copy sections — rendered only under any-pointer:coarse. */
+  SF_TOUCH_ONLY: `${_B_SF}-touch-only`,
 })

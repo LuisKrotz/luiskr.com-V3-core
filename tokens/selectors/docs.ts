@@ -19,6 +19,8 @@ export const DOCS_SELECTORS = Object.freeze({
   CARD: `.${DOCS_CLASSES.DOCS_CARD}`,
   VIEWER: `.${DOCS_CLASSES.DOCS_VIEWER}`,
   CONTENT: `.${DOCS_CLASSES.DOCS_CONTENT}`,
+  /** Scene-canvas seat — the column stage or the zoom-dialog stage. */
+  SCENE_STAGE: `.${DOCS_CLASSES.DOCS_MAP_STAGE}`,
   PROTECTED: `.${DOCS_CLASSES.DOCS_PROTECTED}`,
   MERMAID: `.${DOCS_CLASSES.DOCS_MERMAID}`,
   /** Istanbul uncovered-block markers — the coverage-report key nav. */
