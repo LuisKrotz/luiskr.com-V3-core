@@ -78,6 +78,21 @@ export const DOCS_STRINGS = Object.freeze({
    *  them too), so a rename must land in both streams at once. */
   SCENE_ATTR_ALPHA: 'aAlpha',
   SCENE_ATTR_ACTIVE: 'aActive',
+  /** Wireframe-glyph instanced attributes — per-instance world offset,
+   *  per-kind ink color, bob phase, and initial spin angle. Same
+   *  name-contract as the alpha/active pair: rename in GLSL + buffers
+   *  together. */
+  SCENE_ATTR_OFFSET: 'aOffset',
+  SCENE_ATTR_COLOR: 'aColor',
+  SCENE_ATTR_PHASE: 'aPhase',
+  SCENE_ATTR_SPIN: 'aSpin',
+  /** `--icon-ink` custom property — the icon pack's per-kind themed
+   *  color; the map probes it off `docs-tree-icon--<kind>` elements so
+   *  scene nodes wear the exact palette the treeview icons do. */
+  SCENE_ICON_INK_PROP: '--icon-ink',
+  /** `+N` aggregate-leaf name prefix — surplus file leaves collapsed
+   *  by the scene leaf cap; the scene colors them with the dir ink. */
+  AGGREGATE_MARK: '+',
   /** sr-only heading + landmark names for the complete document index —
    *  every manifest node rendered as a heading link so AT heading-jump
    *  and crawlers reach all docs without walking the tree. */
@@ -143,6 +158,20 @@ export const DOCS_UNITS = Object.freeze({
   SCENE_ROTATE_SPEED: 0.005,
   SCENE_PULSE_SPEED: 0.021875,
   SCENE_PULSE_AMP: 0.05,
+  /** Per-node wireframe motion (the procedural-directory reference):
+   *  every glyph yaws about its own Y at SPIN rad/s with a hashed
+   *  initial angle, and bobs ±BOB_AMP chart units at BOB_SPEED rad/s
+   *  off a decorrelated phase. SPIN_HASH walks the node index through
+   *  a golden-angle-ish sequence so neighbors never spin in lockstep. */
+  SCENE_NODE_SPIN: 0.45,
+  SCENE_BOB_SPEED: 1.5,
+  SCENE_BOB_AMP: 0.35,
+  SCENE_SPIN_HASH: 4.208,
+  /** Exponential fog — density = FOG_DENSITY / graphR, so the far rim
+   *  fades into the page backdrop (light or dark) like the reference's
+   *  dark-slate depth cue, scaled to whatever radius the manifest
+   *  actually spans. */
+  SCENE_FOG_DENSITY: 1.4,
   /** semantic-index streaming — elements appended per idle slice (~a few
    *  ms each, far under a frame budget), the rIC starvation bound per
    *  slice, and the setTimeout fallback delay where rIC is absent */
@@ -164,13 +193,12 @@ export const DOCS_UNITS = Object.freeze({
    *  deep dirs aggregate everything. */
   SCENE_FILE_CAP: 10,
   SCENE_FILE_CAP_STEP: 3,
-  /** node/edge alpha — faint enough to stay a backdrop layer, strong
-   *  enough that the radial tree reads as a structure, not a smudge.
-   *  Tuned UP for light surfaces: the glass map panel washes anything
-   *  under ~0.4 to a near-invisible ghost. */
-  SCENE_DIR_OPACITY: 0.75,
-  SCENE_FILE_OPACITY: 0.5,
-  SCENE_LINE_OPACITY: 0.38,
+  /** node/edge alpha — hairline wireframe carries far less ink than a
+   *  filled surface, so glyphs and edges run near-full alpha or they
+   *  ghost out on light glass; on dark slate they stay neon anyway. */
+  SCENE_DIR_OPACITY: 0.9,
+  SCENE_FILE_OPACITY: 0.85,
+  SCENE_LINE_OPACITY: 0.55,
   /** scene3d edge ribbons — half-width of the cross-quad strips that
    *  stand in for 1px LineSegments under the engine (chart units) */
   SCENE_EDGE_HALF: 0.08,
