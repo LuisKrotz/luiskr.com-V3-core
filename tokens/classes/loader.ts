@@ -24,4 +24,5 @@ export const LOADER_CLASSES = Object.freeze({
   INTRO_LOADER_BAR: `${_B_LOADER}-bar`,
   INTRO_LOADER_BAR_FILL: `${_B_LOADER}-bar-fill`,
   INTRO_LOADER_HIDDEN: `${_B_LOADER}--hidden`,
+  INTRO_LOADER_LQIP: `${_B_LOADER}-lqip`,
 })

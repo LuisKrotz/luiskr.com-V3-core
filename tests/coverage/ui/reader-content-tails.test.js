@@ -142,4 +142,33 @@ describe('reader-content tails', () => {
     expect(planted.innerHTML).toBe(markup)
     expect(document.querySelectorAll(`article.${READER_CLASSES.CONTENT}`).length).toBe(1)
   })
+
+  test('adopts the emitted article, seeds its cache, and reuses the live holder', async () => {
+    const held = parked()
+
+    if (held) held.remove()
+
+    // The build-emitted article (no --offscreen) mirrors this very page —
+    // adopting it seeds the pathname cache, so the boot-time sync never
+    // re-downloads the document it already carries.
+    const emitted = document.createElement(HTML_TAGS.ARTICLE)
+
+    emitted.classList.add(READER_CLASSES.CONTENT)
+    emitted.innerHTML = `<p>${TEST_TEXT.BODY}</p>`
+
+    document.body.appendChild(emitted)
+
+    globalThis.fetch = jest.fn(async () => pageOf(docOf('<p>never</p>')))
+
+    await updateReaderContent(window.location.pathname)
+
+    expect(globalThis.fetch).not.toHaveBeenCalled()
+    expect(emitted.innerHTML).toBe(`<p>${TEST_TEXT.BODY}</p>`)
+
+    // The now-live holder short-circuits holder lookup on the next sync —
+    // a different path still fetches (the cache only holds this page).
+    await updateReaderContent(pathA + TEST_TEXT.UNKNOWN)
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1)
+  })
 })

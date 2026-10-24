@@ -2,18 +2,19 @@
  * @file route-warmer.js
  * @description Post-load route-chunk warming.
  *
- * After `window.load` fires, the remaining route bundles are imported one
- * per idle slice — the browser fetches each ESM chunk into the module cache
- * at low priority, so a later navigation resolves instantly without paying
- * any cost during the critical loading window.
+ * On the first interaction signal (or a long quiet-window bound), the
+ * remaining route bundles are imported one per idle slice — the browser
+ * fetches each ESM chunk into the module cache at low priority, so a
+ * later navigation resolves instantly. Gating on intent keeps the eval
+ * of never-navigated routes out of the boot window entirely.
  *
  * The WebGPU playground chunk is deliberately excluded: it pulls ~1.3 MB of
  * three.js and is already prefetched on real navigation intent by the
  * PredictiveLoader + router's dynamic import.
  */
-import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 import { PREFETCH_CONFIG } from '@core/tokens/motion/prefetch.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+import { onUserIntent } from '@core/utils/motion/intent.js'
 
 /** Small route chunks safe to warm during idle time. */
 const ROUTE_CHUNKS = [
@@ -67,18 +68,15 @@ export const stopRouteWarming = () => {
 }
 
 /**
- * Starts idle warming once `load` has fired (or immediately if it already has).
+ * Arms warming on the first interaction signal (or the long quiet-window
+ * bound) — each chunk still resolves inside an idle slice once released.
+ * Warming at load put the unused-route chunk evals inside the interactive
+ * window for users who never navigated at all.
  */
 export const startRouteWarming = () => {
   if (_started || typeof window === TYPE_STRINGS.UNDEFINED) return
 
   _started = true
 
-  const begin = () => _warmNext(0)
-
-  if (document.readyState === 'complete') {
-    _schedule(begin)
-  } else {
-    window.addEventListener(WINDOW_EVENTS.LOAD, () => _schedule(begin), { once: true })
-  }
+  onUserIntent(() => _schedule(() => _warmNext(0)))
 }

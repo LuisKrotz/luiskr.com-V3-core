@@ -19,9 +19,9 @@ store/         tiny reactive state container + mutations
 router/        hash-free history router, localized slugs
 i18n.ts        locale registry, route slugs, flags
 utils/         canvas/WebGL widgets, WASM pool, GPU helpers, data layer, motion
-browser/       detection table shared by runtime + build manifest + ES5 loader
+browser/       detection table shared by runtime + build manifest + browser loader
 safari/        WebKit-specific patches (isolated, gated)
-legacy-polyfills/  ES5/ES2016-era shims for the oldest tiers
+legacy-polyfills/  guard-gated API shims for ES2022-era engine gaps
 ```
 
 ## Source map
@@ -44,10 +44,10 @@ legacy-polyfills/  ES5/ES2016-era shims for the oldest tiers
 
 ### `browser/` — detection
 
-| File                  | What it does                                                                                                    |
-| --------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `browser/browsers.ts` | Shared browser-detection table — used by runtime code, the build manifest, and the ES5 loader's feature ladder. |
-| `browser/index.ts`    | Barrel for the browser module.                                                                                  |
+| File                  | What it does                                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `browser/browsers.ts` | Shared browser-detection table — used by runtime code, the build manifest, and the inline browser loader's feature ladder. |
+| `browser/index.ts`    | Barrel for the browser module.                                                                                             |
 
 ### `debug/` — dev tooling
 
@@ -55,12 +55,14 @@ legacy-polyfills/  ES5/ES2016-era shims for the oldest tiers
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `debug/params.ts` | `?debug=` URL parameter parser — every supported debug flag (e.g. `webGLMode:fallback`, `sendNotificationTest`) resolved at boot. |
 
-### `legacy-polyfills/` — old-engine shims
+### `legacy-polyfills/` — guard-gated API shims
 
-Polyfills for the ES5/ES2016-era tiers — `customElements`, `Promise`,
-`requestAnimationFrame`, `IntersectionObserver`, `fetch`, `Object.assign`,
-`Array.prototype.*`, `NodeList.forEach` — loaded only by the legacy IIFE builds
-so modern bundles stay clean.
+Polyfills the browser loader fetches only when a runtime guard reports the
+API missing — `fetch`, `IntersectionObserver`, `ResizeObserver`,
+`customElements`, `structuredClone`, `Array/String .at`, `Object.hasOwn`,
+`inert`, CSS custom properties. The ES2022 floor (iOS 16+) means modern
+engines pass every guard and never fetch the files; they exist so the
+remaining API-gap edge cases degrade instead of breaking.
 
 ### `locale/` — localization runtime
 

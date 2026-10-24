@@ -120,6 +120,8 @@ export const WINDOW_EVENTS = Object.freeze({
 export const MEDIA_EVENTS = Object.freeze({
   LOADEDDATA: 'loadeddata',
   ABORT: 'abort',
+  /** `ended` — media element reached the end of its current source. */
+  ENDED: 'ended',
 })
 
 /**
@@ -163,6 +165,20 @@ export const CLIPBOARD_EVENTS = Object.freeze({
   SELECTSTART: 'selectstart',
   VISIBILITY_CHANGE: 'visibilitychange',
   BEFORE_PRINT: 'beforeprint',
+  AFTER_PRINT: 'afterprint',
+})
+
+/**
+ * App-level print lifecycle — `beforeprint`/`afterprint` are browser-native
+ * window events (in CLIPBOARD_EVENTS for legacy grouping); these two let live
+ * engines answer a canvas-capture request and views sync generated content
+ * into the printable mirror before the print sheet opens.
+ */
+export const PRINT_EVENTS = Object.freeze({
+  /** Dispatched on a canvas before toDataURL — engines re-render then set detail.dataUrl. */
+  CAPTURE: 'printcapture',
+  /** Dispatched on window before the print walk — views sync printable DOM first. */
+  PREPARE: 'printprepare',
 })
 
 /**

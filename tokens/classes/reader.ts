@@ -17,4 +17,8 @@ export const READER_CLASSES = Object.freeze({
   /** Post-mount modifier — the app shell replaces the article visually,
    * so it parks offscreen (still DOM-present for reader mode + AI agents). */
   OFFSCREEN: 'reader-content--offscreen',
+  /** Build-time modifier for media-less routes — with no LQIP to paint,
+   * the article's own text is the only early-LCP candidate, so it stays
+   * painted under the intro veil instead of parking offscreen at once. */
+  PAINTED: 'reader-content--painted',
 })

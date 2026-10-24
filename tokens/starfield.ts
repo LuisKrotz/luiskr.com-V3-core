@@ -8,3 +8,5 @@
 export * from './starfield/textures.js'
 export * from './starfield/kinds.js'
 export * from './starfield/params.js'
+export * from './starfield/badge.js'
+export * from './starfield/music.js'

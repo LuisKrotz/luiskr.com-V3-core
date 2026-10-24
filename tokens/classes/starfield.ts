@@ -120,4 +120,28 @@ export const SF_CLASSES = Object.freeze({
   SF_INSTRUCTIONS_KEY: `${_B_SF}-instructions-key`,
   /** The <kbd> keycap itself. */
   SF_INSTRUCTIONS_KEYCAP: `${_B_SF}-instructions-keycap`,
+
+  // ── Showcase badge ("Featured on Three.js Resources") ────────────────────
+  /** The glass chip anchor pinned under the site logo. */
+  SF_BADGE: `${_B_SF}-badge`,
+  /** Provider mark inside the chip (inverted under the dark theme). */
+  SF_BADGE_LOGO: `${_B_SF}-badge-logo`,
+  /** Two-line text stack — eyebrow over the provider name. */
+  SF_BADGE_COPY: `${_B_SF}-badge-copy`,
+  /** "Featured on" eyebrow line. */
+  SF_BADGE_EYEBROW: `${_B_SF}-badge-eyebrow`,
+  /** Provider-name line. */
+  SF_BADGE_NAME: `${_B_SF}-badge-name`,
+
+  // ── Ambient playlist (bottom-left glass card above the nav toggle) ───
+  /** The playlist card — track list plus the persistent native audio. */
+  SF_MUSIC: `${_B_SF}-music`,
+  /** The <ul> track list — one button per track. */
+  SF_MUSIC_LIST: `${_B_SF}-music-list`,
+  /** One track button — loads + plays that track on click. */
+  SF_MUSIC_TRACK: `${_B_SF}-music-track`,
+  /** Active-track marker — the row currently loaded in the player. */
+  SF_MUSIC_TRACK_ACTIVE: `${_B_SF}-music-track--active`,
+  /** The persistent native <audio> element (survives render rebuilds). */
+  SF_MUSIC_AUDIO: `${_B_SF}-music-audio`,
 })

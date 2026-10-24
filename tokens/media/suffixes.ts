@@ -31,6 +31,19 @@ export const MEDIA = Object.freeze({
   VIDEO_THUMB_EXT: '.mp4.jpg-thumb.jpg',
   /** 2× scale-down video variant suffix */
   VIDEO_SCALE: '.mp4-scaledown-2x',
+  /** 4× scale-down video variant suffix — smallest poster frames on the bucket */
+  VIDEO_SCALE_4X: '.mp4-scaledown-4x',
+  /** 2× scale-down suffix for older poster variants that omit the .mp4 prefix */
+  VIDEO_SCALE_BARE: '-scaledown-2x',
+  /** 4× scale-down suffix for older poster variants that omit the .mp4 prefix */
+  VIDEO_SCALE_BARE_4X: '-scaledown-4x',
+  /** Poster/thumb extension without the leading .mp4 marker */
+  THUMB_EXT: '.jpg-thumb.jpg',
+  /** Webp poster sibling — the bucket's thumb webp form is .jpg-thumb.webp
+   *  (replaces the trailing .jpg, never .jpg-thumb.jpg.webp). */
+  VIDEO_THUMB_WEBP_EXT: '.mp4.jpg-thumb.webp',
+  /** Webp thumb extension without the leading .mp4 marker */
+  THUMB_WEBP_EXT: '.jpg-thumb.webp',
   /** Compressed image extension — webp sibling of every .jpg asset */
   WEBP_EXT: '.webp',
   /** Compressed video extension — webm sibling of every .mp4 asset */

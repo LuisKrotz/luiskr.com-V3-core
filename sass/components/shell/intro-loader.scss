@@ -92,6 +92,23 @@ $_B_LOADER: 'intro-loader';
     mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, var(--bg-dark) 70%, transparent 100%);
   }
 
+  // Route-hero blur preview — localized pages inline the smallest media
+  // variant as a data URI (the build-locale-pages LQIP pass), so the
+  // veil paints a contentful image in the very first frame, sharing the
+  // FCP frame. Faint but visible: a true blur-up behind the glow/grid —
+  // fully transparent layers could be occlusion-culled before their
+  // first paint-timing entry lands. The height sits one token step
+  // short of the full veil on purpose: mobile paint-timing ignores
+  // exact-viewport boxes as background.
+  &-lqip {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: calc(100% - #{to-rem($space-3xs)});
+    object-fit: cover;
+    opacity: 0.15;
+  }
+
   &-content {
     position: relative;
     height: 100%;

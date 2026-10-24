@@ -4,6 +4,8 @@
  */
 import { jest } from '@jest/globals'
 
+import { POINTER_EVENTS } from '@core/tokens/events/dom.js'
+
 import '@core/constants.js'
 
 import '@cms/about/CmsAboutEditor.js'
@@ -41,6 +43,7 @@ describe('route-warmer tails', () => {
 
     rw.stopRouteWarming()
     rw.startRouteWarming()
+    window.dispatchEvent(new window.Event(POINTER_EVENTS.POINTERDOWN))
     await flush(10)
 
     // re-arm with requestIdleCallback present
@@ -54,6 +57,7 @@ describe('route-warmer tails', () => {
     const rw2 = await import('@core/utils/motion/route-warmer.js')
 
     rw2.startRouteWarming()
+    window.dispatchEvent(new window.Event(POINTER_EVENTS.POINTERDOWN))
     rw2.stopRouteWarming()
 
     if (origIdle) window.requestIdleCallback = origIdle
@@ -76,6 +80,9 @@ describe('route-warmer tails', () => {
 
     rw.startRouteWarming()
     rw.startRouteWarming() // _started guard arm
+
+    // Release the intent gate — queued idle callbacks drain below.
+    window.dispatchEvent(new window.Event(POINTER_EVENTS.POINTERDOWN))
 
     // Drain: run every queued idle callback, then flush so each chunk's
     // .finally() can schedule the next hop. Repeats until the chain

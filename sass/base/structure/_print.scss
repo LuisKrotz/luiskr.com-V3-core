@@ -1,0 +1,85 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  structure/_print.scss — print-media surface rules.
+//  Imported LAST by _structure.scss so its equal-specificity rules beat the
+//  reader-article parking modifiers emitted earlier in _document.scss.
+//
+//  Print strategy: the prerendered `article.reader-content` — already the
+//  reader-mode/SEO mirror — becomes the print document. The live app chrome
+//  (#app) and the intro veil leave the page; the article unparks; canvases
+//  and videos are replaced by injected .print-copy stills (print.ts) while
+//  the originals carry .print-src. Light theme is forced by print.ts, which
+//  drops html.dark-mode for the duration of the print job.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Injected print stand-ins never render on screen — the live surface shows.
+@media screen {
+  .print-copy {
+    display: none;
+  }
+}
+
+@media print {
+  // The veil exists only until mount — never on paper.
+  .intro-loader {
+    display: none;
+  }
+
+  // When the reader mirror exists it IS the print document; the live app
+  // (shadow chrome, nav, canvases) leaves the flow. The > gate means the
+  // article has been hoisted to body level — before that (pre-mount print)
+  // the app stays and prints as-is.
+  html.js body:has(> .reader-content) #app {
+    display: none;
+  }
+
+  // Live canvas/video surfaces a stand-in replaced — hidden only on paper.
+  .print-src {
+    display: none;
+  }
+
+  // The injected still — full-measure, paginated, kept with its page.
+  .print-copy {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: var(--space-md) auto;
+    break-inside: avoid;
+  }
+
+  // Undo every parking trick (offscreen shift, fixed pin, clip, skipped
+  // content) so the mirror re-flows as the readable document. Equal
+  // specificity to html.js .reader-content--painted but emitted later —
+  // import order decides.
+  html.js .reader-content {
+    position: static;
+    inset: auto;
+    z-index: auto;
+    width: auto;
+    height: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    pointer-events: auto;
+    content-visibility: visible;
+    visibility: visible;
+    opacity: 1;
+  }
+
+  // Pagination hygiene for the mirror: figures and code blocks never split
+  // across pages; headings stay with what follows them.
+  .reader-content {
+    figure,
+    pre,
+    blockquote {
+      break-inside: avoid;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      break-after: avoid-page;
+    }
+  }
+}

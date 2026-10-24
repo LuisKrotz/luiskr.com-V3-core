@@ -36,6 +36,7 @@ export const MEDIA_QUERIES = Object.freeze({
   MAX_WIDTH_768: '(max-width: 768px)',
   PREFERS_COLOR_DARK: '(prefers-color-scheme: dark)',
   PREFERS_REDUCED_MOTION: '(prefers-reduced-motion: reduce)',
+  PRINT: 'print',
 })
 
 // ─── Keyboard Key Tokens ──────────────────────────────────────────────────────
