@@ -32,10 +32,7 @@ export const SF_CLASSES = Object.freeze({
   SF_CANVAS: `${_B_SF}-canvas`,
   SF_FALLBACK: `${_B_SF}-fallback`,
   SF_HUD: `${_B_SF}-hud`,
-  SF_HINT: `${_B_SF}-hint`,
   SF_LIVE: `${_B_SF}-live`,
-  /** Bottom-edge scale disclaimer strip (localized per locale node). */
-  SF_DISCLAIMER: `${_B_SF}-disclaimer`,
 
   // ── Hover tooltip (leader line + name/distance label) ────────────────────
   SF_TIP: `${_B_SF}-tip`,
