@@ -147,7 +147,8 @@ describe('ort-engine', () => {
 
     Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {} })
 
-    await mlSession('frametime', loaderOf(ort))
+    // Unpinned slug — pinned models bypass executionProviders() entirely.
+    await mlSession(ML.MODEL_INTENT, loaderOf(ort))
 
     expect(state.creates[0].opts.executionProviders).toEqual([ML.EP_WASM])
 
@@ -160,7 +161,8 @@ describe('ort-engine', () => {
 
     Object.defineProperty(globalThis, 'navigator', { configurable: true, value: undefined })
 
-    await mlSession('frametime', loaderOf(ort))
+    // Unpinned slug — exercises executionProviders() against no navigator.
+    await mlSession(ML.MODEL_INTENT, loaderOf(ort))
 
     expect(state.creates[0].opts.executionProviders).toEqual([ML.EP_WASM])
 

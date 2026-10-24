@@ -183,4 +183,21 @@ export const DOCS_UNITS = Object.freeze({
    *  lets the concentric ring layout read as a map. */
   SCENE_CAMERA_FIT: 1.15,
   SCENE_CAMERA_LIFT: 0.8,
+  /** location-driven focus — when the docs location changes the map
+   *  glides its orbit target onto the active node and dollies to a
+   *  depth-scaled distance so the current branch fills the frame.
+   *  DAMP is the per-frame lerp share toward the goal, MIN/STEP shape
+   *  the focus distance (base + depth·step, capped at camDist so the
+   *  root overview never zooms), EPS is the settle epsilon that ends
+   *  the glide. */
+  SCENE_FOCUS_DAMP: 0.07,
+  SCENE_FOCUS_MIN: 16,
+  SCENE_FOCUS_STEP: 7,
+  SCENE_FOCUS_EPS: 0.02,
+  /** vertical framing bias — the orbit target rides this far below the
+   *  focused point so the graph renders in the TOP half of the map
+   *  panel instead of dead-center (content top-anchored by design).
+   *  Sized against the fov-55 half-frame (~0.52·dist): ~20% up-shift at
+   *  the full-graph distance, ~30% at node-focus distances. */
+  SCENE_FOCUS_Y_BIAS: -6,
 })

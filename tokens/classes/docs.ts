@@ -33,8 +33,6 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_CARD_HEADING: `${_B_DOCS}-card-heading`,
   DOCS_CARD_LABEL: `${_B_DOCS}-card-label`,
   DOCS_CARD_ART: `${_B_DOCS}-card-art`,
-  DOCS_FOLDER: `${_B_DOCS}-folder`,
-  DOCS_FOLDER_THREAD: `${_B_DOCS}-folder-thread`,
   DOCS_VIEWER: `${_B_DOCS}-viewer`,
   DOCS_VIEWER_HEAD: `${_B_DOCS}-viewer-head`,
   DOCS_VIEWER_PATH: `${_B_DOCS}-viewer-path`,
@@ -74,6 +72,9 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_NAV_CRUMBS: `${_B_DOCS}-nav-crumbs`,
   /** Per-row node icon — the animated SVG glyph (folder/file by ext). */
   DOCS_TREE_ICON: `${_B_DOCS}-tree-icon`,
+  /** Per-row disclosure chevron — dir rows carry the arrow glyph,
+   *  file rows an empty spacer so every icon column stays aligned. */
+  DOCS_TREE_CHEVRON: `${_B_DOCS}-tree-chevron`,
   /** Paper sheet peeking out of a folder glyph — count ∝ children. */
   DOCS_TREE_PAPER: `${_B_DOCS}-tree-paper`,
   /** Stroked icon part — inked with the kind's `--icon-ink`. */
