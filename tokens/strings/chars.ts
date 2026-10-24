@@ -32,6 +32,10 @@ export const CHAR_STRINGS = Object.freeze({
   /** Keycap glyph rows for shortcut documentation (arrows + Escape). */
   ARROW_KEYS: '← → ↑ ↓',
   ESC_KEYCAP: 'Esc',
+  /** Zoom/expand control glyph (diagonal arrows to corners). */
+  EXPAND_GLYPH: '⤢',
+  /** Dismiss/close control glyph (multiplication cross). */
+  CLOSE_GLYPH: '✕',
   SPACE_CHAR: ' ',
   NBSP: ' ',
   ZERO: '0',

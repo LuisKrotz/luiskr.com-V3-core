@@ -14,8 +14,13 @@ import { _B_DOCS } from '../base.js'
 export const DOCS_IDS = Object.freeze({
   GL: `${_B_DOCS}-gl`,
   TREE: `${_B_DOCS}-tree`,
+  /** Combobox dropdown — the toggle's aria-controls target (crumbs +
+   *  treeview container), distinct from the tree list id. */
+  NAV_PANEL: `${_B_DOCS}-nav-panel`,
   CRUMBS: `${_B_DOCS}-crumbs`,
   GRID: `${_B_DOCS}-grid`,
   VIEWER: `${_B_DOCS}-viewer`,
   SCENE: `${_B_DOCS}-scene`,
+  /** Zoom trigger's aria-controls target — the architecture-map dialog. */
+  MAP_MODAL: `${_B_DOCS}-map-modal`,
 })

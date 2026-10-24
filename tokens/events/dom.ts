@@ -122,6 +122,10 @@ export const MEDIA_EVENTS = Object.freeze({
   ABORT: 'abort',
   /** `ended` — media element reached the end of its current source. */
   ENDED: 'ended',
+  /** `play` — playback began (autoplay, native controls or script). */
+  PLAY: 'play',
+  /** `pause` — playback paused (native controls or script). */
+  PAUSE: 'pause',
 })
 
 /**

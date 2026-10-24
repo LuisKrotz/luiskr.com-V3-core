@@ -40,3 +40,16 @@ export const SF_MUSIC_TRACKS: readonly SFMusicTrack[] = Object.freeze([
     title: 'Space Study — The Mountain',
   }),
 ])
+
+/**
+ * Frozen transport-button glyphs — the compact play/pause/prev/next/
+ * repeat icons rendered inside the playlist controls row (JSX decodes
+ * the literal directly; aria-labels carry the localized name).
+ */
+export const SF_MUSIC_GLYPHS = Object.freeze({
+  PLAY: '▶',
+  PAUSE: '⏸',
+  PREV: '⏮',
+  NEXT: '⏭',
+  REPEAT: '↻',
+})

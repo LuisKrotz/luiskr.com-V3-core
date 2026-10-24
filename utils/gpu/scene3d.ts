@@ -320,9 +320,25 @@ export async function mountScene3d(
 
     resizeScene3d(surface, canvas)
 
+    // The fit is deferred to rAF: writing canvas.width/height inside the
+    // RO notification mutates an observed element mid-pass and trips the
+    // "ResizeObserver loop completed with undelivered notifications"
+    // window error — which the app's global error handler turns into a
+    // user-facing toast. The flag coalesces bursts and doubles as the
+    // pending handle for destroy.
+    let resizeRaf = 0
+
     const ro =
       typeof ResizeObserver !== TYPE_STRINGS.UNDEFINED
-        ? new ResizeObserver(() => resizeScene3d(surface, canvas))
+        ? new ResizeObserver(() => {
+            if (resizeRaf) return
+
+            resizeRaf = requestAnimationFrame(() => {
+              resizeRaf = 0
+
+              resizeScene3d(surface, canvas)
+            })
+          })
         : null
 
     ro?.observe(canvas)
@@ -332,6 +348,9 @@ export async function mountScene3d(
       surface,
       destroy: () => {
         ro?.disconnect()
+
+        cancelAnimationFrame(resizeRaf)
+
         surface.destroy()
       },
     }

@@ -67,6 +67,12 @@ export const DOCS_STRINGS = Object.freeze({
   /** Visible chip captioning the backdrop scene so the interactive
    *  architecture map is obvious to a first-time viewer. */
   SCENE_HINT: 'Architecture map — drag to orbit, click a node to navigate',
+  /** Landmark label for the right-hand map column and its zoom dialog. */
+  MAP_LABEL: 'Architecture map',
+  /** Zoom trigger aria-label — opens the enlarged modal scene. */
+  MAP_ZOOM: 'Expand the architecture map',
+  /** Close control aria-label inside the map zoom dialog. */
+  MAP_CLOSE: 'Close the architecture map',
   /** Instanced-attribute names on the scene's node geometries — the
    *  names are part of the patched GLSL program (attribute decls read
    *  them too), so a rename must land in both streams at once. */
