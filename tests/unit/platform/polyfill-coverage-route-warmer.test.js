@@ -3,8 +3,7 @@
  * @description Split from polyfill-coverage.test.js — covers the "route-warmer" describe.
  */
 import { describe, test, expect, jest, afterEach } from '@jest/globals'
-import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
-import { SECTION_UI_KEYS } from '@core/tokens/data/ui-keys.js'
+import { POINTER_EVENTS } from '@core/tokens/events/dom.js'
 
 const cssVarsMock = jest.fn()
 const ResizeObserverShim = class MockRO {
@@ -54,7 +53,7 @@ afterEach(() => {
 
 // ─── core/utils/route-warmer.js ───────────────────────────────────────────────
 describe('route-warmer', () => {
-  test('schedules via requestIdleCallback after window load', async () => {
+  test('schedules via requestIdleCallback on the first interaction signal', async () => {
     jest.resetModules()
     saveKey('requestIdleCallback', window)
 
@@ -69,17 +68,13 @@ describe('route-warmer', () => {
       await import('@core/utils/motion/route-warmer.js')
 
     startRouteWarming()
+
+    expect(idleCalls.length).toBe(0)
+
+    window.dispatchEvent(new window.Event(POINTER_EVENTS.POINTERDOWN))
     stopRouteWarming()
 
-    if (document.readyState === 'complete') {
-      expect(idleCalls.length).toBeGreaterThan(0)
-    } else {
-      window.dispatchEvent(new window.Event(WINDOW_EVENTS.LOAD))
-
-      await new Promise((r) => setTimeout(r, 0))
-
-      expect(idleCalls.length).toBeGreaterThan(0)
-    }
+    expect(idleCalls.length).toBeGreaterThan(0)
   })
 
   test('is idempotent — a second call does not reschedule', async () => {
@@ -111,7 +106,7 @@ describe('route-warmer', () => {
       await import('@core/utils/motion/route-warmer.js')
 
     startRouteWarming()
-    window.dispatchEvent(new window.Event(WINDOW_EVENTS.LOAD))
+    window.dispatchEvent(new window.Event(POINTER_EVENTS.POINTERDOWN))
 
     await new Promise((r) => setTimeout(r, 80))
     stopRouteWarming()
@@ -119,7 +114,7 @@ describe('route-warmer', () => {
     expect(true).toBe(true)
   })
 
-  test('defers warming to the load event when readyState is not complete', async () => {
+  test('holds warming until the first interaction signal', async () => {
     jest.resetModules()
     saveKey('requestIdleCallback', window)
 
@@ -131,29 +126,20 @@ describe('route-warmer', () => {
       return 1
     }
 
-    const desc =
-      Object.getOwnPropertyDescriptor(document, 'readyState') ||
-      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(document), 'readyState')
-
-    Object.defineProperty(document, 'readyState', {
-      value: SECTION_UI_KEYS.LOADING,
-      configurable: true,
-    })
-
     const { startRouteWarming, stopRouteWarming } =
       await import('@core/utils/motion/route-warmer.js')
 
     startRouteWarming()
 
+    await new Promise((r) => setTimeout(r, 30))
+
     expect(idleCalls.length).toBe(0)
 
-    window.dispatchEvent(new window.Event(WINDOW_EVENTS.LOAD))
+    window.dispatchEvent(new window.Event(POINTER_EVENTS.POINTERDOWN))
 
     await new Promise((r) => setTimeout(r, 30))
 
     expect(idleCalls.length).toBeGreaterThan(0)
     stopRouteWarming()
-
-    if (desc) Object.defineProperty(document, 'readyState', desc)
   })
 })

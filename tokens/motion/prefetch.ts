@@ -14,6 +14,9 @@ export const PREFETCH_CONFIG = Object.freeze({
   ROOT_MARGIN: '200px 0px',
   THRESHOLD: 0.1,
   PORTFOLIO_REGEX: /\/portfolio\/([^/?#]+)/,
+  /** Quiet-window bound for intent-gated warm work — long enough that an
+   *  engaged user always beats it through the interaction listeners. */
+  INTENT_FALLBACK: 20000,
 })
 
 /**

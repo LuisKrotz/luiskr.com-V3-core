@@ -14,6 +14,7 @@ export const HTML_TAGS = Object.freeze({
   FIGURE: 'figure',
   ARTICLE: 'article',
   VIDEO: 'video',
+  AUDIO: 'audio',
   IMG: 'img',
   IFRAME: 'iframe',
   BUTTON: 'button',

@@ -11,6 +11,7 @@
  */
 export const MEDIA_ATTRS = Object.freeze({
   SRC: 'src',
+  SRCSET: 'srcset',
   ALT: 'alt',
   POSTER: 'poster',
   METADATA: 'metadata',
@@ -24,6 +25,7 @@ export const MEDIA_ATTRS = Object.freeze({
   LOADING: 'loading',
   LOADING_LAZY: 'lazy',
   LOADING_EAGER: 'eager',
+  FETCH_PRIORITY: 'fetchpriority',
   FETCH_PRIORITY_HIGH: 'high',
   FETCH_PRIORITY_LOW: 'low',
   IS_VIDEO: 'is-video',
@@ -43,6 +45,7 @@ export const MEDIA_ATTRS = Object.freeze({
   VIDEO_MP4: 'video/mp4',
   VIDEO_WEBM: 'video/webm',
   IMAGE_WEBP: 'image/webp',
+  IMAGE_JPEG: 'image/jpeg',
   AUDIO_OGG: 'audio/ogg',
   AUDIO_MPEG: 'audio/mpeg',
 })

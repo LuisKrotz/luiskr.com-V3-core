@@ -41,6 +41,13 @@ const ensureHolder = (): HTMLElement => {
   if (parked) {
     holder = parked
 
+    // The statically-emitted article already mirrors this exact page — seed
+    // the cache from its markup instead of re-downloading the document.
+    // Runtime-parked copies carry --offscreen and stay fetch-sourced.
+    if (!parked.classList.contains(READER_CLASSES.OFFSCREEN)) {
+      cache.set(window.location.pathname, parked.innerHTML)
+    }
+
     return holder
   }
 
@@ -93,7 +100,9 @@ export const updateReaderContent = async (path: string): Promise<void> => {
       cache.set(path, markup)
     }
 
-    if (gen === generation) el.innerHTML = markup
+    // Same-markup swaps are skipped — re-parsing ~200 KB of identical
+    // HTML into the parked article is pure main-thread cost.
+    if (gen === generation && el.innerHTML !== markup) el.innerHTML = markup
   } catch {
     // Offline/failed fetch — keep whatever content is already parked.
   }

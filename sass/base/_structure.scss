@@ -12,6 +12,7 @@
 //    _dark-mode       html.dark-mode token overrides
 //    _document        html/body resets, backdrop drift, #app, element reset
 //    _skeleton-utils  skeleton keyframes + classes + focus-ring emit
+//    _print           @media print surface — last so its ties win
 // ════════════════════════════════════════════════════════════════════════════
 
 @import 'structure/tokens';
@@ -19,3 +20,4 @@
 @import 'structure/document';
 @import 'structure/skeleton-utils';
 @import 'structure/a11y';
+@import 'structure/print';

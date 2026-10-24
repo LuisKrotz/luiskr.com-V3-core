@@ -23,6 +23,7 @@ import '@core/utils/canvas/widgets/flag/texture.js'
 
 import '@core/utils/gpu/gpu-accel.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
+import { POINTER_EVENTS } from '@core/tokens/events/dom.js'
 
 globalThis.alert = jest.fn()
 
@@ -202,6 +203,9 @@ describe('canvas misc tails', () => {
     // double-start → _started guard arm
     rw.startRouteWarming()
 
+    // intent signal releases the warm chain
+    window.dispatchEvent(new window.Event(POINTER_EVENTS.POINTERDOWN))
+
     // drain the scheduled chain — each chunk's finally schedules the next
     for (const cb of cbs.splice(0)) cb()
 
@@ -219,6 +223,7 @@ describe('canvas misc tails', () => {
     const rw2 = await import('@core/utils/motion/route-warmer.js')
 
     rw2.startRouteWarming()
+    window.dispatchEvent(new window.Event(POINTER_EVENTS.POINTERDOWN))
     await flush(400)
     rw2.stopRouteWarming()
   })

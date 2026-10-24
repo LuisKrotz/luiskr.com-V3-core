@@ -5,7 +5,13 @@
 
 // Page base styles (html then html.dark-mode overrides above).
 html {
-  color-scheme: light;
+  // `only light` opts out of Chrome/Edge forced auto-darkening: with a
+  // plain `light` declaration on a dark-OS machine the UA inverts light
+  // CSS surfaces but cannot repaint WebGL/canvas pixels — the docs
+  // portal rendered dark chrome over an untouched light scene. The
+  // app's own dark mode still wins: html.dark-mode below overrides the
+  // used scheme back to `dark`.
+  color-scheme: only light;
   background-color: var(--bg-primary);
   min-height: 100%;
   overflow-x: hidden;
@@ -207,11 +213,10 @@ main {
 // Reader-mode content — the prerendered <article class="reader-content">
 // emitted into #app. No-JS documents (crawlers, reader mode) keep the
 // readable baseline below (constrained measure, comfortable rhythm).
-// With JS it stays PAINTED but out of flow at the viewport top: the
-// opaque intro veil covers it from user view while its text/posters
-// still count as early FCP/LCP candidates, and view.ts parks it with
-// --offscreen only once the JS view lands in the outlet. Not
-// aria-hidden — that would filter it out of Readability too.
+// With JS it parks offscreen immediately: the opaque intro veil covers
+// it until the view lands, so painting it first would spend layout/paint
+// CPU on pixels nobody ever sees. Not aria-hidden — that would filter
+// it out of Readability too.
 .reader-content {
   max-width: 75ch;
   margin: 0 auto;
@@ -229,11 +234,26 @@ main {
   }
 
   html.js & {
-    // Absolute top-anchored: out of flow so parking it later reflows
-    // nothing (zero CLS), still painted so its content is an LCP
-    // candidate under the intro veil.
-    position: absolute;
-    inset: 0 0 auto;
+    // Parked from the first frame — offscreen AND content-skipped, so
+    // the route pays zero layout/paint/media-fetch for the mirror while
+    // the intro veil covers the viewport anyway (the veil's own LQIP
+    // image is the early LCP candidate).
+    @extend %reader-offscreen;
+    content-visibility: hidden;
+  }
+
+  html.js &--painted {
+    // Media-less routes (legal pages) have no LQIP to paint in the veil —
+    // the article's own text is then the only early-LCP candidate, so it
+    // stays painted under the opaque veil: fixed (never shifts layout),
+    // clipped to the viewport, and inert to input. The runtime park
+    // (--offscreen on view flip) still retires it after mount.
+    position: fixed;
+    inset: 0;
+    width: auto;
+    height: auto;
+    content-visibility: auto;
+    overflow: hidden;
     pointer-events: none;
   }
 }
