@@ -12,6 +12,13 @@
   box-sizing: border-box;
   font-family: var(--font-primary);
   color: var(--text-primary);
+  // Below-fold figures skip layout+paint of the whole shadow subtree until
+  // they approach the viewport — on media pages (~100 figures) the mount
+  // storm's style/layout work otherwise lands inside the TBT window.
+  // `auto` remembers the rendered box; the vh estimate only sizes a
+  // never-rendered placeholder so scroll length stays sane.
+  content-visibility: auto;
+  contain-intrinsic-size: auto 60vh;
 }
 
 @supports selector(:host-context(*)) {
@@ -20,10 +27,16 @@
   }
 }
 
-// In carousel slide context: let host shrink to content width (the placeholder drives it)
+// In carousel slide context: let host shrink to content width (the
+// placeholder drives it). Slides also opt out of content-visibility —
+// nav centering measures them with getBoundingClientRect, and a skipped
+// slide would report the contain-intrinsic fallback instead of its real
+// box.
 :host(.internal-extra-item),
 :host([classes*='internal-extra-item']) {
   width: auto;
+  content-visibility: visible;
+  contain-intrinsic-size: none;
 }
 
 :host(.internal-main-item),
