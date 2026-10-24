@@ -144,6 +144,9 @@ export const DOCS_UNITS = Object.freeze({
   INDEX_CHUNK: 400,
   INDEX_IDLE_TIMEOUT: 250,
   INDEX_FALLBACK_DELAY: 0,
+  /** folder paper-stack cap — beyond this many children the pile stops
+   *  growing so the glyph stays readable instead of a wall of paper */
+  TREE_SHEET_CAP: 5,
   /** node sphere radii (chart units) — sized to read at the mid-zoom
    *  camera distance without smearing into blobs at near clip */
   SCENE_DIR_RADIUS: 1.15,

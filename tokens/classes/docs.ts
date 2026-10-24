@@ -54,12 +54,16 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_MAP_HEAD: `${_B_DOCS}-map-head`,
   /** Zoom trigger — opens the centered glass modal. */
   DOCS_MAP_ZOOM: `${_B_DOCS}-map-zoom`,
-  /** Fullscreen overlay behind the zoom dialog (dismiss target). */
+  /** Fullscreen overlay behind the zoom dialog — the glass backdrop. */
   DOCS_MAP_MODAL: `${_B_DOCS}-map-modal`,
+  /** Fullscreen click-catcher between backdrop and dialog — the
+   *  expand-modal close-area pattern. */
+  DOCS_MAP_CLOSE_AREA: `${_B_DOCS}-map-close-area`,
   /** The centered glass dialog hosting the enlarged scene. */
   DOCS_MAP_DIALOG: `${_B_DOCS}-map-dialog`,
-  /** Dialog close control. */
-  DOCS_MAP_CLOSE: `${_B_DOCS}-map-close`,
+  /** Bottom close button under the dialog content — the expand-modal
+   *  close-bottom pattern (labelled, corner-bracket styled). */
+  DOCS_MAP_CLOSE_BOTTOM: `${_B_DOCS}-map-close-bottom`,
   DOCS_NAV_TOGGLE: `${_B_DOCS}-nav-toggle`,
   DOCS_NAV_OPEN: `${_B_DOCS}-nav-open`,
   /** Combobox dropdown container — the toggle's aria-controls target
@@ -70,8 +74,41 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_NAV_CRUMBS: `${_B_DOCS}-nav-crumbs`,
   /** Per-row node icon — the animated SVG glyph (folder/file by ext). */
   DOCS_TREE_ICON: `${_B_DOCS}-tree-icon`,
-  /** Child-count badge drawn inside the folder glyph. */
-  DOCS_TREE_COUNT: `${_B_DOCS}-tree-count`,
+  /** Paper sheet peeking out of a folder glyph — count ∝ children. */
+  DOCS_TREE_PAPER: `${_B_DOCS}-tree-paper`,
+  /** Stroked icon part — inked with the kind's `--icon-ink`. */
+  DOCS_ICON_LINE: `${_B_DOCS}-icon-line`,
+  /** Filled icon part — inked with the kind's `--icon-ink`. */
+  DOCS_ICON_FILL: `${_B_DOCS}-icon-fill`,
+  /** Icon backdrop tile — a light kind-tinted wash behind the glyph. */
+  DOCS_ICON_TILE: `${_B_DOCS}-icon-tile`,
+  /** Letterform/detail drawn on a filled tile — reads paper-colored. */
+  DOCS_ICON_ON: `${_B_DOCS}-icon-on`,
+  /** File-kind names — `${DOCS_TREE_ICON}--${kind}` modifier classes
+   *  pick each filetype's ink in the docs SCSS. */
+  DOCS_ICON_KINDS: Object.freeze({
+    TS: 'ts',
+    JS: 'js',
+    JSON: 'json',
+    SASS: 'sass',
+    CSS: 'css',
+    HTML: 'html',
+    MD: 'md',
+    IMG: 'img',
+    VEC: 'vec',
+    YML: 'yml',
+    CONF: 'conf',
+    LOCK: 'lock',
+    FONT: 'font',
+    WASM: 'wasm',
+    TEST: 'test',
+    CERT: 'cert',
+    ARCHIVE: 'archive',
+    SHELL: 'shell',
+    VIDEO: 'video',
+    AUDIO: 'audio',
+    DOC: 'doc',
+  }),
   DOCS_PROTECTED: `${_B_DOCS}-protected`,
   DOCS_MERMAID: `${_B_DOCS}-mermaid`,
   DOCS_MERMAID_LOADING: `${_B_DOCS}-mermaid-loading`,
