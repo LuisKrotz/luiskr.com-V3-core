@@ -77,25 +77,54 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_TREE_CHEVRON: `${_B_DOCS}-tree-chevron`,
   /** Paper sheet peeking out of a folder glyph — count ∝ children. */
   DOCS_TREE_PAPER: `${_B_DOCS}-tree-paper`,
+  /** Per-sheet ink modifiers for the open folder's fanned papers —
+   *  the reference pack colors each sheet differently
+   *  (red/blue/green/purple), applied by index modulo the list. */
+  DOCS_TREE_PAPER_TONES: Object.freeze([
+    `${_B_DOCS}-tree-paper--0`,
+    `${_B_DOCS}-tree-paper--1`,
+    `${_B_DOCS}-tree-paper--2`,
+    `${_B_DOCS}-tree-paper--3`,
+  ]),
   /** Stroked icon part — inked with the kind's `--icon-ink`. */
   DOCS_ICON_LINE: `${_B_DOCS}-icon-line`,
   /** Filled icon part — inked with the kind's `--icon-ink`. */
   DOCS_ICON_FILL: `${_B_DOCS}-icon-fill`,
   /** Icon backdrop tile — a light kind-tinted wash behind the glyph. */
   DOCS_ICON_TILE: `${_B_DOCS}-icon-tile`,
+  /** File page shell — the folded-corner document silhouette every file
+   *  icon is drawn on; `-fold`/`-flap` parts hang off it. */
+  DOCS_ICON_PAGE: `${_B_DOCS}-icon-page`,
   /** Letterform/detail drawn on a filled tile — reads paper-colored. */
   DOCS_ICON_ON: `${_B_DOCS}-icon-on`,
+  /** Secondary-ink strokes — two-tone glyphs (the python tail). */
+  DOCS_ICON_ALT: `${_B_DOCS}-icon-alt`,
+  /** Wordmark text inside a page — the shield labels ("HTML"/"CSS"). */
+  DOCS_ICON_TEXT: `${_B_DOCS}-icon-text`,
   /** File-kind names — `${DOCS_TREE_ICON}--${kind}` modifier classes
    *  pick each filetype's ink in the docs SCSS. */
   DOCS_ICON_KINDS: Object.freeze({
     TS: 'ts',
     JS: 'js',
+    PY: 'py',
+    ATOM: 'atom',
+    RS: 'rs',
+    GO: 'go',
+    JAVA: 'java',
+    CPP: 'cpp',
+    CS: 'cs',
+    PHP: 'php',
+    RB: 'rb',
+    SQL: 'sql',
     JSON: 'json',
     SASS: 'sass',
     CSS: 'css',
     HTML: 'html',
+    XML: 'xml',
     MD: 'md',
     IMG: 'img',
+    PHOTO: 'photo',
+    GIF: 'gif',
     VEC: 'vec',
     YML: 'yml',
     CONF: 'conf',
@@ -106,8 +135,20 @@ export const DOCS_CLASSES = Object.freeze({
     CERT: 'cert',
     ARCHIVE: 'archive',
     SHELL: 'shell',
+    EXE: 'exe',
+    DMG: 'dmg',
     VIDEO: 'video',
     AUDIO: 'audio',
+    NOTE: 'note',
+    CAM: 'cam',
+    CRATE: 'crate',
+    WEB: 'web',
+    TXT: 'txt',
+    PDF: 'pdf',
+    DOCX: 'docx',
+    XLSX: 'xlsx',
+    PPT: 'ppt',
+    CSV: 'csv',
     DOC: 'doc',
   }),
   DOCS_PROTECTED: `${_B_DOCS}-protected`,

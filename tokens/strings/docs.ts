@@ -129,9 +129,14 @@ export const DOCS_UNITS = Object.freeze({
   SCENE_LABEL_MAX_DEPTH: 3,
   /** radial-tree geometry shared with the wasm worker op */
   SCENE_BASE_RADIUS: 6,
-  SCENE_DEPTH_STEP: 9,
+  SCENE_DEPTH_STEP: 12,
   SCENE_Y_STEP: 4,
-  SCENE_Y_WAVE: 1.5,
+  /** vertical scatter amplitude — sin(i·SCENE_Y_HASH) walks the flat
+   *  node index through a golden-angle hash, so same-ring siblings land
+   *  on decorrelated heights instead of sharing the depth band's plane
+   *  (the "glued blob" failure of a pure ring layout). */
+  SCENE_Y_WAVE: 5,
+  SCENE_Y_HASH: 2.399963,
   /** slow backdrop motion — autorotate deg/frame-ish + node pulse.
    *  Speeds run far under OrbitControls' default (2.0) so the graph
    *  reads as a calm ambient layer, not a spinner. */
@@ -144,18 +149,28 @@ export const DOCS_UNITS = Object.freeze({
   INDEX_CHUNK: 400,
   INDEX_IDLE_TIMEOUT: 250,
   INDEX_FALLBACK_DELAY: 0,
-  /** folder paper-stack cap — beyond this many children the pile stops
-   *  growing so the glyph stays readable instead of a wall of paper */
-  TREE_SHEET_CAP: 5,
+  /** folder paper-stack caps — closed folders peek at most this many
+   *  page tops above the tab; open folders fan up to this many colored
+   *  sheets, so the pile stops growing before it walls off the glyph */
+  TREE_SHEET_CAP_CLOSED: 3,
+  TREE_SHEET_CAP_OPEN: 4,
   /** node sphere radii (chart units) — sized to read at the mid-zoom
    *  camera distance without smearing into blobs at near clip */
   SCENE_DIR_RADIUS: 1.15,
   SCENE_FILE_RADIUS: 0.55,
+  /** File leaves drawn per dir before the rest collapse into a `+N`
+   *  aggregate — the cap that keeps 300-file dirs from combing out. It
+   *  shrinks by SCENE_FILE_CAP_STEP per ring: buckets get the full cap,
+   *  deep dirs aggregate everything. */
+  SCENE_FILE_CAP: 10,
+  SCENE_FILE_CAP_STEP: 3,
   /** node/edge alpha — faint enough to stay a backdrop layer, strong
-   *  enough that the radial tree reads as a structure, not a smudge */
-  SCENE_DIR_OPACITY: 0.5,
-  SCENE_FILE_OPACITY: 0.28,
-  SCENE_LINE_OPACITY: 0.22,
+   *  enough that the radial tree reads as a structure, not a smudge.
+   *  Tuned UP for light surfaces: the glass map panel washes anything
+   *  under ~0.4 to a near-invisible ghost. */
+  SCENE_DIR_OPACITY: 0.75,
+  SCENE_FILE_OPACITY: 0.5,
+  SCENE_LINE_OPACITY: 0.38,
   /** scene3d edge ribbons — half-width of the cross-quad strips that
    *  stand in for 1px LineSegments under the engine (chart units) */
   SCENE_EDGE_HALF: 0.08,
@@ -163,7 +178,7 @@ export const DOCS_UNITS = Object.freeze({
    *  to near-full alpha with a larger pulse; ancestor dirs along its path
    *  lift a notch above the base dir alpha so the branch reads. */
   SCENE_ACTIVE_OPACITY: 0.95,
-  SCENE_ANCESTOR_OPACITY: 0.55,
+  SCENE_ANCESTOR_OPACITY: 0.9,
   SCENE_ACTIVE_SCALE: 1.8,
   /** intro settle — a first (unrestored) mount eases the whole graph in
    *  from SCENE_INTRO_TURN radians over SCENE_INTRO_MS, then hands off to

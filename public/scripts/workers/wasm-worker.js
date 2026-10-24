@@ -103,10 +103,10 @@ self.onmessage = async (e) => {
     for (let i = 0; i < depths.length; i++) {
       const d = depths[i]
       const a = angles[i]
-      const r = 6 + d * 9
+      const r = 6 + d * 12
 
       xyz[i * 3] = Math.cos(a) * r
-      xyz[i * 3 + 1] = ((d % 3) - 1) * 4 + Math.sin(a * 2) * 1.5
+      xyz[i * 3 + 1] = ((d % 3) - 1) * 4 + Math.sin(i * 2.399963) * 5
       xyz[i * 3 + 2] = Math.sin(a) * r
     }
 
