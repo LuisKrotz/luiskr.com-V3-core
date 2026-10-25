@@ -132,6 +132,7 @@ export interface StoreState {
   effectiveTheme: string
   preferencesOpen: boolean
   langDialogOpen: boolean
+  navMenuOpen: boolean
   modalOrigin: { x: number; y: number } | null
   portfoliolist: unknown[]
 }
@@ -166,6 +167,8 @@ export interface StoreGetters {
   getEffectiveTheme: () => string
   getPreferencesOpen: () => boolean
   getLangDialogOpen: () => boolean
+  getNavMenuOpen: () => boolean
+  getOverlayOpen: () => boolean
   getModalOrigin: () => { x: number; y: number } | null
   getReducedMotion: () => boolean
   getHighContrast: () => boolean
@@ -303,6 +306,10 @@ export const createInitialState = (): StoreState => {
     effectiveTheme: THEME.LIGHT,
     preferencesOpen: false,
     langDialogOpen: false,
+    // <app-nav> fullscreen menu overlay — while open, carousels and
+    // media videos pause page-wide (the overlay's WebGL field owns the
+    // frame; ambient playback underneath is invisible wasted work).
+    navMenuOpen: false,
     // Pixel coords of the button that opened a dialog — the genie
     // zoom-out animates the dialog scaling up from exactly there.
     modalOrigin: null,

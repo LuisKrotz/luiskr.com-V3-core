@@ -25,7 +25,7 @@
     @extend %TTL_XS;
     @extend %RESETBTN;
 
-    font-weight: 500;
+    font-weight: calc(500 + var(--fw-lift));
     color: var(--grey-3);
     text-decoration: none;
     cursor: pointer;
@@ -42,7 +42,7 @@
     &.router-link-exact-active,
     &.active {
       color: var(--black);
-      font-weight: 700;
+      font-weight: calc(700 + var(--fw-lift));
 
       &::after {
         display: block;
@@ -270,6 +270,13 @@
     .#{$_B_NAV}-burger-fallback {
       .#{$_B_NAV}-burger-square {
         background: var(--grey-2);
+
+        // HC: the on-dark disc pins to --border-color-on-dark (pure white),
+        // so the squares flip to the dark pole — --white would render
+        // white-on-white here.
+        :host-context(html.high-contrast) & {
+          background: var(--bg-dark);
+        }
       }
     }
   }
@@ -278,7 +285,7 @@
     @extend %TTL_BASE;
     @extend %TTL_XS;
 
-    font-weight: 700;
+    font-weight: calc(700 + var(--fw-lift));
     color: var(--text-muted);
     padding: 0 to-rem(10);
   }
@@ -304,7 +311,7 @@
 
     &.active {
       opacity: 1;
-      font-weight: 700;
+      font-weight: calc(700 + var(--fw-lift));
       color: var(--black);
 
       &::after {

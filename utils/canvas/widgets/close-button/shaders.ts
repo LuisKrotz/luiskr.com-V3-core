@@ -31,6 +31,12 @@ export const CLOSE_BUTTON_VS = `
  * @param pRel Fragment position relative to the disc center, in close px.
  * @param minRes Shorter canvas dimension in close px — derives the disc
  *   radius (`minRes/2 - 1`) exactly like the standalone close shader.
+ * @param hc High-contrast flag (0/1) — when set, every shade collapses to
+ *   the two poles so the control survives `--border-color` going pitch
+ *   black / pure white.
+ * @param dark Disc-pole flag under HC (0/1): 1 = the chip disc paints at
+ *   the DARK pole (black disc, white ink), 0 = white disc, black ink.
+ *   Ignored when `hc` is 0.
  * @returns vec4 — premultiplied=false rgba; alpha is the disc's borderAA
  *   mask (0 outside the disc edge — no discard inside, so callers can
  *   composite other layers around the disc).
@@ -43,14 +49,21 @@ export const CLOSE_PAINT_GLSL = `
           return length(pa - ba * h);
         }
 
-        vec4 lkClosePaint(vec2 pRel, float minRes, float u_time, float u_liquid, float u_draw, float u_rot, float u_click_time) {
+        vec4 lkClosePaint(vec2 pRel, float minRes, float u_time, float u_liquid, float u_draw, float u_rot, float u_click_time, float u_hc, float u_dark) {
           float radius = minRes * 0.5 - 1.0;
           float d = length(pRel);
           float borderAA = 1.0 - smoothstep(radius - 1.0, radius, d);
 
-          // Neutral background
-          vec3 baseBg = vec3(0.22, 0.23, 0.27);
+          // Neutral background — under HC the disc snaps to its pole:
+          // pitch black when the disc pole is dark (u_dark=1), pure white
+          // otherwise, so the chip stays one solid pole of the pair.
+          vec3 baseBg = mix(vec3(0.22, 0.23, 0.27), vec3(1.0 - u_dark), u_hc);
           vec3 col = baseBg;
+
+          // Ink pole — opposite of the disc under HC (white ink on a black
+          // disc, black ink on a white disc); the plain white strokes the
+          // normal path paints when u_hc is 0.
+          vec3 inkPole = vec3(u_dark);
 
           // Slower liquid wave filling from bottom
           float targetY = (u_liquid * 2.2 - 1.1) * radius;
@@ -64,10 +77,14 @@ export const CLOSE_PAINT_GLSL = `
             vec3 topTurquoise  = vec3(0.40, 0.988, 0.945); // Turquoise matching awards progress bar (#66fcf1)
             vec3 liquidColor = mix(topTurquoise, deepTurquoise, depth);
 
+            // HC: the pour becomes a flat ink-pole flood — the turquoise
+            // ramp and its crest/bubble highlights are decorative shades.
+            liquidColor = mix(liquidColor, inkPole, u_hc);
+
             // Glowing foam crest
             float crestDist = abs(pRel.y - surfaceY);
             float crest = 1.0 - smoothstep(0.0, 2.0, crestDist);
-            liquidColor += vec3(0.75, 1.0, 0.98) * crest * 0.75;
+            liquidColor += vec3(0.75, 1.0, 0.98) * crest * 0.75 * (1.0 - u_hc);
 
             // Procedural rising bubbles inside liquid
             for (int i = 0; i < 4; i++) {
@@ -82,16 +99,17 @@ export const CLOSE_PAINT_GLSL = `
                 float dBubble = length(pRel - bPos);
                 float bRing = (1.0 - smoothstep(bRad - 0.4, bRad + 0.4, dBubble)) * smoothstep(bRad - 1.2, bRad - 0.3, dBubble);
                 float bSpot = 1.0 - smoothstep(0.0, 0.6, length(pRel - (bPos + vec2(0.4, 0.4))));
-                liquidColor += vec3(0.85, 1.0, 0.98) * (bRing * 0.55 + bSpot * 0.75);
+                liquidColor += vec3(0.85, 1.0, 0.98) * (bRing * 0.55 + bSpot * 0.75) * (1.0 - u_hc);
               }
             }
 
             col = mix(col, liquidColor, borderAA);
           }
 
-          // Inset rim shadow
+          // Inset rim shadow — suppressed under HC (a shade of the disc
+          // pole would soften the silhouette edge).
           float rim = smoothstep(radius - 3.0, radius, d);
-          col = mix(col, col * 0.7, rim * 0.35);
+          col = mix(col, col * 0.7, rim * 0.35 * (1.0 - u_hc));
 
           // Rotating X lines (auto-drawing, ultra-crisp antialiasing, zero blur)
           vec2 pRot = vec2(
@@ -115,14 +133,15 @@ export const CLOSE_PAINT_GLSL = `
           float stroke2 = (1.0 - smoothstep(0.9, 1.7, d2)) * step(0.01, progress);
           float totalX = clamp(stroke1 + stroke2, 0.0, 1.0);
 
-          col = mix(col, vec3(1.0, 1.0, 1.0), totalX * borderAA);
+          col = mix(col, mix(vec3(1.0, 1.0, 1.0), inkPole, u_hc), totalX * borderAA);
 
-          // Click shockwave
+          // Click shockwave — the turquoise ripple is a decorative tint,
+          // dropped under HC.
           float clickElapsed = u_time - u_click_time;
           if (clickElapsed >= 0.0 && clickElapsed < 0.4) {
             float waveRad = clickElapsed * 45.0;
             float waveShock = (1.0 - smoothstep(0.0, 2.5, abs(d - waveRad))) * (1.0 - clickElapsed / 0.4);
-            col += vec3(0.40, 0.988, 0.945) * waveShock * 0.8;
+            col += vec3(0.40, 0.988, 0.945) * waveShock * 0.8 * (1.0 - u_hc);
           }
 
           return vec4(col, borderAA);
@@ -144,6 +163,9 @@ export const CLOSE_BUTTON_FS = `
         uniform float u_draw;
         uniform float u_rot;
         uniform float u_click_time;
+        // HC channels — pole collapse + which pole the chip disc takes.
+        uniform float u_hc;
+        uniform float u_dark;
         ${CLOSE_PAINT_GLSL}
 
         void main() {
@@ -158,7 +180,8 @@ export const CLOSE_BUTTON_FS = `
 
           gl_FragColor = lkClosePaint(
             pRel, min(u_resolution.x, u_resolution.y),
-            u_time, u_liquid, u_draw, u_rot, u_click_time
+            u_time, u_liquid, u_draw, u_rot, u_click_time,
+            u_hc, u_dark
           );
         }
       `

@@ -13,7 +13,7 @@
   width: 100%;
   overflow: hidden;
   box-sizing: border-box;
-  background-color: var(--bg-dark);
+  background-color: var(--bg-secondary);
   opacity: 0;
   transform: translate3d(0, #{to-rem($space-xl)}, 0);
   transition:

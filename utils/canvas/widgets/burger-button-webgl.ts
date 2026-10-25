@@ -99,6 +99,7 @@ export class BurgerButtonWebGL {
   uTime: WebGLUniformLocation | null = null
   uResolution: WebGLUniformLocation | null = null
   uDark: WebGLUniformLocation | null = null
+  uHc: WebGLUniformLocation | null = null
   uHover: WebGLUniformLocation | null = null
   uOpen: WebGLUniformLocation | null = null
   uLiquid: WebGLUniformLocation | null = null
@@ -274,6 +275,7 @@ export class BurgerButtonWebGL {
       u_time: 'u_time',
       u_res: 'u_res',
       u_dark: 'u_dark',
+      u_hc: 'u_hc',
       u_hover: 'u_hover',
       u_open: 'u_open',
       u_liquid: 'u_liquid',
@@ -287,6 +289,8 @@ export class BurgerButtonWebGL {
     this.uResolution = u.u_res
 
     this.uDark = u.u_dark
+
+    this.uHc = u.u_hc
 
     this.uHover = u.u_hover
 
@@ -420,19 +424,25 @@ export class BurgerButtonWebGL {
 
   /**
    * Renders one frame at time t (seconds) — shared by the RAF loop and the
-   * static reduced-motion path. u_dark is re-evaluated per frame from the
-   * live DOM classes (dark theme OR nav-on-dark over the contact band) so
-   * the icon recolors instantly on theme/scroll changes with no listener.
+   * static reduced-motion path. u_dark/u_hc are re-evaluated per frame from
+   * the live DOM classes (dark theme OR nav-on-dark over the contact band,
+   * and the high-contrast flag) so the icon recolors instantly on
+   * theme/scroll/preference changes with no listener. Under HC u_dark
+   * carries the DISC's pole instead of the theme's — see _drawFrame.
    * @param {number} t - seconds since construction
    */
   _drawFrame(t: number): void {
     if (this.canvas.width === 0 || this.canvas.height === 0) return
 
-    const isDark =
-      document.documentElement.classList.contains(STATE_CLASSES.DARK_MODE) ||
-      this.canvas.classList.contains(NAV_CLASSES.NAV_ON_DARK)
-        ? 1
-        : 0
+    // u_dark means "paint light ink" — the flag must track the DISC pole,
+    // not the theme. Under high-contrast the chip disc flips to the page's
+    // opposite extreme: pitch black in light-HC, pure white in dark-HC and
+    // on the nav-on-dark strip — so only a dark disc earns light ink.
+    const hc = document.documentElement.classList.contains(STATE_CLASSES.HIGH_CONTRAST)
+    const darkMode = document.documentElement.classList.contains(STATE_CLASSES.DARK_MODE)
+    const onDark = this.canvas.classList.contains(NAV_CLASSES.NAV_ON_DARK)
+
+    const isDark = (hc ? !darkMode && !onDark : darkMode || onDark) ? 1 : 0
 
     const gl = this.gl
 
@@ -469,6 +479,8 @@ export class BurgerButtonWebGL {
     gl.uniform2f(this.uResolution, this.canvas.width, this.canvas.height)
 
     gl.uniform1f(this.uDark, isDark)
+
+    gl.uniform1f(this.uHc, hc ? 1 : 0)
 
     gl.uniform1f(this.uHover, this._hover)
 

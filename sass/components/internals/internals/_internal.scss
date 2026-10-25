@@ -35,7 +35,7 @@
     // The 70vh constraint lives inside the media-figure Shadow DOM (figure element).
     padding: var(--space-2xl) var(--space-xl);
     box-sizing: border-box;
-    background-color: var(--bg-dark);
+    background-color: var(--bg-secondary);
     // Skip layout/paint while off-screen — the media figure is the page's
     // heaviest paint, and scroll spends its frame budget re-rendering
     // sections that aren't visible. `auto` remembers the real size after
@@ -237,7 +237,7 @@
       @extend %TXT_MD;
 
       font-family: var(--font-primary);
-      font-weight: 250;
+      font-weight: calc(250 + var(--fw-lift));
       word-break: normal;
       overflow-wrap: break-word;
       hyphens: none;
@@ -265,11 +265,9 @@
   }
 
   &-extra {
-    @extend %SKEL_DARK_SURFACE;
-
     width: 100%;
     box-sizing: border-box;
-    background-color: var(--bg-dark);
+    background-color: var(--bg-secondary);
     overflow-x: auto;
     scroll-snap-align: center;
     // The media strip is the second-heaviest paint — skip it while the
@@ -300,6 +298,13 @@
     &::-webkit-scrollbar-thumb {
       border-radius: to-rem(3);
       background: var(--grey-3);
+
+      // HC: track is --black (pure black light / pure white dark) and
+      // --grey-3 collapses to the same extreme in light-HC — the thumb
+      // re-pins to --white so it always paints the track's opposite pole.
+      :host-context(html.high-contrast) & {
+        background: var(--white);
+      }
     }
 
     /* Handle on hover */
@@ -344,6 +349,13 @@
       padding: 0 var(--space-lg);
       min-height: 100%;
       overflow: hidden;
+
+      // HC: the item lives inside .internal-extra's always-dark strip, but
+      // --text-muted collapses to page ink (black) under light-HC — captions
+      // re-pin to the on-dark token which stays white in both HC variants.
+      :host-context(html.high-contrast) & {
+        color: var(--text-muted-on-dark);
+      }
 
       @include layout-768() {
         padding: 0 var(--space-xl);
@@ -474,7 +486,7 @@
         text-transform: uppercase;
         margin: 0;
         font-variant: all-small-caps;
-        color: var(--color-white-raw);
+        color: var(--text-primary);
       }
 
       &-open {
@@ -690,7 +702,7 @@
         margin-block: var(--space-md);
         line-height: var(--space-xl);
         text-transform: uppercase;
-        font-weight: 300;
+        font-weight: calc(300 + var(--fw-lift));
 
         @include layout-375() {
           text-transform: initial;
@@ -723,7 +735,7 @@
         border: none;
         margin: var(--space-md) auto var(--space-lg);
         font-family: inherit;
-        font-weight: 300;
+        font-weight: calc(300 + var(--fw-lift));
         line-height: var(--space-xl);
         text-align: left;
         color: inherit;
@@ -878,7 +890,7 @@
         color: inherit;
         text-decoration: none;
         text-transform: uppercase;
-        font-weight: 300;
+        font-weight: calc(300 + var(--fw-lift));
         cursor: pointer;
       }
 

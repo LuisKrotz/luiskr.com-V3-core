@@ -61,6 +61,14 @@ $_B_PREF_CLOSE: 'pref-close';
       transform: rotate(-45deg);
     }
 
+    // HC: the disc (--border-color) sits at the page-ink pole and
+    // --text-secondary collapses to that same pole — the X strokes re-pin
+    // to the opposite pole so they never paint ink-on-ink.
+    :host-context(html.high-contrast) &::before,
+    :host-context(html.high-contrast) &::after {
+      background: var(--white);
+    }
+
     &:hover,
     &:focus {
       background: var(--border-color-hover, var(--border-color));

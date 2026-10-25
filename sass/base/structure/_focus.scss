@@ -36,6 +36,27 @@
 
 @include focus-ring-scope;
 
+// ── High-contrast ring boost ─────────────────────────────────────────────────
+// Under html.high-contrast the ring ink is already the page's opposite
+// extreme (pure black on white / pure white on black), but that alone still
+// vanishes when the FOCUSED ELEMENT sits at the same extreme — dark controls
+// on the pitch-black card wells, inverted white pills on the black field.
+// The boost widens the outline a Fibonacci step and paints --focus-ring-halo
+// (a full-strength band in the surface colour) around it, so the marker
+// reads as a striped dark/light/dark edge on ANY background.
+//
+// One block feeds both delivery paths: `html.high-contrast` matches in the
+// document sheet; `:host-context(html.high-contrast)` matches the same flag
+// through the shadow boundary inside every root that adopted this sheet —
+// the plain `html.` selector is dead weight there and vice versa.
+html.high-contrast,
+:host-context(html.high-contrast) {
+  @include focus-ring-targets {
+    outline-width: to-rem($space-xs);
+    box-shadow: var(--focus-ring-halo);
+  }
+}
+
 // --cookie-banner-h is published at runtime (0px when the banner is
 // dismissed), so the bottom margin tracks the real chrome height; the
 // top margin covers the nav bar + its resting offset.

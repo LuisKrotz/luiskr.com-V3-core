@@ -144,7 +144,7 @@
       &-title {
         @extend .ttl-md;
 
-        font-weight: 200;
+        font-weight: calc(200 + var(--fw-lift));
         text-transform: uppercase;
         padding-top: to-rem($space-md);
         padding-bottom: to-rem($space-lg);
@@ -153,7 +153,7 @@
       &-desc {
         @extend .txt-sm;
 
-        font-weight: 100;
+        font-weight: calc(100 + var(--fw-lift));
         opacity: 0.7;
       }
     }
@@ -170,7 +170,7 @@
       text-transform: uppercase;
       padding: to-rem($space-xs) to-rem($space-lg);
       color: var(--text-muted-on-dark);
-      font-weight: 700;
+      font-weight: calc(700 + var(--fw-lift));
       white-space: nowrap;
       transition: color 0.2s ease;
       margin: 0 auto to-rem($space-md);

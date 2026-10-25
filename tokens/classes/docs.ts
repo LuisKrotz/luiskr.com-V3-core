@@ -59,6 +59,9 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_MAP_HEAD: `${_B_DOCS}-map-head`,
   /** Zoom trigger — opens the centered glass modal. */
   DOCS_MAP_ZOOM: `${_B_DOCS}-map-zoom`,
+  /** The ⤢ glyph inside the zoom trigger — wrapped in a span so hover
+   *  can transform it (bare text nodes take no transform). */
+  DOCS_MAP_ZOOM_ICON: `${_B_DOCS}-map-zoom-icon`,
   /** Fullscreen overlay behind the zoom dialog — the glass backdrop. */
   DOCS_MAP_MODAL: `${_B_DOCS}-map-modal`,
   /** Fullscreen click-catcher between backdrop and dialog — the
@@ -108,9 +111,17 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_ICON_ALT: `${_B_DOCS}-icon-alt`,
   /** Wordmark text inside a page — the shield labels ("HTML"/"CSS"). */
   DOCS_ICON_TEXT: `${_B_DOCS}-icon-text`,
+  /** Rim-light glint — the bright segment orbiting each icon's outline
+   *  stroke (the reference pack's traveling shine), inked from the
+   *  icon's `--icon-ink` lifted toward white. */
+  DOCS_ICON_GLINT: `${_B_DOCS}-icon-glint`,
   /** File-kind names — `${DOCS_TREE_ICON}--${kind}` modifier classes
    *  pick each filetype's ink in the docs SCSS. */
   DOCS_ICON_KINDS: Object.freeze({
+    /** Directory glyph — the `--folder` modifier pins the folder's gold
+     *  currentColor as `--icon-ink` so shared pack parts (the sheen
+     *  sweep) ink themselves correctly inside a folder svg. */
+    FOLDER: 'folder',
     TS: 'ts',
     JS: 'js',
     PY: 'py',

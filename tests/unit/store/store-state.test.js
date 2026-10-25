@@ -492,6 +492,64 @@ describe('Store — State Management', () => {
     })
   })
 
+  // ── Nav Menu Overlay ────────────────────────────────────────────────────────
+  describe('9b. Nav Menu Overlay State', () => {
+    test('state.navMenuOpen is a boolean', () => {
+      expect(typeof store.state.navMenuOpen).toBe(TYPE_STRINGS.BOOLEAN)
+    })
+
+    test('setNavMenu(true) opens the nav menu', () => {
+      store.commit(MODAL_MUTATIONS.SET_NAV_MENU, true)
+      expect(store.state.navMenuOpen).toBe(true)
+      store.commit(MODAL_MUTATIONS.SET_NAV_MENU, false)
+    })
+
+    test('setNavMenu(false) closes the nav menu', () => {
+      store.commit(MODAL_MUTATIONS.SET_NAV_MENU, true)
+      store.commit(MODAL_MUTATIONS.SET_NAV_MENU, false)
+      expect(store.state.navMenuOpen).toBe(false)
+    })
+
+    test('setNavMenu() without arg toggles state', () => {
+      store.commit(MODAL_MUTATIONS.SET_NAV_MENU, false)
+      const before = store.state.navMenuOpen
+      store.commit(MODAL_MUTATIONS.SET_NAV_MENU)
+      expect(store.state.navMenuOpen).toBe(!before)
+      store.commit(MODAL_MUTATIONS.SET_NAV_MENU, false)
+    })
+
+    test('getNavMenuOpen() returns state.navMenuOpen', () => {
+      expect(store.getters.getNavMenuOpen()).toBe(store.state.navMenuOpen)
+    })
+
+    test('getOverlayOpen() reflects each covering overlay flag', () => {
+      store.commit(MODAL_MUTATIONS.SET_MODAL, { open: false })
+      store.commit(MODAL_MUTATIONS.SET_NAV_MENU, false)
+      store.commit(MODAL_MUTATIONS.TOGGLE_PREFERENCES_MODAL, false)
+      store.commit(MODAL_MUTATIONS.TOGGLE_LANG_DIALOG, false)
+
+      expect(store.getters.getOverlayOpen()).toBe(false)
+
+      store.commit(MODAL_MUTATIONS.SET_NAV_MENU, true)
+      expect(store.getters.getOverlayOpen()).toBe(true)
+      store.commit(MODAL_MUTATIONS.SET_NAV_MENU, false)
+
+      store.commit(MODAL_MUTATIONS.TOGGLE_PREFERENCES_MODAL, true)
+      expect(store.getters.getOverlayOpen()).toBe(true)
+      store.commit(MODAL_MUTATIONS.TOGGLE_PREFERENCES_MODAL, false)
+
+      store.commit(MODAL_MUTATIONS.TOGGLE_LANG_DIALOG, true)
+      expect(store.getters.getOverlayOpen()).toBe(true)
+      store.commit(MODAL_MUTATIONS.TOGGLE_LANG_DIALOG, false)
+
+      store.commit(MODAL_MUTATIONS.SET_MODAL, { open: true })
+      expect(store.getters.getOverlayOpen()).toBe(true)
+      store.commit(MODAL_MUTATIONS.SET_MODAL, { open: false })
+
+      expect(store.getters.getOverlayOpen()).toBe(false)
+    })
+  })
+
   // ── Portfolio List ──────────────────────────────────────────────────────────
   describe('10. Portfolio List Management', () => {
     test('portfoliolist is an array by default', () => {

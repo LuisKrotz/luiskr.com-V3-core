@@ -87,7 +87,7 @@
 .home-mosaic-title {
   @extend %TTL_SM;
   font-family: var(--font-primary);
-  font-weight: 100;
+  font-weight: calc(100 + var(--fw-lift));
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-white-raw);

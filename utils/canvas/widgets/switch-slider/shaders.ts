@@ -22,7 +22,7 @@ export const SWITCH_SLIDER_FS = `
         uniform float u_time;
         uniform float u_progress;
         uniform float u_knob_x;
-        uniform float u_context; // 0=stats, 1=grid, 2=motion
+        uniform float u_context; // 0=stats, 1=grid, 2=motion, 3=contrast
 
         float distCapsule(vec2 p, vec2 a, vec2 b) {
           vec2 pa = p - a;
@@ -53,9 +53,12 @@ export const SWITCH_SLIDER_FS = `
           } else if (u_context < 1.5) {
             // Grid: Cyan blueprint
             onTrack = vec3(0.06, 0.48, 0.72);
-          } else {
+          } else if (u_context < 2.5) {
             // Motion: Violet / magenta
             onTrack = vec3(0.48, 0.24, 0.68);
+          } else {
+            // Contrast: Warm amber
+            onTrack = vec3(0.78, 0.50, 0.08);
           }
 
           vec3 col = mix(offTrack, onTrack, u_progress);
@@ -88,7 +91,7 @@ export const SWITCH_SLIDER_FS = `
             vec3 gridCol = mix(vec3(0.30, 0.35, 0.42), vec3(0.50, 0.85, 1.0), u_progress);
             col += gridCol * gridPattern * (0.25 + 0.55 * u_progress);
 
-          } else {
+          } else if (u_context < 2.5) {
             // ── 2: MOTION (Subtle Ambient Drift vs Calm Still Horizon) ──
             if (u_progress < 0.5) {
               // Full Motion (OFF): Soft, slow, subtle horizontal wind drift (speed 6.0)
@@ -102,6 +105,22 @@ export const SWITCH_SLIDER_FS = `
               float lineY = 1.0 - smoothstep(0.0, 1.2, abs(pixel.y - 14.0));
               col += vec3(0.95, 0.85, 1.0) * lineY * 0.60;
             }
+          } else {
+            // ── 3: CONTRAST (Sweeping Luminance Split / Comparison Wipe) ──
+            // A vertical seam travels the track on a slow sine (amplitude
+            // ±17px around center — the wipe never parks at an edge);
+            // left of it the track drops to near-black, right of it lifts
+            // to near-white — the "before/after" split of a contrast
+            // comparator. The 1px smoothstep keeps the edge crisp but
+            // antialiased. Alpha (0.30 + 0.60·progress): the split fades
+            // IN as high contrast turns on — a soft grey hint when off.
+            float seamX = 27.0 + sin(u_time * 0.9) * 17.0;
+            float side = smoothstep(seamX - 0.9, seamX + 0.9, pixel.x);
+            vec3 wipeCol = mix(vec3(0.05, 0.05, 0.08), vec3(0.98, 0.98, 1.0), side);
+            col = mix(col, wipeCol, 0.30 + 0.60 * u_progress);
+            // Hot amber seam riding the boundary — the comparator's cursor.
+            float seam = 1.0 - smoothstep(0.0, 1.0, abs(pixel.x - seamX));
+            col += vec3(1.0, 0.78, 0.30) * seam * (0.30 + 0.50 * u_progress);
           }
 
           // Inset Track Border Bezel (antialiased)
@@ -130,8 +149,10 @@ export const SWITCH_SLIDER_FS = `
             dotCol = mix(vec3(0.6, 0.65, 0.7), vec3(0.1, 0.85, 0.45), u_progress);
           } else if (u_context < 1.5) {
             dotCol = mix(vec3(0.6, 0.65, 0.7), vec3(0.1, 0.65, 0.95), u_progress);
-          } else {
+          } else if (u_context < 2.5) {
             dotCol = mix(vec3(0.6, 0.65, 0.7), vec3(0.65, 0.4, 0.95), u_progress);
+          } else {
+            dotCol = mix(vec3(0.6, 0.65, 0.7), vec3(1.0, 0.75, 0.25), u_progress);
           }
 
           knobColor = mix(knobColor, dotCol, dotLight);

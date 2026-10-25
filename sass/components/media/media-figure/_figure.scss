@@ -88,3 +88,10 @@ figure {
     border-radius: to-rem($space-lg);
   }
 }
+
+// HC: --grey-3 collapses to the page ink and would vanish against the
+// pitch-black slide — the loading fill re-pins to raw white.
+:host(.internal-extra-item):host-context(html.high-contrast) figure,
+:host([classes*='internal-extra-item']):host-context(html.high-contrast) figure {
+  background-color: var(--color-white-raw);
+}

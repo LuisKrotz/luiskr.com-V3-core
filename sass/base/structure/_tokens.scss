@@ -21,6 +21,10 @@
   // (deep teal in light mode, signature cyan in dark via the override
   // below), so Tab affordance matches the project palette in both themes.
   --focus-ring: var(--color-accent-contrast);
+  // Extra band emitted around the outline by the HC boost in _focus.scss —
+  // paints in the surface colour so the ring stays visible when the ring
+  // ink matches the element's own fill. Inert (`none`) outside HC.
+  --focus-ring-halo: none;
   --bg-darkest: #{$cms-bg-darkest};
 
   // Mosaic title burn palette — light theme: an airy paper-fire (pale
@@ -89,7 +93,12 @@
   // with a subtle hairline shadow border
   --shadow-card: 0 0 0 0.0625rem rgba(0, 0, 0, 0.06), 0 0.125rem 0.75rem rgba(0, 0, 0, 0.1);
   --shadow-card-featured: 0 0 0 0.0625rem rgba(0, 0, 0, 0.1), 0 0.5rem 1.75rem rgba(0, 0, 0, 0.22);
-  --shadow-card-hover: 0 0 0 0.0625rem rgba(0, 0, 0, 0.15), 0 1.25rem 3.125rem rgba(0, 0, 0, 0.45);
+  --shadow-card-hover: 0 0 0 0.0625rem rgba(0, 0, 0, 0.12), 0 1.25rem 3.125rem rgba(0, 0, 0, 0.22);
+
+  // Light-mode font-weight lift — every numeric font-weight is authored
+  // as calc(N + var(--fw-lift)) so light mode renders one step heavier
+  // (+100) for readability on the bright field; dark mode re-pins to 0.
+  --fw-lift: 100;
 
   --white: #ffffff;
   --black: #262626;

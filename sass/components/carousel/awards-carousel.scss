@@ -4,7 +4,8 @@
 //  full-bleed slides that peek into adjacent ones on both sides, WebGL
 //  arrow controls, and dot/pill navigation. Split by variant into
 //  awards-carousel/ partials (imported below):
-//    _base       .aw-c container, track, controls, dots, action-appear
+//    _base       .aw-c container, track, controls, action-appear
+//    _dot-nav    shared dot/pill nav (also used by carousel.scss)
 //    _selected   selected-work variant (viewport slides + peek)
 //    _explore    explore/archive variant (~60% cards + peek)
 //    _awards     awards variant (dark footer, 10s timer)
@@ -15,6 +16,14 @@
 @import '../../base/mixins';
 @import '../../base/fonts';
 @import '../../base/placeholders';
+
+/// BEM block fragment — composed via interpolation so the 'aw-c'
+/// prefix is declared exactly once (DRY selector rule).
+$_B_AWC: 'aw-c';
+
+// Shared dot/bullet nav component — the same .carousel-dot chrome +
+// spring morph, emitted under the aw-c prefix (see _dot-nav.scss).
+@import 'dot-nav';
 
 @import 'awards-carousel/base';
 @import 'awards-carousel/selected';

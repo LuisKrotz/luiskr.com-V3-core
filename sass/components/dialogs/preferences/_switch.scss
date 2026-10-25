@@ -41,7 +41,7 @@ $_SW_PAD: 3; // padding inside pill
 // Switch row label.
 .#{$_B_SW}-label {
   font-family: var(--font-primary);
-  font-weight: 600;
+  font-weight: calc(600 + var(--fw-lift));
   font-size: to-rem(15);
   color: var(--text-primary);
 }

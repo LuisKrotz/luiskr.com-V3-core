@@ -26,6 +26,8 @@ import { animate, renderCanvas2D, renderStatic, renderWebGL } from './switch-sli
  * - 'stats': Live ECG oscilloscope waveform + pulsing chip matrix (Stats for Nerds)
  * - 'grid': Glowing blueprint column grid lines + scanning crosshairs (Show Grid)
  * - 'motion': Subtle ambient drift (OFF) vs calm still horizon datum (ON) (Reduced Motion)
+ * - 'contrast': Sweeping luminance split — a dark/light comparison wipe
+ *   riding back and forth across the track behind an amber seam (High Contrast)
  * All switches share an identical solid centered knob indicator dot.
  */
 export class SwitchWebGL {
@@ -127,20 +129,22 @@ export class SwitchWebGL {
 
   /**
    * Context → shader's u_context float id (0=stats, 1=grid/cyan/space,
-   * 2=motion). The fragment shader branches on ranges (<0.5, <1.5, else)
-   * so several visual aliases can share the grid animation.
+   * 2=motion, 3=contrast). The fragment shader branches on ranges
+   * (<0.5, <1.5, <2.5, else) so several visual aliases can share the
+   * grid animation.
    * @returns {number}
    */
   _contextCode(): number {
     if (
       this.contextType === SWITCH_TYPES.GRID ||
       this.contextType === SWITCH_TYPES.CYAN ||
-      this.contextType === SWITCH_TYPES.SPACE ||
-      this.contextType === SWITCH_TYPES.CONTRAST
+      this.contextType === SWITCH_TYPES.SPACE
     )
       return 1.0
 
     if (this.contextType === SWITCH_TYPES.MOTION) return 2.0
+
+    if (this.contextType === SWITCH_TYPES.CONTRAST) return 3.0
 
     return 0.0 // stats
   }

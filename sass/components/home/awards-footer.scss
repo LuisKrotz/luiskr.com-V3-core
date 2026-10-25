@@ -1,7 +1,8 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  awards-footer.scss — the dark footer band shared by Home/About/Legal:
+//  awards-footer.scss — the footer band shared by Home/About/Legal:
 //  awards/mentions auto-carousel (with the progress ring) + legal links row.
-//  Layout: %MAXAREA content column inside a --bg-dark full-bleed band.
+//  Layout: %MAXAREA content column inside a --bg-secondary full-bleed
+//  band (light surface in light mode, dark in dark mode).
 // ════════════════════════════════════════════════════════════════════════════
 
 @import '../../base/variables';
@@ -10,23 +11,21 @@
 @import '../../base/placeholders';
 @import '../../base/structure';
 
-// Shadow host — dark footer band surface.
+// Shadow host — footer band surface, theme-flipping like .contact.
 :host {
-  @extend %SKEL_DARK_SURFACE;
-
   display: block;
   width: 100%;
-  background: var(--bg-dark);
+  background: var(--bg-secondary);
 }
 
 // ── Awards footer ─────────────────────────────────────────────────────────────
 // Shared across Home, About, and Legal pages.
-// Dark background (same as .contact), centred layout.
+// --bg-secondary surface (same as .contact), centred layout.
 .awards-footer {
   @extend %MAXAREA;
 
-  background: var(--bg-dark);
-  color: var(--color-white-raw);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -45,9 +44,9 @@
   &-title {
     @extend .ttl-sm;
 
-    font-weight: 100;
+    font-weight: calc(100 + var(--fw-lift));
     text-transform: uppercase;
-    color: var(--color-white-raw);
+    color: var(--text-primary);
     text-align: center;
     padding: to-rem($space-md) 0 to-rem($space-lg);
     opacity: 0.85;
@@ -75,7 +74,7 @@
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    color: var(--color-white-raw);
+    color: var(--text-primary);
     width: 100%;
     padding: to-rem($space-lg) 0 0;
     border-top: to-rem($space-hairline) solid var(--border-color);
@@ -85,7 +84,7 @@
       @extend .ttl-xs;
       @extend %LK_LINK;
 
-      color: var(--color-white-raw);
+      color: var(--text-primary);
       text-decoration: none;
       // Home-footer legal links (Privacy, LGPD, Terms) rest without an
       // underline; the LK_LINK pseudo-element still sweeps in on hover.
@@ -113,9 +112,9 @@
 
     &-sep {
       padding: 0 to-rem($space-md);
-      font-weight: 200;
+      font-weight: calc(200 + var(--fw-lift));
       opacity: 0.6;
-      color: var(--color-white-raw);
+      color: var(--text-primary);
     }
   }
 }
@@ -150,7 +149,7 @@ $_B_FS: 'footer-source';
 // Circular progress ring for the auto-advance.
 .#{$_B_AFP} {
   width: 100%;
-  height: to-rem($space-2xs);
+  height: to-rem($space-3xs);
   background: var(--border-color);
   border-radius: var(--radius-round);
   overflow: hidden;
@@ -209,21 +208,21 @@ $_B_FS: 'footer-source';
   width: 100%;
   text-align: center;
   margin-top: to-rem($space-lg);
-  color: var(--color-white-raw);
+  color: var(--text-primary);
   // 0.7 keeps the muted look while staying above the 4.5:1 contrast floor
   // on --bg-dark in both themes
   opacity: 0.7;
-  font-weight: 400;
+  font-weight: calc(400 + var(--fw-lift));
   font-size: to-rem($space-lg);
 
   &-link {
     @extend .ttl-xs;
     @extend %LK_LINK;
 
-    color: var(--color-white-raw);
+    color: var(--text-primary);
     text-decoration: none;
     cursor: pointer;
-    font-weight: 400;
+    font-weight: calc(400 + var(--fw-lift));
     font-size: to-rem($space-lg);
     border-bottom-color: currentColor;
 
@@ -243,14 +242,14 @@ $_B_FS: 'footer-source';
     width: 100%;
     text-align: center;
     margin: to-rem($space-2xl) 0 0;
-    color: var(--color-white-raw);
-    font-weight: 400;
+    color: var(--text-primary);
+    font-weight: calc(400 + var(--fw-lift));
     font-size: to-rem($space-lg);
 
     &-link {
       @extend %LK_LINK;
 
-      color: var(--color-white-raw);
+      color: var(--text-primary);
       text-decoration: none;
       cursor: pointer;
       opacity: 0.85;
@@ -344,9 +343,9 @@ $_B_FS: 'footer-source';
     width: 100%;
     margin: 0 auto;
     text-align: center;
-    color: var(--color-white-raw);
+    color: var(--text-primary);
     opacity: 0.7;
-    font-weight: 300;
+    font-weight: calc(300 + var(--fw-lift));
     line-height: to-rem($space-xl);
     // The authorship lines read as a quiet colophon, not small caps —
     // drop %TTL_XXS's uppercase and set the copy in italic instead.

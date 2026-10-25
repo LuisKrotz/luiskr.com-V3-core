@@ -7,6 +7,44 @@
  */
 
 import { ARROW_TYPES } from '@core/tokens/theme/arrows.js'
+import { STATE_CLASSES } from '@core/tokens/classes/state.js'
+import { THEME_CSS_PROPS as CSS_PROPS } from '@core/tokens/css/theme.js'
+
+/** Theme inks the painter needs — resolved CSS values, safe as canvas colors. */
+interface ArrowPalette {
+  /** Disc glass — `--bg-primary` (white in light mode, black in dark). */
+  disc: string
+  /** Arrow glyph ink — `--text-primary` (dark on light disc, white on dark). */
+  ink: string
+}
+
+/** Cached palette keyed to the theme flag it was sampled under. */
+let _palKey: boolean | null = null
+
+let _pal: ArrowPalette | null = null
+
+/**
+ * Samples `--bg-primary`/`--text-primary` once per theme so the disc + arrow
+ * flip with the site palette (light mode paints the light-glass/dark-ink
+ * variant instead of the always-dark obsidian). Re-samples on a theme flip.
+ * @returns The resolved disc + glyph inks.
+ */
+const arrowPalette = (): ArrowPalette => {
+  const dark = document.documentElement.classList.contains(STATE_CLASSES.DARK_MODE)
+
+  if (_pal && _palKey === dark) return _pal
+
+  const cs = getComputedStyle(document.documentElement)
+
+  _pal = {
+    disc: cs.getPropertyValue(CSS_PROPS.BG_PRIMARY).trim(),
+    ink: cs.getPropertyValue(CSS_PROPS.TEXT_PRIMARY).trim(),
+  }
+
+  _palKey = dark
+
+  return _pal
+}
 
 /** Everything the 2D paint pass needs from the widget instance. */
 export interface CarouselArrowPaintState {
@@ -60,14 +98,20 @@ export function paintCarouselArrow2D(
 
   ctx.imageSmoothingQuality = 'high'
 
-  // ── 1. Single Button Disc (Obsidian glass, NO double border) ──
+  const pal = arrowPalette()
+
+  // ── 1. Single Button Disc (theme glass, NO double border) ──
   ctx.beginPath()
 
   ctx.arc(cx, cy, r, 0, Math.PI * 2)
 
-  ctx.fillStyle = state.isHovered ? 'rgba(26, 32, 44, 0.96)' : 'rgba(11, 12, 16, 0.88)'
+  ctx.globalAlpha = state.isHovered ? 0.96 : 0.88
+
+  ctx.fillStyle = pal.disc
 
   ctx.fill()
+
+  ctx.globalAlpha = 1
 
   // ── 2. Loading Progress Ring Track ──
   const ringR = r - 2.5
@@ -171,9 +215,9 @@ export function paintCarouselArrow2D(
 
     ctx.globalAlpha = idleAlpha
 
-    ctx.strokeStyle = '#c5c6c7'
+    ctx.strokeStyle = pal.ink
 
-    ctx.fillStyle = '#c5c6c7'
+    ctx.fillStyle = pal.ink
 
     ctx.lineWidth = 2.2
 

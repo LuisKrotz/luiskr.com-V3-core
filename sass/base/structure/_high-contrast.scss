@@ -7,38 +7,48 @@
 //  The switch lives in Preferences → Accessibility; the html class is flipped
 //  by store/mutations/theme.ts (initHighContrast/setHighContrast).
 //  Imported by _structure.scss (manifest) — not compiled standalone.
+//
+//  HC policy: there are no mid-tones. Every dark hue collapses to pitch
+//  black (#000000), every light hue to pure white (#ffffff), translucency
+//  is dropped to opaque, and focus affordances swap the accent ink for the
+//  page's opposite extreme plus a surface-coloured halo band. Component
+//  states that must still differ (active vs inactive controls) carry the
+//  distinction in geometry, not shade.
 // ════════════════════════════════════════════════════════════════════════════
 
-// ── High-contrast LIGHT — pure white field, near-black inks, opaque borders.
+// ── High-contrast LIGHT — pure white field, pitch-black inks, opaque borders.
 // Every var the base/dark themes define gets a stronger-contrast value here
 // so no token stays at its decorative alpha when HC is on.
 html.high-contrast {
-  // Surfaces stay white-family but borders and inks go opaque.
+  // Surfaces stay white-family but borders and inks go opaque pitch black.
   --bg-primary: #ffffff;
   --bg-secondary: #ffffff;
-  --bg-dark: #0d0d0d;
-  --bg-dark-alpha: #{rgba($color-black, 0.97)};
+  --bg-dark: #000000;
+  --bg-dark-alpha: #000000;
   --bg-darker: #000000;
   --bg-darkest: #000000;
   --text-primary: #000000;
-  --text-secondary: #262626;
+  --text-secondary: #000000;
   // Muted ink gets no alpha — pure black text on the white field.
-  --text-muted: #404040;
+  --text-muted: #000000;
   --text-muted-on-dark: #ffffff;
   --border-color: #000000;
   --border-color-on-dark: var(--color-white-raw);
-  --border-item: #{rgba($color-black, 0.55)};
+  --border-item: var(--color-white-raw);
   --border-item-hover: var(--color-white-raw);
   --border-item-featured: var(--color-white-raw);
-  --color-accent-contrast: #{darken($cms-accent, 30%)};
-  --focus-ring: #{darken($cms-accent, 30%)};
-  --btn-accent-fill: #{rgba($color-black, 0.12)};
-  --glass-bg: #{rgba($color-white, 0.98)};
+  --color-accent-contrast: #000000;
+  --focus-ring: #000000;
+  // Opposite-extreme band around the outline — the ring stays readable even
+  // on pitch-black card surfaces where the black ring alone would vanish.
+  --focus-ring-halo: 0 0 0 #{to-rem($space-md)} #ffffff;
+  --btn-accent-fill: rgba(0, 0, 0, 0.25);
+  --glass-bg: #ffffff;
 
   // Menu inks pushed to the deepest end of the palette.
   --menu-bg: #ffffff;
   --menu-ink: #000000;
-  --menu-ink-2: #262626;
+  --menu-ink-2: #000000;
 
   // No ambient wash in HC — a plain field keeps edges unambiguous.
   --bg-glow: none;
@@ -46,7 +56,7 @@ html.high-contrast {
   --metallic-hairline: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.9) 50%,
+    rgba(0, 0, 0, 1) 50%,
     transparent 100%
   );
 
@@ -54,23 +64,29 @@ html.high-contrast {
   --burn-core: #000000;
   --burn-mid: #7a1f00;
   --burn-edge: #e04400;
-  --burn-scorch: #{rgba($color-black, 0.9)};
-  --burn-smoke: #{rgba($color-black, 0.85)};
+  --burn-scorch: rgba(0, 0, 0, 1);
+  --burn-smoke: rgba(0, 0, 0, 0.85);
 
   // Shadows become hard hairline rings — no soft blur ambiguity.
-  --shadow-card: 0 0 0 0.125rem rgba(0, 0, 0, 0.85);
-  --shadow-card-featured: 0 0 0 0.125rem rgba(0, 0, 0, 0.85), 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
-  --shadow-card-hover: 0 0 0 0.1875rem rgba(0, 0, 0, 0.95);
+  --shadow-card: 0 0 0 0.125rem rgba(0, 0, 0, 1);
+  --shadow-card-featured: 0 0 0 0.125rem rgba(0, 0, 0, 1), 0 0 0 0.25rem rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 0 0 0.1875rem rgba(0, 0, 0, 1);
 
   --white: #ffffff;
   --black: #000000;
-  --grey: #404040;
-  --grey-2: #e8e8e8;
-  --grey-3: #262626;
+  // Mid greys are sacrificed: tones whose role sits on the page collapse to
+  // black; tones that only ever paint on the always-dark strips collapse to
+  // white so they stay visible there.
+  --grey: #ffffff;
+  --grey-2: #ffffff;
+  --grey-3: #000000;
 
-  --skel-ink: var(--text-primary);
-  --skel-bg-1: color-mix(in srgb, var(--bg-secondary) 75%, var(--bg-dark) 25%);
-  --skel-bg-2: color-mix(in srgb, var(--bg-secondary) 60%, var(--bg-dark) 40%);
+  // Skeleton placeholders snap to the extremes too — pitch-black resting
+  // bars on the white field with a pure-white shimmer sweep; the ink flips
+  // to the page colour so glyph placeholders stay readable on the bars.
+  --skel-ink: var(--bg-primary);
+  --skel-bg-1: var(--bg-dark);
+  --skel-bg-2: var(--bg-primary);
   --skel-bg-3: var(--skel-bg-1);
 }
 
@@ -79,22 +95,25 @@ html.high-contrast.dark-mode {
   --bg-primary: #000000;
   --bg-secondary: #000000;
   --bg-dark: #000000;
-  --bg-dark-alpha: #{rgba($color-black, 0.97)};
-  --bg-darker: #0d0d0d;
+  --bg-dark-alpha: #000000;
+  --bg-darker: #000000;
   --bg-darkest: #000000;
   --text-primary: #ffffff;
-  --text-secondary: #f2f2f2;
-  --text-muted: #d9d9d9;
-  --text-muted-on-dark: #d9d9d9;
+  --text-secondary: #ffffff;
+  --text-muted: #ffffff;
+  --text-muted-on-dark: #ffffff;
   --border-color: var(--color-white-raw);
   --border-color-on-dark: var(--color-white-raw);
-  --border-item: #{rgba($color-white, 0.55)};
+  --border-item: var(--color-white-raw);
   --border-item-hover: var(--color-white-raw);
   --border-item-featured: var(--color-white-raw);
-  --color-accent-contrast: #{$cms-accent-hover};
-  --focus-ring: #{$cms-accent-hover};
-  --btn-accent-fill: #{rgba($color-white, 0.22)};
-  --glass-bg: #{rgba($color-black, 0.97)};
+  --color-accent-contrast: #ffffff;
+  --focus-ring: #ffffff;
+  // Black band around the white outline — visible even when the focused
+  // element is itself pure white (inverted pills, selected controls).
+  --focus-ring-halo: 0 0 0 #{to-rem($space-md)} #000000;
+  --btn-accent-fill: rgba(255, 255, 255, 0.35);
+  --glass-bg: #000000;
 
   --menu-bg: #000000;
   --menu-ink: var(--color-white-raw);
@@ -105,7 +124,7 @@ html.high-contrast.dark-mode {
   --metallic-hairline: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 255, 1) 50%,
     transparent 100%
   );
 
@@ -113,22 +132,23 @@ html.high-contrast.dark-mode {
   --burn-core: #ffffff;
   --burn-mid: #{$cms-accent};
   --burn-edge: #{$cms-accent-hover};
-  --burn-scorch: #{rgba($color-black, 0.95)};
-  --burn-smoke: #{rgba($color-white, 0.75)};
+  --burn-scorch: rgba(0, 0, 0, 1);
+  --burn-smoke: rgba(255, 255, 255, 0.85);
 
-  --shadow-card: 0 0 0 0.125rem rgba(255, 255, 255, 0.85);
+  --shadow-card: 0 0 0 0.125rem rgba(255, 255, 255, 1);
   --shadow-card-featured:
-    0 0 0 0.125rem rgba(255, 255, 255, 0.95), 0 0 0 0.25rem rgba(255, 255, 255, 0.35);
+    0 0 0 0.125rem rgba(255, 255, 255, 1), 0 0 0 0.25rem rgba(255, 255, 255, 0.5);
   --shadow-card-hover: 0 0 0 0.1875rem rgba(255, 255, 255, 1);
 
   --white: #000000;
   --black: #ffffff;
-  --grey: #d9d9d9;
+  --grey: #ffffff;
   --grey-2: #ffffff;
-  --grey-3: #f2f2f2;
+  --grey-3: #ffffff;
 
-  --skel-ink: var(--text-primary);
-  --skel-bg-1: color-mix(in srgb, var(--bg-secondary) 75%, var(--color-white-raw) 25%);
-  --skel-bg-2: color-mix(in srgb, var(--bg-secondary) 60%, var(--color-white-raw) 40%);
+  // White resting bars on the black field, black sweep, black glyph ink.
+  --skel-ink: var(--bg-primary);
+  --skel-bg-1: var(--color-white-raw);
+  --skel-bg-2: var(--bg-primary);
   --skel-bg-3: var(--skel-bg-1);
 }

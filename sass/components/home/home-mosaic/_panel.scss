@@ -40,7 +40,7 @@
 .home-mosaic-desc {
   @extend %TXT_SM;
   font-family: var(--font-primary);
-  font-weight: 200;
+  font-weight: calc(200 + var(--fw-lift));
   line-height: 1.55;
   color: rgba($color-white, 0.92);
   text-shadow: 0 var(--space-pixel) var(--space-2xs) rgba($color-black, 0.7);

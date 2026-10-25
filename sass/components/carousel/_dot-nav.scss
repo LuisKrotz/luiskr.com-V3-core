@@ -1,0 +1,144 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  _dot-nav.scss — SHARED dot/bullet nav component: the numbered-disc
+//  pagination rendered by <custom-carousel> (.carousel-dot) and
+//  <awards-carousel> (.aw-c-dot). One mixin emits the whole component —
+//  flex row, ≥24px tap-target button, ::after obsidian-glass disc that
+//  morphs into the stadium pill on --active, and the centred slide index
+//  — under each consumer's BEM prefix, so every dot nav ships identical
+//  chrome and the same 0.5s damped-spring animation from a single
+//  source of truth.
+//  Imported by carousel.scss and awards-carousel.scss (manifests) —
+//  not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+/// Emits the complete dot-nav component for the BEM block `$B`:
+/// `.#{$B}-dots` (flex row), `.#{$B}-dot` (24×24 pointer target whose
+/// ::after disc morphs disc→pill on `&--active`), and `.#{$B}-dot-num`
+/// (the absolutely-centred visible index). The button's min-width and
+/// the disc width ride the same damped-spring curve, so the morph, the
+/// gap opening around the pill, and the numeral's recentering land
+/// together on every activation.
+/// @param {String} $B — consumer BEM block prefix ('carousel', 'aw-c').
+/// @param {Number} $dot-size — resting disc diameter (16px: two digits
+///   at 800-weight still clear the rim).
+/// @param {Number} $dot-pill — active stadium length (~2× the disc so
+///   it can't read as a slightly-wide circle).
+/// @param {Number} $dot-gap — row gap between dots.
+@mixin dot-nav($B, $dot-size, $dot-pill, $dot-gap) {
+  .#{$B}-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $dot-gap;
+    flex-shrink: 0;
+  }
+
+  .#{$B}-dot {
+    @extend %RESETBTN;
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    // Visible dot drawn as ::after so we can keep a 24×24 px tap target.
+    // The disc is sized to contain the slide number — WCAG requires the
+    // actual element box to be ≥ 24×24 px; pseudo-elements don't count.
+    min-height: calc(#{$dot-size} + #{to-rem($space-md)});
+    min-width: calc(#{$dot-size} + #{to-rem($space-md)});
+    border-radius: var(--radius-round);
+    background: transparent; // real colour is on ::after
+    cursor: pointer;
+    flex-shrink: 0;
+    // Dot→pill morph rides the damped-spring curve — the little width
+    // overshoot makes the switch read organic rather than a dead ease.
+    transition: min-width 0.5s $ease-spring;
+
+    // Visible dot — surface-glass disc with a turquoise rim + halo, the
+    // same light-physics language as the prev/next canvas buttons
+    // (--bg-primary glass flips white→black dots per theme, dark index
+    // ink on the light disc via --text-primary, --color-accent arc). The
+    // rim is an inset shadow, not a border, so the 16px geometry stays
+    // exact through the pill morph; the number renders on top.
+    &::after {
+      content: '';
+      display: block;
+      width: $dot-size;
+      height: $dot-size;
+      border-radius: var(--radius-round);
+      background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+      box-shadow:
+        inset 0 0 0 to-rem($space-3xs) color-mix(in srgb, var(--color-accent) 28%, transparent),
+        0 0 to-rem($space-xs) color-mix(in srgb, var(--color-accent) 16%, transparent);
+      transition:
+        width 0.5s $ease-spring,
+        background 0.25s ease,
+        box-shadow 0.25s ease;
+    }
+
+    &--active {
+      // Pill width + hairline keeps the tap target at the 24px floor.
+      min-width: calc(#{$dot-pill} + #{to-rem($space-xs)});
+
+      &::after {
+        width: $dot-pill;
+        // The lit state mirrors the buttons' glowing progress arc —
+        // full-strength accent rim plus a wider halo.
+        box-shadow:
+          inset 0 0 0 to-rem($space-3xs) var(--color-accent),
+          0 0 to-rem($space-sm) color-mix(in srgb, var(--color-accent) 55%, transparent);
+      }
+
+      // Active index takes the accent ink — the pill reads "lit".
+      .#{$B}-dot-num {
+        color: var(--color-accent);
+      }
+    }
+
+    &:hover:not(&--active),
+    &:focus-visible:not(&--active) {
+      &::after {
+        // Hover lifts the glass and brightens the rim — the same
+        // accent-fade the canvas buttons run on hover.
+        background: color-mix(in srgb, var(--bg-primary) 82%, var(--text-primary) 8%);
+        box-shadow:
+          inset 0 0 0 to-rem($space-3xs) color-mix(in srgb, var(--color-accent) 60%, transparent),
+          0 0 to-rem($space-sm) color-mix(in srgb, var(--color-accent) 35%, transparent);
+      }
+    }
+
+    // High contrast: decorative alpha is dropped under HC — discs re-pin
+    // to raw white on the always-dark strip and the halo is removed; the
+    // index number re-pins to --bg-dark (pure black under HC).
+    :host-context(html.high-contrast) &::after {
+      background: var(--color-white-raw);
+      box-shadow: none;
+    }
+  }
+
+  // Visible slide index — IBM input_label_visible requires a rendered
+  // label, not just aria-label. Lives INSIDE every dot: centred on the
+  // tap target so it sits over the ::after disc (and over the wider
+  // pill when active), weight 800 so the numeral reads at this size.
+  // Ink rides the themed --text-muted — a softened numeral on the glass
+  // disc (full-strength primary read too harsh at this size).
+  .#{$B}-dot-num {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    z-index: 1;
+    font-size: to-rem($space-md);
+    font-weight: calc(800 + var(--fw-lift));
+    line-height: 1;
+    text-align: center;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: color 0.25s ease;
+
+    // High contrast: the disc above re-pins to raw white, so the index
+    // ink follows to --bg-dark (pure black under HC).
+    :host-context(html.high-contrast) & {
+      color: var(--bg-dark);
+    }
+  }
+}

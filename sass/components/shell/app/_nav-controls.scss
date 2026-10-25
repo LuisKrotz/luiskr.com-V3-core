@@ -100,6 +100,14 @@
     }
   }
 
+  // HC: the wrap disc collapses to one pole (--border-color → pitch black in
+  // light-HC, pure white in dark-HC) and --text-primary/--text-secondary
+  // collapse to the SAME pole — the squares would paint ink-on-ink, so all
+  // icon states re-pin to the opposite pole (--white).
+  :host-context(html.high-contrast) & .#{$_B_NAV}-burger-square {
+    background: var(--white);
+  }
+
   // Hover/focus: the squares migrate to the center and round into
   // overlapping circles — the CSS approximation of the liquid merge.
   &:hover,
@@ -173,14 +181,25 @@
 }
 
 // Flag chip: the locale flag sits centered in the disc; on hover/focus
-// the chip stretches horizontally on the shared spring curve (the same
-// organic ease the mosaic tiles ride) and the language name slides in.
+// the chip stretches horizontally on the water curve (critically damped
+// — fast rise, zero overshoot, lands like water coming to rest) and the
+// language name slides in at hairline weight, its fade trailing the
+// stretch so the text pours in behind the growing pill.
 .#{$_B_NAV}-flag-btn {
   padding: 0 var(--space-sm);
   gap: 0;
   transition:
     background 0.2s ease,
-    padding 0.5s $ease-spring;
+    padding 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    background 0.2s ease,
+    padding 0.9s $ease-water;
+
+  // HC: the flag name rides inside the disc — same ink-on-ink collapse as
+  // the burger squares, same opposite-pole re-pin.
+  :host-context(html.high-contrast) & .#{$_B_NAV}-flag-label {
+    color: var(--white);
+  }
 
   .#{$_B_NAV}-flag-label {
     display: inline-block;
@@ -191,12 +210,16 @@
     margin-left: 0;
     font-family: var(--font-primary);
     font-size: var(--space-lg);
-    font-weight: 700;
+    font-weight: calc(200 + var(--fw-lift));
     color: var(--text-primary);
     transition:
-      max-width 0.5s $ease-spring,
-      opacity 0.25s ease,
-      margin-left 0.5s $ease-spring;
+      max-width 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.55s ease 0.08s,
+      margin-left 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    transition:
+      max-width 0.9s $ease-water,
+      opacity 0.55s ease 0.08s,
+      margin-left 0.9s $ease-water;
   }
 
   &:hover,
@@ -211,22 +234,88 @@
   }
 }
 
-// Gear chip: a drawn gear silhouette that spins a quarter-turn on
-// hover/focus — the preferences affordance.
+// Gear chip: a machined-steel gear — parametric SVG layers shaded by a
+// fixed light ramp (--nav-gear-*), the rotor group on a slow perpetual
+// spin while the specular glint stays put (the light never moves, which
+// is what sells the 3D). The steel ramp is theme-adaptive:
+// --text-primary is dark ink in light mode and white in dark mode, so
+// the same color-mixes yield dark steel vs light steel on the chip.
 .#{$_B_NAV}-gear-svg {
-  width: var(--space-lg);
-  height: var(--space-lg);
+  width: var(--space-xl);
+  height: var(--space-xl);
+  display: block;
   fill: var(--text-primary);
-  transition: transform 0.6s $ease-spring;
+  transition: filter 0.3s ease;
+
+  --nav-gear-hi: color-mix(in srgb, var(--text-primary) 22%, var(--color-white-raw));
+  --nav-gear-mid: var(--text-primary);
+  --nav-gear-lo: color-mix(in srgb, var(--text-primary) 42%, var(--color-black-raw));
+  --nav-gear-edge-hi: color-mix(in srgb, var(--text-primary) 10%, var(--color-white-raw));
+  --nav-gear-edge-lo: color-mix(in srgb, var(--text-primary) 18%, var(--color-black-raw));
+  --nav-gear-hole: color-mix(in srgb, var(--text-primary) 40%, var(--color-black-raw));
+  --nav-gear-hole-lo: color-mix(in srgb, var(--text-primary) 16%, var(--color-black-raw));
+  --nav-gear-hole-hi: color-mix(in srgb, var(--text-primary) 80%, var(--color-white-raw));
+  --nav-gear-glint: color-mix(in srgb, var(--color-white-raw) 85%, var(--text-primary));
+}
+
+// HC: the steel ramp would collapse every mix to the disc's own pole —
+// flatten the whole gear to the opposite pole (--white) so the silhouette
+// stays readable on the chip.
+:host-context(html.high-contrast) .#{$_B_NAV}-gear-svg {
+  fill: var(--white);
+  --nav-gear-hi: var(--white);
+  --nav-gear-mid: var(--white);
+  --nav-gear-lo: var(--white);
+  --nav-gear-edge-hi: var(--white);
+  --nav-gear-edge-lo: var(--white);
+  --nav-gear-hole: var(--white);
+  --nav-gear-hole-lo: var(--white);
+  --nav-gear-hole-hi: var(--white);
+  --nav-gear-glint: var(--white);
+}
+
+// The spinning parts — silhouette, holes, hub. fill-box/center pins the
+// rotation to the gear's own bbox so the slow turn (one rev per 18s)
+// stays perfectly centered at any rendered size.
+.#{$_B_NAV}-gear-rotor {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: #{$_B_NAV}-gear-spin 18s linear infinite;
+}
+
+// Fixed catch-light — a stroke-only arc, inked from the glint token.
+.#{$_B_NAV}-gear-glint {
+  stroke: var(--nav-gear-glint);
+  opacity: 0.55;
 }
 
 .#{$_B_NAV}-gear-btn {
   &:hover,
   &:focus-visible {
     .#{$_B_NAV}-gear-svg {
-      transform: rotate(120deg);
+      filter: brightness(1.15);
     }
   }
+}
+
+// Perpetual slow turn (emitted at root like the other nav keyframes).
+@keyframes #{$_B_NAV}-gear-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Reduced motion freezes the rotor — the document-level sweep can't
+// reach inside the shadow root, so the sheet needs its own copy plus
+// the store-driven html.reduced-motion flag via :host-context.
+@media (prefers-reduced-motion: reduce) {
+  .#{$_B_NAV}-gear-rotor {
+    animation: none;
+  }
+}
+
+:host-context(html.reduced-motion) .#{$_B_NAV}-gear-rotor {
+  animation: none;
 }
 
 // ── Language dialog variant (4-column option grid) ───────────────────────────

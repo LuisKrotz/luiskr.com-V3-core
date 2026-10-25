@@ -1,9 +1,16 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  carousel/_dots.scss — the indicators column: slide counter and the
-//  dot/pill navigation (24×24 tap targets with the visible dot drawn on
-//  ::after, active dot stretches to a pill).
+//  carousel/_dots.scss — the indicators column: slide counter plus the
+//  dot/pill navigation row extras. The dots themselves (24×24 tap
+//  targets, ::after glass disc → stadium pill morph, lit/hover/HC
+//  states) come from the shared _dot-nav component so every dot nav on
+//  the site ships identical chrome + animation.
 //  Imported by carousel.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
+
+// Shared dot/bullet nav — emits .carousel-dots, .carousel-dot and
+// .carousel-dot-num identical to .aw-c-* (same disc, same pill morph,
+// same damped-spring timing).
+@include dot-nav($_B_CAROUSEL, $carousel-dot-size, $carousel-dot-pill, $carousel-dot-gap);
 
 .#{$_B_CAROUSEL} {
   // ── Indicators (counter + dots) ────────────────────────────────────────
@@ -18,12 +25,11 @@
 
   &-counter {
     font-family: var(--font-primary);
-    font-weight: 900;
+    font-weight: calc(900 + var(--fw-lift));
     font-size: to-rem($space-md);
-    // Renders on the always-dark project/related surfaces — the plain
-    // --text-muted token is AAA on light pages only; the -on-dark
-    // variant holds 7.6:1 on --bg-dark in both themes.
-    color: var(--text-muted-on-dark);
+    // The carousel strip flips with --bg-secondary (light under light
+    // mode, dark under dark mode) — the themed muted ink flips with it.
+    color: var(--text-muted);
     letter-spacing: to-rem($space-pixel);
     white-space: nowrap;
     text-transform: uppercase;
@@ -36,88 +42,11 @@
     }
   }
 
+  // Row extras on top of the shared dot-nav row — wraps on narrow
+  // viewports inside the indicators column.
   &-dots {
-    display: flex;
-    align-items: center;
-    gap: $carousel-dot-gap;
-    justify-content: center;
     flex-wrap: wrap;
     max-width: 100%;
     padding: to-rem($space-2xs) 0;
-  }
-
-  &-dot {
-    @extend %RESETBTN;
-
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    // Visible dot drawn as ::after so we can keep a 24×24 px tap target.
-    // The disc is sized to contain the slide number — WCAG requires the
-    // actual element box to be ≥ 24×24 px; pseudo-elements don't count.
-    min-height: 24px;
-    min-width: 24px;
-    border-radius: 9999px;
-    background: transparent; // real colour is on ::after
-    cursor: pointer;
-    flex-shrink: 0;
-    // Dot→pill morph rides the damped-spring curve — the little width
-    // overshoot makes the switch read organic rather than a dead ease.
-    transition: min-width 0.5s $ease-spring;
-
-    // Visible dot — a numbered disc centred inside the 24px tap target;
-    // the number itself renders on top (z-order over ::after).
-    &::after {
-      content: '';
-      display: block;
-      width: $carousel-dot-size;
-      height: $carousel-dot-size;
-      border-radius: 9999px;
-      background: var(--grey-3);
-      transition:
-        width 0.5s $ease-spring,
-        background 0.25s ease;
-    }
-
-    &--active {
-      // Pill width + hairline keeps the tap target at the 24px floor.
-      min-width: calc(#{$carousel-dot-pill} + #{to-rem($space-xs)});
-      &::after {
-        width: $carousel-dot-pill;
-        background: var(--grey);
-      }
-
-      // Active index inverts on the filled pill — dark-on-light there.
-      .#{$_B_CAROUSEL}-dot-num {
-        color: var(--bg-dark);
-      }
-    }
-
-    &:hover:not(&--active),
-    &:focus-visible:not(&--active) {
-      &::after {
-        background: var(--grey);
-      }
-    }
-  }
-
-  // Visible slide index — IBM input_label_visible requires a rendered
-  // label, not just aria-label. Lives INSIDE every dot: centred on the
-  // tap target so it sits over the ::after disc (and over the wider
-  // pill when active), weight 800 so the numeral reads at this size.
-  &-dot-num {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-    z-index: 1;
-    font-size: to-rem($space-md);
-    font-weight: 800;
-    line-height: 1;
-    text-align: center;
-    color: var(--bg-dark);
-    pointer-events: none;
-    transition: color 0.25s ease;
   }
 }

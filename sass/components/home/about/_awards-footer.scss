@@ -69,6 +69,6 @@
 
   &-sep {
     padding: 0 to-rem($space-md);
-    font-weight: 200;
+    font-weight: calc(200 + var(--fw-lift));
   }
 }

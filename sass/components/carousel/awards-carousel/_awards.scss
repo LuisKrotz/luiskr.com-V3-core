@@ -31,26 +31,10 @@
     margin-top: to-rem($space-sm);
   }
 
-  // Dots — active is same size but white (scoped to awards only)
-  .aw-c-dot {
-    &::before {
-      background: color-mix(in srgb, var(--color-white-raw) 30%, transparent);
-    }
-
-    &--active::before {
-      width: $awc-dot-size;
-      background: var(--color-white-raw);
-    }
-
-    &:hover:not(&--active)::before,
-    &:focus-visible:not(&--active)::before {
-      background: color-mix(in srgb, var(--color-white-raw) 55%, transparent);
-    }
-  }
-
-  // Dot row — shows every dot, wraps on very narrow viewports
+  // Dot row — shows every dot, wraps on very narrow viewports. The dots
+  // themselves (disc → stadium pill morph, lit ring) are the shared
+  // dot-nav component — identical to .carousel-dot.
   .aw-c-dots {
-    flex-direction: row;
     flex-wrap: wrap;
     max-width: 100%;
     overflow: visible;
@@ -102,7 +86,7 @@
     &-text {
       @extend .txt-xs;
 
-      font-weight: 100;
+      font-weight: calc(100 + var(--fw-lift));
       opacity: 0.7;
       max-width: to-rem($space-7xl);
     }

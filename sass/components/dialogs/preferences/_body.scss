@@ -44,7 +44,7 @@
 .pref-section-title {
   margin: 0;
   font-family: var(--font-primary);
-  font-weight: 700;
+  font-weight: calc(700 + var(--fw-lift));
   font-size: to-rem(18);
   text-transform: uppercase;
   letter-spacing: to-rem(0.8);
@@ -174,7 +174,7 @@
   border-radius: to-rem($space-md);
   color: var(--text-primary);
   font-size: to-rem($space-lg);
-  font-weight: 500;
+  font-weight: calc(500 + var(--fw-lift));
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 

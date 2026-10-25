@@ -65,27 +65,26 @@ export const DOCS_STRINGS = Object.freeze({
   /** In-place skeleton label while a mermaid diagram renders. */
   MERMAID_LOADING: 'Rendering diagram…',
   /** Visible chip captioning the backdrop scene so the interactive
-   *  architecture map is obvious to a first-time viewer. */
-  SCENE_HINT: 'Architecture map — drag to orbit, click a node to navigate',
+   *  file cloud is obvious to a first-time viewer. */
+  SCENE_HINT: 'Interactive file cloud — drag to orbit, click a node to navigate',
   /** Landmark label for the right-hand map column and its zoom dialog. */
-  MAP_LABEL: 'Architecture map',
+  MAP_LABEL: 'Interactive file cloud',
   /** Zoom trigger aria-label — opens the enlarged modal scene. */
-  MAP_ZOOM: 'Expand the architecture map',
+  MAP_ZOOM: 'Expand the interactive file cloud',
   /** Close control aria-label inside the map zoom dialog. */
-  MAP_CLOSE: 'Close the architecture map',
+  MAP_CLOSE: 'Close the interactive file cloud',
   /** Instanced-attribute names on the scene's node geometries — the
    *  names are part of the patched GLSL program (attribute decls read
    *  them too), so a rename must land in both streams at once. */
   SCENE_ATTR_ALPHA: 'aAlpha',
   SCENE_ATTR_ACTIVE: 'aActive',
-  /** Wireframe-glyph instanced attributes — per-instance world offset,
-   *  per-kind ink color, bob phase, and initial spin angle. Same
+  /** Glyph instanced attributes — per-instance world offset,
+   *  per-kind ink color, bob phase, and orbit-proportional scale. Same
    *  name-contract as the alpha/active pair: rename in GLSL + buffers
    *  together. */
   SCENE_ATTR_OFFSET: 'aOffset',
   SCENE_ATTR_COLOR: 'aColor',
   SCENE_ATTR_PHASE: 'aPhase',
-  SCENE_ATTR_SPIN: 'aSpin',
   SCENE_ATTR_SCALE: 'aScale',
   /** `--icon-ink` custom property — the icon pack's per-kind themed
    *  color; the map probes it off `docs-tree-icon--<kind>` elements so
@@ -137,68 +136,71 @@ export const DOCS_UNITS = Object.freeze({
   /** tap-vs-drag pick slop in px — taps move < this many CSS px */
   TAP_SLOP_PX: 10,
   /** label sprite canvas box (px) and font size (px) */
-  LABEL_W: 256,
-  LABEL_H: 64,
-  LABEL_FONT_PX: 22,
+  LABEL_W: 384,
+  LABEL_H: 96,
+  LABEL_FONT_PX: 34,
   /** world-space sprite size + lift above the node sphere */
   LABEL_SCALE_X: 7,
   LABEL_SCALE_Y: 1.75,
   LABEL_LIFT_Y: 2.2,
-  /** zoom reveal: labels fade in when controls distance drops under
-   *  (LABEL_REVEAL_BASE − depth·LABEL_DEPTH_STEP), over LABEL_FADE px */
-  LABEL_REVEAL_BASE: 44,
-  LABEL_DEPTH_STEP: 7,
-  LABEL_REVEAL_MIN: 16,
-  LABEL_FADE: 12,
+  /** zoom reveal — fractions of the full-graph camera distance, not
+   *  absolute units, so names stay readable at the overview framing of
+   *  any manifest size: a label fades in once the orbit distance drops
+   *  under (LABEL_REVEAL_BASE − depth·LABEL_DEPTH_STEP)·camDist, over a
+   *  LABEL_FADE·camDist window. BASE > √(1+LIFT²) ≈ 1.28 keeps the root
+   *  and bucket names already inked at the default view; deeper rings
+   *  reveal as the camera closes in. */
+  LABEL_REVEAL_BASE: 1.5,
+  LABEL_DEPTH_STEP: 0.15,
+  LABEL_REVEAL_MIN: 0.5,
+  LABEL_FADE: 0.25,
   /** deepest ring that gets a sprite label — each label is a canvas
-   *  texture (~85kB VRAM), so an unlabeled deep tier keeps the scene
-   *  inside low-power GPU memory; deep dirs stay navigable via the
-   *  treeview and the dots themselves. */
+   *  texture (~147kB VRAM at 384×96), so an unlabeled deep tier keeps
+   *  the scene inside low-power GPU memory; deep dirs stay navigable
+   *  via the treeview and the dots themselves. */
   SCENE_LABEL_MAX_DEPTH: 3,
   /** hierarchical-sphere layout (the procedural-directory reference):
    *  every node's children orbit it on a Fibonacci sphere at the
    *  parent's cluster radius — shared with the wasm worker op. Cluster
    *  radii come from subtree-extent packing: MIN_ORBIT floors a cluster
    *  so a lone child never collapses onto its parent glyph; MIN_SEP is
-   *  the guaranteed clear-space gap between sibling subtree clouds
-   *  (≥20px at the fit-zoom framing — the hairball fix). */
-  SCENE_MIN_ORBIT: 3,
-  SCENE_MIN_SEP: 5,
+   *  the guaranteed clear-space gap between sibling subtree clouds —
+   *  2 glyph diameters so filled icons never read as one mass and every
+   *  link keeps a visible run between the cards it joins. */
+  SCENE_MIN_ORBIT: 6,
+  SCENE_MIN_SEP: 12,
   /** reference shrink ratio — a dir's child orbit is never smaller
-   *  than this fraction of the orbit the dir itself sits on (the
-   *  procedural-directory map's 12→5 ≈ 0.42 taper), so nested clouds
-   *  compress geometrically instead of summing subtree extents. */
-  SCENE_CHILD_SCALE: 0.45,
+   *  than this fraction of the orbit the dir itself sits on (looser
+   *  than the procedural-directory map's 12→5 ≈ 0.42 taper), so nested
+   *  clouds compress geometrically instead of summing subtree extents
+   *  while keeping real air between rings. */
+  SCENE_CHILD_SCALE: 0.72,
   /** Largest rendered glyph radius in chart units — the scale cap for
    *  the orbit-proportional glyph size AND the sibling-clearance term
    *  (orbits are sized so two max-size glyphs keep MIN_SEP between
-   *  their wireframe edges). */
+   *  their glyph faces). */
   SCENE_GLYPH_MAX: 3,
   /** Pairwise relax iterations after placement — sibling-chord sizing
    *  covers siblings, but deep subtree clouds can interpenetrate
-   *  cross-branch; a few Jacobi passes push the rare colliding glyphs
-   *  apart (each pass moves a pair by the full deficit, so the loop
-   *  count covers only chained collisions — layout-time O(n²·iters)
-   *  on the capped scene tree). */
-  SCENE_RELAX_ITERS: 12,
+   *  cross-branch; enough Jacobi passes to push the wider MIN_SEP
+   *  clearances through chained collisions (each pass moves a pair by
+   *  the full deficit — layout-time O(n²·iters) on the capped scene
+   *  tree). */
+  SCENE_RELAX_ITERS: 30,
   /** orbit clamp — also the camera's minimum distance token (reused
    *  as SCENE_BASE_RADIUS's successor on the scene3d arm). */
   SCENE_BASE_RADIUS: 3,
   /** golden angle (π(3−√5) ≈ 2.399963 rad) — the Fibonacci-sphere
    *  azimuth step AND the decorrelation hash for bob phases. */
   SCENE_Y_HASH: 2.399963,
-  /** slow backdrop motion — autorotate deg/frame-ish + node pulse.
-   *  Speeds run far under OrbitControls' default (2.0) so the graph
-   *  reads as a calm ambient layer, not a spinner. */
-  SCENE_ROTATE_SPEED: 0.005,
+  /** Ambient node motion — the map never rotates (no autorotate, no
+   *  intro turn, glyphs billboard to the camera): nodes only breathe
+   *  (PULSE scale) and float ±BOB_AMP chart units at BOB_SPEED rad/s
+   *  off a decorrelated phase so links stay glued. SPIN_HASH walks the
+   *  node index through a golden-angle-ish sequence — the Fibonacci
+   *  azimuth decorrelator and the coincident-pair push direction. */
   SCENE_PULSE_SPEED: 0.021875,
   SCENE_PULSE_AMP: 0.05,
-  /** Per-node wireframe motion (the procedural-directory reference):
-   *  every glyph yaws about its own Y at SPIN rad/s with a hashed
-   *  initial angle, and bobs ±BOB_AMP chart units at BOB_SPEED rad/s
-   *  off a decorrelated phase. SPIN_HASH walks the node index through
-   *  a golden-angle-ish sequence so neighbors never spin in lockstep. */
-  SCENE_NODE_SPIN: 0.45,
   SCENE_BOB_SPEED: 1.5,
   SCENE_BOB_AMP: 0.35,
   SCENE_SPIN_HASH: 4.208,
@@ -218,8 +220,8 @@ export const DOCS_UNITS = Object.freeze({
   /** folder paper-stack caps — closed folders peek at most this many
    *  page tops above the tab; open folders fan up to this many colored
    *  sheets, so the pile stops growing before it walls off the glyph */
-  TREE_SHEET_CAP_CLOSED: 3,
-  TREE_SHEET_CAP_OPEN: 2,
+  TREE_SHEET_CAP_CLOSED: 4,
+  TREE_SHEET_CAP_OPEN: 4,
   /** node sphere radii (chart units) — base glyph sizes before the
    *  per-node proportional scale. SCENE_GLYPH_FIT = the reference's
    *  icon-to-orbit ratio: a node's rendered glyph inflates to this
@@ -228,7 +230,7 @@ export const DOCS_UNITS = Object.freeze({
    *  center hub + shrinking satellites look. */
   SCENE_DIR_RADIUS: 1.15,
   SCENE_FILE_RADIUS: 0.55,
-  SCENE_GLYPH_FIT: 0.16,
+  SCENE_GLYPH_FIT: 0.14,
   /** File leaves drawn per dir before the rest collapse into a `+N`
    *  aggregate — the cap that keeps 300-file dirs from combing out. It
    *  shrinks by SCENE_FILE_CAP_STEP per ring: buckets get the full cap,
@@ -245,16 +247,32 @@ export const DOCS_UNITS = Object.freeze({
   SCENE_DIR_CAP_STEP: 2,
   SCENE_DIR_CAP_MIN: 2,
   SCENE_DEPTH_CAP: 5,
-  /** node/edge alpha — hairline wireframe carries far less ink than a
-   *  filled surface, so glyphs and edges run near-full alpha or they
-   *  ghost out on light glass; on dark slate they stay neon anyway. */
+  /** node/edge alpha — filled faces carry far more ink than hairlines,
+   *  so glyphs hold high alpha for a solid read and edges stay a notch
+   *  fainter so links never outshine the icons they connect. */
   SCENE_DIR_OPACITY: 0.9,
   SCENE_FILE_OPACITY: 0.85,
   SCENE_LINE_OPACITY: 0.55,
+  /** Leaf-link dim factor — file→parent edges are the majority of the
+   *  link web and read as clutter at full ink, so they draw at this
+   *  fraction of SCENE_LINE_OPACITY while the dir skeleton stays lit. */
+  SCENE_EDGE_LEAF: 0.3,
   /** Clear space kept between a link's trimmed end and the glyph face it
    *  aims at — edges clip at radius+gap on BOTH ends so lines never
-   *  enter an icon's wireframe (~20px at the default fit distance). */
-  SCENE_EDGE_GAP: 2,
+   *  enter an icon's filled faces. A hair of clearance: the opaque card
+   *  covers the trim, so links read as attached to their icons rather
+   *  than floating mid-air between them. */
+  SCENE_EDGE_GAP: 0.5,
+  /** Filled-glyph seam pass — the detail strokes printed over the solid
+   *  icon (outline, fold crease, text rules, shelf line). SEAM_GROW
+   *  expands the outline strokes past the silhouette so they key the
+   *  edge instead of z-fighting it; SEAM_LIFT (× the card half-
+   *  thickness) floats face details just proud of the panel; SEAM_SHADE
+   *  dims the icon ink as the seam fallback when the themed fog color
+   *  can't resolve. */
+  SCENE_SEAM_GROW: 1.04,
+  SCENE_SEAM_LIFT: 1.4,
+  SCENE_SEAM_SHADE: 0.35,
   /** scene3d edge ribbons — half-width of the cross-quad strips that
    *  stand in for 1px LineSegments under the engine (chart units) */
   SCENE_EDGE_HALF: 0.08,
@@ -264,11 +282,6 @@ export const DOCS_UNITS = Object.freeze({
   SCENE_ACTIVE_OPACITY: 0.95,
   SCENE_ANCESTOR_OPACITY: 0.9,
   SCENE_ACTIVE_SCALE: 1.8,
-  /** intro settle — a first (unrestored) mount eases the whole graph in
-   *  from SCENE_INTRO_TURN radians over SCENE_INTRO_MS, then hands off to
-   *  the ambient autorotate. Restored poses skip the intro entirely. */
-  SCENE_INTRO_TURN: -Math.PI * 0.75,
-  SCENE_INTRO_MS: 11000,
   /** scene3d/WebGPU mount deadline — adapter+device+artifact acquisition
    *  can wedge on a wedged GPU process; past this bound the canvas mounts
    *  the proven three.js arm instead of waiting forever on a blank map. */

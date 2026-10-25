@@ -37,7 +37,7 @@
     @extend .ttl-xl;
 
     font-family: var(--font-primary);
-    font-weight: 100;
+    font-weight: calc(100 + var(--fw-lift));
     text-align: left;
     text-transform: uppercase;
     padding: 0 0 to-rem($space-xl);
@@ -243,7 +243,7 @@
       @extend .txt-md;
 
       font-family: var(--font-primary);
-      font-weight: 250;
+      font-weight: calc(250 + var(--fw-lift));
       word-break: normal;
       overflow-wrap: break-word;
       hyphens: none;

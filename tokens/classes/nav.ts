@@ -32,6 +32,8 @@ export const NAV_CLASSES = Object.freeze({
   NAV_FLAG_LABEL: `${_B_NAV}-flag-label`,
   NAV_GEAR_BTN: `${_B_NAV}-gear-btn`,
   NAV_GEAR_SVG: `${_B_NAV}-gear-svg`,
+  NAV_GEAR_ROTOR: `${_B_NAV}-gear-rotor`,
+  NAV_GEAR_GLINT: `${_B_NAV}-gear-glint`,
   NAV_ABOUT_BTN: `${_B_NAV}-about-btn`,
   NAV_ACTION_BTN: `${_B_NAV}-action-btn`,
   NAV_PREF_BTN: `${_B_NAV}-pref-btn`,

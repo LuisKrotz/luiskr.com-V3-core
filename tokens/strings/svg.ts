@@ -13,4 +13,7 @@ export const SVG_STRINGS = Object.freeze({
   SVG_XMLNS: 'http://www.w3.org/2000/svg',
   SVG_DATA_URI_PREFIX: 'data:image/svg+xml,',
   SVG_EXT: '.svg',
+  /** gradientUnits value pinning a paint ramp to the viewBox (not the
+   *  painted shape) — the gear's fixed-light trick needs it. */
+  GRADIENT_USER_SPACE: 'userSpaceOnUse',
 })

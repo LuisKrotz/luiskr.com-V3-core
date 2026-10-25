@@ -185,12 +185,18 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
 
 // Category divider inside the item column — a small uppercase heading
 // ("Experiments") separating the playground links from the main items.
+// It must never read as another row: it is deliberately narrower than the
+// 7xl item underlines, its hairlines sit below the items' 0.25 underline
+// opacity, and the rhythm is asymmetric — extra air above (the break),
+// a tighter bond below (the heading belongs to the items it introduces).
 .#{$_B_NAV}-menu-modal-group {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  width: var(--space-7xl);
+  width: var(--space-6xl);
   max-width: calc(100vw - var(--space-3xl));
+  margin-top: var(--space-2xl);
+  margin-bottom: calc(-1 * var(--space-sm));
 
   &::before,
   &::after {
@@ -198,14 +204,31 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
     flex: 1;
     height: var(--space-hairline);
     background: var(--menu-ink, var(--text-primary));
-    opacity: 0.25;
+    opacity: 0.15;
+  }
+
+  // Entrance on the draw-text timeline: --offset-ms is set one stagger
+  // step before the group's first item, so the break lands just ahead of
+  // the labels it heads instead of popping in instantly.
+  .#{$_B_NAV}-menu-modal--open & {
+    animation: #{$_B_NAV}-menu-item-in 0.45s ease var(--offset-ms, 0ms) both;
+  }
+
+  .#{$_B_NAV}-menu-modal--settled & {
+    animation: none;
+  }
+
+  .#{$_B_NAV}-menu-modal--closing & {
+    animation: none;
+    opacity: 0;
+    transition: opacity 0.55s ease;
   }
 }
 
 .#{$_B_NAV}-menu-modal-group-title {
   font-family: var(--font-primary);
   font-size: var(--space-md);
-  font-weight: 700;
+  font-weight: calc(700 + var(--fw-lift));
   letter-spacing: var(--space-xs);
   text-transform: uppercase;
   color: var(--menu-ink-2, var(--text-muted));
@@ -241,7 +264,7 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
   color: var(--menu-ink, var(--text-primary));
   font-family: var(--font-primary);
   font-size: var(--space-lg);
-  font-weight: 700;
+  font-weight: calc(700 + var(--fw-lift));
   letter-spacing: var(--space-2xs);
   text-transform: uppercase;
   text-decoration: none;
@@ -401,7 +424,7 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
   @extend %TTL_BASE;
   @extend %TTL_XS;
 
-  font-weight: 200;
+  font-weight: calc(200 + var(--fw-lift));
   color: var(--menu-ink, var(--text-primary));
   text-transform: uppercase;
   letter-spacing: to-rem(2);
@@ -418,7 +441,7 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
   @extend %TTL_BASE;
   @extend %TTL_XS;
 
-  font-weight: 700;
+  font-weight: calc(700 + var(--fw-lift));
   color: var(--menu-ink, var(--text-primary));
   cursor: pointer;
   position: relative;

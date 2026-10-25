@@ -312,16 +312,15 @@
   outline-offset: to-rem($space-2xs);
 }
 
-// Emits the ring for every tabbable element in scope — component stylesheets
-// pull this in so shadow-DOM interactives get the same affordance as light
-// DOM (document-level rules never cross the shadow boundary). tabindex=-1
-// targets are programmatically-focused containers, not controls.
+// The tabbable-element selector list — one declaration site (DRY) shared by
+// `focus-ring-scope` and the high-contrast ring boost in _focus.scss so the
+// two emissions can never drift apart.
 
-/// Emits `:focus-visible` rules for every tabbable element type in the
-/// current scope — component sheets pull this in because document-level
-/// focus rules never pierce shadow DOM. `[tabindex='-1']` is excluded:
-/// those are programmatically-focused containers, not controls.
-@mixin focus-ring-scope {
+/// Emits the `:focus-visible` selector list for every tabbable element type
+/// in the current scope, applying @content to each — the single source for
+/// "which elements get the ring". `[tabindex='-1']` is excluded: those are
+/// programmatically-focused containers, not controls.
+@mixin focus-ring-targets {
   a:focus-visible,
   button:focus-visible,
   input:focus-visible,
@@ -332,6 +331,19 @@
   [role='switch']:focus-visible,
   [role='slider']:focus-visible,
   [tabindex]:not([tabindex='-1']):focus-visible {
+    @content;
+  }
+}
+
+// Emits the ring for every tabbable element in scope — component stylesheets
+// pull this in so shadow-DOM interactives get the same affordance as light
+// DOM (document-level rules never cross the shadow boundary).
+
+/// Emits the focus ring for every tabbable element in the current scope —
+/// component sheets pull this in because document-level focus rules never
+/// pierce shadow DOM.
+@mixin focus-ring-scope {
+  @include focus-ring-targets {
     @include focus-ring;
   }
 }

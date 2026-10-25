@@ -229,7 +229,7 @@ $_B_RELATED: 'related-mosaic';
     // the tile reads exactly like the former span did.
     margin: 0;
     font-family: var(--font-primary);
-    font-weight: 200;
+    font-weight: calc(200 + var(--fw-lift));
     text-transform: uppercase;
     letter-spacing: to-rem(0.8);
     color: var(--color-white-raw);
@@ -253,7 +253,7 @@ $_B_RELATED: 'related-mosaic';
     @extend %TXT_BASE;
     @extend %TXT_XS;
 
-    font-weight: 200;
+    font-weight: calc(200 + var(--fw-lift));
     color: var(--color-white-raw);
     text-shadow: 0 var(--space-hairline) var(--space-sm) var(--bg-dark);
     max-height: 0;

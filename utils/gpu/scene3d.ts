@@ -258,7 +258,7 @@ export function resizeScene3d(surface: Scene3dSurface, canvas: HTMLCanvasElement
   // getCurrentTexture hands back, and that texture tracks the bitmap.
   // A canvas left at its default 300×150 made every frame's render
   // pass fail attachment-size validation (the production "blank
-  // architecture map + depth-stencil spam" regression). Writes happen
+  // file cloud + depth-stencil spam" regression). Writes happen
   // only on a real change — assigning canvas.width clears the bitmap
   // even when re-assigned the same value.
   if (canvas.width !== dw) canvas.width = dw

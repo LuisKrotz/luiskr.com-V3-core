@@ -20,6 +20,18 @@ export const createGetters = (store: Store): StoreGetters => ({
   getEffectiveTheme: () => store.state.effectiveTheme,
   getPreferencesOpen: () => store.state.preferencesOpen,
   getLangDialogOpen: () => store.state.langDialogOpen,
+  getNavMenuOpen: () => store.state.navMenuOpen,
+  // Derived: true while ANY page-covering overlay is open — expand modal,
+  // nav menu, preferences dialog, or language dialog. Ambient surfaces
+  // (carousel autoplay, page videos) gate on this single flag so a new
+  // overlay type never has to hunt down every pause site.
+  getOverlayOpen: () =>
+    Boolean(
+      store.state.modalObject.open ||
+      store.state.navMenuOpen ||
+      store.state.preferencesOpen ||
+      store.state.langDialogOpen
+    ),
   getModalOrigin: () => store.state.modalOrigin,
   getReducedMotion: () => store.state.reducedMotion,
   getHighContrast: () => store.state.highContrast,

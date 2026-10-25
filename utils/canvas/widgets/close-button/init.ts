@@ -168,39 +168,50 @@ export function tryWasm(host: CloseButtonWebGL): void {
 
   void mountWebGpuWidget(GPU_WIDGET_KINDS.CLOSE_BUTTON, canvas, undefined, {
     drive: GPU_WIDGET_DRIVE.MANUAL,
-  }).then((handle) => {
-    host._wasmPending = false
+  })
+    .then((handle) => {
+      host._wasmPending = false
 
-    if (!handle || host.canvas !== canvas) {
+      if (!handle || host.canvas !== canvas) {
+        host._wasmFailed = true
+
+        if (host.canvas === canvas) initRest(host)
+
+        return
+      }
+
+      if (host._purged) {
+        handle.destroy()
+
+        return
+      }
+
+      host._wasm = handle
+
+      host.useWebGL = true
+
+      // The shader starts the X's stroke draw-in from 0 — same as the
+      // WebGL path's initial IS_FALLBACK→first-frame reveal.
+      host.canvas.classList.remove(STATE_CLASSES.IS_FALLBACK)
+
+      host._wasm.widget.set_size(host.width, host.height)
+
+      host._wasm.widget.resize(host.canvas.width, host.canvas.height)
+
+      host.bindEvents()
+
+      host.animate()
+    })
+    .catch(() => {
+      // A rejected mount (artifact fetch/driver failure) must not strand
+      // the canvas on the CSS-X fallback forever — drop to the classic
+      // WebGL→2D path like a null handle.
+      host._wasmPending = false
+
       host._wasmFailed = true
 
       if (host.canvas === canvas) initRest(host)
-
-      return
-    }
-
-    if (host._purged) {
-      handle.destroy()
-
-      return
-    }
-
-    host._wasm = handle
-
-    host.useWebGL = true
-
-    // The shader starts the X's stroke draw-in from 0 — same as the
-    // WebGL path's initial IS_FALLBACK→first-frame reveal.
-    host.canvas.classList.remove(STATE_CLASSES.IS_FALLBACK)
-
-    host._wasm.widget.set_size(host.width, host.height)
-
-    host._wasm.widget.resize(host.canvas.width, host.canvas.height)
-
-    host.bindEvents()
-
-    host.animate()
-  })
+    })
 }
 
 /**
@@ -274,6 +285,8 @@ export function initWebGL(host: CloseButtonWebGL): void {
       u_draw: 'u_draw',
       u_rot: 'u_rot',
       u_click_time: 'u_click_time',
+      u_hc: 'u_hc',
+      u_dark: 'u_dark',
     })
 
     host.uResolution = u.u_resolution
@@ -287,6 +300,10 @@ export function initWebGL(host: CloseButtonWebGL): void {
     host.uRot = u.u_rot
 
     host.uClickTime = u.u_click_time
+
+    host.uHc = u.u_hc
+
+    host.uDark = u.u_dark
 
     host.aPos = gl.getAttribLocation(built.program, WEBGL_STRINGS.A_POS)
 

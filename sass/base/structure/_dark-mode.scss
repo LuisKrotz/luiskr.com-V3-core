@@ -6,6 +6,10 @@
 html.dark-mode {
   color-scheme: dark;
 
+  // Dark mode keeps authored weights — zeroes the light-mode lift so
+  // calc(N + var(--fw-lift)) resolves to the raw value.
+  --fw-lift: 0;
+
   --bg-primary: #000000;
   --bg-secondary: #030302;
   --bg-dark: #040404;

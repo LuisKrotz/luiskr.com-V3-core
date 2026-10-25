@@ -67,10 +67,8 @@
 // Must have the same MAXAREA lateral padding as all other grid content.
 // ─────────────────────────────────────────────────────────────────────────────────
 .carousel-fallback {
-  @extend %SKEL_DARK_SURFACE;
-
   padding: var(--space-2xl) 0;
-  background-color: var(--bg-dark);
+  background-color: var(--bg-secondary);
 }
 
 .carousel-fallback .internal-extra-item.landscape {

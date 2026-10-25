@@ -25,7 +25,7 @@ $_B_TOAST: 'site-toast';
   pointer-events: none;
 
   font-family: var(--font-primary);
-  font-weight: 300;
+  font-weight: calc(300 + var(--fw-lift));
 
   // Mobile: span the viewport edge-to-edge, stack above the bottom nav
   @media (max-width: $bk-768) {
@@ -70,7 +70,7 @@ $_B_TOAST: 'site-toast';
 
     margin: 0 0 to-rem($space-2xs);
 
-    font-weight: 500;
+    font-weight: calc(500 + var(--fw-lift));
     font-size: to-rem($space-md);
     text-transform: uppercase;
     letter-spacing: to-rem(0.6);

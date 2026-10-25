@@ -38,7 +38,7 @@ $_skel-label: rgba(255, 255, 255, 0.45); // dim label — white alpha only
 
   font-family: var(--font-mono);
   font-size: to-rem($space-lg);
-  font-weight: 500;
+  font-weight: calc(500 + var(--fw-lift));
   letter-spacing: to-rem(0.2);
   color: $cms-accent;
   white-space: nowrap;
@@ -142,7 +142,7 @@ $_skel-label: rgba(255, 255, 255, 0.45); // dim label — white alpha only
 
   &-value {
     color: $cms-accent;
-    font-weight: 700;
+    font-weight: calc(700 + var(--fw-lift));
   }
 
   // FPS color states — green when healthy, amber/red when low

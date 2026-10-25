@@ -112,7 +112,7 @@
 
   margin: 0;
   font-family: var(--font-primary);
-  font-weight: 700;
+  font-weight: calc(700 + var(--fw-lift));
   letter-spacing: to-rem(-0.2);
   color: inherit;
 }

@@ -6,6 +6,9 @@
 //    _controls  controls row + WebGL arrow buttons + progress ring
 //    _dots      indicators column + counter + dot/pill nav
 //    _fallback  below-threshold horizontal strip + focus ring scope
+//  The dot/pill nav itself is the shared _dot-nav component — also
+//  consumed by awards-carousel.scss — so both navs ship identical
+//  styles and the same spring morph.
 //  Layout is driven by carousel.js geometry; these partials own the visual
 //  chrome only.
 // ════════════════════════════════════════════════════════════════════════════
@@ -23,12 +26,15 @@ $carousel-btn-size: to-rem($space-3xl);
 /// Dot diameter — each disc carries its slide number inside; 16px is
 /// the compact sweet spot (two digits at 800-weight still clear the rim).
 $carousel-dot-size: calc(#{to-rem($space-lg)} + #{to-rem($space-xs)});
-/// Pill length — the active dot stretches to a slim rounded pill.
-$carousel-dot-pill: to-rem($space-xl);
+/// Pill length — the active dot stretches to a rounded pill; ~2× the disc
+/// diameter so the stadium shape can't read as a slightly-wide circle.
+$carousel-dot-pill: to-rem($space-2xl);
 /// Gap between nav dots.
 $carousel-dot-gap: to-rem($space-xs);
 /// Progress-ring stroke width around the arrow buttons.
 $ring-stroke: to-rem(2.5);
+
+@import 'dot-nav';
 
 @import 'carousel/track';
 @import 'carousel/controls';

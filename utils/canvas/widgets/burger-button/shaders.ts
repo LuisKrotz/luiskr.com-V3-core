@@ -35,6 +35,11 @@ export const BURGER_FS_BODY = `
       uniform float u_liquid;
       uniform float u_rot;
       uniform float u_click_time;
+      // High-contrast flag (0/1) — when set, every shade the icon paints
+      // collapses to the two poles (pure black / pure white) so the glyph
+      // survives --border-color going pitch black or pure white. u_dark
+      // then carries the DISC's pole (1 = dark disc → light ink).
+      uniform float u_hc;
       // Backing-store supersample factor: the buffer is CSS px × DPR ×
       // u_ss — dividing by it converts buffer px into "close px" so the
       // shared paint library sees the same pixel basis as the real
@@ -151,29 +156,38 @@ export const BURGER_FS_BODY = `
         vec3 colLight = vec3(0.10, 0.10, 0.14) * pulse;
         vec3 col = mix(colLight, colDark, u_dark);
 
-        // The opened icon IS the existing close button — its strokes are
-        // white over its own grey disc, so the ink converges to white and
-        // the canvas fills in that disc (vec3(0.22,0.23,0.27) is the close
-        // button's painted background; the shared lkClosePaint below owns
-        // the final disc edge/borderAA fade).
-        col = mix(col, vec3(1.0), open);
+        // HC: the themed slates are shades — the ink snaps to the pole
+        // opposite the disc (u_dark=1 means a dark disc → pure white ink).
+        col = mix(col, vec3(u_dark), u_hc);
+
+        // The opened icon IS the existing close button — its strokes paint
+        // in the ink pole (white normally; under HC, u_dark on the black
+        // disc / black on the white disc) and the canvas fills in that
+        // disc (vec3(0.22,0.23,0.27) is the close button's painted
+        // background; the shared lkClosePaint below owns the final disc
+        // edge/borderAA fade).
+        vec3 openInk = mix(vec3(1.0), vec3(u_dark), u_hc);
+        col = mix(col, openInk, open);
 
         // Glow stays in the ink's own hue family — a saturated tinted halo
         // produces a chromatic fringe that reads as broken anti-aliasing,
-        // so both themes use a desaturated ink tint.
+        // so both themes use a desaturated ink tint. Under HC the halo is
+        // a shade and dies entirely.
         vec3 glowDark = vec3(0.55, 0.58, 0.65);
         vec3 glowLight = vec3(0.15, 0.15, 0.22);
         vec3 glowCol = mix(glowLight, glowDark, u_dark);
+        glow *= 1.0 - u_hc;
 
         vec3 finalCol = col * alpha + glowCol * glow;
         float finalAlpha = max(alpha, glow * 0.25);
 
         // The opened disc edge matches the close button's: radius is
         // (min-center − 1px) with a 1px borderAA fade — in normalized
-        // coords, 0.5 − 1/closeRes and 0.5 − 2/closeRes.
+        // coords, 0.5 − 1/closeRes and 0.5 − 2/closeRes. Under HC the disc
+        // snaps to its pole (1.0 − u_dark).
         float disc = open * (1.0 - smoothstep(0.5 - 2.0 / closeRes, 0.5 - 1.0 / closeRes, length(p)));
 
-        finalCol = mix(finalCol, vec3(0.22, 0.23, 0.27), disc * (1.0 - alpha));
+        finalCol = mix(finalCol, mix(vec3(0.22, 0.23, 0.27), vec3(1.0 - u_dark), u_hc), disc * (1.0 - alpha));
         finalAlpha = max(finalAlpha, disc);
 
         // Fully opened, this IS a CloseButtonWebGL: the shared paint
@@ -183,7 +197,8 @@ export const BURGER_FS_BODY = `
         // metaball morph above already delivered the draw-in). Mixing
         // by open crossfades the morph into the real close paint.
         vec4 closePx = lkClosePaint(
-          pClose, closeRes, u_time, u_liquid, 1.0, u_rot, u_click_time
+          pClose, closeRes, u_time, u_liquid, 1.0, u_rot, u_click_time,
+          u_hc, u_dark
         );
 
         finalCol = mix(finalCol, closePx.rgb, open * closePx.a);

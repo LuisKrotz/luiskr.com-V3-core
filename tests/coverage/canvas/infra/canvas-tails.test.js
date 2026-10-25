@@ -98,6 +98,10 @@ describe('canvas tails', () => {
 
     expect(sw3._contextCode()).toBe(2.0)
 
+    const sw4 = new SwitchWebGL(canvas, SWITCH_TYPES.CONTRAST)
+
+    expect(sw4._contextCode()).toBe(3.0)
+
     // canvas click → onClick closure → toggle
     sw.bindEvents()
     canvas.dispatchEvent(new window.Event('click', { bubbles: false }))

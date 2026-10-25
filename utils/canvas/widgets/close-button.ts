@@ -53,6 +53,8 @@ export class CloseButtonWebGL {
   uDraw: WebGLUniformLocation | null = null
   uRot: WebGLUniformLocation | null = null
   uClickTime: WebGLUniformLocation | null = null
+  uHc: WebGLUniformLocation | null = null
+  uDark: WebGLUniformLocation | null = null
   aPos = 0
   _ro: ResizeObserver | null = null
   _onContextLost: EventListener | null = null

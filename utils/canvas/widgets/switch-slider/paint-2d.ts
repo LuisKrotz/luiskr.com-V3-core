@@ -71,6 +71,8 @@ export function paintSwitchSlider2D(
 
   if (state.contextType === SWITCH_TYPES.MOTION) onColor = [168, 85, 247] // Electric Violet (Motion)
 
+  if (state.contextType === SWITCH_TYPES.CONTRAST) onColor = [245, 158, 11] // Warm Amber (Contrast)
+
   const rCol = Math.round(offColor[0] + (onColor[0] - offColor[0]) * p)
 
   const gCol = Math.round(offColor[1] + (onColor[1] - offColor[1]) * p)
@@ -137,6 +139,36 @@ export function paintSwitchSlider2D(
     ctx.moveTo(6, 14)
 
     ctx.lineTo(w - 6, 14)
+
+    ctx.stroke()
+
+    ctx.restore()
+  } else if (state.contextType === SWITCH_TYPES.CONTRAST) {
+    // High contrast: sweeping luminance split — a dark/light comparison
+    // wipe travelling the track on a slow sine behind a hot amber seam.
+    ctx.save()
+
+    const seamX = w * 0.5 + Math.sin(t * 0.9) * (w * 0.5 - 10)
+
+    const wipeAlpha = 0.3 + 0.6 * p
+
+    ctx.fillStyle = `rgba(13, 13, 20, ${0.85 * wipeAlpha})`
+
+    ctx.fillRect(0, 0, seamX, h)
+
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.9 * wipeAlpha})`
+
+    ctx.fillRect(seamX, 0, w - seamX, h)
+
+    ctx.strokeStyle = `rgba(255, 199, 77, ${0.3 + 0.5 * p})`
+
+    ctx.lineWidth = 1.4
+
+    ctx.beginPath()
+
+    ctx.moveTo(seamX, 2)
+
+    ctx.lineTo(seamX, h - 2)
 
     ctx.stroke()
 
@@ -222,6 +254,8 @@ export function paintSwitchSlider2D(
   if (state.contextType === SWITCH_TYPES.GRID) dotColor = 'rgb(0, 220, 255)'
 
   if (state.contextType === SWITCH_TYPES.MOTION) dotColor = 'rgb(168, 85, 247)'
+
+  if (state.contextType === SWITCH_TYPES.CONTRAST) dotColor = 'rgb(255, 191, 64)'
 
   ctx.beginPath()
 

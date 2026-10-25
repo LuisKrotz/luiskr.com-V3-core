@@ -19,7 +19,7 @@
     padding: to-rem($space-xs) to-rem($space-lg);
     color: var(--color-white-raw);
     background: transparent;
-    font-weight: 700;
+    font-weight: calc(700 + var(--fw-lift));
     white-space: nowrap;
     transition:
       color 0.2s ease,
@@ -102,7 +102,7 @@
       @extend .ttl-xs;
 
       color: var(--text-muted-on-dark);
-      font-weight: 200;
+      font-weight: calc(200 + var(--fw-lift));
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -198,7 +198,7 @@
       @extend %RESETBTN;
       @extend .ttl-xs;
 
-      font-weight: 700;
+      font-weight: calc(700 + var(--fw-lift));
       color: var(--text-muted-on-dark);
       cursor: pointer;
       z-index: 1;
@@ -280,7 +280,7 @@
     margin: to-rem($space-3xl) auto to-rem($space-xl);
     display: block;
     color: var(--text-muted-on-dark);
-    font-weight: 700;
+    font-weight: calc(700 + var(--fw-lift));
     cursor: pointer;
     position: relative;
     padding: to-rem($space-sm) to-rem($space-xl);

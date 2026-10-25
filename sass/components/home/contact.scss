@@ -1,7 +1,8 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  contact.scss — the home page's contact footer: a full-bleed dark band
-//  (--bg-dark) containing heading, email/social links and CTA copy inside a
-//  %MAXAREA column. The nav's --on-dark variant keys off this section.
+//  contact.scss — the home page's contact footer: a full-bleed band on
+//  --bg-secondary (light in light mode, dark in dark mode) containing
+//  heading, email/social links and CTA copy inside a %MAXAREA column.
+//  The nav's --on-dark variant keys off this section.
 // ════════════════════════════════════════════════════════════════════════════
 
 @import '../../base/variables';
@@ -17,17 +18,18 @@
   width: 100%;
 }
 
-// The dark contact band: full-bleed --bg-dark with the contact content in a %MAXAREA column.
+// The contact band: full-bleed --bg-secondary (light surface in light
+// mode, stays dark in dark mode) with the contact content in a %MAXAREA
+// column; inks ride the themed --text-* vars so they flip with it.
 .contact {
   @extend %MAXAREA;
-  @extend %SKEL_DARK_SURFACE;
 
   box-sizing: border-box;
   width: 100%;
   padding-top: to-rem($space-3xl);
   padding-bottom: to-rem($space-3xl);
-  background-color: var(--bg-dark);
-  color: var(--color-white-raw);
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
   border-top: to-rem($space-hairline) solid transparent;
   border-image: var(--metallic-hairline) 1;
   background-image: var(--filament-glow);
@@ -67,7 +69,7 @@
     &-separator {
       padding: 0 to-rem($space-md);
       display: none;
-      font-weight: 700;
+      font-weight: calc(700 + var(--fw-lift));
 
       @include layout-768() {
         display: inline-block;
@@ -128,7 +130,7 @@
       // spacing on margins instead of an inflated line-height.
       margin-block: to-rem($space-lg);
       line-height: to-rem($space-xl);
-      font-weight: 700;
+      font-weight: calc(700 + var(--fw-lift));
       position: relative;
 
       @include layout-768() {

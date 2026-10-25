@@ -96,7 +96,7 @@
     &-title {
       @extend .ttl-md;
 
-      font-weight: 200;
+      font-weight: calc(200 + var(--fw-lift));
       text-transform: uppercase;
       padding-bottom: to-rem($space-lg);
     }
@@ -104,7 +104,7 @@
     &-desc {
       @extend .txt-md;
 
-      font-weight: 300;
+      font-weight: calc(300 + var(--fw-lift));
     }
 
     // "Click to open" — centered, corner-border animation on hover
@@ -118,7 +118,7 @@
       text-transform: uppercase;
       padding: to-rem($space-xs) to-rem($space-lg);
       color: var(--text-muted-on-dark);
-      font-weight: 700;
+      font-weight: calc(700 + var(--fw-lift));
       white-space: nowrap;
       transition: color 0.2s ease;
       margin: to-rem($space-xl) auto 0;

@@ -49,3 +49,20 @@ export const APP_IDS = Object.freeze({
    *  delegated handler re-aims the link at the shadow #main-content. */
   READER_CONTENT: 'reader-content',
 })
+
+/**
+ * Frozen nav-gear SVG gradient-id map — the defs↔url(#…) link ids inside
+ * the machined-gear glyph (nav gear.tsx). Sole declaration site; the
+ * markup reads members via the `url()` ref helper instead of re-declaring
+ * the literals (zero-hardcoding rules 4–5).
+ */
+export const NAV_GEAR_IDS = Object.freeze({
+  /** Radial face ramp — the tooth ring's base metal fill. */
+  FACE: 'nav-gear-face',
+  /** Linear rim ramp — top-lit edge stroke on the outline + groove. */
+  RIM: 'nav-gear-rim',
+  /** Radial hub ramp — the raised center cylinder. */
+  HUB: 'nav-gear-hub',
+  /** Linear cavity ramp — drilled lightening holes + the center bore. */
+  HOLE: 'nav-gear-hole',
+})

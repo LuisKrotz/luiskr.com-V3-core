@@ -5,13 +5,21 @@
 
 /// Dot diameter — each disc carries its slide number inside (16px).
 $awc-dot-size: calc(#{to-rem($space-lg)} + #{to-rem($space-xs)});
-/// Pill length — the active dot stretches to a slim rounded pill.
-$awc-dot-pill: to-rem($space-xl);
+/// Pill length — the active dot stretches to a rounded pill; ~2× the disc
+/// diameter so the stadium shape can't read as a slightly-wide circle.
+$awc-dot-pill: to-rem($space-2xl);
+/// Gap between nav dots.
+$awc-dot-gap: to-rem($space-xs);
 /// Adjacent-slide bleed: how much of the neighbors peeks in on both sides.
 $awc-peek: 10vw;
 
+// Shared dot/bullet nav — emits .aw-c-dots, .aw-c-dot and .aw-c-dot-num
+// identical to .carousel-* (same glass disc, same stadium-pill morph,
+// same 0.5s damped-spring timing — see _dot-nav.scss).
+@include dot-nav($_B_AWC, $awc-dot-size, $awc-dot-pill, $awc-dot-gap);
+
 // ── Base container ───────────────────────────────────────────────────────────
-.aw-c {
+.#{$_B_AWC} {
   position: relative;
   width: 100%;
   opacity: 0;
@@ -21,7 +29,7 @@ $awc-peek: 10vw;
     transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
 
-  &.aw-c--in-view {
+  &.#{$_B_AWC}--in-view {
     opacity: 1;
     transform: translate3d(0, 0, 0);
   }
@@ -73,82 +81,12 @@ $awc-peek: 10vw;
   }
 
   // ── Dots ─────────────────────────────────────────────────────────────────
+  // Windowed row extras on top of the shared dot-nav component (the dots
+  // themselves — disc, pill morph, states — come from _dot-nav.scss):
+  // 1 active center + 2 partial each side.
   &-dots {
-    display: flex;
-    align-items: center;
-    gap: to-rem($space-xs);
-    // Windowed: 1 active center + 2 partial each side
-    max-width: calc(#{$awc-dot-pill} + #{$awc-dot-size} * 2 + #{to-rem($space-xs)} * 4);
+    max-width: calc(#{$awc-dot-pill} + #{$awc-dot-size} * 2 + #{$awc-dot-gap} * 4);
     overflow: hidden;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  &-dot {
-    @extend %RESETBTN;
-
-    // The numbered disc lives in ::before; the button stays a ≥24px
-    // pointer target (WCAG 2.5.8) without extra breathing room.
-    display: block;
-    position: relative;
-    height: calc(#{$awc-dot-size} + #{to-rem($space-md)});
-    width: calc(#{$awc-dot-size} + #{to-rem($space-md)});
-    border-radius: 50%;
-    background: transparent;
-    cursor: pointer;
-
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 50% auto auto 50%;
-      translate: -50% -50%;
-      height: $awc-dot-size;
-      width: $awc-dot-size;
-      border-radius: $awc-dot-size;
-      background: var(--text-muted);
-      // Elastic pill morph — matches .carousel-dot's spring curve.
-      transition:
-        width 0.5s $ease-spring,
-        background 0.25s ease;
-    }
-
-    &--active {
-      width: calc(#{$awc-dot-pill} + #{to-rem($space-md)});
-
-      &::before {
-        width: $awc-dot-pill;
-        background: var(--text-primary);
-      }
-
-      .aw-c-dot-num {
-        // Active index inverts on the filled pill.
-        color: var(--bg-primary);
-      }
-    }
-
-    &:hover:not(&--active)::before,
-    &:focus-visible:not(&--active)::before {
-      background: var(--text-secondary);
-    }
-  }
-
-  // Visible slide index — IBM input_label_visible requires a rendered
-  // label, not just aria-label. Lives INSIDE every dot: centred on the
-  // tap target so it sits over the ::before disc (and over the wider
-  // pill when active), weight 800 so the numeral reads at this size.
-  &-dot-num {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-    z-index: 1;
-    font-size: to-rem($space-md);
-    font-weight: 800;
-    line-height: 1;
-    text-align: center;
-    color: var(--bg-primary);
-    pointer-events: none;
-    transition: color 0.25s ease;
   }
 }
 

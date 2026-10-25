@@ -108,6 +108,13 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
   overflow: visible;
   box-sizing: border-box;
 
+  // HC: the item rides the always-dark strip, but --text-muted collapses to
+  // page ink (black) under light-HC — the inherited caption ink re-pins to
+  // the on-dark token which stays white in both HC variants.
+  :host-context(html.high-contrast) & {
+    color: var(--text-muted-on-dark);
+  }
+
   @include layout-768() {
     padding: to-rem($space-xs) to-rem($space-xl);
   }

@@ -9,7 +9,7 @@
   &-fallback {
     width: 100%;
     box-sizing: border-box;
-    background-color: var(--bg-dark);
+    background-color: var(--bg-secondary);
     overflow-x: auto;
     scrollbar-width: none; // Firefox
     &::-webkit-scrollbar {

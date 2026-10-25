@@ -75,7 +75,7 @@ $_B_FLAG: 'flag';
 // Option label text.
 .pref-option-label {
   font-family: var(--font-primary);
-  font-weight: 700;
+  font-weight: calc(700 + var(--fw-lift));
   font-size: to-rem(16);
 }
 

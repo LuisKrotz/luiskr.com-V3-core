@@ -62,6 +62,8 @@ const makeHost = (over = {}) => {
     uDraw: null,
     uRot: null,
     uClickTime: null,
+    uHc: null,
+    uDark: null,
     animId: null,
     startTime: 0,
     _wasm: null,
@@ -201,7 +203,7 @@ describe('close-button render tail', () => {
     guarded.quadBuffer = 'b'
     renderWebGL(guarded, 50)
 
-    expect(guarded.gl.calls.length).toBe(11)
+    expect(guarded.gl.calls.length).toBe(13)
   })
 
   test('renderWebGL pushes every uniform on the full draw path', () => {
@@ -216,6 +218,8 @@ describe('close-button render tail', () => {
       uDraw: 'ud',
       uRot: 'urot',
       uClickTime: 'uc',
+      uHc: 'uhc',
+      uDark: 'udark',
     })
 
     renderWebGL(host, 1000)
@@ -226,6 +230,8 @@ describe('close-button render tail', () => {
       'clear',
       'useProgram',
       'uniform2f',
+      'uniform1f',
+      'uniform1f',
       'uniform1f',
       'uniform1f',
       'uniform1f',

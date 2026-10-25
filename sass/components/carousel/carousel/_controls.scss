@@ -60,7 +60,18 @@
 
     &:hover,
     &:focus {
-      color: var(--white);
+      color: var(--text-primary);
+    }
+
+    // High contrast: the controls ride the always-dark strip — --text-muted
+    // collapses to page ink (black) under light-HC and --white flips to
+    // black under dark-HC, so both resting and hover pin to raw white.
+    // The arrow still animates its translate on hover/focus, so the state
+    // change survives the flattened palette.
+    :host-context(html.high-contrast) &,
+    :host-context(html.high-contrast) &:hover,
+    :host-context(html.high-contrast) &:focus {
+      color: var(--color-white-raw);
     }
 
     &-canvas {
@@ -117,6 +128,13 @@
         stroke: var(--grey-3);
         stroke-width: $ring-stroke;
         opacity: 0.4;
+
+        // High contrast: --grey-3 collapses to page ink (black) under HC —
+        // on the always-dark strip that would erase the ring, so the track
+        // re-pins to raw white (the fill already resolves white via --grey).
+        :host-context(html.high-contrast) & {
+          stroke: var(--color-white-raw);
+        }
       }
 
       &-fill {

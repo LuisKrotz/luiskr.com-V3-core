@@ -6,6 +6,7 @@
  */
 
 import store from '@core/store.js'
+import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { bindQuad } from '../../gl-program.js'
 import { framePool } from '../../../motion/frame.js'
 import type { CloseButtonWebGL } from '../close-button.js'
@@ -167,6 +168,17 @@ export function renderWebGL(host: CloseButtonWebGL, now: number): void {
   gl.uniform1f(host.uRot, host.rotation)
 
   gl.uniform1f(host.uClickTime, host.clickTime)
+
+  // HC channels — re-read per frame like the burger's u_dark so a live
+  // toggle repaints instantly. u_dark is the DISC pole under HC: the chip
+  // disc (--border-color) goes pitch black in light-HC (u_dark=1 → dark
+  // disc + white ink) and pure white in dark-HC (u_dark=0 → inverse).
+  const hc = document.documentElement.classList.contains(STATE_CLASSES.HIGH_CONTRAST)
+  const dark = document.documentElement.classList.contains(STATE_CLASSES.DARK_MODE)
+
+  gl.uniform1f(host.uHc, hc ? 1 : 0)
+
+  gl.uniform1f(host.uDark, hc && !dark ? 1 : 0)
 
   gl.drawArrays(gl.TRIANGLES, 0, 6)
 }

@@ -10,7 +10,7 @@
   @extend %MAXAREA;
 
   font-family: var(--font-primary);
-  font-weight: 300;
+  font-weight: calc(300 + var(--fw-lift));
 
   position: fixed;
   bottom: 0;
@@ -55,7 +55,7 @@
     padding: 0;
     margin: 0;
     opacity: 0.9;
-    font-weight: 300;
+    font-weight: calc(300 + var(--fw-lift));
 
     a {
       @extend %LK_LINK;
@@ -86,7 +86,7 @@
       @extend %TTL_BASE;
       @extend %TTL_XS;
 
-      font-weight: 700;
+      font-weight: calc(700 + var(--fw-lift));
       text-transform: uppercase;
       letter-spacing: var(--space-pixel);
       cursor: pointer;

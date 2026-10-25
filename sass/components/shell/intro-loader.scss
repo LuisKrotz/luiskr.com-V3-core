@@ -209,7 +209,7 @@ $_B_LOADER: 'intro-loader';
   &-percent {
     @extend %TTL_MD;
 
-    font-weight: 300;
+    font-weight: calc(300 + var(--fw-lift));
     color: rgba($color-white, 0.9);
     letter-spacing: 0.1em;
     font-variant-numeric: tabular-nums;

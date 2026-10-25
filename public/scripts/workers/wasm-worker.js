@@ -97,12 +97,13 @@ self.onmessage = async (e) => {
     // off-thread. Payload: { parents, sibs, sibCounts, dirs } — results
     // carry the flattened xyz triplets in node order (the formula mirrors
     // the main-thread fallback in arch-scene.ts; DOCS_UNITS is the source:
-    // MIN_ORBIT 3 / MIN_SEP 5 / CHILD_SCALE 0.45 / GLYPH_MAX 3 /
+    // MIN_ORBIT 6 / MIN_SEP 12 / CHILD_SCALE 0.72 / GLYPH_MAX 3 /
     // DIR_RADIUS 1.15 / FILE_RADIUS 0.55 / golden angle 2.399963 /
-    // spin hash 4.208). Cluster radii use the reference's shrink-ratio
-    // orbit with a sibling-glyph clearance floor — a single forward
-    // pass (parents precede children in placed order), NOT subtree-
-    // extent packing, which grows exponentially past ~a hundred nodes.
+    // spin hash 4.208 / relax iters 30). Cluster radii use the reference's
+    // shrink-ratio orbit with a sibling-glyph clearance floor — a single
+    // forward pass (parents precede children in placed order), NOT
+    // subtree-extent packing, which grows exponentially past ~a hundred
+    // nodes.
     const { parents = [], sibs = [], sibCounts = [], dirs = [] } = payload
     const n = parents.length
     const xyz = new Float32Array(n * 3)
@@ -111,13 +112,13 @@ self.onmessage = async (e) => {
     const kids = new Int32Array(n)
     const GA = 2.399963
     const SPIN = 4.208
-    const MIN_ORBIT = 3
-    const MIN_SEP = 5
-    const CHILD_SCALE = 0.45
+    const MIN_ORBIT = 6
+    const MIN_SEP = 12
+    const CHILD_SCALE = 0.72
     const GLYPH_MAX = 3
     const DIR_R = 1.15
     const FILE_R = 0.55
-    const GLYPH_FIT = 0.16
+    const GLYPH_FIT = 0.14
 
     for (let i = 0; i < n; i++) if (parents[i] >= 0) kids[parents[i]]++
 
@@ -166,7 +167,7 @@ self.onmessage = async (e) => {
 
     for (let i = 0; i < n; i++) radii[i] = (dirs[i] ? DIR_R : FILE_R) * scale[i]
 
-    for (let iter = 0; iter < 12; iter++) {
+    for (let iter = 0; iter < 30; iter++) {
       let moved = false
 
       for (let a = 0; a < n; a++) {

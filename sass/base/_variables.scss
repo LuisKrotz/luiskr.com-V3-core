@@ -520,3 +520,42 @@ $ease-spring: linear(
   1,
   1
 );
+
+/// Critically-damped spring easing (ζ=1, ωT=8) sampled at 4%
+/// intervals into a CSS linear() easing — the fastest possible
+/// settle with zero overshoot: value rises, decelerates, and
+/// lands exactly on target like water coming to rest. Used
+/// where motion should feel organic and fluid rather than
+/// bouncy (nav chip reveals, gear spin). Browsers without
+/// linear() keep the cubic-bezier fallback declared alongside
+/// it at each callsite.
+$ease-water: linear(
+  0,
+  0.042,
+  0.135,
+  0.25,
+  0.366,
+  0.475,
+  0.572,
+  0.655,
+  0.725,
+  0.782,
+  0.829,
+  0.866,
+  0.896,
+  0.92,
+  0.938,
+  0.952,
+  0.963,
+  0.972,
+  0.979,
+  0.984,
+  0.988,
+  0.991,
+  0.993,
+  0.995,
+  0.996,
+  0.997,
+  1,
+  1
+);
