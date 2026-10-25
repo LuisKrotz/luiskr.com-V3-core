@@ -22,6 +22,8 @@ export const ATTR_VALUES = Object.freeze({
   INSTANT: 'instant',
   DELAY_25: '25',
   NEGATIVE_TABINDEX: '-1',
+  /** tabindex="0" — the single tab stop inside roving-tabindex widgets. */
+  TABINDEX_ZERO: '0',
   /** URL scheme prefix check + img loading/audio-video preload values. */
   HTTP: 'http',
   LAZY: 'lazy',

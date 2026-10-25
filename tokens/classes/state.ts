@@ -19,6 +19,7 @@ export const STATE_CLASSES = Object.freeze({
   HAS_FALLBACK: 'has-fallback',
   IS_SAFARI: 'is-safari',
   REDUCED_MOTION: 'reduced-motion',
+  HIGH_CONTRAST: 'high-contrast',
   DARK_MODE: 'dark-mode',
   SHOW_GRID: 'show-grid',
   PAGE_FADE_IN: 'page-fade-in',

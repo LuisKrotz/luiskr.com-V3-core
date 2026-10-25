@@ -86,6 +86,7 @@ export const DOCS_STRINGS = Object.freeze({
   SCENE_ATTR_COLOR: 'aColor',
   SCENE_ATTR_PHASE: 'aPhase',
   SCENE_ATTR_SPIN: 'aSpin',
+  SCENE_ATTR_SCALE: 'aScale',
   /** `--icon-ink` custom property — the icon pack's per-kind themed
    *  color; the map probes it off `docs-tree-icon--<kind>` elements so
    *  scene nodes wear the exact palette the treeview icons do. */
@@ -100,6 +101,18 @@ export const DOCS_STRINGS = Object.freeze({
   INDEX_LABEL: 'Complete documentation index',
   /** Viewer heading shown when a file is open — labels the content region. */
   VIEWER_HEADING_PREFIX: 'Viewing',
+  /** Portal section labels — the flat root buckets re-seat under four
+   *  disclosure groups in the treeview and sectioned portal grid. */
+  GROUP_DOCS_LABEL: 'Documentation',
+  GROUP_ARCH_LABEL: 'Architecture Docs',
+  GROUP_SOURCE_LABEL: 'Source Code',
+  GROUP_REPORTS_LABEL: 'Reports',
+  /** Synthetic path prefix for the section-group rows — ids under it are
+   *  view-only (a section has no manifest path), so tree bookkeeping
+   *  ('group/docs'…) can never collide with a real docs route. */
+  GROUP_PATH_PREFIX: 'group/',
+  /** The docs-root child promoted into its own Architecture section. */
+  ARCH_DIR: 'architecture',
 })
 
 /**
@@ -142,15 +155,37 @@ export const DOCS_UNITS = Object.freeze({
    *  inside low-power GPU memory; deep dirs stay navigable via the
    *  treeview and the dots themselves. */
   SCENE_LABEL_MAX_DEPTH: 3,
-  /** radial-tree geometry shared with the wasm worker op */
-  SCENE_BASE_RADIUS: 6,
-  SCENE_DEPTH_STEP: 12,
-  SCENE_Y_STEP: 4,
-  /** vertical scatter amplitude — sin(i·SCENE_Y_HASH) walks the flat
-   *  node index through a golden-angle hash, so same-ring siblings land
-   *  on decorrelated heights instead of sharing the depth band's plane
-   *  (the "glued blob" failure of a pure ring layout). */
-  SCENE_Y_WAVE: 5,
+  /** hierarchical-sphere layout (the procedural-directory reference):
+   *  every node's children orbit it on a Fibonacci sphere at the
+   *  parent's cluster radius — shared with the wasm worker op. Cluster
+   *  radii come from subtree-extent packing: MIN_ORBIT floors a cluster
+   *  so a lone child never collapses onto its parent glyph; MIN_SEP is
+   *  the guaranteed clear-space gap between sibling subtree clouds
+   *  (≥20px at the fit-zoom framing — the hairball fix). */
+  SCENE_MIN_ORBIT: 3,
+  SCENE_MIN_SEP: 5,
+  /** reference shrink ratio — a dir's child orbit is never smaller
+   *  than this fraction of the orbit the dir itself sits on (the
+   *  procedural-directory map's 12→5 ≈ 0.42 taper), so nested clouds
+   *  compress geometrically instead of summing subtree extents. */
+  SCENE_CHILD_SCALE: 0.45,
+  /** Largest rendered glyph radius in chart units — the scale cap for
+   *  the orbit-proportional glyph size AND the sibling-clearance term
+   *  (orbits are sized so two max-size glyphs keep MIN_SEP between
+   *  their wireframe edges). */
+  SCENE_GLYPH_MAX: 3,
+  /** Pairwise relax iterations after placement — sibling-chord sizing
+   *  covers siblings, but deep subtree clouds can interpenetrate
+   *  cross-branch; a few Jacobi passes push the rare colliding glyphs
+   *  apart (each pass moves a pair by the full deficit, so the loop
+   *  count covers only chained collisions — layout-time O(n²·iters)
+   *  on the capped scene tree). */
+  SCENE_RELAX_ITERS: 12,
+  /** orbit clamp — also the camera's minimum distance token (reused
+   *  as SCENE_BASE_RADIUS's successor on the scene3d arm). */
+  SCENE_BASE_RADIUS: 3,
+  /** golden angle (π(3−√5) ≈ 2.399963 rad) — the Fibonacci-sphere
+   *  azimuth step AND the decorrelation hash for bob phases. */
   SCENE_Y_HASH: 2.399963,
   /** slow backdrop motion — autorotate deg/frame-ish + node pulse.
    *  Speeds run far under OrbitControls' default (2.0) so the graph
@@ -170,8 +205,10 @@ export const DOCS_UNITS = Object.freeze({
   /** Exponential fog — density = FOG_DENSITY / graphR, so the far rim
    *  fades into the page backdrop (light or dark) like the reference's
    *  dark-slate depth cue, scaled to whatever radius the manifest
-   *  actually spans. */
-  SCENE_FOG_DENSITY: 1.4,
+   *  actually spans. Kept low enough that the cloud's center mass stays
+   *  inked — on light surfaces pastel inks washed >80% toward the fog
+   *  color disappear entirely. */
+  SCENE_FOG_DENSITY: 0.65,
   /** semantic-index streaming — elements appended per idle slice (~a few
    *  ms each, far under a frame budget), the rIC starvation bound per
    *  slice, and the setTimeout fallback delay where rIC is absent */
@@ -182,23 +219,42 @@ export const DOCS_UNITS = Object.freeze({
    *  page tops above the tab; open folders fan up to this many colored
    *  sheets, so the pile stops growing before it walls off the glyph */
   TREE_SHEET_CAP_CLOSED: 3,
-  TREE_SHEET_CAP_OPEN: 4,
-  /** node sphere radii (chart units) — sized to read at the mid-zoom
-   *  camera distance without smearing into blobs at near clip */
+  TREE_SHEET_CAP_OPEN: 2,
+  /** node sphere radii (chart units) — base glyph sizes before the
+   *  per-node proportional scale. SCENE_GLYPH_FIT = the reference's
+   *  icon-to-orbit ratio: a node's rendered glyph inflates to this
+   *  fraction of the orbit it sits on, so every icon stays readable
+   *  and proportional to its local spacing at any depth — the big
+   *  center hub + shrinking satellites look. */
   SCENE_DIR_RADIUS: 1.15,
   SCENE_FILE_RADIUS: 0.55,
+  SCENE_GLYPH_FIT: 0.16,
   /** File leaves drawn per dir before the rest collapse into a `+N`
    *  aggregate — the cap that keeps 300-file dirs from combing out. It
    *  shrinks by SCENE_FILE_CAP_STEP per ring: buckets get the full cap,
    *  deep dirs aggregate everything. */
   SCENE_FILE_CAP: 10,
   SCENE_FILE_CAP_STEP: 3,
+  /** Dir fan-out + depth budgets — the raw manifest is ~4.4k nodes,
+   *  which no guaranteed-separation layout can render readably, so dir
+   *  children past SCENE_DIR_CAP (shrinking by _STEP per ring down to
+   *  _MIN) and whole subtrees past SCENE_DEPTH_CAP collapse into the
+   *  same `+N` aggregate leaf the file cap uses. The aggregate keeps
+   *  its parent dir's path — picking it still opens that dir's page. */
+  SCENE_DIR_CAP: 6,
+  SCENE_DIR_CAP_STEP: 2,
+  SCENE_DIR_CAP_MIN: 2,
+  SCENE_DEPTH_CAP: 5,
   /** node/edge alpha — hairline wireframe carries far less ink than a
    *  filled surface, so glyphs and edges run near-full alpha or they
    *  ghost out on light glass; on dark slate they stay neon anyway. */
   SCENE_DIR_OPACITY: 0.9,
   SCENE_FILE_OPACITY: 0.85,
   SCENE_LINE_OPACITY: 0.55,
+  /** Clear space kept between a link's trimmed end and the glyph face it
+   *  aims at — edges clip at radius+gap on BOTH ends so lines never
+   *  enter an icon's wireframe (~20px at the default fit distance). */
+  SCENE_EDGE_GAP: 2,
   /** scene3d edge ribbons — half-width of the cross-quad strips that
    *  stand in for 1px LineSegments under the engine (chart units) */
   SCENE_EDGE_HALF: 0.08,

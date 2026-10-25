@@ -3,9 +3,9 @@
 //  Imported by awards-carousel.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
-/// Dot diameter — inactive nav dots are small squares.
-$awc-dot-size: to-rem($space-md);
-/// Pill length — the active dot stretches to a rounded pill.
+/// Dot diameter — each disc carries its slide number inside (16px).
+$awc-dot-size: calc(#{to-rem($space-lg)} + #{to-rem($space-xs)});
+/// Pill length — the active dot stretches to a slim rounded pill.
 $awc-dot-pill: to-rem($space-xl);
 /// Adjacent-slide bleed: how much of the neighbors peeks in on both sides.
 $awc-peek: 10vw;
@@ -87,11 +87,12 @@ $awc-peek: 10vw;
   &-dot {
     @extend %RESETBTN;
 
-    // 8px visual dot lives in ::before; the button itself is a ≥24px pointer target (WCAG 2.5.8)
+    // The numbered disc lives in ::before; the button stays a ≥24px
+    // pointer target (WCAG 2.5.8) without extra breathing room.
     display: block;
     position: relative;
-    height: calc(#{$awc-dot-size} * 3);
-    width: calc(#{$awc-dot-size} * 3);
+    height: calc(#{$awc-dot-size} + #{to-rem($space-md)});
+    width: calc(#{$awc-dot-size} + #{to-rem($space-md)});
     border-radius: 50%;
     background: transparent;
     cursor: pointer;
@@ -111,15 +112,43 @@ $awc-peek: 10vw;
         background 0.25s ease;
     }
 
-    &--active::before {
-      width: $awc-dot-pill;
-      background: var(--text-primary);
+    &--active {
+      width: calc(#{$awc-dot-pill} + #{to-rem($space-md)});
+
+      &::before {
+        width: $awc-dot-pill;
+        background: var(--text-primary);
+      }
+
+      .aw-c-dot-num {
+        // Active index inverts on the filled pill.
+        color: var(--bg-primary);
+      }
     }
 
     &:hover:not(&--active)::before,
     &:focus-visible:not(&--active)::before {
       background: var(--text-secondary);
     }
+  }
+
+  // Visible slide index — IBM input_label_visible requires a rendered
+  // label, not just aria-label. Lives INSIDE every dot: centred on the
+  // tap target so it sits over the ::before disc (and over the wider
+  // pill when active), weight 800 so the numeral reads at this size.
+  &-dot-num {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    z-index: 1;
+    font-size: to-rem($space-md);
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
+    color: var(--bg-primary);
+    pointer-events: none;
+    transition: color 0.25s ease;
   }
 }
 

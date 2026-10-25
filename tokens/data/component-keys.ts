@@ -35,6 +35,7 @@ export const MEDIA_COMPONENT_KEYS = Object.freeze({
   MEDIA_CLOSE: `${_K_MEDIA}.${_K_CLOSE}`,
   MEDIA_TO_OPEN: `${_K_MEDIA}.toOpen`,
   MEDIA_AUDIO_NOTE: `${_K_MEDIA}.audioNote`,
+  MEDIA_TOGGLE: `${_K_MEDIA}.toggle`,
 })
 
 /**

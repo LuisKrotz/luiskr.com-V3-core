@@ -23,12 +23,19 @@ export const DOCS_CLASSES = Object.freeze({
   DOCS_TREE: `${_B_DOCS}-tree`,
   DOCS_TREE_ITEM: `${_B_DOCS}-tree-item`,
   DOCS_TREE_OPEN: `${_B_DOCS}-tree-open`,
+  /** Section-group row modifier — the four disclosure rows (Source /
+   *  Docs / Architecture / Reports) that parent the flat root buckets. */
+  DOCS_TREE_GROUP: `${_B_DOCS}-tree-item--group`,
   DOCS_STACK: `${_B_DOCS}-stack`,
   DOCS_MAIN: `${_B_DOCS}-main`,
   DOCS_CRUMBS: `${_B_DOCS}-crumbs`,
   DOCS_CRUMB: `${_B_DOCS}-crumb`,
   DOCS_CRUMB_EDIT: `${_B_DOCS}-crumb-edit`,
   DOCS_GRID: `${_B_DOCS}-grid`,
+  /** Portal-root section wrapper — one per disclosure group, each its
+   *  own card grid under a real group heading. */
+  DOCS_GRID_GROUP: `${_B_DOCS}-grid-group`,
+  DOCS_GRID_GROUP_HEAD: `${_B_DOCS}-grid-group-head`,
   DOCS_CARD: `${_B_DOCS}-card`,
   DOCS_CARD_HEADING: `${_B_DOCS}-card-heading`,
   DOCS_CARD_LABEL: `${_B_DOCS}-card-label`,

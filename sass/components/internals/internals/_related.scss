@@ -225,6 +225,9 @@ $_B_RELATED: 'related-mosaic';
     @extend %TTL_BASE;
     @extend %TTL_SM;
 
+    // Now an <h3> inside the card link — kill the UA heading margins so
+    // the tile reads exactly like the former span did.
+    margin: 0;
     font-family: var(--font-primary);
     font-weight: 200;
     text-transform: uppercase;

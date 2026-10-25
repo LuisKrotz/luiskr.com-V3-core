@@ -109,4 +109,36 @@ export const themeMutations = (store: Store): MutationMap => ({
   toggleReducedMotion: () => {
     store.mutations.setReducedMotion(!store.state.reducedMotion)
   },
+  initHighContrast: () => {
+    const stored =
+      typeof localStorage !== TYPE_STRINGS.UNDEFINED &&
+      localStorage.getItem(PREF_STORAGE_KEYS.HIGH_CONTRAST)
+
+    // Same contract as initReducedMotion: only an explicit stored choice
+    // overrides the OS-derived seed (forced-colors / prefers-contrast).
+    if (stored !== null && stored !== false) {
+      store.state.highContrast = stored === ATTR_VALUES.TRUE
+    }
+
+    if (typeof document !== TYPE_STRINGS.UNDEFINED) {
+      if (store.state.highContrast) {
+        document.documentElement.classList.add(STATE_CLASSES.HIGH_CONTRAST)
+      } else {
+        document.documentElement.classList.remove(STATE_CLASSES.HIGH_CONTRAST)
+      }
+    }
+  },
+  setHighContrast: (payload) => {
+    store.state.highContrast =
+      typeof payload === TYPE_STRINGS.BOOLEAN ? (payload as boolean) : !store.state.highContrast
+
+    if (typeof localStorage !== TYPE_STRINGS.UNDEFINED) {
+      localStorage.setItem(PREF_STORAGE_KEYS.HIGH_CONTRAST, String(store.state.highContrast))
+    }
+
+    store.mutations.initHighContrast()
+  },
+  toggleHighContrast: () => {
+    store.mutations.setHighContrast(!store.state.highContrast)
+  },
 })

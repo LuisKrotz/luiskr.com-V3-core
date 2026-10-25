@@ -139,11 +139,94 @@
   }
 }
 
-// ── Burger strip (always visible) ───────────────────────────────────────────
+// ── Burger strip (always visible) — burger + flag + gear round chips. ──
 .#{$_B_NAV}-mobile-strip {
   display: flex;
   align-items: center;
+  gap: var(--space-xs);
+}
+
+// ── Round nav chips (flag language + gear preferences) — same disc
+// treatment as the burger wrap: 34px round, hover-inked. ──────────────
+.#{$_B_NAV}-flag-btn,
+.#{$_B_NAV}-gear-btn {
+  @extend %RESETBTN;
+
+  position: relative;
+  z-index: var(--z-nav);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--space-2xl);
+  min-width: var(--space-2xl);
+  border-radius: var(--radius-round);
+  background: var(--border-color);
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--border-color-hover, var(--border-color));
+  }
+}
+
+// Flag chip: the locale flag sits centered in the disc; on hover/focus
+// the chip stretches horizontally on the shared spring curve (the same
+// organic ease the mosaic tiles ride) and the language name slides in.
+.#{$_B_NAV}-flag-btn {
+  padding: 0 var(--space-sm);
   gap: 0;
+  transition:
+    background 0.2s ease,
+    padding 0.5s $ease-spring;
+
+  .#{$_B_NAV}-flag-label {
+    display: inline-block;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-left: 0;
+    font-family: var(--font-primary);
+    font-size: var(--space-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    transition:
+      max-width 0.5s $ease-spring,
+      opacity 0.25s ease,
+      margin-left 0.5s $ease-spring;
+  }
+
+  &:hover,
+  &:focus-visible {
+    padding: 0 var(--space-md);
+
+    .#{$_B_NAV}-flag-label {
+      max-width: var(--space-8xl);
+      opacity: 1;
+      margin-left: var(--space-xs);
+    }
+  }
+}
+
+// Gear chip: a drawn gear silhouette that spins a quarter-turn on
+// hover/focus — the preferences affordance.
+.#{$_B_NAV}-gear-svg {
+  width: var(--space-lg);
+  height: var(--space-lg);
+  fill: var(--text-primary);
+  transition: transform 0.6s $ease-spring;
+}
+
+.#{$_B_NAV}-gear-btn {
+  &:hover,
+  &:focus-visible {
+    .#{$_B_NAV}-gear-svg {
+      transform: rotate(120deg);
+    }
+  }
 }
 
 // ── Language dialog variant (4-column option grid) ───────────────────────────

@@ -1,0 +1,45 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  _focus.scss — keyboard-focus affordances for the DOCUMENT stylesheet AND
+//  every component shadow root.
+//
+//  Two rules, one authored file:
+//
+//  `focus-ring-scope` — the --focus-ring outline on every tabbable element.
+//  Custom chrome (bracket frames, underline sweeps) already exists per
+//  component, but a checker's border/outline probe needs a real `outline`
+//  declaration somewhere in the focus cascade — this is the universal
+//  baseline that guarantees it even where a component forgot one
+//  (IBM style_focus_visible). `:focus-visible` keeps it keyboard-only —
+//  pointer clicks never paint the ring.
+//
+//  `:focus` scroll-margin — the fixed nav rides over the page top and the
+//  consent banner over the bottom; when the browser auto-scrolls a newly
+//  focused control into view it can park it UNDER that chrome. Margins
+//  push the scroll destination clear on both edges so the focused element
+//  always lands visible (IBM element_tabbable_unobscured).
+//
+//  Two delivery paths consume this one authored file:
+//    1. Document: `@import 'structure/focus'` inside _structure.scss —
+//       the global <link> sheet.
+//    2. Shadow: `?inline`-imported into BASE_HOST_STYLES
+//       (core/tokens/styles.ts) — BaseComponent prepends that text to
+//       every component's adopted stylesheet, so the ring + margins
+//       reach shadow-DOM interactives the document sheet can't pierce.
+// ════════════════════════════════════════════════════════════════════════════
+
+// Self-contained compile chain — the `?inline` consumer (BASE_HOST_STYLES)
+// builds this file standalone, so the mixins + $-space tokens it uses must
+// resolve here. In the _structure.scss manifest path they are already
+// loaded; re-importing mixin/variable definitions emits no CSS.
+@import '../variables';
+@import '../mixins';
+
+@include focus-ring-scope;
+
+// --cookie-banner-h is published at runtime (0px when the banner is
+// dismissed), so the bottom margin tracks the real chrome height; the
+// top margin covers the nav bar + its resting offset.
+:focus {
+  scroll-margin-top: var(--space-10xl);
+  scroll-margin-bottom: calc(var(--cookie-banner-h) + var(--space-lg));
+}

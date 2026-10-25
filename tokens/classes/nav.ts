@@ -28,6 +28,10 @@ export const NAV_CLASSES = Object.freeze({
   NAV_SEPARATOR: `${_B_NAV}-separator`,
   NAV_MOBILE_STRIP: `${_B_NAV}-mobile-strip`,
   NAV_LOGO_BTN: `${_B_NAV}-logo-btn`,
+  NAV_FLAG_BTN: `${_B_NAV}-flag-btn`,
+  NAV_FLAG_LABEL: `${_B_NAV}-flag-label`,
+  NAV_GEAR_BTN: `${_B_NAV}-gear-btn`,
+  NAV_GEAR_SVG: `${_B_NAV}-gear-svg`,
   NAV_ABOUT_BTN: `${_B_NAV}-about-btn`,
   NAV_ACTION_BTN: `${_B_NAV}-action-btn`,
   NAV_PREF_BTN: `${_B_NAV}-pref-btn`,
@@ -71,4 +75,6 @@ export const NAV_MENU_CLASSES = Object.freeze({
   NAV_MENU_MODAL_SETTLED: `${_B_NAV_MENU_MODAL}--settled`,
   NAV_MENU_MODAL_FALLBACK: `${_B_NAV_MENU_MODAL}-fallback`,
   NAV_MENU_MODAL_GL_FALLBACK: `${_B_NAV_MENU_MODAL}--gl-fallback`,
+  NAV_MENU_MODAL_GROUP: `${_B_NAV_MENU_MODAL}-group`,
+  NAV_MENU_MODAL_GROUP_TITLE: `${_B_NAV_MENU_MODAL}-group-title`,
 })

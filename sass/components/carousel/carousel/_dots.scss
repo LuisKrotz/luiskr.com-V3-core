@@ -53,9 +53,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    // Visible dot drawn as ::after so we can keep a 24×24 px tap target
-    // while the visual indicator stays small. Lighthouse/WCAG require the
-    // actual element box to be ≥ 24×24 px — pseudo-elements don't count.
+    // Visible dot drawn as ::after so we can keep a 24×24 px tap target.
+    // The disc is sized to contain the slide number — WCAG requires the
+    // actual element box to be ≥ 24×24 px; pseudo-elements don't count.
     min-height: 24px;
     min-width: 24px;
     border-radius: 9999px;
@@ -66,7 +66,8 @@
     // overshoot makes the switch read organic rather than a dead ease.
     transition: min-width 0.5s $ease-spring;
 
-    // Visible dot — centred inside the 24px tap target
+    // Visible dot — a numbered disc centred inside the 24px tap target;
+    // the number itself renders on top (z-order over ::after).
     &::after {
       content: '';
       display: block;
@@ -80,10 +81,16 @@
     }
 
     &--active {
-      min-width: calc(#{$carousel-dot-pill} + 16px); // pill + extra tap zone
+      // Pill width + hairline keeps the tap target at the 24px floor.
+      min-width: calc(#{$carousel-dot-pill} + #{to-rem($space-xs)});
       &::after {
         width: $carousel-dot-pill;
         background: var(--grey);
+      }
+
+      // Active index inverts on the filled pill — dark-on-light there.
+      .#{$_B_CAROUSEL}-dot-num {
+        color: var(--bg-dark);
       }
     }
 
@@ -93,5 +100,24 @@
         background: var(--grey);
       }
     }
+  }
+
+  // Visible slide index — IBM input_label_visible requires a rendered
+  // label, not just aria-label. Lives INSIDE every dot: centred on the
+  // tap target so it sits over the ::after disc (and over the wider
+  // pill when active), weight 800 so the numeral reads at this size.
+  &-dot-num {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    z-index: 1;
+    font-size: to-rem($space-md);
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
+    color: var(--bg-dark);
+    pointer-events: none;
+    transition: color 0.25s ease;
   }
 }

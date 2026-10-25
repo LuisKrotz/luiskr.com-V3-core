@@ -20,9 +20,10 @@ $_B_CAROUSEL: 'carousel';
 
 /// Arrow-button hit area (square).
 $carousel-btn-size: to-rem($space-3xl);
-/// Dot diameter — inactive nav dots are small squares.
-$carousel-dot-size: to-rem($space-md);
-/// Pill length — the active dot stretches to a rounded pill.
+/// Dot diameter — each disc carries its slide number inside; 16px is
+/// the compact sweet spot (two digits at 800-weight still clear the rim).
+$carousel-dot-size: calc(#{to-rem($space-lg)} + #{to-rem($space-xs)});
+/// Pill length — the active dot stretches to a slim rounded pill.
 $carousel-dot-pill: to-rem($space-xl);
 /// Gap between nav dots.
 $carousel-dot-gap: to-rem($space-xs);

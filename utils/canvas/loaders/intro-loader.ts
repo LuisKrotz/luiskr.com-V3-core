@@ -43,6 +43,28 @@ function loaderCopy(): LoaderCopy {
 }
 
 /**
+ * Parks the veil in the DOM instead of detaching it. Chrome retracts a
+ * painted element's LCP candidacy on disconnect, so removeChild() after
+ * the fade would hand the metric back to the mount-gated hero — on
+ * media routes the runtime img/video lands ~6s later under throttle.
+ * The retired node swaps its whole class list for the --retired
+ * modifier (parked offscreen at left:100vw — rendered but out of view
+ * and the hit path, since content-visibility:hidden also retracts the
+ * LCP candidacy), gains aria-hidden, and drops off `.intro-loader`
+ * selectors so post-boot adoption can never re-find a dead veil. Same
+ * contract the parked reader-content article uses to keep its painted
+ * text the recorded LCP on media-less routes.
+ * @param veil the intro-loader container to retire; null-safe.
+ */
+const retireVeil = (veil: HTMLElement | null | undefined): void => {
+  if (!veil) return
+
+  veil.className = LOADER_CLASSES.INTRO_LOADER_RETIRED
+
+  veil.setAttribute(ARIA_ATTRS.ARIA_HIDDEN, ATTR_VALUES.TRUE)
+}
+
+/**
  * Experiments-style intro loader — spinner ring + percent + stage readout
  * + progress bar over a glow veil. The stage text steps through the
  * locale's `loader.stages` (site assets/pages copy) as progress climbs.
@@ -90,7 +112,7 @@ export class IntroLoader {
     const existing = document.querySelector<HTMLElement>(LOADER_SELECTORS.INTRO_LOADER)
 
     if (sessionStorage.getItem(CACHE_STORAGE_KEYS.INTRO_SHOWN)) {
-      existing?.remove()
+      retireVeil(existing)
 
       this.onComplete?.()
 
@@ -98,7 +120,7 @@ export class IntroLoader {
     }
 
     if (store.getters.getReducedMotion()) {
-      existing?.remove()
+      retireVeil(existing)
 
       sessionStorage.setItem(CACHE_STORAGE_KEYS.INTRO_SHOWN, CHAR_STRINGS.ONE)
 
@@ -241,24 +263,23 @@ export class IntroLoader {
     this.animId = framePool.request(update)
   }
 
-  /** Completes the loader: fades the overlay and calls onComplete. */
+  /** Completes the loader: fades the overlay, retires it, calls onComplete. */
   finish(): void {
     if (!this.container) return
 
     this.container.classList.add(LOADER_CLASSES.INTRO_LOADER_HIDDEN)
 
     setTimeout(() => {
-      if (this.container && this.container.parentNode) {
-        this.container.parentNode.removeChild(this.container)
+      retireVeil(this.container)
 
-        this.container = null
-      }
+      this.container = null
 
       this.onComplete?.()
     }, _FADE_MS)
   }
 
-  /** Releases the rAF handle and removes the overlay so it can be GC'd. */
+  /** Releases the rAF handle and retires the overlay (kept connected so a
+   *  painted LQIP's LCP candidacy survives teardown — see retireVeil). */
   destroy(): void {
     if (this.animId) {
       framePool.cancel(this.animId)
@@ -266,10 +287,8 @@ export class IntroLoader {
       this.animId = null
     }
 
-    if (this.container && this.container.parentNode) {
-      this.container.parentNode.removeChild(this.container)
+    retireVeil(this.container)
 
-      this.container = null
-    }
+    this.container = null
   }
 }

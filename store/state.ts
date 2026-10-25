@@ -124,6 +124,7 @@ export interface StoreState {
   showhover: boolean
   storage: string
   reducedMotion: boolean
+  highContrast: boolean
   theme: string
   showStatsForNerds: boolean
   showGrid: boolean
@@ -167,6 +168,7 @@ export interface StoreGetters {
   getLangDialogOpen: () => boolean
   getModalOrigin: () => { x: number; y: number } | null
   getReducedMotion: () => boolean
+  getHighContrast: () => boolean
   getVideoAutoplay: () => boolean
   getStatsForNerds: () => boolean
   getShowGrid: () => boolean
@@ -272,6 +274,16 @@ export const createInitialState = (): StoreState => {
         ? localStorage.getItem(PREF_STORAGE_KEYS.REDUCED_MOTION) === ATTR_VALUES.TRUE
         : typeof window !== TYPE_STRINGS.UNDEFINED && window.matchMedia
           ? window.matchMedia(MEDIA_QUERIES.PREFERS_REDUCED_MOTION).matches
+          : false,
+    // Persisted high-contrast wins; otherwise seed from the OS flags —
+    // Windows HC (forced-colors) or the generic increased-contrast query.
+    highContrast:
+      typeof localStorage !== TYPE_STRINGS.UNDEFINED &&
+      localStorage.getItem(PREF_STORAGE_KEYS.HIGH_CONTRAST) !== null
+        ? localStorage.getItem(PREF_STORAGE_KEYS.HIGH_CONTRAST) === ATTR_VALUES.TRUE
+        : typeof window !== TYPE_STRINGS.UNDEFINED && window.matchMedia
+          ? window.matchMedia(MEDIA_QUERIES.FORCED_COLORS).matches ||
+            window.matchMedia(MEDIA_QUERIES.PREFERS_CONTRAST).matches
           : false,
     theme:
       (typeof localStorage !== TYPE_STRINGS.UNDEFINED &&

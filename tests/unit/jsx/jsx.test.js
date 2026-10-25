@@ -47,6 +47,17 @@ describe('JSX Runtime & Native DOM Construction', () => {
     expect(svg.getAttribute('viewBox')).toBe('0 0 100 100')
   })
 
+  test('creates SMIL animation elements in the SVG namespace', () => {
+    // SMIL elements built through plain createElement land as
+    // HTMLUnknownElement and their animations silently never run —
+    // every motion tag must route through createElementNS.
+    for (const tag of ['animate', 'animateTransform', 'animateMotion', 'set', 'mpath', 'discard']) {
+      const el = h(tag, null)
+
+      expect(el.namespaceURI).toBe(SVG_STRINGS.SVG_XMLNS)
+    }
+  })
+
   test('attaches event listeners', () => {
     let clicked = false
     const btn = h(

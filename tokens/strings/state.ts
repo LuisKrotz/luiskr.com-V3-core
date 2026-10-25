@@ -31,5 +31,7 @@ export const STATE_STRINGS = Object.freeze({
   LANDSCAPE: 'landscape',
   PORTRAIT: 'portrait',
   MOBILE: 'mobile',
+  PLAYING: 'playing',
+  PAUSED: 'paused',
   SYSTEM: _K_SYSTEM,
 })

@@ -75,6 +75,12 @@
     rgba($color-black, 0.12) 55%,
     transparent 100%
   );
+
+  // Windows High Contrast strips background images/gradients — without the
+  // scrim the white title sits directly on the photo and can wash out.
+  // Keep the forced palette OFF this decorative layer so the gradient keeps
+  // doing its job (IBM img_alt_background / style_highcontrast_visible).
+  forced-color-adjust: none;
 }
 
 // Card title text inside the overlay.

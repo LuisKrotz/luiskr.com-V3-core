@@ -62,6 +62,38 @@ $_B_LOADER: 'intro-loader';
     pointer-events: none;
   }
 
+  // Retired state — the fade finished but the node stays DOM-connected,
+  // parked offscreen exactly like the reader-content article: rendered
+  // (layout state preserved) but out of view and the hit path. Deleting
+  // it — or un-rendering it with content-visibility:hidden — retracts a
+  // painted LQIP's LCP candidacy: Chrome disqualifies candidates whose
+  // elements stop rendering, and the metric re-latches to the
+  // mount-gated hero/video several seconds later. The modifier REPLACES
+  // the base class list (retireVeil swaps className wholesale), so the
+  // fixed positioning has to live here too — a static retired div would
+  // ignore `left`, drop the LQIP against the initial containing block,
+  // and leave a faint 70–96% ghost image painting over the page forever.
+  &--retired {
+    position: fixed;
+    inset: 0;
+    left: 100vw;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    pointer-events: none;
+
+    // Everything except the LQIP stops rendering once parked — the spin
+    // animations, glow and grid would otherwise keep compositing
+    // offscreen forever. The LQIP itself must stay rendered: it is the
+    // LCP candidate this retirement exists to preserve.
+    .#{$_B_LOADER}-content,
+    .#{$_B_LOADER}-glow,
+    .#{$_B_LOADER}-grid {
+      content-visibility: hidden;
+    }
+  }
+
   // Radial glow behind the content — same treatment as the experiment
   // loaders: a dim electric halo sinking into the dark.
   &-glow {
@@ -92,21 +124,32 @@ $_B_LOADER: 'intro-loader';
     mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, var(--bg-dark) 70%, transparent 100%);
   }
 
-  // Route-hero blur preview — localized pages inline the smallest media
-  // variant as a data URI (the build-locale-pages LQIP pass), so the
-  // veil paints a contentful image in the very first frame, sharing the
-  // FCP frame. Faint but visible: a true blur-up behind the glow/grid —
-  // fully transparent layers could be occlusion-culled before their
-  // first paint-timing entry lands. The height sits one token step
-  // short of the full veil on purpose: mobile paint-timing ignores
-  // exact-viewport boxes as background.
+  // Route-hero blur preview — localized pages inline a media variant as
+  // a data URI (the build-locale-pages LQIP pass), so the veil paints a
+  // contentful image in the very first frame, sharing the FCP frame.
+  // Faint but visible: a true blur-up behind the glow/grid — fully
+  // transparent layers could be occlusion-culled before their first
+  // paint-timing entry lands. Two coverage tiers because paint-timing
+  // disqualifies viewport-dominating images with too few bytes behind
+  // the painted area as page background (measured live — an 846-byte
+  // webp never produced a candidate at 80–99% coverage but reported at
+  // ~113k px² once the box dropped to 70%): the base box stays at 70%
+  // so sub-8KB thumbs keep their candidacy, while the --full modifier
+  // (emitted only for ≥8KB payloads, which pass the entropy check) fills
+  // the viewport to out-size every mounted hero media (~57–200k px²).
   &-lqip {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: calc(100% - #{to-rem($space-3xs)});
+    inset: 15%;
+    width: 70%;
+    height: 70%;
     object-fit: cover;
     opacity: 0.15;
+
+    &--full {
+      inset: 2%;
+      width: 96%;
+      height: 96%;
+    }
   }
 
   &-content {

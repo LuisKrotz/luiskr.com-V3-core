@@ -13,6 +13,7 @@ export const PREF_STORAGE_KEYS = Object.freeze({
   VIDEO_AUTOPLAY: 'videoAutoplay',
   LOCALE: 'locale',
   REDUCED_MOTION: 'reducedMotion',
+  HIGH_CONTRAST: 'highContrast',
   THEME: 'theme',
   STATS_FOR_NERDS: 'statsForNerds',
   SHOW_GRID: 'showGrid',

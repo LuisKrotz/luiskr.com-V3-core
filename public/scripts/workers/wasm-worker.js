@@ -93,24 +93,120 @@ self.onmessage = async (e) => {
       results: { position: newPosition, velocity: newVelocity },
     })
   } else if (type === 'DOCS_SCENE_LAYOUT') {
-    // Docs architecture scene: batch radial-tree positions off-thread.
-    // Payload: { depths: number[], angles: number[] } — results carry the
-    // flattened xyz triplets in node order (the formula mirrors the
-    // main-thread fallback in arch-scene.ts; DOCS_UNITS is the source).
-    const { depths = [], angles = [] } = payload
-    const xyz = new Float32Array(depths.length * 3)
+    // Docs architecture scene: batch hierarchical-sphere positions
+    // off-thread. Payload: { parents, sibs, sibCounts, dirs } — results
+    // carry the flattened xyz triplets in node order (the formula mirrors
+    // the main-thread fallback in arch-scene.ts; DOCS_UNITS is the source:
+    // MIN_ORBIT 3 / MIN_SEP 5 / CHILD_SCALE 0.45 / GLYPH_MAX 3 /
+    // DIR_RADIUS 1.15 / FILE_RADIUS 0.55 / golden angle 2.399963 /
+    // spin hash 4.208). Cluster radii use the reference's shrink-ratio
+    // orbit with a sibling-glyph clearance floor — a single forward
+    // pass (parents precede children in placed order), NOT subtree-
+    // extent packing, which grows exponentially past ~a hundred nodes.
+    const { parents = [], sibs = [], sibCounts = [], dirs = [] } = payload
+    const n = parents.length
+    const xyz = new Float32Array(n * 3)
+    const scale = new Float32Array(n)
+    const cluster = new Float64Array(n)
+    const kids = new Int32Array(n)
+    const GA = 2.399963
+    const SPIN = 4.208
+    const MIN_ORBIT = 3
+    const MIN_SEP = 5
+    const CHILD_SCALE = 0.45
+    const GLYPH_MAX = 3
+    const DIR_R = 1.15
+    const FILE_R = 0.55
+    const GLYPH_FIT = 0.16
 
-    for (let i = 0; i < depths.length; i++) {
-      const d = depths[i]
-      const a = angles[i]
-      const r = 6 + d * 12
+    for (let i = 0; i < n; i++) if (parents[i] >= 0) kids[parents[i]]++
 
-      xyz[i * 3] = Math.cos(a) * r
-      xyz[i * 3 + 1] = ((d % 3) - 1) * 4 + Math.sin(i * 2.399963) * 5
-      xyz[i * 3 + 2] = Math.sin(a) * r
+    for (let i = 0; i < n; i++) {
+      const k = kids[i]
+      const p = parents[i]
+      const inherited = p >= 0 ? cluster[p] * CHILD_SCALE : 0
+
+      cluster[i] =
+        k === 0
+          ? 0
+          : Math.max(
+              MIN_ORBIT,
+              inherited,
+              (2 * GLYPH_MAX + MIN_SEP) / (2 * Math.sin(Math.PI / Math.max(k, 2)))
+            )
     }
 
-    self.postMessage({ id, type: 'DOCS_SCENE_LAYOUT_RESULT', results: { xyz } }, [xyz.buffer])
+    for (let i = 0; i < n; i++) {
+      const p = parents[i]
+      const orbit = p < 0 ? cluster[0] : cluster[p]
+      const base = dirs[i] ? DIR_R : FILE_R
+
+      // Orbit-proportional glyph (the reference's icon-to-orbit ratio),
+      // capped at GLYPH_MAX — the size the sibling chord guarantees;
+      // the root always renders at GLYPH_MAX (the big center hub).
+      scale[i] =
+        p < 0 ? GLYPH_MAX / base : Math.max(1, Math.min(GLYPH_FIT * orbit, GLYPH_MAX) / base)
+
+      if (p < 0) continue
+
+      const c = Math.max(sibCounts[i], 1)
+      const s = sibs[i]
+      const phi = Math.acos(1 - (2 * (s + 0.5)) / c)
+      const theta = s * GA + p * SPIN
+
+      xyz[i * 3] = xyz[p * 3] + orbit * Math.sin(phi) * Math.cos(theta)
+      xyz[i * 3 + 1] = xyz[p * 3 + 1] + orbit * Math.cos(phi)
+      xyz[i * 3 + 2] = xyz[p * 3 + 2] + orbit * Math.sin(phi) * Math.sin(theta)
+    }
+
+    // Pairwise relax — the sibling chord covers siblings; rare cross-
+    // branch collisions get nudged apart by half the deficit each
+    // (root stays anchored). Mirrors layoutPositionsJs in arch-scene.ts.
+    const radii = new Float64Array(n)
+
+    for (let i = 0; i < n; i++) radii[i] = (dirs[i] ? DIR_R : FILE_R) * scale[i]
+
+    for (let iter = 0; iter < 12; iter++) {
+      let moved = false
+
+      for (let a = 0; a < n; a++) {
+        for (let b = a + 1; b < n; b++) {
+          const need = radii[a] + radii[b] + MIN_SEP
+          const dx = xyz[b * 3] - xyz[a * 3]
+          const dy = xyz[b * 3 + 1] - xyz[a * 3 + 1]
+          const dz = xyz[b * 3 + 2] - xyz[a * 3 + 2]
+          const d = Math.hypot(dx, dy, dz)
+
+          if (d >= need) continue
+
+          const anchored = a === 0
+          const push = (need - d) / (anchored ? 1 : 2)
+          const inv = d > 1e-6 ? 1 / d : 0
+          const ux = inv ? dx * inv : Math.cos(a * SPIN)
+          const uy = inv ? dy * inv : 0.5
+          const uz = inv ? dz * inv : Math.sin(a * SPIN)
+
+          if (!anchored) {
+            xyz[a * 3] -= ux * push
+            xyz[a * 3 + 1] -= uy * push
+            xyz[a * 3 + 2] -= uz * push
+          }
+
+          xyz[b * 3] += ux * push
+          xyz[b * 3 + 1] += uy * push
+          xyz[b * 3 + 2] += uz * push
+
+          moved = true
+        }
+      }
+
+      if (!moved) break
+    }
+
+    self.postMessage({ id, type: 'DOCS_SCENE_LAYOUT_RESULT', results: { xyz, scale } }, [
+      xyz.buffer,
+      scale.buffer,
+    ])
   } else if (type === 'COMPUTE_TEXT_TIMING') {
     const { totalChars = 0, targetDurationMs = 1800, idx = 0, charsBefore = 0 } = payload
     const delay =

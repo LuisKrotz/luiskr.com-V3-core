@@ -26,6 +26,8 @@ export const AWC_CLASSES = Object.freeze({
   AWC_DOTS: `${_B_AWC}-dots`,
   AWC_DOT: _B_AWC_DOT,
   AWC_DOT_ACTIVE: `${_B_AWC_DOT}--active`,
+  /** Visible slide number inside each dot — IBM input_label_visible. */
+  AWC_DOT_NUM: `${_B_AWC_DOT}-num`,
   AWC_TRACK: `${_B_AWC}-track`,
   AWC_TRACK_ANIMATING: `${_B_AWC}-track--animating`,
   AWC_SLIDE: _B_AWC_SLIDE,

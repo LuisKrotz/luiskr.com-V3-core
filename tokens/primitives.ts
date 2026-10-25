@@ -38,6 +38,10 @@ export const MEDIA_QUERIES = Object.freeze({
   MIN_WIDTH_1025: '(min-width: 1025px)',
   PREFERS_COLOR_DARK: '(prefers-color-scheme: dark)',
   PREFERS_REDUCED_MOTION: '(prefers-reduced-motion: reduce)',
+  /** Windows HC mode — the OS flag the High Contrast pref defaults from. */
+  FORCED_COLORS: '(forced-colors: active)',
+  /** Non-Windows increased-contrast signal — pairs with forced-colors. */
+  PREFERS_CONTRAST: '(prefers-contrast: more)',
   PRINT: 'print',
 })
 

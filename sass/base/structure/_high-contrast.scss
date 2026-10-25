@@ -1,0 +1,134 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  structure/_high-contrast.scss — html.high-contrast overrides — pushes every
+//  themed surface/ink token to maximum contrast. Two variants, applied on top
+//  of the base themes (the class stacks with .dark-mode):
+//    html.high-contrast            → high-contrast LIGHT
+//    html.high-contrast.dark-mode  → high-contrast DARK
+//  The switch lives in Preferences → Accessibility; the html class is flipped
+//  by store/mutations/theme.ts (initHighContrast/setHighContrast).
+//  Imported by _structure.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── High-contrast LIGHT — pure white field, near-black inks, opaque borders.
+// Every var the base/dark themes define gets a stronger-contrast value here
+// so no token stays at its decorative alpha when HC is on.
+html.high-contrast {
+  // Surfaces stay white-family but borders and inks go opaque.
+  --bg-primary: #ffffff;
+  --bg-secondary: #ffffff;
+  --bg-dark: #0d0d0d;
+  --bg-dark-alpha: #{rgba($color-black, 0.97)};
+  --bg-darker: #000000;
+  --bg-darkest: #000000;
+  --text-primary: #000000;
+  --text-secondary: #262626;
+  // Muted ink gets no alpha — pure black text on the white field.
+  --text-muted: #404040;
+  --text-muted-on-dark: #ffffff;
+  --border-color: #000000;
+  --border-color-on-dark: var(--color-white-raw);
+  --border-item: #{rgba($color-black, 0.55)};
+  --border-item-hover: var(--color-white-raw);
+  --border-item-featured: var(--color-white-raw);
+  --color-accent-contrast: #{darken($cms-accent, 30%)};
+  --focus-ring: #{darken($cms-accent, 30%)};
+  --btn-accent-fill: #{rgba($color-black, 0.12)};
+  --glass-bg: #{rgba($color-white, 0.98)};
+
+  // Menu inks pushed to the deepest end of the palette.
+  --menu-bg: #ffffff;
+  --menu-ink: #000000;
+  --menu-ink-2: #262626;
+
+  // No ambient wash in HC — a plain field keeps edges unambiguous.
+  --bg-glow: none;
+  --filament-glow: none;
+  --metallic-hairline: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.9) 50%,
+    transparent 100%
+  );
+
+  // Burn palette — hard-edged ember ramp on white (no soft scorch).
+  --burn-core: #000000;
+  --burn-mid: #7a1f00;
+  --burn-edge: #e04400;
+  --burn-scorch: #{rgba($color-black, 0.9)};
+  --burn-smoke: #{rgba($color-black, 0.85)};
+
+  // Shadows become hard hairline rings — no soft blur ambiguity.
+  --shadow-card: 0 0 0 0.125rem rgba(0, 0, 0, 0.85);
+  --shadow-card-featured: 0 0 0 0.125rem rgba(0, 0, 0, 0.85), 0 0 0 0.25rem rgba(0, 0, 0, 0.25);
+  --shadow-card-hover: 0 0 0 0.1875rem rgba(0, 0, 0, 0.95);
+
+  --white: #ffffff;
+  --black: #000000;
+  --grey: #404040;
+  --grey-2: #e8e8e8;
+  --grey-3: #262626;
+
+  --skel-ink: var(--text-primary);
+  --skel-bg-1: color-mix(in srgb, var(--bg-secondary) 75%, var(--bg-dark) 25%);
+  --skel-bg-2: color-mix(in srgb, var(--bg-secondary) 60%, var(--bg-dark) 40%);
+  --skel-bg-3: var(--skel-bg-1);
+}
+
+// ── High-contrast DARK — pure black field, pure white inks, opaque borders.
+html.high-contrast.dark-mode {
+  --bg-primary: #000000;
+  --bg-secondary: #000000;
+  --bg-dark: #000000;
+  --bg-dark-alpha: #{rgba($color-black, 0.97)};
+  --bg-darker: #0d0d0d;
+  --bg-darkest: #000000;
+  --text-primary: #ffffff;
+  --text-secondary: #f2f2f2;
+  --text-muted: #d9d9d9;
+  --text-muted-on-dark: #d9d9d9;
+  --border-color: var(--color-white-raw);
+  --border-color-on-dark: var(--color-white-raw);
+  --border-item: #{rgba($color-white, 0.55)};
+  --border-item-hover: var(--color-white-raw);
+  --border-item-featured: var(--color-white-raw);
+  --color-accent-contrast: #{$cms-accent-hover};
+  --focus-ring: #{$cms-accent-hover};
+  --btn-accent-fill: #{rgba($color-white, 0.22)};
+  --glass-bg: #{rgba($color-black, 0.97)};
+
+  --menu-bg: #000000;
+  --menu-ink: var(--color-white-raw);
+  --menu-ink-2: var(--color-white-raw);
+
+  --bg-glow: none;
+  --filament-glow: none;
+  --metallic-hairline: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.9) 50%,
+    transparent 100%
+  );
+
+  // Burn palette — white-hot core on black, hard scorch band.
+  --burn-core: #ffffff;
+  --burn-mid: #{$cms-accent};
+  --burn-edge: #{$cms-accent-hover};
+  --burn-scorch: #{rgba($color-black, 0.95)};
+  --burn-smoke: #{rgba($color-white, 0.75)};
+
+  --shadow-card: 0 0 0 0.125rem rgba(255, 255, 255, 0.85);
+  --shadow-card-featured:
+    0 0 0 0.125rem rgba(255, 255, 255, 0.95), 0 0 0 0.25rem rgba(255, 255, 255, 0.35);
+  --shadow-card-hover: 0 0 0 0.1875rem rgba(255, 255, 255, 1);
+
+  --white: #000000;
+  --black: #ffffff;
+  --grey: #d9d9d9;
+  --grey-2: #ffffff;
+  --grey-3: #f2f2f2;
+
+  --skel-ink: var(--text-primary);
+  --skel-bg-1: color-mix(in srgb, var(--bg-secondary) 75%, var(--color-white-raw) 25%);
+  --skel-bg-2: color-mix(in srgb, var(--bg-secondary) 60%, var(--color-white-raw) 40%);
+  --skel-bg-3: var(--skel-bg-1);
+}

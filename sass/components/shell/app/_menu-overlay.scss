@@ -183,6 +183,34 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
 // above the overlay at exactly the same coordinates and morphs into the
 // close control — stacking a second one would paint two Xs.
 
+// Category divider inside the item column — a small uppercase heading
+// ("Experiments") separating the playground links from the main items.
+.#{$_B_NAV}-menu-modal-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: var(--space-7xl);
+  max-width: calc(100vw - var(--space-3xl));
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: var(--space-hairline);
+    background: var(--menu-ink, var(--text-primary));
+    opacity: 0.25;
+  }
+}
+
+.#{$_B_NAV}-menu-modal-group-title {
+  font-family: var(--font-primary);
+  font-size: var(--space-md);
+  font-weight: 700;
+  letter-spacing: var(--space-xs);
+  text-transform: uppercase;
+  color: var(--menu-ink-2, var(--text-muted));
+}
+
 // Menu item column, centered.
 .#{$_B_NAV}-menu-modal-content {
   position: relative;

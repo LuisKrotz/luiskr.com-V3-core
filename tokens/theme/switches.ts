@@ -16,4 +16,5 @@ export const SWITCH_TYPES = Object.freeze({
   MOTION: 'motion',
   CYAN: 'cyan',
   SPACE: 'space',
+  CONTRAST: 'contrast',
 })

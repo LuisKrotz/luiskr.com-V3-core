@@ -431,26 +431,29 @@ $cov-link-dark: #58a6ff;
 // for both themes (the inlined prettify.css ships light-only colors).
 // Light set = VS Code "Material Light", dark set = Dracula — the two
 // themes the owner has installed in the editor.
-/// Light theme — strings/attribute values (Material Light green).
-$cov-syn-str: #91b859;
-/// Light theme — keywords/tags (Material Light violet).
-$cov-syn-kwd: #7c4dff;
-/// Light theme — comments (Material Light slate).
-$cov-syn-com: #aabfc9;
-/// Light theme — types/attrs/decls/vars (Material Light ochre).
-$cov-syn-typ: #e2931d;
-/// Light theme — literals (Material Light orange).
-$cov-syn-lit: #f76d47;
-/// Light theme — punctuation/operators/closers (Material Light steel).
-$cov-syn-pun: #90a4ae;
-/// Light theme — function names (Material Light blue).
-$cov-syn-fun: #6182b8;
+/// Light theme — strings/attribute values (Material Light green,
+/// deepened to ~6:1 on --bg-secondary for WCAG AA text).
+$cov-syn-str: #33691e;
+/// Light theme — keywords/tags (deep purple 600 — 7.5:1 AAA).
+$cov-syn-kwd: #5e35b1;
+/// Light theme — comments (slate — 7.1:1 AAA; the original Material
+/// Light slate sat at 1.8:1 and was unreadable on the code pane).
+$cov-syn-com: #4a5560;
+/// Light theme — types/attrs/decls/vars (amber 900 — 5.4:1 AA).
+$cov-syn-typ: #8f5b00;
+/// Light theme — literals (deep orange-red — 5.3:1 AA).
+$cov-syn-lit: #c62800;
+/// Light theme — punctuation/operators/closers (blue-grey 700 — 6.8:1).
+$cov-syn-pun: #455a64;
+/// Light theme — function names (indigo 800 — 7.2:1 AAA).
+$cov-syn-fun: #34518f;
 /// Dark theme — strings (Dracula yellow).
 $cov-syn-str-dark: #f1fa8c;
 /// Dark theme — keywords/tags (Dracula pink).
 $cov-syn-kwd-dark: #ff79c6;
-/// Dark theme — comments (Dracula muted blue-grey).
-$cov-syn-com-dark: #6272a4;
+/// Dark theme — comments (lighter Dracula slate — 7.9:1 AAA on
+/// --bg-secondary; the original 4.38:1 sat under the AA floor).
+$cov-syn-com-dark: #93a1bd;
 /// Dark theme — types/attrs/decls/vars (Dracula cyan).
 $cov-syn-typ-dark: #8be9fd;
 /// Dark theme — literals (Dracula purple).

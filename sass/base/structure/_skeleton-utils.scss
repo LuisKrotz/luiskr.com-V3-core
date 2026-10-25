@@ -15,6 +15,24 @@
 
 // Skeleton placeholder surface + shimmer — driven entirely by CSS (no JS loop; the old rAF version froze iOS).
 .skeleton {
+  // Pending-content host: reserves the section's flow height while data
+  // resolves so below-fold siblings never enter the viewport early.
+  &-host {
+    position: relative;
+    display: block;
+    min-height: 100dvh;
+  }
+
+  // Placeholder layer: paints inside the host's reserved box without
+  // joining flow — a flow-positioned placeholder's removal counts its
+  // vacated area as a layout shift (CLS), while an absolute overlay's
+  // removal moves no sibling box.
+  &-overlay {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
   &--shimmer,
   &-cover,
   &-placeholder {
@@ -247,5 +265,6 @@
 }
 
 // ── Keyboard focus ring ─────────────────────────────────────────────────────
-// Emitted here so it lands in the document AND inside every component shadow
-// root that imports this file — :focus-visible fires for keyboard focus only,
+// The focus-ring-scope emission lives in structure/_focus.scss — imported
+// into this same manifest for the document sheet and `?inline`-compiled
+// into BASE_HOST_STYLES for every shadow root.

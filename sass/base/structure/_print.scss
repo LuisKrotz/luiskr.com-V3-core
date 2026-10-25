@@ -19,8 +19,10 @@
 }
 
 @media print {
-  // The veil exists only until mount — never on paper.
-  .intro-loader {
+  // The veil exists only until mount — never on paper. The retired
+  // modifier is what a finished veil keeps as its whole class list.
+  .intro-loader,
+  .intro-loader--retired {
     display: none;
   }
 

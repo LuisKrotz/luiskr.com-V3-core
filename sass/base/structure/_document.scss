@@ -242,7 +242,12 @@ main {
     content-visibility: hidden;
   }
 
-  html.js &--painted {
+  // `:not(&--offscreen)` — the runtime adds --offscreen on view mount;
+  // without it the painted rules share the same specificity as the parked
+  // `html.js &` block above but lose source-order only on the props they
+  // set — the article would stay fixed+inset:0+content-visibility:auto
+  // (laid out and painted over the viewport) forever after mount.
+  html.js &--painted:not(&--offscreen) {
     // Media-less routes (legal pages) have no LQIP to paint in the veil —
     // the article's own text is then the only early-LCP candidate, so it
     // stays painted under the opaque veil: fixed (never shifts layout),

@@ -36,6 +36,9 @@ export const CHAR_STRINGS = Object.freeze({
   EXPAND_GLYPH: '⤢',
   /** Dismiss/close control glyph (multiplication cross). */
   CLOSE_GLYPH: '✕',
+  /** Playback toggle glyphs for ambient-media controls (triangle / pause bars). */
+  PLAY_GLYPH: '▶',
+  PAUSE_GLYPH: '❚❚',
   SPACE_CHAR: ' ',
   NBSP: ' ',
   ZERO: '0',

@@ -3,7 +3,7 @@
  * @description App shell element id tokens — token group.
  */
 
-import { _K_VIEW_OUTLET } from '../base.js'
+import { _B_COOKIES, _K_VIEW_OUTLET } from '../base.js'
 
 /**
  * Frozen app element-id map — sole declaration site for these tokens; consumers read members
@@ -39,4 +39,13 @@ export const APP_IDS = Object.freeze({
   /** Nav menu overlay title — aria-labelledby target for the open menu
    *  navigation landmark. */
   NAV_MENU_TITLE: 'nav-menu-title',
+  /** Cookie-banner message text — aria-labelledby target giving the
+   *  consent aside a *visible* label (aria-label alone is invisible). */
+  COOKIES_INFO: `${_B_COOKIES}-info`,
+  /** Parked reader article — the light-DOM skip link's static target.
+   *  Deliberately different from MAIN_CONTENT (which lives inside the
+   *  app-root shadow tree): identical ids across trees are legal, but
+   *  DOM-wide uniqueness checkers count the composed tree. At runtime a
+   *  delegated handler re-aims the link at the shadow #main-content. */
+  READER_CONTENT: 'reader-content',
 })

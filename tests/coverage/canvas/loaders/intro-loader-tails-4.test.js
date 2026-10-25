@@ -15,6 +15,8 @@ import { LOADER_SELECTORS } from '@core/tokens/selectors/loader.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
 import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
+import { ARIA_ATTRS } from '@core/tokens/attrs/aria.js'
+import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
 
@@ -54,7 +56,9 @@ describe('intro-loader static-markup adoption', () => {
   afterEach(() => {
     sessionStorage.removeItem(CACHE_STORAGE_KEYS.INTRO_SHOWN)
     store.commit(PREF_MUTATIONS.SET_REDUCED_MOTION, false)
-    document.querySelector(LOADER_SELECTORS.INTRO_LOADER)?.remove()
+    document
+      .querySelectorAll(`${LOADER_SELECTORS.INTRO_LOADER},.${LOADER_CLASSES.INTRO_LOADER_RETIRED}`)
+      .forEach((el) => el.remove())
   })
 
   test('adopts the statically-emitted node instead of building a second overlay', async () => {
@@ -74,7 +78,7 @@ describe('intro-loader static-markup adoption', () => {
     loader.container?.remove()
   })
 
-  test('once-per-session early return removes the static veil', () => {
+  test('once-per-session early return retires the static veil', () => {
     sessionStorage.setItem(CACHE_STORAGE_KEYS.INTRO_SHOWN, '1')
 
     const el = mountStaticLoader()
@@ -83,10 +87,16 @@ describe('intro-loader static-markup adoption', () => {
 
     expect(done).toHaveBeenCalled()
     expect(loader.container).toBeNull()
-    expect(el.isConnected).toBe(false)
+
+    // Retired, never detached — disconnecting would retract a painted
+    // LQIP's LCP candidacy; the node swaps to the --retired class and
+    // drops off .intro-loader selectors instead.
+    expect(el.isConnected).toBe(true)
+    expect(el.className).toBe(LOADER_CLASSES.INTRO_LOADER_RETIRED)
+    expect(el.getAttribute(ARIA_ATTRS.ARIA_HIDDEN)).toBe(ATTR_VALUES.TRUE)
   })
 
-  test('reduced-motion early return removes the static veil', () => {
+  test('reduced-motion early return retires the static veil', () => {
     store.commit(PREF_MUTATIONS.SET_REDUCED_MOTION, true)
 
     const el = mountStaticLoader()
@@ -95,6 +105,7 @@ describe('intro-loader static-markup adoption', () => {
 
     expect(done).toHaveBeenCalled()
     expect(loader.container).toBeNull()
-    expect(el.isConnected).toBe(false)
+    expect(el.isConnected).toBe(true)
+    expect(el.className).toBe(LOADER_CLASSES.INTRO_LOADER_RETIRED)
   })
 })

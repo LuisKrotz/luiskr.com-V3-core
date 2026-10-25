@@ -48,6 +48,8 @@ export const NAV_UI_KEYS = Object.freeze({
   /** Keyboard skip-link label ('skip' in the APP dictionary). */
   SKIP: 'skip',
   SITE_PREFERENCES: 'sitePreferences',
+  EXPERIMENTS: 'experiments',
+  SCROLL_UP: 'scrollUp',
 })
 
 /**

@@ -10,14 +10,19 @@
 //  Split by domain into structure/ partials (imported below):
 //    _tokens          :root token publication (colors → plasma)
 //    _dark-mode       html.dark-mode token overrides
+//    _high-contrast   html.high-contrast(+.dark-mode) token overrides
 //    _document        html/body resets, backdrop drift, #app, element reset
-//    _skeleton-utils  skeleton keyframes + classes + focus-ring emit
+//    _skeleton-utils  skeleton keyframes + classes
+//    _a11y            .sr-only hiding + .skip-link reveal
+//    _focus           focus-ring scope emission + focus scroll-margins
 //    _print           @media print surface — last so its ties win
 // ════════════════════════════════════════════════════════════════════════════
 
 @import 'structure/tokens';
 @import 'structure/dark-mode';
+@import 'structure/high-contrast';
 @import 'structure/document';
 @import 'structure/skeleton-utils';
 @import 'structure/a11y';
+@import 'structure/focus';
 @import 'structure/print';

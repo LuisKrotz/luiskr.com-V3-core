@@ -22,6 +22,7 @@ export const createGetters = (store: Store): StoreGetters => ({
   getLangDialogOpen: () => store.state.langDialogOpen,
   getModalOrigin: () => store.state.modalOrigin,
   getReducedMotion: () => store.state.reducedMotion,
+  getHighContrast: () => store.state.highContrast,
   getVideoAutoplay: () => store.state.videoAutoplay,
   getStatsForNerds: () => store.state.showStatsForNerds,
   getShowGrid: () => store.state.showGrid,

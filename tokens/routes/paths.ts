@@ -75,4 +75,9 @@ export const ASSET_PATHS = Object.freeze({
   ORT_WASM_PREFIX: '/ort/',
   /** Generated ONNX model files — `/models/<slug>.onnx`. */
   ML_MODELS_PREFIX: '/models/',
+  /** Shared empty WebVTT caption track — muted ambient/showcase videos
+   *  carry no meaningful audio, so the caption file is intentionally
+   *  empty; its presence satisfies caption_track_exists with an honest
+   *  "nothing to caption" track. */
+  EMPTY_CAPTIONS: '/assets/empty-captions.vtt',
 })

@@ -7,11 +7,19 @@ import { LOCALES, THEME } from '@core/constants.js'
 import store from '@core/store.js'
 
 import '@website/components/feedback/CookieBanner.js'
-import { DATA_MUTATIONS, LANG_MUTATIONS, MODAL_MUTATIONS, PREF_MUTATIONS, UI_MUTATIONS } from '@core/tokens/events/mutations.js'
+import {
+  DATA_MUTATIONS,
+  LANG_MUTATIONS,
+  MODAL_MUTATIONS,
+  PREF_MUTATIONS,
+  UI_MUTATIONS,
+} from '@core/tokens/events/mutations.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
 import { PREF_STORAGE_KEYS } from '@core/tokens/data/storage.js'
 import { STATE_STRINGS } from '@core/tokens/strings/state.js'
+import { STATE_CLASSES } from '@core/tokens/classes/state.js'
+import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 
 describe('store tails', () => {
   test('applyTheme covers dark/light/system resolution', () => {
@@ -66,6 +74,64 @@ describe('store tails', () => {
 
     delete window.ontouchstart
     jest.resetModules()
+  })
+
+  test('stored highContrast seeds the state at boot', async () => {
+    localStorage.setItem(PREF_STORAGE_KEYS.HIGH_CONTRAST, STATE_STRINGS.TRUE)
+
+    jest.resetModules()
+    const mod = await import('@core/store.js')
+    const s = mod.default
+
+    expect(s.state.highContrast).toBe(true)
+    expect(s.getters.getHighContrast()).toBe(true)
+
+    localStorage.setItem(PREF_STORAGE_KEYS.HIGH_CONTRAST, STATE_STRINGS.FALSE)
+    jest.resetModules()
+    const modOff = await import('@core/store.js')
+
+    expect(modOff.default.state.highContrast).toBe(false)
+
+    localStorage.removeItem(PREF_STORAGE_KEYS.HIGH_CONTRAST)
+    jest.resetModules()
+  })
+
+  test('high-contrast mutations persist, flip the html class and toggle', () => {
+    const prev = store.state.highContrast
+
+    store.commit(PREF_MUTATIONS.SET_HIGH_CONTRAST, true)
+    expect(store.state.highContrast).toBe(true)
+    expect(document.documentElement.classList.contains(STATE_CLASSES.HIGH_CONTRAST)).toBe(true)
+    expect(localStorage.getItem(PREF_STORAGE_KEYS.HIGH_CONTRAST)).toBe(ATTR_VALUES.TRUE)
+
+    // Non-boolean payload → toggle arm.
+    store.commit(PREF_MUTATIONS.SET_HIGH_CONTRAST, {})
+    expect(store.state.highContrast).toBe(false)
+
+    store.commit(PREF_MUTATIONS.TOGGLE_HIGH_CONTRAST)
+    expect(store.state.highContrast).toBe(true)
+
+    store.commit(PREF_MUTATIONS.INIT_HIGH_CONTRAST)
+    expect(document.documentElement.classList.contains(STATE_CLASSES.HIGH_CONTRAST)).toBe(true)
+
+    store.commit(PREF_MUTATIONS.SET_HIGH_CONTRAST, prev)
+  })
+
+  test('high-contrast mutations degrade without localStorage/document', () => {
+    const savedLS = globalThis.localStorage
+    const savedDoc = globalThis.document
+
+    delete globalThis.localStorage
+    delete globalThis.document
+
+    try {
+      store.commit(PREF_MUTATIONS.SET_HIGH_CONTRAST, true)
+      store.commit(PREF_MUTATIONS.INIT_HIGH_CONTRAST)
+      store.commit(PREF_MUTATIONS.TOGGLE_HIGH_CONTRAST)
+    } finally {
+      globalThis.localStorage = savedLS
+      globalThis.document = savedDoc
+    }
   })
 
   test('typeof-guard else arms: mutations degrade without localStorage', () => {

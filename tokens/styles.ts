@@ -17,13 +17,16 @@
  * The visually-hidden `.sr-only` rule is AUTHORED in SCSS —
  * `core/sass/base/structure/_a11y.scss` — and arrives here as compiled
  * `?inline` text (adopted-stylesheets rule: CSS rules are never authored
- * as JS declaration payloads). The same partial is @imported by
- * `_structure.scss` for the document sheet, so one authored rule covers
- * light-DOM nodes and every shadow root uniformly. In Jest the import
- * resolves to '' via the style mock.
+ * as JS declaration payloads). The keyboard focus-ring + scroll-margin
+ * rules in `structure/_focus.scss` travel the same path so every shadow
+ * root's tabbables carry the document's focus contract. Both partials
+ * are also @imported by `_structure.scss` for the document sheet, so
+ * one authored rule covers light-DOM nodes and every shadow root
+ * uniformly. In Jest the imports resolve to '' via the style mock.
  */
 
 import A11Y_BASE_STYLES from '@core/sass/base/structure/_a11y.scss?inline'
+import FOCUS_BASE_STYLES from '@core/sass/base/structure/_focus.scss?inline'
 
 /** 'skeleton' block fragment — the root every skeleton class composes from. */
 const _SKEL = 'skeleton'
@@ -97,6 +100,7 @@ const _SKEL_BEFORE_SELECTORS = _SKEL_SELECTORS
  */
 export const BASE_HOST_STYLES = Object.freeze(
   `${A11Y_BASE_STYLES}
+${FOCUS_BASE_STYLES}
 :host { display: block; font-family: var(--font-primary); color: var(--text-primary); box-sizing: border-box; }
 :host > [data-content] { display: contents; }
 @keyframes ${_SKEL}-shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }

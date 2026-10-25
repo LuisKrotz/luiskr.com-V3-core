@@ -30,6 +30,8 @@ export const CAROUSEL_CLASSES = Object.freeze({
   CAROUSEL_DOTS: `${_B_CAROUSEL}-dots`,
   CAROUSEL_DOT: _B_CAROUSEL_DOT,
   CAROUSEL_DOT_ACTIVE: `${_B_CAROUSEL_DOT}--active`,
+  /** Visible slide number inside each dot — IBM input_label_visible. */
+  CAROUSEL_DOT_NUM: `${_B_CAROUSEL_DOT}-num`,
   CAROUSEL_IN_VIEW: `${_B_CAROUSEL}--in-view`,
   CAROUSEL_FALLBACK: `${_B_CAROUSEL}-fallback`,
   CAROUSEL_FALLBACK_SIDE: `${_B_CAROUSEL}-fallback ${_B_CAROUSEL}-fallback--side`,

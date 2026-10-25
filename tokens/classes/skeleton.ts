@@ -13,6 +13,12 @@ import { _B_SKELETON, _B_SKELETON_ABOUT, _B_SKELETON_ABOUT_P, _B_SKELETON_FOOTER
  */
 export const SKELETON_CLASSES = Object.freeze({
   SKELETON: _B_SKELETON,
+  // Pending-content stand-in contract: the host reserves the section's
+  // flow height while the placeholder paints as an absolute overlay — a
+  // flow-positioned placeholder's removal counts its vacated area as a
+  // layout shift, but an absolute overlay's removal moves no sibling.
+  SKELETON_HOST: `${_B_SKELETON}-host`,
+  SKELETON_OVERLAY: `${_B_SKELETON}-overlay`,
   SKELETON_SHIMMER: `${_B_SKELETON}--shimmer`,
   SKELETON_LAYER: `${_B_SKELETON}-layer`,
   SKELETON_LAYER_RESOLVING: `${_B_SKELETON}-layer--resolving`,

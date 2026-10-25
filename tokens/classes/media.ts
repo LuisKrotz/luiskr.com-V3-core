@@ -26,5 +26,9 @@ export const MEDIA_CLASSES = Object.freeze({
   RENDER_PLACEHOLDER_FIGURE: `${_B_RENDER_PLACEHOLDER}-figure`,
   MEDIA_FIGURE: _B_MEDIA_FIGURE,
   MEDIA_FIGURE_LOADED: `${_B_MEDIA_FIGURE}--loaded`,
+  /** Play/pause toggle chip for ambient (controls-less) videos. */
+  MEDIA_FIGURE_TOGGLE: `${_B_MEDIA_FIGURE}__toggle`,
+  MEDIA_FIGURE_TOGGLE_PLAY: `${_B_MEDIA_FIGURE}__toggle-play`,
+  MEDIA_FIGURE_TOGGLE_PAUSE: `${_B_MEDIA_FIGURE}__toggle-pause`,
   MEDIA_AUDIO_NOTE: _B_MEDIA_AUDIO_NOTE,
 })

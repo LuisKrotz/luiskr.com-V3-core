@@ -17,6 +17,7 @@ export const ARIA_ATTRS = Object.freeze({
   ARIA_LABELLEDBY: 'aria-labelledby',
   ARIA_DESCRIBEDBY: 'aria-describedby',
   ARIA_MODAL: 'aria-modal',
+  ARIA_DESCRIPTION: 'aria-description',
   ARIA_HIDDEN: 'aria-hidden',
   ARIA_LIVE: 'aria-live',
   ARIA_PRESSED: 'aria-pressed',
@@ -36,5 +37,7 @@ export const ARIA_ATTRS = Object.freeze({
   ROLE_TREEITEM: 'treeitem',
   ROLE_NONE: 'none',
   ROLE_IMG: 'img',
+  /** `application` — the only widget role ARIA permits on <video>. */
+  ROLE_APPLICATION: 'application',
   TABINDEX: 'tabindex',
 })

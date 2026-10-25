@@ -135,7 +135,8 @@ export class SwitchWebGL {
     if (
       this.contextType === SWITCH_TYPES.GRID ||
       this.contextType === SWITCH_TYPES.CYAN ||
-      this.contextType === SWITCH_TYPES.SPACE
+      this.contextType === SWITCH_TYPES.SPACE ||
+      this.contextType === SWITCH_TYPES.CONTRAST
     )
       return 1.0
 
@@ -187,7 +188,13 @@ export class SwitchWebGL {
 
     this.onToggle?.(this.isActive)
 
-    if (store.getters.getReducedMotion()) this._renderStatic()
+    if (store.getters.getReducedMotion()) {
+      this._renderStatic()
+    } else if (!this.animId) {
+      // The loop dies under reduced motion — a toggle landing after the
+      // pref flips back off must re-arm it or the knob stays frozen.
+      this.animate()
+    }
   }
 
   /** Sets the knob position programmatically (animates the slide). */
@@ -197,7 +204,13 @@ export class SwitchWebGL {
 
     this.targetP = this.isActive ? 1.0 : 0.0
 
-    if (store.getters.getReducedMotion()) this._renderStatic()
+    if (store.getters.getReducedMotion()) {
+      this._renderStatic()
+    } else if (!this.animId) {
+      // Same re-arm as toggle() — sync paths reach here via
+      // updateSwitchesUI, which never calls setReducedMotion().
+      this.animate()
+    }
   }
 
   /**

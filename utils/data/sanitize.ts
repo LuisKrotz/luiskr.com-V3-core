@@ -63,6 +63,7 @@ const ALLOWED_ATTRS = new Set([
   'role',
   'datetime',
   'cite',
+  'lang',
 ])
 
 /**

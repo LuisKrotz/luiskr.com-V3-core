@@ -29,6 +29,9 @@ export const DOM_STRINGS = Object.freeze({
   AS_FONT: 'font',
   BLANK: '_blank',
   NOOPENER: 'noopener noreferrer',
+  /** Caption-track label for muted ambient videos — the track exists to
+   *  declare there is nothing to transcribe. */
+  NO_AUDIO_LABEL: 'No audio',
   DATA_ROUTE: `${_DATA}route`,
   A_TAG: 'a',
   BR_TAG: '<br>',
