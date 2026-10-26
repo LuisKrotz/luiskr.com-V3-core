@@ -365,6 +365,221 @@ export const generateRouteSchema = (options: RouteSchemaOptions): Record<string,
   return crumbs ? [org, website, webPage, crumbs] : [org, website, webPage]
 }
 
+/** Inputs for the Earth Playground graph — route base + WebApplication declaring the canvas-rendered control surface. */
+interface EarthPlaygroundSchemaOptions {
+  /** Canonical absolute page URL — also the app entity @id base. */
+  url: string
+  /** Localized page name. */
+  name: string
+  /** Localized meta description; falls back to the site description. */
+  description?: string
+  /** Locale code — resolved to BCP-47 via LOCALE_TAGS. */
+  lang?: string
+  /** Localized labels of every control group, row and action — WebApplication.featureList. */
+  features: string[]
+}
+
+/**
+ * Earth Playground JSON-LD graph — the route base plus a WebApplication
+ * entity whose `featureList` enumerates the whole localized control
+ * surface (the panel is a WebGL canvas at runtime, so the schema is the
+ * crawler-legible form of it). Mirrors the build-time entity emitted by
+ * build-locale-pages.mjs so the post-hydration graph keeps parity with
+ * the served document.
+ * @param options Route URL/name/description/locale + localized feature labels.
+ * @returns JSON-LD entities for updateJsonLd().
+ */
+export const generateEarthPlaygroundSchema = (
+  options: EarthPlaygroundSchemaOptions
+): Record<string, unknown>[] => {
+  const { url, name, description, lang, features } = options
+
+  const bcp = (lang && LOCALE_TAGS[lang]?.bcp) || lang || LOCALES.EN
+
+  return [
+    ...generateRouteSchema({ url, name, description, lang }),
+    {
+      '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+      '@type': 'WebApplication',
+      '@id': `${url}#app`,
+      name,
+      url,
+      applicationCategory: 'MultimediaApplication',
+      operatingSystem: 'Web browser',
+      browserRequirements: 'Requires WebGL; WebGPU preferred',
+      inLanguage: bcp,
+      isAccessibleForFree: true,
+      isPartOf: { '@id': `${url}#webpage` },
+      author: { '@type': 'Person', name: BASE_TITLE, url: NET_STRINGS.SITE_URL },
+      featureList: features,
+    },
+  ]
+}
+
+/** One distribution file for a Dataset entity — absolute URL + encoding format. */
+interface StarCatalogDistribution {
+  url: string
+  format: string
+}
+
+/** Prepared Dataset input — name/description/credit plus its downloadable files. */
+interface StarCatalogDataset {
+  /** Dataset @id slug appended to the index URL (e.g. 'star' → #dataset-star). */
+  kind: string
+  name: string
+  description?: string
+  credit?: string
+  distributions: StarCatalogDistribution[]
+}
+
+/** Inputs for the star-field index graph — route base + body ItemList + registry DataCatalog. */
+interface StarIndexSchemaOptions {
+  /** Canonical absolute index URL — entity @id bases derive from it. */
+  url: string
+  /** Localized page name. */
+  name: string
+  /** Localized meta description; falls back to the site description. */
+  description?: string
+  /** Locale code — resolved to BCP-47 via LOCALE_TAGS. */
+  lang?: string
+  /** Authored-body deep links — ItemList entries in catalog order. */
+  items: Array<{ url: string; name: string }>
+  /** Localized heading for the registry DataCatalog (falls back to `name`). */
+  catalogName?: string
+  /** Prepared registry datasets — omitted when the manifest is unavailable. */
+  datasets?: StarCatalogDataset[]
+}
+
+/**
+ * Star-field index JSON-LD graph — the route base plus an ItemList that
+ * enumerates every authored body deep link and a DataCatalog whose
+ * Datasets point at the registry manifest, shard JSONs and the packed
+ * binary, so the canvas star cloud's underlying 139,563-record catalog
+ * is enumerable without WebGL. Mirrors the build-time entities emitted
+ * by build-locale-pages.mjs for post-hydration parity.
+ * @param options Index URL/name/locale, body items, prepared datasets.
+ * @returns JSON-LD entities for updateJsonLd().
+ */
+export const generateStarIndexSchema = (
+  options: StarIndexSchemaOptions
+): Record<string, unknown>[] => {
+  const { url, name, description, lang, items, catalogName, datasets } = options
+
+  const bcp = (lang && LOCALE_TAGS[lang]?.bcp) || lang || LOCALES.EN
+
+  const entities: Record<string, unknown>[] = [
+    ...generateRouteSchema({ url, name, description, lang }),
+    {
+      '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+      '@type': 'ItemList',
+      '@id': `${url}#catalog`,
+      name,
+      itemListElement: items.map((item, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: item.url,
+        name: item.name,
+      })),
+    },
+  ]
+
+  if (datasets?.length) {
+    entities.push({
+      '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+      '@type': 'DataCatalog',
+      '@id': `${url}#data-catalog`,
+      name: catalogName || name,
+      inLanguage: bcp,
+      dataset: datasets.map((d) => ({
+        '@type': 'Dataset',
+        '@id': `${url}#dataset-${d.kind}`,
+        name: d.name,
+        ...(d.description ? { description: d.description } : {}),
+        ...(d.credit ? { creditText: d.credit } : {}),
+        isAccessibleForFree: true,
+        distribution: d.distributions.map((dist) => ({
+          '@type': 'DataDownload',
+          encodingFormat: dist.format,
+          contentUrl: dist.url,
+        })),
+      })),
+    })
+  }
+
+  return entities
+}
+
+/** Inputs for a star-field body dossier graph — route base + Article describing the catalogued object. */
+interface StarBodySchemaOptions {
+  /** Canonical absolute body-page URL — Article/object @id bases. */
+  url: string
+  /** Absolute star-field index URL — isPartOf + crumb target. */
+  indexUrl: string
+  /** Localized index name (the middle crumb + isPartOf label). */
+  indexName: string
+  /** Body display name — Article headline. */
+  name: string
+  /** Dossier tagline — Article/Thing description. */
+  tagline?: string
+  /** Technical dossier facts — emitted as PropertyValue pairs on the object. */
+  facts?: Array<{ label?: string; value?: string }>
+  /** Locale code — resolved to BCP-47 via LOCALE_TAGS. */
+  lang?: string
+}
+
+/**
+ * Star-field body JSON-LD graph — the route base (with a Home →
+ * Star Field → body crumb) plus an Article whose `about` Thing carries
+ * the dossier's technical facts as PropertyValue pairs. Mirrors the
+ * build-time body entity so hydrated dossier deep links keep the same
+ * structured data the static dossier pages serve.
+ * @param options Body/index URLs, names, tagline, facts, locale.
+ * @returns JSON-LD entities for updateJsonLd().
+ */
+export const generateStarBodySchema = (
+  options: StarBodySchemaOptions
+): Record<string, unknown>[] => {
+  const { url, indexUrl, indexName, name, tagline, facts, lang } = options
+
+  const bcp = (lang && LOCALE_TAGS[lang]?.bcp) || lang || LOCALES.EN
+
+  return [
+    ...generateRouteSchema({
+      url,
+      name,
+      description: tagline,
+      lang,
+      breadcrumb: [
+        { name: BASE_TITLE, url: `${NET_STRINGS.SITE_URL}${ROUTE_PATHS.ROOT}` },
+        { name: indexName, url: indexUrl },
+        { name, url },
+      ],
+    }),
+    {
+      '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+      '@type': 'Article',
+      '@id': `${url}#article`,
+      headline: name,
+      description: tagline || ATTR_VALUES.EMPTY,
+      about: {
+        '@type': 'Thing',
+        '@id': `${url}#object`,
+        name,
+        description: tagline || ATTR_VALUES.EMPTY,
+        additionalProperty: (facts || []).map((f) => ({
+          '@type': 'PropertyValue',
+          name: f.label,
+          value: f.value,
+        })),
+      },
+      inLanguage: bcp,
+      mainEntityOfPage: url,
+      isPartOf: { '@id': `${indexUrl}#webpage` },
+      author: { '@type': 'Person', name: BASE_TITLE, url: NET_STRINGS.SITE_URL },
+    },
+  ]
+}
+
 /**
  * Complete project-page JSON-LD graph — the route base (Org + WebSite
  * + WebPage + breadcrumb) plus the project Article, a media ItemList
