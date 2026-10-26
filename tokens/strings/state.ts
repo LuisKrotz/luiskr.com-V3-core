@@ -33,5 +33,9 @@ export const STATE_STRINGS = Object.freeze({
   MOBILE: 'mobile',
   PLAYING: 'playing',
   PAUSED: 'paused',
+  /** `document.readyState` terminal value — page load fully settled. */
+  COMPLETE: 'complete',
+  /** `document.readyState` in-flight value — document still loading. */
+  LOADING: 'loading',
   SYSTEM: _K_SYSTEM,
 })
