@@ -18,6 +18,8 @@ import { DB_PATHS, ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
+import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { mediaSlugSeq, stripHtml, toMetaDescription } from './string.js'
 import { buildMediaUrls } from './media.js'
 import { CDN_URLS, SOCIAL_URLS } from '@core/tokens/media/urls.js'
@@ -228,12 +230,15 @@ const videoObjectFor = (
  * @param project - Project translation data
  * @param slug - Project URL slug
  * @param locale - Page locale (defaults to LOCALES.EN)
+ * @param omitCoverVideo - Skip the cover VideoObject (deep-link watch
+ *   pages declare only their own media entity)
  * @returns Array of Schema.org entities
  */
 export const generateProjectArticleSchema = (
   project: ProjectSchemaSource | null,
   slug: string,
-  locale: string = LOCALES.EN
+  locale: string = LOCALES.EN,
+  omitCoverVideo = false
 ): Record<string, unknown>[] => {
   if (!project || !slug) return []
 
@@ -286,7 +291,7 @@ export const generateProjectArticleSchema = (
   const entities: Record<string, unknown>[] = [article]
 
   // Add VideoObject schema if project has a cover video or section videos
-  if (project.cover?.isVideo && project.cover.src) {
+  if (!omitCoverVideo && project.cover?.isVideo && project.cover.src) {
     entities.push(videoObjectFor(project.cover, folder, title, description))
   }
 
@@ -454,11 +459,13 @@ export const generateProjectSchema = (
       }
     : null
 
-  // The active media already leads the graph as its own entity — skip it
-  // here so the same asset isn't declared twice on media pages.
-  const sectionVideos = media
-    .filter((m) => m.isVideo && m !== activeMedia)
-    .map((m) => videoObjectFor(m, folder, title, description))
+  // A media deep link is a watch page — it declares only its own
+  // VideoObject (mediaEntity leads the graph), never the project's
+  // cover or sibling clips, so the single-video purpose stays
+  // unambiguous to Google's watch-page classifier.
+  const sectionVideos = activeMedia
+    ? []
+    : media.filter((m) => m.isVideo).map((m) => videoObjectFor(m, folder, title, description))
 
   const routeGraph = generateRouteSchema({
     url: pageUrl,
@@ -490,7 +497,7 @@ export const generateProjectSchema = (
   return [
     ...routeGraph,
     ...(mediaEntity ? [mediaEntity] : []),
-    ...generateProjectArticleSchema(project, slug, locale),
+    ...generateProjectArticleSchema(project, slug, locale, Boolean(activeMedia)),
     ...(mediaList ? [mediaList] : []),
     ...sectionVideos,
   ]
@@ -610,4 +617,35 @@ export const updateJsonLd = (
     : graph
 
   scriptEl.textContent = JSON.stringify(payload)
+}
+
+/**
+ * Single authority for the document's `<meta name="robots">` — sets
+ * `noindex, nofollow` when `noindex` is true and removes the meta when
+ * false. Every surface that can resolve to a non-indexable state must
+ * route through this: the not-found route, missing project snapshots,
+ * media deep-link slugs that fail to resolve in the active locale, and
+ * draft projects (data.noindex). A route that serves content MUST be a
+ * 200 whose canonical points at itself; anything else is a soft-404 and
+ * must noindex rather than compete with the real page.
+ * @param noindex Whether the current route must be excluded from indexes.
+ */
+export const setRobotsMeta = (noindex: boolean): void => {
+  if (typeof document === TYPE_STRINGS.UNDEFINED) return
+
+  let meta = document.querySelector<HTMLMetaElement>(QUERY_STRINGS.META_ROBOTS)
+
+  if (noindex) {
+    if (!meta) {
+      meta = document.createElement(HTML_TAGS.META)
+
+      meta.name = 'robots'
+
+      document.head.appendChild(meta)
+    }
+
+    meta.content = SCHEMA_STRINGS.NOINDEX_NOFOLLOW
+  } else {
+    meta?.remove()
+  }
 }

@@ -304,6 +304,40 @@ describe('schema generators', () => {
     expect(missGraph.find((e) => e['@type'] === 'ImageObject')).toBeUndefined()
   })
 
+  test('generateProjectSchema on a deep link declares only its own VideoObject', () => {
+    const project = {
+      title: TEST_TEXT.HEADING,
+      folder: 'p/',
+      cover: { src: 'cover', isVideo: true },
+      sections: [
+        ['body copy'],
+        [
+          { src: 'img-one', label: 'Still One' },
+          { src: 'vid-one', label: 'Vid One', isVideo: true },
+          { src: 'vid-two', label: 'Vid Two', isVideo: true },
+        ],
+      ],
+    }
+
+    const vidGraph = generateProjectSchema(project, TEST_PROJECTS.CICB, 'en', 'vid-one')
+    const vidObjs = vidGraph.filter((e) => e['@type'] === 'VideoObject')
+
+    // Watch page — the cover clip and the sibling section video must not
+    // declare competing VideoObjects; only the deep-linked asset leads.
+    expect(vidObjs).toHaveLength(1)
+    expect(vidObjs[0].contentUrl).toBe(`${CDN_URLS.CDN_BASE}p/vid-one.mp4`)
+
+    // Image deep link — no VideoObject at all (the page is about a still).
+    const imgGraph = generateProjectSchema(project, TEST_PROJECTS.CICB, 'en', 'still-one')
+
+    expect(imgGraph.filter((e) => e['@type'] === 'VideoObject')).toHaveLength(0)
+
+    // The bare project route still declares every video as before.
+    const fullGraph = generateProjectSchema(project, TEST_PROJECTS.CICB, 'en')
+
+    expect(fullGraph.filter((e) => e['@type'] === 'VideoObject')).toHaveLength(3)
+  })
+
   test('generateProjectSchema tolerates sparse projects — no title/folder/cover, unlabeled media', () => {
     const graph = generateProjectSchema(
       {

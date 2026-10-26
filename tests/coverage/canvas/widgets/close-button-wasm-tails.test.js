@@ -17,6 +17,9 @@ import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
 /** Mutable mount result the mock returns — tests swap per case. */
 let mountResult = null
 
+/** When set the mock's mount rejects — drives the .catch fallback arm. */
+let mountError = null
+
 /** Mutable WebGPU capability flag the mock's hasWebGpu reads. */
 let mockGpu = true
 
@@ -25,7 +28,11 @@ let fakeWidget = null
 
 jest.unstable_mockModule('@core/utils/gpu/webgpu-widget.js', () => ({
   hasWebGpu: () => mockGpu,
-  mountWebGpuWidget: async () => mountResult,
+  mountWebGpuWidget: async () => {
+    if (mountError) throw mountError
+
+    return mountResult
+  },
   warmWidgetArtifacts: () => undefined,
 }))
 
@@ -55,6 +62,7 @@ beforeEach(() => {
   store.commit(PREF_MUTATIONS.SET_REDUCED_MOTION, false)
 
   mountResult = null
+  mountError = null
   mockGpu = true
 
   fakeWidget = {
@@ -252,5 +260,42 @@ describe('close-button wasm path', () => {
     expect(btn._ro).toBeNull()
 
     delete globalThis.ResizeObserver
+  })
+
+  test('mount rejection drops to the classic path via the .catch arm', async () => {
+    mountError = new Error('wasm fetch failed')
+
+    const CloseButtonWebGL = await loadClass()
+    const { canvas } = makeCanvas()
+
+    attachMockGL(canvas)
+
+    const btn = new CloseButtonWebGL(canvas)
+
+    await flush()
+
+    expect(btn._wasm).toBeNull()
+    expect(btn._wasmFailed).toBe(true)
+    expect(btn._wasmPending).toBe(false)
+
+    btn.destroy()
+  })
+
+  test('mount rejection skips initRest when the canvas changed mid-flight', async () => {
+    mountError = new Error('wasm fetch failed')
+
+    const CloseButtonWebGL = await loadClass()
+    const { canvas } = makeCanvas()
+
+    const btn = new CloseButtonWebGL(canvas)
+
+    // Swap the canvas while the mount is in flight — the .catch arm's
+    // `host.canvas === canvas` guard must skip the classic-path restore.
+    btn.canvas = document.createElement(HTML_TAGS.CANVAS)
+
+    await flush()
+
+    expect(btn._wasmFailed).toBe(true)
+    expect(btn._wasmPending).toBe(false)
   })
 })

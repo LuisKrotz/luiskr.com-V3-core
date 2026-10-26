@@ -112,7 +112,9 @@ describe('route tails', () => {
 
     router.currentRoute = { params: { slug: 'nothing-matches' } }
 
-    expect(() => checkAutoOpenModal({ translations: { sections: [] } })).not.toThrow()
+    expect(() =>
+      checkAutoOpenModal({ translations: { sections: [] }, updateRobotsMeta: jest.fn() })
+    ).not.toThrow()
 
     router.currentRoute = prev
   })
@@ -135,6 +137,7 @@ describe('route tails', () => {
           ],
         ],
       },
+      updateRobotsMeta: jest.fn(),
     }
 
     checkAutoOpenModal(c)
@@ -150,14 +153,17 @@ describe('route tails', () => {
       translations: {
         sections: [[['t'], [{ label: 'Vid Item', src: 's', size: [1, 2], isVideo: true }]]],
       },
+      updateRobotsMeta: jest.fn(),
     })
 
     router.currentRoute = { params: { slug: 'no-flag' } }
     checkAutoOpenModal({
       translations: { sections: [[['t'], [{ label: 'No Flag', src: 's', size: [1, 2] }]]] },
+      updateRobotsMeta: jest.fn(),
     })
     checkAutoOpenModal({
       translations: { sections: [[['t'], [{ src: 's', size: [1, 2] }]]] },
+      updateRobotsMeta: jest.fn(),
     })
 
     // !slug arm → return before reading translations
@@ -169,7 +175,7 @@ describe('route tails', () => {
     checkAutoOpenModal({ translations: null })
 
     // translations present, sections missing → sections || [] arm
-    checkAutoOpenModal({ translations: {} })
+    checkAutoOpenModal({ translations: {}, updateRobotsMeta: jest.fn() })
 
     router.currentRoute = prev
     store.commit(MODAL_MUTATIONS.SET_MODAL, { open: false })

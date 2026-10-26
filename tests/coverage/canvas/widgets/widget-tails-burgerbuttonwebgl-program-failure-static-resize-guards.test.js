@@ -7,6 +7,7 @@ import { BurgerButtonWebGL } from '@core/utils/canvas/widgets/burger-button-webg
 import { attachMockGL, attachNoGL } from '@tests/fixtures/mock-webgl.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 
 const makeCanvas = () => document.createElement(HTML_TAGS.CANVAS)
 
@@ -97,5 +98,110 @@ describe('BurgerButtonWebGL — program failure + static resize guards', () => {
     burger._settleNow()
 
     burger.destroy()
+  })
+
+  test('_checkResize arms: dead-gl guard, DPR/rect fallbacks, live resize', () => {
+    const canvas = makeCanvas()
+    const burger = new BurgerButtonWebGL(canvas)
+
+    // Dead-gl + missing-canvas arms of the early return.
+    burger.gl = null
+    burger._checkResize()
+    burger.canvas = null
+    burger._checkResize()
+
+    burger.destroy()
+
+    // Live resize: real canvas + stubbed gl → the `||` fallbacks for DPR 0
+    // and zero-size rects, the changed-size arm, and the static repaint.
+    const canvas2 = makeCanvas()
+    const burger2 = new BurgerButtonWebGL(canvas2)
+    const dpr = Object.getOwnPropertyDescriptor(window, 'devicePixelRatio')
+
+    Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 0 })
+
+    try {
+      burger2.canvas = {
+        getBoundingClientRect: () => ({ left: 0, top: 0, width: 0, height: 0 }),
+        width: 0,
+        height: 0,
+        style: {},
+      }
+      burger2.gl = { viewport: () => {} }
+      burger2.animId = null
+      burger2._drawFrame = () => {}
+      burger2._checkResize()
+
+      // Truthy-DPR + non-zero rect → the `rawDpr`/`rectW` truthy arms and the
+      // changed-size arm with a running loop.
+      Object.defineProperty(window, 'devicePixelRatio', { configurable: true, value: 2 })
+      burger2.canvas = {
+        getBoundingClientRect: () => ({ left: 0, top: 0, width: 64, height: 64 }),
+        width: 1,
+        height: 1,
+        style: {},
+      }
+      burger2.animId = 9
+      burger2._checkResize()
+    } finally {
+      if (dpr) {
+        Object.defineProperty(window, 'devicePixelRatio', dpr)
+      } else {
+        delete window.devicePixelRatio
+      }
+    }
+  })
+
+  test('_triggerFallback arms: animId live/null, canvas present/absent', () => {
+    const burger = new BurgerButtonWebGL(makeCanvas())
+
+    burger.animId = 7
+    burger.canvas = { style: {}, classList: { add: () => {} } }
+    burger._onContextLost = () => {}
+    burger._triggerFallback()
+
+    burger.animId = null
+    burger.canvas = null
+    burger._triggerFallback()
+  })
+
+  test('_drawFrame HC/dark poles hit the isDark/uHc truthy arms', () => {
+    const calls = []
+    const gl = {
+      clearColor: () => {},
+      clear: () => {},
+      useProgram: () => {},
+      uniform1f: (...a) => calls.push(a),
+      uniform2f: () => {},
+      drawArrays: () => {},
+      COLOR_BUFFER_BIT: 1,
+    }
+
+    const burger = new BurgerButtonWebGL(makeCanvas())
+
+    burger.gl = gl
+    burger.canvas = { classList: { contains: () => false }, width: 8, height: 8 }
+
+    // HC + light → `hc ?` true arm and `!darkMode && !onDark` true arm.
+    document.documentElement.classList.add(STATE_CLASSES.HIGH_CONTRAST)
+    burger._drawFrame(0)
+
+    // HC + dark → `!darkMode` false arm; HC + on-dark strip → `!onDark` false arm.
+    document.documentElement.classList.add(STATE_CLASSES.DARK_MODE)
+    burger._drawFrame(0)
+
+    burger.canvas = { classList: { contains: () => true }, width: 8, height: 8 }
+    document.documentElement.classList.remove(STATE_CLASSES.DARK_MODE)
+    burger._drawFrame(0)
+
+    document.documentElement.classList.remove(STATE_CLASSES.HIGH_CONTRAST)
+
+    // No HC → `darkMode || onDark` arm with both poles.
+    burger._drawFrame(0)
+    document.documentElement.classList.add(STATE_CLASSES.DARK_MODE)
+    burger._drawFrame(0)
+    document.documentElement.classList.remove(STATE_CLASSES.DARK_MODE)
+
+    expect(calls.length).toBeGreaterThan(0)
   })
 })

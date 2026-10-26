@@ -8,6 +8,7 @@
  * and full-draw path. Heavy deps (gl-program, the store) are mocked.
  */
 import { describe, test, expect, beforeEach, jest } from '@jest/globals'
+import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 
 let reducedMotion = false
 let bindQuadCalls = []
@@ -181,6 +182,15 @@ describe('close-button render tail', () => {
 
     // A widget without set_state takes the optional-call skip arm.
     renderWasm(makeHost({ _wasm: { widget: { frame: jest.fn() } } }), 10)
+
+    // _wasmT falsy → first frame takes the raw `t` arm of the dt ternary;
+    // a second frame takes the `t - _wasmT` delta arm.
+    const first = makeHost({ _wasm: { widget: { frame, set_state } }, _wasmT: 0 })
+
+    renderWasm(first, 500)
+    renderWasm(first, 1500)
+
+    expect(first._wasmT).toBe(1.5)
   })
 
   test('renderWebGL delegates to wasm and guards missing GL pieces', () => {
@@ -224,7 +234,17 @@ describe('close-button render tail', () => {
 
     renderWebGL(host, 1000)
 
-    expect(gl.calls.map((c) => c[0])).toEqual([
+    // HC on → the `hc ?` and `hc && !dark` truthy arms of the uHc/uDark
+    // ternaries; HC + dark → the `!dark` false arm.
+    document.documentElement.classList.add(STATE_CLASSES.HIGH_CONTRAST)
+    renderWebGL(host, 2000)
+
+    document.documentElement.classList.add(STATE_CLASSES.DARK_MODE)
+    renderWebGL(host, 3000)
+
+    document.documentElement.classList.remove(STATE_CLASSES.HIGH_CONTRAST, STATE_CLASSES.DARK_MODE)
+
+    expect(gl.calls.slice(0, 13).map((c) => c[0])).toEqual([
       'viewport',
       'clearColor',
       'clear',
@@ -239,6 +259,13 @@ describe('close-button render tail', () => {
       'uniform1f',
       'drawArrays',
     ])
-    expect(bindQuadCalls.length).toBe(1)
+    expect(bindQuadCalls.length).toBe(3)
+
+    // HC/light → uHc=1, uDark=1; HC/dark → uHc=1, uDark=0.
+    const hcFrame = gl.calls.slice(13, 26).filter((c) => c[0] === 'uniform1f' && c[1] === 'uhc')
+    const darkFrame = gl.calls.slice(26).filter((c) => c[0] === 'uniform1f' && c[1] === 'udark')
+
+    expect(hcFrame[0][2]).toBe(1)
+    expect(darkFrame[0][2]).toBe(0)
   })
 })

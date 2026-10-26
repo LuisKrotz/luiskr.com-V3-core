@@ -115,15 +115,21 @@ export function animate(host: CloseButtonWebGL): void {
   host.animId = framePool.request(host._frameTick)
 }
 
+/** Subset of the wasm widget surface renderWasm pushes per frame. */
+interface WasmWidget {
+  /** Optional eased-channel setter — present on the droplet crate only. */
+  set_state?: (liquid: number, draw: number, rot: number) => void
+  /** Advances the widget one frame by the given delta time. */
+  frame: (dt: number) => void
+}
+
 /** Per-frame wasm render: pushes the three eased channels + one frame tick. */
 export function renderWasm(host: CloseButtonWebGL, now: number): void {
   if (!host._wasm) return
 
-  const w = host._wasm.widget as {
-    set_state?: (liquid: number, draw: number, rot: number) => void
-  }
+  const w = host._wasm.widget as WasmWidget
 
-  w.set_state?.(host.hoverLevel, host.drawProgress, host.rotation)
+  if (w.set_state) w.set_state(host.hoverLevel, host.drawProgress, host.rotation)
 
   const t = (now - host.startTime) * 0.001
 

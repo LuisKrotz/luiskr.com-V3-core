@@ -20,7 +20,8 @@ import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { SPACE } from '@core/tokens/layout/space.js'
 import { deepQuerySelector } from '@core/utils/dom.js'
 import { notifyLoadFailed } from '@core/utils/notify.js'
-import { generateRouteSchema, updateJsonLd } from '@core/utils/schema.js'
+import { generateRouteSchema, updateJsonLd, setRobotsMeta } from '@core/utils/schema.js'
+import { ROUTE_NAMES } from '@core/tokens/routes/names.js'
 import { parsePath } from '@core/router/parse-path.js'
 import type { RouteDescriptor } from '@core/router/types.js'
 import type { Router } from '@core/router/router.js'
@@ -118,6 +119,12 @@ export function syncDocumentHead(to: RouteDescriptor): void {
   setMetaContent(QUERY_STRINGS.META_TW_URL, canonicalUrl)
 
   if (to.meta.description) setMetaDescription(to.meta.description)
+
+  // Indexation discipline — every navigation resets the robots meta so a
+  // stale noindex can never leak onto an indexable route, then re-arms it
+  // for the not-found route. Views re-assert noindex post-fetch when a
+  // deep-link slug fails to resolve (media/body) or a project is a draft.
+  setRobotsMeta(to.name === ROUTE_NAMES.NOT_FOUND)
 
   updateJsonLd(buildRouteJsonLd(to, canonicalUrl))
 }

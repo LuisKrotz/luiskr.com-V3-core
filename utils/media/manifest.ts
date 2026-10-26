@@ -20,6 +20,24 @@ let keys: Set<string> | null = null
 let pending: Promise<void> | null = null
 
 /**
+ * Fetch-failure latch — true once the manifest request rejects and the
+ * caller settles into originals-only mode. Separate from `keys` (which
+ * stays null on failure) so render gates can distinguish "still
+ * unknown — hold off the heavy <img> fetch" from "proven absent — serve
+ * the original". A later successful retry clears the latch.
+ */
+let failed = false
+
+/**
+ * Arrival subscribers — media-gated renders (mosaics, related cards,
+ * figures) run before the manifest lands and emit originals-only markup;
+ * each subscriber re-renders on arrival so manifest-proven thumb/webp
+ * rungs replace the heavy fallbacks. Drained on fire — one-shot by
+ * design: the manifest never invalidates after it loads.
+ */
+const listeners = new Set<() => void>()
+
+/**
  * Fetches the bucket key manifest once; resolves immediately on repeat
  * calls. Fire-and-forget at boot — renders that happen before it lands
  * simply emit no <source>, which is the safe path.
@@ -34,12 +52,21 @@ export function initMediaManifest(): Promise<void> {
       .then((res) => (res.ok ? res.json() : []))
       .then((list: unknown) => {
         keys = new Set(Array.isArray(list) ? (list as string[]) : [])
+        failed = false
+
+        for (const cb of listeners) cb()
+
+        listeners.clear()
       })
       .catch(() => {
         // Offline/fetch denial — stay unmanifested (null ⇒ no variant
         // knowledge, originals only) and clear `pending` so a later call
-        // retries rather than latching the transient failure.
+        // retries rather than latching the transient failure. Subscribers
+        // still fire — they re-render into the originals fallback.
         pending = null
+        failed = true
+
+        for (const cb of listeners) cb()
       })
   }
 
@@ -52,6 +79,42 @@ export function initMediaManifest(): Promise<void> {
  */
 export function mediaManifestReady(): boolean {
   return keys !== null
+}
+
+/**
+ * Whether the manifest request settled into failure. Paired with
+ * `mediaManifestReady()` it lets renders tell "manifest still in flight"
+ * (hold the heavy original <img> — the LQIP box paints) from "proven
+ * unmanifested" (emit the original — no variants exist to wait for).
+ * @returns true once the fetch rejected; cleared on a later success.
+ */
+export function mediaManifestFailed(): boolean {
+  return failed
+}
+
+/**
+ * Fires `cb` when the manifest lands — components that rendered
+ * originals-only pictures subscribe here and re-render so proven
+ * thumb/webp siblings replace the heavy fallbacks. When the manifest is
+ * already loaded `cb` runs synchronously (subscribe-then-render callers
+ * emit the upgraded markup on their first pass). The returned disposer
+ * detaches the listener — call it in disconnectedCallback/onDestroy so
+ * nothing re-renders a torn-down element.
+ * @param cb Re-render callback, one-shot.
+ * @returns Unsubscribe disposer.
+ */
+export function onMediaManifest(cb: () => void): () => void {
+  if (keys) {
+    cb()
+
+    return () => {}
+  }
+
+  listeners.add(cb)
+
+  return () => {
+    listeners.delete(cb)
+  }
 }
 
 /**
