@@ -21,6 +21,8 @@ export const DOCS_SELECTORS = Object.freeze({
   CONTENT: `.${DOCS_CLASSES.DOCS_CONTENT}`,
   /** Scene-canvas seat — the column stage or the zoom-dialog stage. */
   SCENE_STAGE: `.${DOCS_CLASSES.DOCS_MAP_STAGE}`,
+  /** Map-stage loading veil — dismissed once the scene's graph lands. */
+  MAP_LOADING: `.${DOCS_CLASSES.DOCS_MAP_LOADING}`,
   PROTECTED: `.${DOCS_CLASSES.DOCS_PROTECTED}`,
   MERMAID: `.${DOCS_CLASSES.DOCS_MERMAID}`,
   /** Istanbul uncovered-block markers — the coverage-report key nav. */

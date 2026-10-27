@@ -73,6 +73,9 @@ export const DOCS_STRINGS = Object.freeze({
   MAP_ZOOM: 'Expand the interactive file cloud',
   /** Close control aria-label inside the map zoom dialog. */
   MAP_CLOSE: 'Close the interactive file cloud',
+  /** role=status caption inside the map stage while the file cloud's
+   *  async graph build (worker layout → geometry/label upload) runs. */
+  MAP_LOADING: 'Loading the file cloud',
   /** Instanced-attribute names on the scene's node geometries — the
    *  names are part of the patched GLSL program (attribute decls read
    *  them too), so a rename must land in both streams at once. */
