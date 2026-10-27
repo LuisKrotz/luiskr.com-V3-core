@@ -19,6 +19,7 @@ import {
   _K_SOURCE_CODE,
   _K_STAR_FIELD,
 } from '../base.js'
+import { SEARCH_THEMES_KEY } from './search-themes.js'
 
 /**
  * Frozen cms key map — sole declaration site for these tokens; consumers read members and
@@ -43,4 +44,5 @@ export const CMS_KEYS = Object.freeze({
   ANIMATIONS: _K_ANIMATIONS,
   SOURCE_CODE: _K_SOURCE_CODE,
   PREFERENCES_MODAL: _K_PREFERENCES_MODAL,
+  SEARCH_THEMES: SEARCH_THEMES_KEY,
 })

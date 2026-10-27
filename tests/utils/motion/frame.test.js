@@ -9,6 +9,8 @@
  * rather than resetting modules.
  */
 import { framePool } from '@core/utils/motion/frame.js'
+import { isScrolling } from '@core/utils/motion/scroll-state.js'
+import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
 /** The armed pump callback captured from the stubbed rAF (null = idle). */
@@ -146,6 +148,36 @@ describe('framePool', () => {
     // The failure is still reported — asynchronously, from a fresh task.
     expect(timers.length).toBe(1)
     expect(() => timers[0]()).toThrow('boom')
+  })
+
+  test('the pump freezes while a scroll gesture owns the budget, resuming on settle', () => {
+    let ran = 0
+
+    framePool.request(() => ran++)
+
+    // Mid-gesture: the pump fires but hands the frame back to the
+    // scroll, keeping every queued callback in its slot.
+    window.dispatchEvent(new Event(WINDOW_EVENTS.SCROLL))
+
+    flushFrame()
+
+    expect(ran).toBe(0)
+    expect(framePool.size()).toBe(1)
+    expect(isScrolling()).toBe(true)
+
+    // Still scrolling a frame later — same freeze.
+    flushFrame()
+
+    expect(ran).toBe(0)
+    expect(framePool.size()).toBe(1)
+
+    // Settle: the queued callback resumes on the next pump.
+    window.dispatchEvent(new Event(WINDOW_EVENTS.SCROLLEND))
+
+    flushFrame()
+
+    expect(ran).toBe(1)
+    expect(framePool.size()).toBe(0)
   })
 
   test('a callback queued mid-drain by a throwing sibling still runs next frame', () => {

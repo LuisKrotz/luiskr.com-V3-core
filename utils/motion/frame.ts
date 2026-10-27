@@ -24,6 +24,8 @@
  * objects are created.
  */
 
+import { isScrolling } from './scroll-state.js'
+
 /** A per-frame callback — receives the pump's DOMHighResTimeStamp. */
 export type FrameCallback = (now: number) => void
 
@@ -78,6 +80,17 @@ const arm = (): void => {
  */
 const pump = (now: number): void => {
   rafId = 0
+
+  // Scroll gestures own the frame budget: freeze every queued tick
+  // until the gesture settles. Callbacks keep their queue slots, so
+  // loops resume seamlessly on the first settled pump — the same
+  // position the media/carousel deferrals take (nothing decodes,
+  // mounts, or animates against an active fling).
+  if (isScrolling()) {
+    arm()
+
+    return
+  }
 
   const n = cbs.length
 

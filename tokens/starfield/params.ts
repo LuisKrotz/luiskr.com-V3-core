@@ -1,6 +1,7 @@
 /**
- * @file tokens/starfield/params.js
- * @description Star-field engine parameters — camera rig, fly-to tween
+ * Star-field parameter barrel.
+ *
+ * Engine parameters — camera rig, fly-to tween
  * timing, approach thresholds that trigger the lazy dossier fetch, and
  * the procedural material palette used for bodies without real imagery
  * (dwarf planets, exoplanets, stars, nebulae, galaxies). Sole declaration

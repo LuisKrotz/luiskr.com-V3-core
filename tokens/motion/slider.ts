@@ -1,6 +1,7 @@
 /**
- * @file tokens/motion/slider.ts
- * @description Knob-spring tunables for the slider widgets (theme
+ * Slider spring tokens.
+ *
+ * Knob-spring tunables for the slider widgets (theme
  * slider, switch slider). Sole declaration site (zero-hardcoding
  * rule): the WebGL render loops, the 2D fallbacks, and the wasm
  * state pushes all chase `targetP` through the same damped spring —

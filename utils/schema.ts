@@ -303,7 +303,7 @@ export const generateProjectArticleSchema = (
  * 1-based per the spec. Returns null for an empty/absent trail so
  * callers can spread the result unconditionally.
  * @param items Ordered crumbs ending at the current page.
- * @param id    Optional @id the page entity's `breadcrumb` can point at.
+ * @param id    Optional entity identifier the page's `breadcrumb` can point at.
  * @returns BreadcrumbList entity or null.
  */
 export const generateBreadcrumbSchema = (

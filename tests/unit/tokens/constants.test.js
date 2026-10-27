@@ -8,6 +8,7 @@
 import {
   BASE_TITLE,
   BREAKPOINTS,
+  CMS_KEYS,
   GRID_GAP,
   LAYOUT,
   MEDIA,
@@ -18,8 +19,15 @@ import {
 import { TEST_PROJECTS, TEST_TEXT } from '@tests/fixtures/test-constants.js'
 import { CAROUSEL_LAYOUT, CAROUSEL_LOADING, CAROUSEL_TIMING } from '@core/tokens/motion/carousel.js'
 import { ANIMATION_DURATIONS, EASING } from '@core/tokens/motion/animation.js'
+import { SEARCH_THEMES_KEY } from '@core/tokens/data/search-themes.js'
 
 describe('Core Constants — Token coverage', () => {
+  describe('CMS key tokens', () => {
+    test('search-theme metadata uses the registered CMS key', () => {
+      expect(CMS_KEYS.SEARCH_THEMES).toBe(SEARCH_THEMES_KEY)
+    })
+  })
+
   // ── MEDIA constants ──────────────────────────────────────────────────────
   describe('MEDIA constants (mozjpeg pipeline suffixes)', () => {
     test('MEDIA.MOZ matches Vue Media.vue mozjpeg prefix', () => {

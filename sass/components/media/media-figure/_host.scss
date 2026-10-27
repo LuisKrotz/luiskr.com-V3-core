@@ -59,8 +59,11 @@
     margin: 0 auto;
     -webkit-border-radius: to-rem($space-md);
     border-radius: to-rem($space-md);
-    -webkit-mask-image: -webkit-radial-gradient(var(--color-white-raw), var(--black));
-    mask-image: -webkit-radial-gradient(var(--color-white-raw), var(--black));
+    // No mask-image here: overflow+border-radius already clip on Chromium
+    // and Gecko, and a per-figure gradient mask is an extra raster pass
+    // for every media card in view. Old Safari's replaced-content clip
+    // bug is covered by safari-media.scss, injected only by the safari
+    // patch layer.
     background-color: var(--bg-dark);
 
     @include layout-1024() {

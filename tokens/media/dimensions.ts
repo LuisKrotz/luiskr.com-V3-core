@@ -57,6 +57,19 @@ export const VIDEO_DIMENSIONS = Object.freeze({
 })
 
 /**
+ * Frozen IntersectionObserver visibility fractions for media figures —
+ * `VIDEO_OBSERVER_THRESHOLD` (0.15) is the share of the video box that
+ * must be on-screen before its poster/stream attach is even scheduled;
+ * `IMAGE_OBSERVER_THRESHOLD` (0.01) is the hair-trigger for the lazy
+ * high-res climb and the wider CDN warm band, whose generous rootMargins
+ * do the real prefetch shaping.
+ */
+export const MEDIA_OBSERVER_THRESHOLDS = Object.freeze({
+  VIDEO_OBSERVER_THRESHOLD: 0.15,
+  IMAGE_OBSERVER_THRESHOLD: 0.01,
+})
+
+/**
  * Frozen flag-icon geometry map — flag images are drawn at small pixel
  * sizes where every px counts: NAV (18×13) for the locale picker, DIALOG
  * (60×44) for the language dialog, SPLIT widths for the half-flag
