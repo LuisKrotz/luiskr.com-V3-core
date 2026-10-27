@@ -5,6 +5,8 @@
 import { jest } from '@jest/globals'
 
 import { DATA_ATTRS } from '@core/tokens/attrs/data.js'
+import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
+import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
 
 import '@core/constants.js'
 
@@ -23,18 +25,25 @@ import router from '@core/router/router.js'
 globalThis.alert = jest.fn()
 
 describe('routes tails', () => {
-  test('updateRobotsMeta remove arm', () => {
+  test('updateRobotsMeta index/noindex directive arms', () => {
     updateRobotsMeta(true)
 
-    const meta = document.head.querySelector('meta[name="robots"]')
+    const meta = document.head.querySelector(QUERY_STRINGS.META_ROBOTS)
 
     updateRobotsMeta(false)
-    expect(document.head.querySelector('meta[name="robots"]')).toBeNull()
+    expect(document.head.querySelector(QUERY_STRINGS.META_ROBOTS)?.content).toBe(
+      SCHEMA_STRINGS.INDEX_RICH_DIRECTIVES
+    )
 
     updateRobotsMeta(true)
-    expect(document.head.querySelector('meta[name="robots"]')).toBeTruthy()
+    expect(document.head.querySelector(QUERY_STRINGS.META_ROBOTS)?.content).toBe(
+      SCHEMA_STRINGS.NOINDEX_NOFOLLOW
+    )
     meta?.remove?.()
     updateRobotsMeta(false)
+    expect(document.head.querySelector(QUERY_STRINGS.META_ROBOTS)?.content).toBe(
+      SCHEMA_STRINGS.INDEX_RICH_DIRECTIVES
+    )
   })
 
   test('resolveProjectSlug falls back to empty', () => {

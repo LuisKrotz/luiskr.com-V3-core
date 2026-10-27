@@ -23,6 +23,7 @@ import { parsePath, normalizeProjectKey } from '@core/router/parse-path.js'
 import { LANG_SLUGS } from '@core/i18n.js'
 import { LOCALES } from '@core/tokens/locales.js'
 import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
+import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
 import { updateRobotsMeta, resolveProjectSlug } from '@website/views/project/data.js'
 import { checkAutoOpenModal } from '@website/views/project/modal.js'
 import { renderProject } from '@website/views/project/render.js'
@@ -98,13 +99,20 @@ describe('route tails', () => {
     expect(alias.meta.canonical).toBe(`/de/${LANG_SLUGS.de.animations}`)
   })
 
-  test('updateRobotsMeta — create, reuse, remove, absent arms', () => {
+  test('updateRobotsMeta — create, reuse, index/noindex arms', () => {
     updateRobotsMeta(true)
     updateRobotsMeta(true)
+
+    expect(document.querySelector(QUERY_STRINGS.META_ROBOTS)?.content).toBe(
+      SCHEMA_STRINGS.NOINDEX_NOFOLLOW
+    )
+
     updateRobotsMeta(false)
     updateRobotsMeta(false)
 
-    expect(document.querySelector('meta[name="robots"]')).toBeNull()
+    expect(document.querySelector(QUERY_STRINGS.META_ROBOTS)?.content).toBe(
+      SCHEMA_STRINGS.INDEX_RICH_DIRECTIVES
+    )
   })
 
   test('checkAutoOpenModal — translations without folder → EMPTY arm', () => {
