@@ -22,6 +22,13 @@ export const QUERY_STRINGS = Object.freeze({
   META_TW_DESCRIPTION: 'meta[name="twitter:description"]',
   META_DC_DESCRIPTION: 'meta[name="DC.Description"]',
   META_OG_IMAGE_ALT: 'meta[property="og:image:alt"]',
+  /** Image-meta selectors — the share-gallery rotation rewrites the card
+   *  image trio per navigation. og:image matches only the primary tag:
+   *  attribute selectors are exact-match, so og:image:alt/width/height
+   *  and repeated extra candidates are never selected. */
+  META_OG_IMAGE: 'meta[property="og:image"]',
+  META_TW_IMAGE: 'meta[name="twitter:image:src"]',
+  META_ITEMPROP_IMAGE: 'meta[itemprop="image"]',
   META_OG_URL: 'meta[property="og:url"]',
   META_TW_URL: 'meta[name="twitter:url"]',
   ROOT_MARGIN_600: '600px 0px',

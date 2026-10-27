@@ -21,6 +21,7 @@ import { SPACE } from '@core/tokens/layout/space.js'
 import { deepQuerySelector } from '@core/utils/dom.js'
 import { notifyLoadFailed } from '@core/utils/notify.js'
 import { generateRouteSchema, updateJsonLd, setRobotsMeta } from '@core/utils/schema.js'
+import { syncEarthShare, syncStarShare, cancelShare } from '@core/utils/share-gallery.js'
 import { ROUTE_NAMES } from '@core/tokens/routes/names.js'
 import { parsePath } from '@core/router/parse-path.js'
 import type { RouteDescriptor } from '@core/router/types.js'
@@ -127,6 +128,23 @@ export function syncDocumentHead(to: RouteDescriptor): void {
   setRobotsMeta(to.name === ROUTE_NAMES.NOT_FOUND)
 
   updateJsonLd(buildRouteJsonLd(to, canonicalUrl))
+
+  // Playground share rotation — every earth/star-field navigation draws
+  // a fresh random capture from that set's build-emitted manifest into
+  // the card metas and re-emits the graph with the ImageObject gallery;
+  // every other route cancels it (stale picks can never leak across
+  // routes).
+  if (to.name === ROUTE_NAMES.EARTH_PLAYGROUND) {
+    void syncEarthShare(to, canonicalUrl, (image) =>
+      buildRouteJsonLd(to, canonicalUrl, undefined, image)
+    )
+  } else if (to.name === ROUTE_NAMES.STAR_FIELD) {
+    void syncStarShare(to, canonicalUrl, (image) =>
+      buildRouteJsonLd(to, canonicalUrl, undefined, image)
+    )
+  } else {
+    cancelShare()
+  }
 }
 
 /**
@@ -139,12 +157,15 @@ export function syncDocumentHead(to: RouteDescriptor): void {
  * @param to Resolved route descriptor.
  * @param canonicalOverride Canonical URL; recomputed from `to` when absent.
  * @param description Description override (post-fetch localized text).
+ * @param image primaryImageOfPage override — the share-gallery rotation
+ *   passes its random capture so the graph matches the card metas.
  * @returns JSON-LD entity array for updateJsonLd().
  */
 export function buildRouteJsonLd(
   to: RouteDescriptor,
   canonicalOverride?: string,
-  description?: string
+  description?: string,
+  image?: string
 ): Record<string, unknown>[] {
   const title = String(to.meta.title || BASE_TITLE)
 
@@ -163,6 +184,7 @@ export function buildRouteJsonLd(
     name: pageName,
     description: description || to.meta.description,
     lang: to.lang,
+    ...(image ? { image } : {}),
     ...(to.path === ROUTE_PATHS.ROOT
       ? {}
       : {
