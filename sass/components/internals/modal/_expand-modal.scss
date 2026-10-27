@@ -545,6 +545,60 @@
         box-shadow: var(--shadow-card);
       }
     }
+
+    // Full-res fetch indicators — the thumb/poster paints instantly
+    // while the original asset streams through the disk-cache →
+    // WASM-decode pipeline, so the figure carries a visible bottom
+    // load bar + centered spinner above the item layer (z 1) until
+    // --loaded stamps (mount's swap / markLoaded). The ::before shimmer
+    // stays beneath as the frame's decode wash.
+    &-load {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: to-rem($space-2xs);
+      background: color-mix(in srgb, var(--color-white-raw) 14%, transparent);
+      z-index: 2;
+      overflow: hidden;
+      pointer-events: none;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 30%;
+        background: var(--color-accent);
+        transform: translateX(-100%);
+        animation: expand-modal-load-sweep 1.4s ease-in-out infinite;
+        will-change: transform;
+      }
+
+      .#{$_B_EXPAND}-media-figure--loaded & {
+        display: none;
+      }
+    }
+
+    &-spin {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      translate: -50% -50%;
+      width: to-rem($space-3xl);
+      height: to-rem($space-3xl);
+      border-radius: var(--radius-round);
+      border: to-rem($space-3xs) solid color-mix(in srgb, var(--color-white-raw) 24%, transparent);
+      border-top-color: var(--color-accent);
+      z-index: 2;
+      pointer-events: none;
+      animation: expand-modal-load-spin 0.9s linear infinite;
+      will-change: transform;
+
+      .#{$_B_EXPAND}-media-figure--loaded & {
+        display: none;
+      }
+    }
   }
 
   &-image {
@@ -575,17 +629,53 @@
   }
 }
 
+// ── Full-res load bar sweep + spinner ───────────────────────────────────────
+// Same sheet-local keyframes contract as expand-modal-shimmer — shadow
+// roots never see document-level keyframes.
+@keyframes expand-modal-load-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+@keyframes expand-modal-load-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .#{$_B_EXPAND}-media-figure::before {
+  .#{$_B_EXPAND}-media-figure::before,
+  .#{$_B_EXPAND}-media-spin {
     animation: none;
+  }
+
+  // Static fill — the fetch still runs under reduced motion, so the bar
+  // stays as a dim full-width indicator instead of sweeping.
+  .#{$_B_EXPAND}-media-load::before {
+    animation: none;
+    width: 100%;
+    transform: none;
+    opacity: 0.4;
   }
 }
 
 // The store-driven reduced-motion flag mirrors the media query inside
 // shadow DOM, where the global html.reduced-motion sweep cannot reach.
 :host-context(html.reduced-motion) {
-  .#{$_B_EXPAND}-media-figure::before {
+  .#{$_B_EXPAND}-media-figure::before,
+  .#{$_B_EXPAND}-media-spin {
     animation: none;
+  }
+
+  .#{$_B_EXPAND}-media-load::before {
+    animation: none;
+    width: 100%;
+    transform: none;
+    opacity: 0.4;
   }
 }
 

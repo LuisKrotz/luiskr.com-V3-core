@@ -50,6 +50,11 @@ export const EXPAND_MODAL_CLASSES = Object.freeze({
   /** Terminal media state — releases the figure's skeleton shimmer. */
   EXPAND_MODAL_MEDIA_FIGURE_LOADED: `${_B_EXPAND_MODAL_MEDIA_FIGURE}--loaded`,
   EXPAND_MODAL_MEDIA_PLACEHOLDER: `${_B_EXPAND_MODAL_MEDIA}-placeholder`,
+  /** Full-res fetch indicator — bottom load bar over the figure while
+   *  the original asset streams through the cache/decode pipeline. */
+  EXPAND_MODAL_MEDIA_LOAD: `${_B_EXPAND_MODAL_MEDIA}-load`,
+  /** Centered spinner ring over the figure — pairs with the load bar. */
+  EXPAND_MODAL_MEDIA_SPIN: `${_B_EXPAND_MODAL_MEDIA}-spin`,
   EXPAND_MODAL_MEDIA_ITEM: _B_EXPAND_MODAL_MEDIA_ITEM,
   EXPAND_MODAL_MEDIA_ITEM_VIDEO: `${_B_EXPAND_MODAL_MEDIA_ITEM}--video`,
   EXPAND_MODAL_OPEN_1: `${_B_EXPAND_MODAL}-open-1`,
