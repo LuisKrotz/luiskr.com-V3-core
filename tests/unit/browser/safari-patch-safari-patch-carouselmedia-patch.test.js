@@ -21,6 +21,7 @@ import {
   patchCarouselMedia,
 } from '@core/safari/patches/carousel-media.js'
 import { bindSafariImageLoad } from '@core/safari/patches/media-figure/image-load.js'
+import { TEST_URLS } from '@tests/fixtures/test-constants.js'
 
 // The patch registers whenDefined() callbacks at module-eval — the component
 // imports above ensure the tags already resolve when it installs.
@@ -73,6 +74,17 @@ describe('safari-patch — carousel media', () => {
       const inner = shadowHostedEl(COMPONENT_TAGS.AWARDS_CAROUSEL)
 
       expect(isCarouselHosted(inner)).toBe(true)
+    })
+
+    test('element nested inside a slide div in the carousel shadow is hosted', () => {
+      const inner = shadowHostedEl(COMPONENT_TAGS.CUSTOM_CAROUSEL)
+      const slide = document.createElement(HTML_TAGS.DIV)
+      const fig = document.createElement(HTML_TAGS.DIV)
+
+      inner.appendChild(slide)
+      slide.appendChild(fig)
+
+      expect(isCarouselHosted(fig)).toBe(true)
     })
 
     test('missing ShadowRoot constructor reports not hosted', () => {
@@ -180,9 +192,17 @@ describe('safari-patch — carousel media', () => {
       const loadHighRes = jest.fn()
 
       img.setAttribute(MEDIA_ATTRS.LOADING, MEDIA_ATTRS.LOADING_LAZY)
+      img.setAttribute(MEDIA_ATTRS.SRC, TEST_URLS.IMG)
       fig.loadHighRes = loadHighRes
       el.shadowRoot.appendChild(img)
       el.shadowRoot.appendChild(fig)
+
+      // Slotted light-DOM slide — the figure's root node is the page,
+      // not the carousel's shadow tree, so only the composed sweep finds it.
+      const slotted = document.createElement(COMPONENT_TAGS.MEDIA_FIGURE)
+
+      slotted.loadHighRes = jest.fn()
+      el.appendChild(slotted)
 
       patchCarouselMedia()
 

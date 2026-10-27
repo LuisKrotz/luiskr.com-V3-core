@@ -34,13 +34,39 @@ import type { PatchableCtor, SafariPatchableEl } from '../types.js'
 export const isCarouselHosted = (el: SafariPatchableEl): boolean => {
   if (typeof ShadowRoot === TYPE_STRINGS.UNDEFINED) return false
 
-  const root = el.getRootNode?.()
+  // Walk the COMPOSED tree — parentElement within a shadow tree, then
+  // across each shadow boundary via getRootNode().host — so figures are
+  // detected whether they sit directly in the carousel's shadow root,
+  // nested inside a slide wrapper, or slotted from the view's light DOM
+  // (a slotted figure's root node is the VIEW's root, not the
+  // carousel's — a host-tag-only check misses those and leaves them on
+  // the lazy/IO path iOS silently drops inside the transformed track).
+  let node: Element | null = el as unknown as Element
 
-  if (!(root instanceof ShadowRoot)) return false
+  while (node) {
+    if (
+      node.localName === COMPONENT_TAGS.CUSTOM_CAROUSEL ||
+      node.localName === COMPONENT_TAGS.AWARDS_CAROUSEL
+    )
+      return true
 
-  const hostTag = root.host.localName
+    // parentElement climbs within the same tree; at a shadow-root edge
+    // (direct child — parentElement is null) the composed parent is the
+    // host element, reached via getRootNode().host.
+    const parent: Element | null = node.parentElement
 
-  return hostTag === COMPONENT_TAGS.CUSTOM_CAROUSEL || hostTag === COMPONENT_TAGS.AWARDS_CAROUSEL
+    if (parent) {
+      node = parent
+
+      continue
+    }
+
+    const root = node.getRootNode?.()
+
+    node = root instanceof ShadowRoot ? (root.host as Element) : null
+  }
+
+  return false
 }
 
 /**
@@ -82,20 +108,28 @@ export const eagerizeCarouselFigure = (el: SafariPatchableEl): void => {
  * @param host The carousel element whose shadow tree is scanned.
  */
 const eagerizeShadowTree = (host: SafariPatchableEl): void => {
-  if (!host.shadowRoot) return
+  // deepQuerySelectorAll pierces nested shadow roots; running it on both
+  // the shadow tree and the host element also covers slotted light-DOM
+  // slides — a shallow shadowRoot scan misses <img>s inside slide
+  // wrappers' own shadows and slotted slides entirely.
+  const imgs = deepQuerySelectorAll(HTML_TAGS.IMG, host.shadowRoot)
 
-  host.shadowRoot.querySelectorAll(HTML_TAGS.IMG).forEach((img) => {
+  imgs.push(...deepQuerySelectorAll(HTML_TAGS.IMG, host))
+
+  imgs.forEach((img) => {
     img.setAttribute(MEDIA_ATTRS.LOADING, MEDIA_ATTRS.LOADING_EAGER)
 
     // Same parse-time lazy snapshot as eagerizeCarouselFigure — re-set
     // src so Safari re-evaluates the request under the eager policy.
     const src = img.getAttribute('src')
 
-    if (src) img.src = src
+    if (src) (img as HTMLImageElement).src = src
   })
 
-  host.shadowRoot
-    .querySelectorAll(COMPONENT_TAGS.MEDIA_FIGURE)
+  // Same two-surface sweep for figures — a slotted figure sits in the
+  // host's light DOM, a nested one inside a slide's shadow.
+  deepQuerySelectorAll(COMPONENT_TAGS.MEDIA_FIGURE, host.shadowRoot)
+    .concat(deepQuerySelectorAll(COMPONENT_TAGS.MEDIA_FIGURE, host))
     .forEach((fig) => eagerizeCarouselFigure(fig as SafariPatchableEl))
 }
 
