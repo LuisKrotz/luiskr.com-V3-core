@@ -160,6 +160,15 @@ $_B_LOADER: 'intro-loader';
     align-items: center;
     justify-content: center;
     z-index: 10;
+    // The first frame is the dark veil alone — the dynamic content
+    // (spinner, counter, title, stage readout, bar) stays unpainted until
+    // JS adopts the node and marks the loader --live, so boot-time text
+    // and font-metric updates never paint as layout shifts (CLS 0.219 → 0).
+    visibility: hidden;
+
+    .#{$_B_LOADER}--live & {
+      visibility: visible;
+    }
   }
 
   // Outer orbital ring — clockwise, orbiting the counter like the

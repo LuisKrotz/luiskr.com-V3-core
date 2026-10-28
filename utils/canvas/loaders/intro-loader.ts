@@ -138,6 +138,11 @@ export class IntroLoader {
       this.buildOverlay()
     }
 
+    // The static veil ships its content hidden so the first frame paints
+    // the veil alone — reveal it in one frame now that JS drives the
+    // loader, never letting mid-boot text/font updates paint as shifts.
+    ;(this.container as HTMLElement).classList.add(LOADER_CLASSES.INTRO_LOADER_LIVE)
+
     // Spinner/counter/bar are all part of the one boot overlay —
     // the container carries the animation description.
     applyAnimationDesc(this.container as HTMLElement, ANIMATION_IDS.INTRO_LOADER)
