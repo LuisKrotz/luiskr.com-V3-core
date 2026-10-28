@@ -31,7 +31,9 @@
 // placeholder drives it). Slides also opt out of content-visibility —
 // nav centering measures them with getBoundingClientRect, and a skipped
 // slide would report the contain-intrinsic fallback instead of its real
-// box.
+// box (the visible void under media). The slide's class lives on the
+// *ancestor* wrapper, not on this element — :host-context matches it.
+:host-context(.internal-extra-item),
 :host(.internal-extra-item),
 :host([classes*='internal-extra-item']) {
   width: auto;
