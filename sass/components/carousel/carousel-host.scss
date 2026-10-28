@@ -276,8 +276,18 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
   // carousel Shadow Root, where they can reach nested <media-figure> elements.
   media-figure {
     --mf-w: calc(90vw - #{calc(var(--space-xl) * 2)});
-    --mf-h: var(--carousel-media-height, calc(70vh - #{calc(var(--space-xl) * 2)}));
-    --mf-h: var(--carousel-media-height, calc(70dvh - #{calc(var(--space-xl) * 2)}));
+    // Fallback box when --carousel-media-height is unpublished (no item
+    // size data yet): bound to a viewport-width square — the old 70dvh
+    // floor left a giant empty box until real dims landed (mobile wrong-
+    // height bug); a square keeps portrait headroom without the void.
+    --mf-h: var(
+      --carousel-media-height,
+      min(calc(70vh - #{calc(var(--space-xl) * 2)}), calc(90vw - #{calc(var(--space-xl) * 2)}))
+    );
+    --mf-h: var(
+      --carousel-media-height,
+      min(calc(70dvh - #{calc(var(--space-xl) * 2)}), calc(90vw - #{calc(var(--space-xl) * 2)}))
+    );
 
     @include layout-768() {
       --mf-w: calc(90vw - #{calc(var(--space-2xl) * 2)});
