@@ -276,38 +276,32 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
   // carousel Shadow Root, where they can reach nested <media-figure> elements.
   media-figure {
     --mf-w: calc(90vw - #{calc(var(--space-xl) * 2)});
-    // Fallback box when --carousel-media-height is unpublished (no item
-    // size data yet): bound to a viewport-width square — the old 70dvh
-    // floor left a giant empty box until real dims landed (mobile wrong-
-    // height bug); a square keeps portrait headroom without the void.
-    --mf-h: var(
-      --carousel-media-height,
-      min(calc(70vh - #{calc(var(--space-xl) * 2)}), calc(90vw - #{calc(var(--space-xl) * 2)}))
-    );
-    --mf-h: var(
-      --carousel-media-height,
-      min(calc(70dvh - #{calc(var(--space-xl) * 2)}), calc(90vw - #{calc(var(--space-xl) * 2)}))
-    );
+    // No height fallback: when --carousel-media-height is unpublished
+    // (no item.size data yet) --mf-h stays unset and the slide sizes
+    // itself from the placeholder img's intrinsic width/height attrs —
+    // correct aspect at mount instead of a fixed-height void.
+    --mf-h: var(--carousel-media-height);
 
     @include layout-768() {
       --mf-w: calc(90vw - #{calc(var(--space-2xl) * 2)});
-      --mf-h: calc(70vh - #{calc(var(--space-2xl) * 2)});
-      --mf-h: calc(70dvh - #{calc(var(--space-2xl) * 2)});
+      // --mf-h stays unpublished-driven here too — a fixed desktop
+      // fallback had the same wrong-height effect as the mobile one.
+      --mf-h: var(--carousel-media-height);
     }
 
     @include layout-1024() {
       --mf-w: var(--space-6xl);
-      --mf-h: var(--space-7xl);
+      --mf-h: var(--carousel-media-height);
     }
 
     @include layout-1440() {
       --mf-w: var(--space-7xl);
-      --mf-h: var(--space-8xl);
+      --mf-h: var(--carousel-media-height);
     }
 
     @include layout-2560() {
       --mf-w: var(--space-8xl);
-      --mf-h: var(--space-9xl);
+      --mf-h: var(--carousel-media-height);
     }
   }
 
