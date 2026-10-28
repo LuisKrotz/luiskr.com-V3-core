@@ -23,4 +23,9 @@ export const FRAME_BUDGET = Object.freeze({
   MOBILE_HZ: 120,
   /** Desktop refresh floor the animation gate enforces, in Hz. */
   DESKTOP_HZ: 240,
+  /** Media-heavy route floor — project pages dense with carousels and
+   *  media figures cannot sustain the native-refresh bound under
+   *  full-viewport raster pressure; the fluid-display minimum (60Hz) is
+   *  the honest gate there — anything below it is a real regression. */
+  HEAVY_ROUTE_HZ: 60,
 })

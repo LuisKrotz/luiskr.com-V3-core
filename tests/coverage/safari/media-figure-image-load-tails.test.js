@@ -6,7 +6,10 @@
  * async wait after the Q50 clone takes over.
  */
 import { describe, test, expect } from '@jest/globals'
-import { safariLoadHighRes } from '@core/safari/patches/media-figure/image-load.js'
+import {
+  bindSafariImageLoad,
+  safariLoadHighRes,
+} from '@core/safari/patches/media-figure/image-load.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { MEDIA_CLASSES } from '@core/tokens/classes/media.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
@@ -77,9 +80,7 @@ describe('safariLoadHighRes tails', () => {
 
     safariLoadHighRes(el)
 
-    const successor = container.querySelector(
-      `.${MEDIA_CLASSES.RENDER_MEDIA_HIGH}`
-    )
+    const successor = container.querySelector(`.${MEDIA_CLASSES.RENDER_MEDIA_HIGH}`)
 
     expect(el.isLoaded).toBe(true)
     expect(successor).not.toBe(el.highEl)
@@ -88,5 +89,60 @@ describe('safariLoadHighRes tails', () => {
     expect(el.thumb.style.display).toBe(ATTR_VALUES.NONE)
 
     container.remove()
+  })
+
+  test('safariLoadHighRes falls back to _updateDom on a mounted el with no high layer', () => {
+    const container = document.createElement(HTML_TAGS.DIV)
+    const el = makeEl(container)
+
+    el._isMounted = true
+
+    let updated = 0
+
+    el._updateDom = () => {
+      updated++
+    }
+
+    // No .render-media-high in shadow — the clone path is skipped and the
+    // mounted-else arm reloads the DOM directly.
+    el.$ = () => null
+
+    safariLoadHighRes(el)
+
+    expect(el.isLoaded).toBe(true)
+    expect(updated).toBe(1)
+  })
+
+  test('bindSafariImageLoad skips the lazy thumb and covers observer-callback arms', () => {
+    let ioCb
+
+    globalThis.IntersectionObserver = class {
+      constructor(cb) {
+        ioCb = cb
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+
+    const el = document.createElement(HTML_TAGS.DIV)
+
+    el.isVideo = false
+    el.isLoaded = false
+    el.imgObserver = null
+    el.$ = () => null // no thumb — the `thumb && !isHero` else arm
+
+    bindSafariImageLoad(el, null, false)
+
+    expect(el.imgObserver).not.toBeNull()
+
+    // Non-intersecting entry — `entry.isIntersecting` false arm.
+    ioCb([{ isIntersecting: false, target: el }])
+
+    // Intersecting entry while the observer was already released — the
+    // inner `el.imgObserver` null arm.
+    el.imgObserver = null
+
+    ioCb([{ isIntersecting: true, target: el }])
   })
 })
