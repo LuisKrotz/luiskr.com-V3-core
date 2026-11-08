@@ -56,6 +56,7 @@ const writeHeight = (el: HTMLElement, v: number): void => {
   el.style.height = `${v}${CHAR_STRINGS.PX}`
 }
 
+/** Per-frame spring step — integrates position toward target and writes height. */
 const tickSpring = (
   el: HTMLElement,
   s: ExpandSpring,

@@ -1,17 +1,25 @@
 import { SKELETON_GLYPH, SKELETON_RENDER } from '@core/tokens/motion/skeleton.js'
+import {
+  GLSL_VS_FULLSCREEN,
+  GLSL_FS_PRECISION_MEDIUMP,
+  GLSL_SDF_ROUND_BOX,
+} from '@core/utils/canvas/glsl.js'
 /**
  * @file skeleton-shaders.ts
  * @description GLSL sources for the skeleton shimmer layer, extracted
- * from skeleton-renderer.ts — a minimal position vertex shader plus the
- * "data decoding" fragment shader that draws rounded-box cells whose
- * glyphs morph between 0/1 shapes at per-cell cadence.
+ * from skeleton-renderer.ts — vertex stage, precision preamble and the
+ * rounded-box SDF come from the shared canvas/glsl library; the
+ * fragment shader draws "data decoding" rounded-box cells whose glyphs
+ * morph between 0/1 shapes at per-cell cadence. hash21 stays local —
+ * its polynomial mix differs from the shared sine-hash seed on purpose
+ * (the morph cadence is tuned to this stream).
  */
 /** Shared fullscreen-quad vertex shader. */
-export const SKELETON_VS = 'attribute vec2 a_pos;void main(){gl_Position=vec4(a_pos,0.,1.);}'
+export const SKELETON_VS = GLSL_VS_FULLSCREEN
 
 /** Shimmer fragment shader — u_rects/u_meta/u_sbase/u_sink are per-rect arrays. */
 export const SKELETON_FS = `
-      precision mediump float;
+      ${GLSL_FS_PRECISION_MEDIUMP}
       #define MAX_RECTS ${SKELETON_RENDER.MAX_RECTS}
       uniform vec2 u_res;
       uniform float u_time;
@@ -29,10 +37,7 @@ export const SKELETON_FS = `
         return fract(p.x * p.y);
       }
 
-      float sdRoundBox(vec2 p, vec2 b, float r) {
-        vec2 q = abs(p) - b + r;
-        return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
-      }
+      ${GLSL_SDF_ROUND_BOX}
 
       // '0': rounded ring, '1': vertical bar with a small flag
       float glyphZero(vec2 q, float s) {

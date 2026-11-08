@@ -1,29 +1,35 @@
 /**
  * @file burger-button-shaders.ts
  * @description GLSL sources for BurgerButtonWebGL, extracted from
- * burger-button-webgl.ts — shared quad vertex shader plus the liquid
- * metaball fragment shader (four rounded squares that pool toward the
- * center on hover and morph into THE close button on open — same disc,
- * water fill, rotating X and click shockwave, painted by the shared
- * CLOSE_PAINT_GLSL library so both controls can never drift apart).
+ * burger-button-webgl.ts — vertex stage, derivatives prelude, precision
+ * preamble and the capsule/rounded-box SDFs come from the shared
+ * canvas/glsl library; paint colors come from CANVAS_PAINT_GLSL
+ * (tokens/canvas/paint.ts). The liquid metaball fragment shader pools
+ * four rounded squares toward the center on hover and morphs into THE
+ * close button on open — same disc, water fill, rotating X and click
+ * shockwave, painted by the shared CLOSE_PAINT_GLSL library so both
+ * controls can never drift apart.
  */
 
+import {
+  GLSL_DERIV_PRELUDE,
+  GLSL_VS_FULLSCREEN,
+  GLSL_FS_PRECISION_AUTO,
+  GLSL_SDF_CAPSULE,
+  GLSL_SDF_ROUND_BOX,
+} from '@core/utils/canvas/glsl.js'
+import { CANVAS_PAINT_GLSL as PAINT } from '@core/tokens/canvas/paint.js'
 import { CLOSE_PAINT_GLSL } from '../close-button/shaders.js'
 
 /** Extension prelude enabling pixel-space SDF AA (WebGL1 only). */
-export const BURGER_DERIV_PRELUDE =
-  '#extension GL_OES_standard_derivatives : enable\n#define HAS_DERIV 1\n'
+export const BURGER_DERIV_PRELUDE = GLSL_DERIV_PRELUDE
 
 /** Shared fullscreen-quad vertex shader. */
-export const BURGER_VS = 'attribute vec2 a_pos;void main(){gl_Position=vec4(a_pos,0.,1.);}'
+export const BURGER_VS = GLSL_VS_FULLSCREEN
 
 /** Liquid menu-icon fragment shader body (prefix with the deriv prelude). */
 export const BURGER_FS_BODY = `
-      #ifdef GL_FRAGMENT_PRECISION_HIGH
-      precision highp float;
-      #else
-      precision mediump float;
-      #endif
+      ${GLSL_FS_PRECISION_AUTO}
       uniform float u_time;
       uniform vec2 u_res;
       uniform float u_dark;
@@ -46,16 +52,9 @@ export const BURGER_FS_BODY = `
       // close button (radius, stroke widths, bubbles all authored there).
       uniform float u_ss;
 
-      float sdCapsule(vec2 p, vec2 a, vec2 b, float r) {
-        vec2 pa = p - a, ba = b - a;
-        float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-        return length(pa - ba * h) - r;
-      }
+      ${GLSL_SDF_CAPSULE}
 
-      float sdRoundBox(vec2 p, vec2 b, float r) {
-        vec2 q = abs(p) - b + r;
-        return min(max(q.x, q.y), 0.0) + length(max(q, vec2(0.0))) - r;
-      }
+      ${GLSL_SDF_ROUND_BOX}
 
       // Polynomial smooth-min — the liquid merge: two approaching SDFs
       // blend across a k-wide band instead of meeting at a hard union
@@ -152,8 +151,8 @@ export const BURGER_FS_BODY = `
         // Color based on theme:
         // Dark theme: crisp bright white/ice
         // Light theme: dark slate/charcoal (never invisible white on light background!)
-        vec3 colDark = vec3(0.95, 0.97, 1.0) * pulse;
-        vec3 colLight = vec3(0.10, 0.10, 0.14) * pulse;
+        vec3 colDark = ${PAINT.GLYPH_DARK} * pulse;
+        vec3 colLight = ${PAINT.GLYPH_LIGHT} * pulse;
         vec3 col = mix(colLight, colDark, u_dark);
 
         // HC: the themed slates are shades — the ink snaps to the pole
@@ -163,18 +162,17 @@ export const BURGER_FS_BODY = `
         // The opened icon IS the existing close button — its strokes paint
         // in the ink pole (white normally; under HC, u_dark on the black
         // disc / black on the white disc) and the canvas fills in that
-        // disc (vec3(0.22,0.23,0.27) is the close button's painted
-        // background; the shared lkClosePaint below owns the final disc
-        // edge/borderAA fade).
-        vec3 openInk = mix(vec3(1.0), vec3(u_dark), u_hc);
+        // disc (the close button's painted background; the shared
+        // lkClosePaint below owns the final disc edge/borderAA fade).
+        vec3 openInk = mix(${PAINT.INK_WHITE}, vec3(u_dark), u_hc);
         col = mix(col, openInk, open);
 
         // Glow stays in the ink's own hue family — a saturated tinted halo
         // produces a chromatic fringe that reads as broken anti-aliasing,
         // so both themes use a desaturated ink tint. Under HC the halo is
         // a shade and dies entirely.
-        vec3 glowDark = vec3(0.55, 0.58, 0.65);
-        vec3 glowLight = vec3(0.15, 0.15, 0.22);
+        vec3 glowDark = ${PAINT.GLOW_DARK};
+        vec3 glowLight = ${PAINT.GLOW_LIGHT};
         vec3 glowCol = mix(glowLight, glowDark, u_dark);
         glow *= 1.0 - u_hc;
 
@@ -187,7 +185,7 @@ export const BURGER_FS_BODY = `
         // snaps to its pole (1.0 − u_dark).
         float disc = open * (1.0 - smoothstep(0.5 - 2.0 / closeRes, 0.5 - 1.0 / closeRes, length(p)));
 
-        finalCol = mix(finalCol, mix(vec3(0.22, 0.23, 0.27), vec3(1.0 - u_dark), u_hc), disc * (1.0 - alpha));
+        finalCol = mix(finalCol, mix(${PAINT.DISC_BG}, vec3(1.0 - u_dark), u_hc), disc * (1.0 - alpha));
         finalAlpha = max(finalAlpha, disc);
 
         // Fully opened, this IS a CloseButtonWebGL: the shared paint

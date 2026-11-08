@@ -6,6 +6,7 @@ import { describe, test, expect, jest } from '@jest/globals'
 import { wasmPool } from '@core/utils/wasm/wasm-pool.js'
 import { WASM_POOL } from '@core/tokens/data/wasm.js'
 
+/** Zero-ms flush — pool promises resolve within one macrotask. */
 const _flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 // ─── wasm-pool.js ────────────────────────────────────────────────────────────

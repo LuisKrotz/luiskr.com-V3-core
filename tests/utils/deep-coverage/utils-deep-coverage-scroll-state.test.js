@@ -6,6 +6,7 @@ import { describe, test, expect } from '@jest/globals'
 import { isScrolling, onScrollStop } from '@core/utils/motion/scroll-state.js'
 import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 
+/** Zero-ms flush — scroll-state callbacks fire within one macrotask. */
 const flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 // ─── scroll-state.js ─────────────────────────────────────────────────────────

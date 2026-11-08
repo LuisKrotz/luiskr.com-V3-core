@@ -14,7 +14,9 @@ import { describe, test, expect, jest, beforeEach } from '@jest/globals'
 import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
 import { AUTH_STRINGS } from '@core/tokens/strings/auth.js'
 
+/** Fake auth instance — null user + marker so tests can identify it. */
 const mockAuth = { currentUser: null, marker: 'auth-instance' }
+/** Unsubscribe spy — tests assert the timeout path detaches listeners. */
 const mockUnsub = jest.fn()
 
 jest.unstable_mockModule('firebase/auth', () => ({
@@ -35,8 +37,10 @@ jest.unstable_mockModule('firebase/database', () => ({
   getDatabase: jest.fn(() => ({ marker: 'db' })),
 }))
 
+/** Fresh firebase module import — bound after the auth mock is installed. */
 const firebase = await import('@core/firebase.js')
 
+/** Zero-ms flush — promise chains resolve within one macrotask. */
 const flush = () => new Promise((r) => setTimeout(r, 0))
 
 beforeEach(() => {
@@ -59,9 +63,7 @@ describe('firebase auth timeout tails', () => {
 
     const unsub = await firebase.onAuthChange(jest.fn())
 
-    expect(sessionStorage.getItem(CACHE_STORAGE_KEYS.CMS_AUTH_ERROR)).toBe(
-      'auth/auth-init-failed'
-    )
+    expect(sessionStorage.getItem(CACHE_STORAGE_KEYS.CMS_AUTH_ERROR)).toBe('auth/auth-init-failed')
     expect(typeof unsub).toBe('function')
     expect(() => unsub()).not.toThrow()
 
@@ -82,9 +84,7 @@ describe('firebase auth timeout tails', () => {
     const unsub = await firebase.onAuthChange(jest.fn())
 
     // Code-less error → the || 'auth/auth-init-failed' fallback arm.
-    expect(sessionStorage.getItem(CACHE_STORAGE_KEYS.CMS_AUTH_ERROR)).toBe(
-      'auth/auth-init-failed'
-    )
+    expect(sessionStorage.getItem(CACHE_STORAGE_KEYS.CMS_AUTH_ERROR)).toBe('auth/auth-init-failed')
     expect(sessionStorage.getItem(CACHE_STORAGE_KEYS.CMS_AUTH_REDIRECT)).toBeNull()
     expect(typeof unsub).toBe('function')
 

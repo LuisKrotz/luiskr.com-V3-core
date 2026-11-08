@@ -53,6 +53,7 @@ let seq = 0
 /** Parallel arrays: virtual ids and their callbacks (null = cancelled, pending compaction). */
 const ids: number[] = []
 
+/** Callback slot per virtual id — null marks a cancelled subscription. */
 const cbs: Array<FrameCallback | null> = []
 
 /** The single armed rAF handle — 0 when the pump is idle or mid-drain. */

@@ -1,24 +1,26 @@
 /**
  * @file theme-slider/shaders.ts
  * @description GLSL sources for ThemeSliderWebGL's day/night scene,
- * extracted from theme-slider.ts — pure data, compiled by initWebGL().
+ * extracted from theme-slider.ts — vertex stage, precision preamble and
+ * the capsule SDF come from the shared canvas/glsl library; every paint
+ * color comes from CANVAS_PAINT_GLSL (tokens/canvas/paint.ts).
  */
 
-/** Fullscreen-quad vertex shader: a_pos in clip space, v_uv 0–1. */
-export const THEME_SLIDER_VS = `        attribute vec2 a_pos;
-        varying vec2 v_uv;
-        void main() {
-          v_uv = (a_pos + 1.0) * 0.5;
-          gl_Position = vec4(a_pos, 0.0, 1.0);
-        }
-      `
+import {
+  GLSL_VS_QUAD_UV,
+  GLSL_FS_PRECISION_AUTO,
+  GLSL_SDF_SEGMENT,
+} from '@core/utils/canvas/glsl.js'
+import { CANVAS_PAINT_GLSL as PAINT } from '@core/tokens/canvas/paint.js'
 
-/** Day/night scene fragment shader (sun, moon, aurora, knob). */
-export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
-        precision highp float;
-        #else
-        precision mediump float;
-        #endif
+/** Fullscreen-quad vertex shader: a_pos in clip space, v_uv 0–1. */
+export const THEME_SLIDER_VS = GLSL_VS_QUAD_UV
+
+/** Day/night scene fragment shader (sun, moon, aurora, knob). The star
+ *  hash keeps its own 12.9898/78.233 seed — switching to the shared
+ *  127.1/311.7 seed would re-roll every star position. */
+export const THEME_SLIDER_FS = `
+        ${GLSL_FS_PRECISION_AUTO}
 
         varying vec2 v_uv;
         uniform vec2 u_resolution;
@@ -28,13 +30,7 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
         uniform float u_ripple_time;
         uniform float u_ripple_pos;
 
-        // Normalized capsule distance in aspect space [0.0 .. aspect, 0.0 .. 1.0]
-        float distCapsule(vec2 p, vec2 a, vec2 b) {
-          vec2 pa = p - a;
-          vec2 ba = b - a;
-          float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-          return length(pa - ba * h);
-        }
+        ${GLSL_SDF_SEGMENT}
 
         float hash(vec2 p) {
           return fract(sin(dot(p, vec2(12.9898, 78.233))) * 437.585453);
@@ -57,9 +53,9 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
 
           // Sky gradient mapped by height
           float h = p.y;
-          vec3 nightSky = mix(vec3(0.38, 0.28, 0.60), vec3(0.46, 0.35, 0.70), h);
-          vec3 sysSky   = mix(vec3(0.60, 0.38, 0.52), vec3(0.72, 0.48, 0.62), h);
-          vec3 daySky   = mix(vec3(0.92, 0.48, 0.40), vec3(0.98, 0.64, 0.50), h);
+          vec3 nightSky = mix(${PAINT.SKY_NIGHT_A}, ${PAINT.SKY_NIGHT_B}, h);
+          vec3 sysSky   = mix(${PAINT.SKY_SYS_A}, ${PAINT.SKY_SYS_B}, h);
+          vec3 daySky   = mix(${PAINT.SKY_DAY_A}, ${PAINT.SKY_DAY_B}, h);
 
           vec3 sky;
           if (u_progress <= 1.0) {
@@ -80,7 +76,7 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
               float dStar = length(p - sPos);
               float twinkle = 0.5 + 0.5 * sin(u_time * 3.5 + rnd * 6.28);
               float sGlow = (1.0 - smoothstep(0.0, 0.022, dStar)) * twinkle * starAlpha;
-              col += vec3(1.0, 1.0, 1.0) * sGlow;
+              col += ${PAINT.INK_WHITE} * sGlow;
             }
           }
 
@@ -100,8 +96,8 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
             float sunRays = 0.5 + 0.5 * sin(sunAngle * 10.0 + u_time * 0.85);
             float rayGlow = (1.0 - smoothstep(0.14, 0.44, dSun)) * sunRays * 0.28;
 
-            vec3 sunCream = vec3(0.99, 0.90, 0.75);
-            vec3 ringCol = mix(vec3(0.98, 0.76, 0.60), vec3(0.96, 0.64, 0.52), clamp(dSun / 0.45, 0.0, 1.0));
+            vec3 sunCream = ${PAINT.SUN_CREAM};
+            vec3 ringCol = mix(${PAINT.RING_INNER}, ${PAINT.RING_OUTER}, clamp(dSun / 0.45, 0.0, 1.0));
             float totalSun = clamp(core + ring1 + ring2 + ring3 + rayGlow, 0.0, 1.0);
             col = mix(col, mix(ringCol, sunCream, core), totalSun * sunAlpha);
           }
@@ -111,7 +107,7 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
           if (sysFactor > 0.01) {
             float auroraWave = sin(p.x * 2.6 + sin(p.y * 3.8 + u_time * 1.4) + u_time * 1.6) * 0.5 + 0.5;
             float auroraBand = smoothstep(0.35, 0.75, p.y) * (1.0 - smoothstep(0.70, 0.95, p.y));
-            vec3 auroraCol = mix(vec3(0.38, 0.78, 0.92), vec3(0.85, 0.45, 0.80), sin(p.x * 1.8 + u_time * 0.9) * 0.5 + 0.5);
+            vec3 auroraCol = mix(${PAINT.AURORA_COOL}, ${PAINT.AURORA_WARM}, sin(p.x * 1.8 + u_time * 0.9) * 0.5 + 0.5);
             col += auroraCol * auroraWave * auroraBand * 0.38 * sysFactor;
           }
 
@@ -123,7 +119,7 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
           float moonIn = smoothstep(0.138, 0.174, dMoonIn);
           float crescent = moonOut * moonIn;
           float crescentAlpha = 1.0 - smoothstep(0.1, 1.2, u_progress);
-          col = mix(col, vec3(1.0, 1.0, 1.0), clamp(crescent, 0.0, 1.0) * crescentAlpha * 0.95);
+          col = mix(col, ${PAINT.INK_WHITE}, clamp(crescent, 0.0, 1.0) * crescentAlpha * 0.95);
 
           // Canyon Mesas & Ridges with Multi-Layer Parallax and Heat Shimmer
           float parallax = (u_progress - 1.0) * 0.12;
@@ -136,9 +132,9 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
           float plateau2 = (1.0 - smoothstep(0.0, 0.24, abs(px - 2.68))) * 0.18;
           float backHeight = mesa1 + plateau1 + plateau2 + heatShimmer * 0.5;
 
-          vec3 mBackNight = vec3(0.34, 0.16, 0.49);
-          vec3 mBackSys   = vec3(0.52, 0.24, 0.45);
-          vec3 mBackDay   = vec3(0.76, 0.30, 0.40);
+          vec3 mBackNight = ${PAINT.MESA_BACK_NIGHT};
+          vec3 mBackSys   = ${PAINT.MESA_BACK_SYS};
+          vec3 mBackDay   = ${PAINT.MESA_BACK_DAY};
           vec3 mBackCol;
           if (u_progress <= 1.0) {
             mBackCol = mix(mBackNight, mBackSys, u_progress);
@@ -151,9 +147,9 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
 
           // Front rolling desert dunes with atmospheric heat shimmer
           float frontHeight = 0.21 + 0.09 * sin((p.x - parallax * 0.5) * 2.4 + 0.8) + 0.05 * cos(p.x * 3.8) + heatShimmer;
-          vec3 mFrontNight = vec3(0.42, 0.22, 0.58);
-          vec3 mFrontSys   = vec3(0.62, 0.30, 0.50);
-          vec3 mFrontDay   = vec3(0.85, 0.40, 0.48);
+          vec3 mFrontNight = ${PAINT.MESA_FRONT_NIGHT};
+          vec3 mFrontSys   = ${PAINT.MESA_FRONT_SYS};
+          vec3 mFrontDay   = ${PAINT.MESA_FRONT_DAY};
           vec3 mFrontCol;
           if (u_progress <= 1.0) {
             mFrontCol = mix(mFrontNight, mFrontSys, u_progress);
@@ -175,7 +171,7 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
             float rDist = length(p - vec2(rX, 0.5));
             float rRadius = rippleElapsed * 1.0;
             float rWave = (1.0 - smoothstep(0.0, 0.08, abs(rDist - rRadius))) * (1.0 - rippleElapsed / 0.6);
-            col += vec3(0.35, 0.25, 0.45) * rWave * 0.55;
+            col += ${PAINT.RIPPLE} * rWave * 0.55;
           }
 
           // 3D Knob (radius ~ 0.38)
@@ -185,11 +181,11 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
           float knobRadius = 0.38;
 
           float knobShadow = (1.0 - smoothstep(knobRadius, knobRadius + 0.07, knobDist)) * 0.38;
-          col = mix(col, vec3(0.12, 0.08, 0.20), knobShadow);
+          col = mix(col, ${PAINT.KNOB_SHADOW}, knobShadow);
 
-          vec3 moonColor = vec3(0.98, 0.98, 1.0);
-          vec3 sysColor  = vec3(0.98, 0.94, 0.90);
-          vec3 sunColor  = vec3(0.99, 0.89, 0.73);
+          vec3 moonColor = ${PAINT.SURFACE_NEAR_WHITE};
+          vec3 sysColor  = ${PAINT.KNOB_SYS};
+          vec3 sunColor  = ${PAINT.KNOB_SUN};
 
           vec3 baseKnob;
           if (u_progress <= 1.0) {
@@ -208,7 +204,7 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
             float c4 = 1.0 - smoothstep(0.059, 0.077, length(kp - vec2(0.09, 0.11)));
             float c5 = 1.0 - smoothstep(0.024, 0.042, length(kp - vec2(-0.01, 0.02)));
             float anyCrater = clamp(c1 + c2 + c3 + c4 + c5, 0.0, 1.0);
-            vec3 craterColor = vec3(0.88, 0.89, 0.92);
+            vec3 craterColor = ${PAINT.CRATER};
             baseKnob = mix(baseKnob, craterColor, anyCrater * craterFactor * 0.75);
           }
 
@@ -223,11 +219,11 @@ export const THEME_SLIDER_FS = `        #ifdef GL_FRAGMENT_PRECISION_HIGH
           // Animated Knob Corona Aura in Light and System positions
           if (dayAlpha > 0.01) {
             float sunKnobHalo = (1.0 - smoothstep(knobRadius, knobRadius + 0.08 + 0.02 * sin(u_time * 3.0), knobDist)) * 0.42 * dayAlpha;
-            col += vec3(1.0, 0.82, 0.50) * sunKnobHalo;
+            col += ${PAINT.HALO_SUN} * sunKnobHalo;
           }
           if (sysFactor > 0.01) {
             float sysKnobHalo = (1.0 - smoothstep(knobRadius, knobRadius + 0.07 + 0.015 * sin(u_time * 2.4), knobDist)) * 0.35 * sysFactor;
-            col += vec3(0.85, 0.72, 0.98) * sysKnobHalo;
+            col += ${PAINT.HALO_SYS} * sysKnobHalo;
           }
 
           gl_FragColor = vec4(col * borderAA, borderAA);

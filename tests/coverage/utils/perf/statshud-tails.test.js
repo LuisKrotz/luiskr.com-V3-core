@@ -20,6 +20,7 @@ import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
 import { STATS_CLASSES } from '@core/tokens/classes/stats.js'
 import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
 
+/** Generous flush — HUD render steps need real timers past microtasks. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 describe('StatsHud tails', () => {

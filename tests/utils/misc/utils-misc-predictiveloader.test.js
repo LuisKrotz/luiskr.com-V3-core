@@ -9,6 +9,7 @@ import { LINK_ATTRS } from '@core/tokens/attrs/link.js'
 import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { POINTER_EVENTS } from '@core/tokens/events/dom.js'
 
+/** Generous flush — predictive-loader timers need real macrotask passes. */
 const _flush = (ms = 60) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // ─── predictive-loader ───────────────────────────────────────────────────────

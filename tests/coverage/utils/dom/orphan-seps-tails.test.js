@@ -10,6 +10,7 @@ import { watchOrphanSeps } from '@core/utils/dom/orphan-seps.js'
 
 /** Captured RO instance + callback for refire tests. */
 let capturedRoCb = null
+/** The most recent stub RO — tests refire its callback directly. */
 let lastRo = null
 
 /** Minimal ResizeObserver stub recording observe/disconnect. */

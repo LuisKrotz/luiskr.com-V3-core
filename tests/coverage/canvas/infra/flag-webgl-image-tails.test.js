@@ -18,6 +18,7 @@ import { HTML_TAGS } from '@core/tokens/elements/html.js'
 
 globalThis.alert = jest.fn()
 
+/** Bare canvas — the image path only needs the element handle. */
 const makeCanvas = () => document.createElement(HTML_TAGS.CANVAS)
 
 describe('flag-webgl image tails', () => {

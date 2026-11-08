@@ -5,6 +5,7 @@
 import { describe, test, expect, jest } from '@jest/globals'
 import { statsEngine } from '@core/utils/perf/stats-engine.js'
 
+/** Generous flush — stats-engine timers need real macrotask passes. */
 const flush = (ms = 60) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // ─── stats-engine ────────────────────────────────────────────────────────────

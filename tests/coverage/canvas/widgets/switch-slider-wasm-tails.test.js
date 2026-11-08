@@ -39,6 +39,7 @@ const flush = async () => {
   await new Promise((r) => setTimeout(r, 40))
 }
 
+/** Bare canvas — the wasm mount only needs the element handle. */
 const makeCanvas = () => document.createElement(HTML_TAGS.CANVAS)
 
 beforeEach(() => {

@@ -17,6 +17,7 @@ import '@cms/deploy-info/CmsDeployInfo.js'
 
 globalThis.alert = jest.fn()
 
+/** Generous flush — route-warmer idle windows need real timers. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 // Route chunks resolve to trivial stubs — the real route trees are far too

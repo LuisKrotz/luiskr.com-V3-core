@@ -6,7 +6,9 @@ import { describe, test, expect, jest, afterEach } from '@jest/globals'
 import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
+/** Ponyfill spy — tests assert the SW-era shim invoked it. */
 const cssVarsMock = jest.fn()
+/** Minimal RO polyfill stand-in — the ponyfill only needs the class shape. */
 const ResizeObserverShim = class MockRO {
   observe() {}
   unobserve() {}
@@ -20,6 +22,7 @@ jest.unstable_mockModule('@webcomponents/webcomponentsjs', () => ({}))
 jest.unstable_mockModule('whatwg-fetch', () => ({}))
 jest.unstable_mockModule('intersection-observer', () => ({}))
 
+/** SW-registration spy — tests assert drop/register calls against it. */
 const registerMock = jest.fn()
 
 // The register entry is stubbed; `dropStaleServiceWorkers` keeps real
@@ -47,6 +50,7 @@ jest.unstable_mockModule('@core/utils/service-worker.js', () => ({
  * don't invoke their getter against the prototype itself. */
 const stash = new Map()
 
+/** Snapshots a global key so a test can stub then restore it safely. */
 const _saveKey = (key, holder = globalThis) => {
   const id = `${holder === window ? 'w' : 'g'}:${key}`
 

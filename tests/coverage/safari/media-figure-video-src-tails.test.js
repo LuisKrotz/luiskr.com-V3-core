@@ -9,6 +9,7 @@ import { patchSafariVideo } from '@core/safari/patches/media-figure/video.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { MEDIA_ATTRS } from '@core/tokens/attrs/media.js'
 
+/** Bare <video> with a resolving play() — the src-set path only needs this. */
 const makeVid = () => {
   const vid = document.createElement(HTML_TAGS.VIDEO)
 
@@ -17,6 +18,7 @@ const makeVid = () => {
   return vid
 }
 
+/** Runs `fn` with a mobile-width innerWidth, then restores it. */
 const mobileViewport = (fn) => {
   const prev = window.innerWidth
 

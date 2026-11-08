@@ -17,6 +17,7 @@ import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 
 import { MEDIA } from '@core/tokens/media/suffixes.js'
 
+/** Zero-ms flush — wasm/css promises resolve within one macrotask. */
 const _flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 // ─── gpu-accel.js / wasm-css.js / core utils ─────────────────────────────────

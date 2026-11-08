@@ -4,6 +4,7 @@
  */
 import { debugParams, hasDebugFlag, runDebugActions } from '@core/debug/params.js'
 
+/** Chainable global-hider — hideWindow()/hideNavigator() mutate then run fn. */
 const withGlobals = (fn) => {
   const win = globalThis.window
   const nav = globalThis.navigator

@@ -12,6 +12,7 @@ import { startNetworkObserver } from '@core/utils/perf/stats/network.js'
 import '@website/views/legal/Legal.js'
 import '@website/views/home/Home.js'
 
+/** Generous flush — stats-engine timers need real macrotask passes. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 describe('stats-engine tails', () => {

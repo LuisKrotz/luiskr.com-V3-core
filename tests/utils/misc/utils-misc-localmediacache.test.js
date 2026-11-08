@@ -6,6 +6,7 @@ import { describe, test, expect, jest } from '@jest/globals'
 import { localMediaCache } from '@core/utils/media/local-media-cache.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
 
+/** Generous flush — cache timers need real macrotask passes. */
 const _flush = (ms = 60) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // ─── local-media-cache ───────────────────────────────────────────────────────

@@ -110,6 +110,7 @@ afterEach(() => {
   proto.getContext = origGetContext
 })
 
+/** Canvas with a stubbed rect — flag sizing math reads real boxes. */
 const makeCanvas = () => {
   const canvas = document.createElement(HTML_TAGS.CANVAS)
 
@@ -118,6 +119,7 @@ const makeCanvas = () => {
   return canvas
 }
 
+/** Lang-row factory — code + one or two country variants per row. */
 const lang = (code, cc, cc2 = null) => ({ code, cc, cc2 })
 
 describe('flag wasm path', () => {

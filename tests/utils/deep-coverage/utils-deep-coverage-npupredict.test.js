@@ -8,6 +8,7 @@ import { wasmImageDecoder } from '@core/utils/wasm/wasm-image-decoder.js'
 import { npuPredict } from '@core/utils/gpu/npu-predict.js'
 import { POINTER_EVENTS } from '@core/tokens/events/dom.js'
 
+/** Zero-ms flush — predict promises resolve within one macrotask. */
 const _flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 // ─── npu-predict.js ──────────────────────────────────────────────────────────

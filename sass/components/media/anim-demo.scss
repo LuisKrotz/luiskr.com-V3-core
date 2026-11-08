@@ -122,8 +122,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   &-icon-wrap {
     position: relative;
     display: block;
-    width: $_ICON-BOX;
-    height: $_ICON-BOX;
+    width: to-rem($_ICON-BOX);
+    height: to-rem($_ICON-BOX);
   }
 
   // Centered icon canvas — burger / close-button widget surfaces, bumped
@@ -131,8 +131,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   &-icon {
     position: relative;
     inset: auto;
-    width: $_ICON-BOX;
-    height: $_ICON-BOX;
+    width: to-rem($_ICON-BOX);
+    height: to-rem($_ICON-BOX);
     border-radius: var(--radius-full);
   }
 
@@ -141,7 +141,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   &-flag {
     position: relative;
     inset: auto;
-    height: $_FLAG-H;
+    height: to-rem($_FLAG-H);
     width: auto;
     border-radius: var(--radius-hairline);
   }
@@ -151,8 +151,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   &-switch {
     position: relative;
     inset: auto;
-    width: $_SWITCH-W;
-    height: $_SWITCH-H;
+    width: to-rem($_SWITCH-W);
+    height: to-rem($_SWITCH-H);
     border-radius: var(--radius-full);
   }
 
@@ -162,8 +162,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   &-theme {
     position: relative;
     inset: auto;
-    width: $_THEME-W;
-    height: $_THEME-H;
+    width: to-rem($_THEME-W);
+    height: to-rem($_THEME-H);
     border-radius: var(--radius-full);
     box-shadow: var(--shadow-card);
   }
@@ -215,9 +215,9 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     position: absolute;
     top: 50%;
     left: 50%;
-    width: $_LOADER-OUT;
-    height: $_LOADER-OUT;
-    margin: -#{$_LOADER-OUT * 0.5} 0 0 -#{$_LOADER-OUT * 0.5};
+    width: to-rem($_LOADER-OUT);
+    height: to-rem($_LOADER-OUT);
+    margin: -#{to-rem($_LOADER-OUT * 0.5)} 0 0 -#{to-rem($_LOADER-OUT * 0.5)};
     border: to-rem($space-2xs) solid transparent;
     border-top-color: var(--color-accent);
     border-radius: var(--radius-full);
@@ -228,9 +228,9 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     position: absolute;
     top: 50%;
     left: 50%;
-    width: $_LOADER-IN;
-    height: $_LOADER-IN;
-    margin: -#{$_LOADER-IN * 0.5} 0 0 -#{$_LOADER-IN * 0.5};
+    width: to-rem($_LOADER-IN);
+    height: to-rem($_LOADER-IN);
+    margin: -#{to-rem($_LOADER-IN * 0.5)} 0 0 -#{to-rem($_LOADER-IN * 0.5)};
     border: to-rem($space-2xs) solid transparent;
     border-bottom-color: var(--menu-ink-2);
     border-radius: var(--radius-full);
@@ -238,7 +238,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   }
 
   &-loader-counter {
-    height: $_BAR-H;
+    height: to-rem($_BAR-H);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -248,7 +248,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   }
 
   &-loader-bar {
-    width: $_RAIL-W;
+    width: to-rem($_RAIL-W);
     height: to-rem($space-2xs);
     border-radius: var(--radius-hairline);
     background: var(--border-color);
@@ -330,7 +330,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: $_BURN-MIN-H;
+    min-height: to-rem($_BURN-MIN-H);
     padding: to-rem($space-md);
     background: linear-gradient(135deg, var(--bg-dark) 0%, var(--menu-ink) 140%);
   }
@@ -394,8 +394,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
 
   &-tile {
     position: relative;
-    width: $_TILE-BOX;
-    height: $_TILE-BOX;
+    width: to-rem($_TILE-BOX);
+    height: to-rem($_TILE-BOX);
     border-radius: var(--radius-md);
     background: var(--bg-primary);
     border: var(--border-item-hover);
@@ -412,7 +412,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     // The spring variant reads the same modifier — the overshoot ease
     // above is the mosaic tile's lift contract.
     &--spring {
-      height: $_TILE-H;
+      height: to-rem($_TILE-H);
     }
   }
 
@@ -530,8 +530,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
 
   &-slide {
     flex: 0 0 auto;
-    width: $_STRIP-W;
-    height: $_STRIP-H;
+    width: to-rem($_STRIP-W);
+    height: to-rem($_STRIP-H);
     border-radius: var(--radius-sm);
     background: linear-gradient(150deg, var(--menu-ink-2) 0%, var(--menu-ink) 100%);
   }
@@ -738,8 +738,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   &-fan {
     position: relative;
     width: 100%;
-    height: $_FAN-H;
-    perspective: $_FAN-PERSP;
+    height: to-rem($_FAN-H);
+    perspective: to-rem($_FAN-PERSP);
     transform-style: preserve-3d;
   }
 
@@ -747,8 +747,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     position: absolute;
     top: 50%;
     left: 50%;
-    width: $_FAN-W;
-    height: $_FAN-CARD-H;
+    width: to-rem($_FAN-W);
+    height: to-rem($_FAN-CARD-H);
     border-radius: var(--radius-sm);
     border: var(--border-item-hover);
     background: var(--bg-darker);
@@ -799,8 +799,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
 
   &-chip {
     position: relative;
-    width: $_CHIP-W;
-    height: $_CHIP-H;
+    width: to-rem($_CHIP-W);
+    height: to-rem($_CHIP-H);
     border-radius: var(--radius-full);
     background: var(--bg-darker);
     overflow: hidden;
@@ -838,8 +838,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   //    outgoing one out while the incoming fades in underneath. ──────
   &-panes {
     position: relative;
-    width: $_PANE-W;
-    height: $_PANE-H;
+    width: to-rem($_PANE-W);
+    height: to-rem($_PANE-H);
   }
 
   &-pane {
@@ -866,8 +866,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: $_SEARCH-W;
-    height: $_SEARCH-H;
+    width: to-rem($_SEARCH-W);
+    height: to-rem($_SEARCH-H);
     padding: 0 to-rem($space-md);
     border-radius: var(--radius-full);
     border: var(--border-item-hover);
@@ -918,8 +918,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   // ── Custom-carousel — the strip variant with project-card slides:
   //    taller, wider cards than the awards strip. ────────────────────
   &-strip--project &-slide {
-    width: $_SLIDE-W;
-    height: $_SLIDE-H;
+    width: to-rem($_SLIDE-W);
+    height: to-rem($_SLIDE-H);
   }
 
   // ── Mentions-deck — three stacked cards; data-index = stack slot
@@ -927,16 +927,16 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   //    at the back — the drag-dismiss gesture on a loop. ─────────────
   &-deck {
     position: relative;
-    width: $_DECK-W;
-    height: $_DECK-H;
+    width: to-rem($_DECK-W);
+    height: to-rem($_DECK-H);
   }
 
   &-deck-card {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: $_DECK-SM-W;
-    height: $_DECK-SM-H;
+    width: to-rem($_DECK-SM-W);
+    height: to-rem($_DECK-SM-H);
     border-radius: var(--radius-sm);
     border: var(--border-item-hover);
     background: var(--bg-darker);
@@ -974,8 +974,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   //    the default (loading) state, --ready swaps to the sheen sweep. ─
   &-modal {
     position: relative;
-    width: $_MODAL-W;
-    height: $_MODAL-H;
+    width: to-rem($_MODAL-W);
+    height: to-rem($_MODAL-H);
     border-radius: var(--radius-md);
     border: var(--border-item-hover);
     background: var(--bg-darker);

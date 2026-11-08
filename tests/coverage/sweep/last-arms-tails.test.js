@@ -21,8 +21,10 @@ import { LANG_SLUGS } from '@core/locale/lang-slugs.js'
 import { TEST_TEXT, TEST_URLS } from '@tests/fixtures/test-constants.js'
 import { mountRingFill } from '@core/utils/gpu/ring-fill.js'
 
+/** Two neon palette vars — enough to cover the multi-color arm. */
 const COLORS = [NAV_SEARCH_CSS_PROPS.NEON_TEAL, NAV_SEARCH_CSS_PROPS.NEON_GREEN]
 
+/** Host with a shadow root + canvas whose getContext returns `ctxResult`. */
 const makeHost = (ctxResult) => {
   const host = document.createElement('div')
 

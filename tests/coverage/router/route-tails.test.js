@@ -33,6 +33,7 @@ import '@website/views/not-found/NotFound.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { LANG_MUTATIONS, MODAL_MUTATIONS } from '@core/tokens/events/mutations.js'
 
+/** Generous flush — router navigation queues need real timers. */
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
 
 describe('route tails', () => {

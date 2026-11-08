@@ -15,6 +15,7 @@ import { framePool } from '@core/utils/motion/frame.js'
 import { EXPAND_SPRING } from '@core/tokens/motion/expand.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 
+/** Original rAF/cAF — tests swap in the manual queue then restore. */
 const realRaf = globalThis.requestAnimationFrame
 const realCaf = globalThis.cancelAnimationFrame
 

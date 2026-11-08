@@ -40,6 +40,7 @@ const flush = async () => {
   await new Promise((r) => setTimeout(r, 40))
 }
 
+/** Canvas with a stubbed rect — the wasm path reads real boxes for sizing. */
 const makeCanvas = () => {
   const canvas = document.createElement(HTML_TAGS.CANVAS)
 

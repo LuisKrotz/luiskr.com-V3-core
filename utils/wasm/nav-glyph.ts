@@ -44,6 +44,8 @@ export interface NavGlyphSession {
   destroy(): void
 }
 
+/** Cached runtime-load promise — null until first glyph mount, resolves
+ *  once so concurrent mounts share a single wasm instantiation. */
 let runtime: Promise<GlyphRuntime | null> | null = null
 
 /** Default glue loader — dynamic-imports the wasm-pack module from the

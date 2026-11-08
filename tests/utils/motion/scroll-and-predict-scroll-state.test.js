@@ -6,6 +6,7 @@ import { isScrolling, onScrollStop } from '@core/utils/motion/scroll-state.js'
 import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 
+/** Long flush — scroll/predict debounce windows are ~150ms wide. */
 const flush = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // ─── scroll-state ────────────────────────────────────────────────────────────

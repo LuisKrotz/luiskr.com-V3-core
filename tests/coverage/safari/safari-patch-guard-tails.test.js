@@ -15,6 +15,7 @@ import '@cms/deploy-info/CmsDeployInfo.js'
 
 globalThis.alert = jest.fn()
 
+/** Generous flush — Safari-patch timers need real macrotask passes. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 describe('safari patch guard tails', () => {

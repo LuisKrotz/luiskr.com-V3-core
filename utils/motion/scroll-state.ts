@@ -8,10 +8,13 @@
 import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
+/** Live scroll flag — true while the user is actively scrolling the window. */
 let isWindowScrolling = false
 
+/** Debounce handle — reset on every scroll event so it fires only on stop. */
 let scrollStopTimer: ReturnType<typeof setTimeout> | null = null
 
+/** Subscribers invoked once per scroll-settle, then cleared. */
 const scrollStopCallbacks = new Set<() => void>()
 
 /** Fires when scrolling settles: clears the flag and drains pending callbacks. */

@@ -9,7 +9,9 @@
 import { describe, test, expect, jest } from '@jest/globals'
 import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
 
+/** Fake auth instance — null user + marker so tests can identify it. */
 const mockAuth = { currentUser: null, marker: 'auth-instance' }
+/** Unsubscribe spy — tests assert listeners detach on the armed path. */
 const mockUnsub = jest.fn()
 
 jest.unstable_mockModule('firebase/auth', () => ({
@@ -34,6 +36,7 @@ jest.unstable_mockModule('firebase/database', () => ({
   getDatabase: jest.fn(() => ({ marker: 'db' })),
 }))
 
+/** Fresh firebase module import — bound after the mocks are installed. */
 const firebase = await import('@core/firebase.js')
 
 describe('firebase redirect error tails', () => {

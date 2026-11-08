@@ -72,7 +72,6 @@ export interface SkelRect {
  * Falls back to the CSS shimmer (already on the placeholders) when WebGL is
  * unavailable: the canvas is simply never attached.
  */
-
 export class SkeletonWebGL {
   /**
    * @param {HTMLElement} host   The custom element (positioned via :host(.has-skeleton-layer))

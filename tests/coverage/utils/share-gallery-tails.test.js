@@ -26,6 +26,7 @@ import { LOCALES } from '@core/tokens/locales.js'
 import { BASE_TITLE } from '@core/tokens/routes.js'
 import { TEST_TEXT } from '@tests/fixtures/test-constants.js'
 
+/** Two CDN share URLs — enough to distinguish first/second capture arms. */
 const SHARE_A = 'https://cdn.example/a.png'
 const SHARE_B = 'https://cdn.example/b.png'
 
@@ -41,11 +42,14 @@ const seedHead = () => {
   ].join('')
 }
 
+/** Reads a head meta tag's content attribute (undefined-safe). */
 const metaContent = (sel) => document.querySelector(sel)?.content
 
+/** Parses the JSON-LD node the share writer emits. */
 const graph = () =>
   JSON.parse(document.getElementById(SCHEMA_STRINGS.JSON_LD_SCRIPT_ID).textContent)
 
+/** Route fixture for the earth-playground surface. */
 const epRoute = (overrides = {}) => ({
   name: ROUTE_NAMES.EARTH_PLAYGROUND,
   path: '/earth-playground',
@@ -54,6 +58,7 @@ const epRoute = (overrides = {}) => ({
   ...overrides,
 })
 
+/** Route fixture for the star-field surface. */
 const sfRoute = (overrides = {}) => ({
   name: ROUTE_NAMES.STAR_FIELD,
   path: '/star-field-experiment',
@@ -62,6 +67,7 @@ const sfRoute = (overrides = {}) => ({
   ...overrides,
 })
 
+/** Minimal JSON-LD graph — the writer updates primaryImageOfPage.url. */
 const baseGraphOf = (image) => [
   { '@type': 'WebPage', primaryImageOfPage: { '@type': 'ImageObject', url: image } },
 ]

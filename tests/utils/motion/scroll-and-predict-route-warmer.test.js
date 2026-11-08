@@ -5,6 +5,7 @@
 import { POINTER_EVENTS } from '@core/tokens/events/dom.js'
 import { startRouteWarming, stopRouteWarming } from '@core/utils/motion/route-warmer.js'
 
+/** Long flush — route-warmer idle windows are ~150ms wide. */
 const flush = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // ─── route-warmer ────────────────────────────────────────────────────────────

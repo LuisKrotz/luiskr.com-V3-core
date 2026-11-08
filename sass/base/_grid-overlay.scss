@@ -11,6 +11,8 @@
 //  - rgba(255,255,255,...) is ALLOWED for overlays per AGENTS.md shadow exception
 //  - rgba($cms-accent-rgb,...) approximated via rgba() — accent column tint
 
+@use 'sass:map';
+
 @import 'variables';
 @import 'mixins';
 //  - No hardcoded dimensions — all sizes from $gap-* and $grid-max-area-* tokens
@@ -30,7 +32,7 @@ $_boundary: rgba($cms-accent, 0.35); // boundary line colour — accent
 html.show-grid {
   // ── CSS custom props per breakpoint — drive both pseudo-elements ───────────
   --_grid-gutter: #{to-rem($gap-272)};
-  --_grid-cols: #{map-get($grid-cols, 272)};
+  --_grid-cols: #{map.get($grid-cols, 272)};
   --_grid-col-gap: #{to-rem($space-md)};
 
   // One media query per $grid-steps entry (272 is the unprefixed default).

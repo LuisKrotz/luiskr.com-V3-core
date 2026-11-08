@@ -43,7 +43,6 @@ import type { WidgetHandle } from '../../gpu/webgpu-widget.js'
  * - FR (10): Revolutionary vertical tricolor ripple with satin sheen
  * - TLN (11): Venetian gondola water reflection merging Italian and Brazilian tones
  */
-
 export class FlagWebGL {
   canvas: HTMLCanvasElement
   lang: LangOption

@@ -24,6 +24,7 @@ const ROUTE_CHUNKS = [
   () => import('@website/views/not-found/NotFound.js'),
 ]
 
+/** Lifecycle flags — started arms the idle warm, stopped un-arms it permanently. */
 let _started = false
 let _stopped = false
 

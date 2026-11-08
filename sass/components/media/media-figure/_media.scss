@@ -4,6 +4,13 @@
 //  <media-figure> shadow root; not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
+// ── Thumb layer constants ────────────────────────────────────────────────────
+// Progressive-thumbnail optics — the blur radius melts the palette into a
+// colour wash, the zoom crops the blurred edge falloff so no transparent
+// fringe leaks at the corners (px-equivalent noted).
+$_THUMB-BLUR: $space-lg - $space-3xs; // 12
+$_THUMB-ZOOM: 1.05;
+
 // ── Media layers ──────────────────────────────────────────────────────────────
 // Two-layer progressive cross-fade:
 //   Layer 1 (--thumb): blurred thumbnail visible immediately
@@ -25,8 +32,8 @@
 
   // Thumbnail: blurred + slightly zoomed to hide blur edge artifacts
   &--thumb {
-    filter: blur(to-rem($space-lg - $space-3xs));
-    transform: scale(1.05);
+    filter: blur(to-rem($_THUMB-BLUR));
+    transform: scale($_THUMB-ZOOM);
     z-index: 1;
   }
 

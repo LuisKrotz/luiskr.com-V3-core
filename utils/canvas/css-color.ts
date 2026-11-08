@@ -9,10 +9,13 @@
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
+/** #rgb / #rrggbb hex matcher — 3- or 6-digit forms only. */
 const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i
 
+/** rgb()/rgba() matcher — captures the three integer channel values. */
 const RGB_RE = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i
 
+/** color(srgb r g b) matcher — captures the three 0–1 channel floats. */
 const SRGB_RE = /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i
 
 /** Parses a CSS color string into a [r, g, b] 0–1 triple, or null. */

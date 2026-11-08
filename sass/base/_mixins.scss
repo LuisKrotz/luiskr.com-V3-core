@@ -4,6 +4,10 @@
 //  design. None of these emit CSS by themselves.
 // ════════════════════════════════════════════════════════════════════════════
 
+@use 'sass:map';
+@use 'sass:math';
+@use 'sass:meta';
+
 // MIXINS
 // Decimal Round
 
@@ -20,16 +24,16 @@
 @function decimal-round($number, $digits: 0, $mode: round) {
   $n: 1;
   // $number must be a number
-  @if type-of($number) != number {
+  @if meta.type-of($number) != number {
     @warn '#{ $number } is not a number.';
     @return $number;
   }
 
   // $digits must be a unitless number
-  @if type-of($digits) != number {
+  @if meta.type-of($digits) != number {
     @warn '#{ $digits } is not a number.';
     @return $number;
-  } @else if not unitless($digits) {
+  } @else if not math.is-unitless($digits) {
     @warn '#{ $digits } has a unit.';
     @return $number;
   }
@@ -43,7 +47,7 @@
   @if $mode == round {
     @return calc(round($number * $n) / $n);
   } @else if $mode == ceil {
-    @return ceil($number * $n) / $n;
+    @return math.div(math.ceil($number * $n), $n);
   } @else if $mode == floor {
     @return calc(floor($number * $n) / $n);
   } @else {
@@ -57,7 +61,7 @@
 /// @param {Number} $viewport - Reference viewport width in px.
 /// @return {String} A `vw`-suffixed value rounded to 3 decimals.
 @function to-vw($value, $viewport) {
-  @return #{decimal-round((($value / $viewport) * 100), 3)}vw;
+  @return #{decimal-round((math.div($value, $viewport) * 100), 3)}vw;
 }
 
 /// Converts a px length to a vmin percentage of a reference height.
@@ -65,7 +69,7 @@
 /// @param {Number} $height - Reference height in px.
 /// @return {String} A `vmin`-suffixed value rounded to 3 decimals.
 @function to-vmin($value, $height) {
-  @return #{decimal-round((($value / $height) * 100), 3)}vmin;
+  @return #{decimal-round((math.div($value, $height) * 100), 3)}vmin;
 }
 
 /// Converts a px (or unitless px-meaning) number to rem at the 16px root.
@@ -75,7 +79,7 @@
 /// @return {String} A `rem`-suffixed value rounded to 3 decimals.
 @function to-rem($value) {
   // Strip px unit if present so the result is always unitless before appending rem
-  @if unit($value) == 'px' {
+  @if math.unit($value) == 'px' {
     $value: calc($value / 1px);
   }
 
@@ -89,7 +93,7 @@
 /// @param {Number} $area - Whole length.
 /// @return {Number} Percentage rounded to 3 decimals.
 @function rel-to-area($value, $area) {
-  @return #{decimal-round((($value / $area) * 100%), 3)};
+  @return #{decimal-round((math.div($value, $area) * 100%), 3)};
 }
 
 /// Neutralizes <br> inside the scope — `content: ' '` collapses the line
@@ -124,7 +128,7 @@
 /// @param {Number} $font-size - Font size in the same unit as $line-height.
 /// @param {Number} $line-height - Desired line height.
 @mixin proportional-line($font-size, $line-height) {
-  line-height: decimal-round($line-height / $font-size, 2) * 1rem;
+  line-height: decimal-round(math.div($line-height, $font-size), 2) * 1rem;
 }
 
 // Reset list
@@ -294,7 +298,7 @@
   @each $step, $gap in $grid-steps {
     @if $step > 272 {
       @media (min-width: #{$step - 1}px) {
-        @content ($step, $gap, map-get($grid-cols, $step));
+        @content ($step, $gap, map.get($grid-cols, $step));
       }
     }
   }

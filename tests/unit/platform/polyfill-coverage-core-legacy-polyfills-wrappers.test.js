@@ -4,7 +4,9 @@
  */
 import { describe, test, expect, jest, afterEach } from '@jest/globals'
 
+/** Ponyfill spy — tests assert the polyfill chain invoked it. */
 const cssVarsMock = jest.fn()
+/** Minimal RO polyfill stand-in — the install only needs the class shape. */
 const ResizeObserverShim = class MockRO {
   observe() {}
   unobserve() {}
@@ -23,6 +25,7 @@ jest.unstable_mockModule('intersection-observer', () => ({}))
  * don't invoke their getter against the prototype itself. */
 const stash = new Map()
 
+/** Snapshots a global key so a test can stub then restore it safely. */
 const saveKey = (key, holder = globalThis) => {
   const id = `${holder === window ? 'w' : 'g'}:${key}`
 

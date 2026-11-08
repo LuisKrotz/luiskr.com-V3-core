@@ -11,6 +11,7 @@ import { getDevLog, clearDevLog } from '@core/devlog.js'
 import { LOG_LEVELS } from '@core/tokens/data/log.js'
 import { TEST_TEXT } from '@tests/fixtures/test-constants.js'
 
+/** Fixture sheets — base/mobile/desktop tiers exercise the tier-merge arms. */
 const BASE_CSS = '.tier-base { display: block; }'
 const MOBILE_CSS = '@media (min-width: 319px) { .tier-m { margin: 0; } }'
 const DESKTOP_CSS = MOBILE_CSS + '@media (min-width: 1279px) { .tier-d { margin: 0; } }'
@@ -38,12 +39,14 @@ class TieredHost extends TieredComponent {
   }
 }
 
+/** Test-only custom-element tag names — guarded-define keeps re-runs safe. */
 const TAG = 'test-tiered-component'
 const HOST_TAG = 'test-tiered-host'
 
 if (!customElements.get(TAG)) customElements.define(TAG, TieredComponent)
 if (!customElements.get(HOST_TAG)) customElements.define(HOST_TAG, TieredHost)
 
+/** Zero-ms flush — connected-callback renders drain within one macrotask. */
 const flush = () => new Promise((r) => setTimeout(r, 0))
 
 // The jest env installs happy-dom's `window` but not its CSSStyleSheet —

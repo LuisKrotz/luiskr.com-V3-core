@@ -7,6 +7,7 @@ import { TEST_URLS } from '@tests/fixtures/test-constants.js'
 import { POINTER_EVENTS } from '@core/tokens/events/dom.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
+/** Long flush — npu-predict settle windows are ~150ms wide. */
 const flush = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // ─── npu-predict ─────────────────────────────────────────────────────────────

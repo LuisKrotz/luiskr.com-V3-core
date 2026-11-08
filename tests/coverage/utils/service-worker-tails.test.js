@@ -14,6 +14,7 @@ import { registerSiteServiceWorker, dropStaleServiceWorkers } from '@core/utils/
 /** Stashed property descriptors restored after each test. */
 const stash = new Map()
 
+/** Snapshots a global key so a test can stub then restore it safely. */
 const saveKey = (key, holder = globalThis) => {
   const id = `${holder === window ? 'w' : 'g'}:${key}`
 

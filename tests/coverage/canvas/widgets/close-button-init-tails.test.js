@@ -13,6 +13,8 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 
+/** Mutable mock-state flags — the module mocks below read these per-call,
+ *  so tests flip them to steer GPU/mount/gl/build/throw/RO-callback branches. */
 let mockGpu = true
 let mountResult = null
 let glResult = null
@@ -20,6 +22,7 @@ let builtResult = null
 let glThrow = false
 let capturedRoCb = null
 
+/** Fake gl-program module — records warn() calls and returns canned programs. */
 const glProgram = {
   createQuadProgram: (gl, vs, fs, name, opts) => {
     opts?.warn?.('VS', 'info')
@@ -58,6 +61,7 @@ jest.unstable_mockModule('@core/utils/canvas/webgl-mode.js', () => ({
 const { init, tryWasm, initRest, initWebGL, onContextLost } =
   await import('@core/utils/canvas/widgets/close-button/init.js')
 
+/** Canvas stub — null getContext + canned rect drive the sizing/fallback arms. */
 const makeCanvas = (rect = { width: 55, height: 55 }) => ({
   getContext: () => null,
   getBoundingClientRect: rect ? () => rect : undefined,
@@ -68,6 +72,7 @@ const makeCanvas = (rect = { width: 55, height: 55 }) => ({
   height: 0,
 })
 
+/** Host surface the init fn reads — canvas + dims, overridable per test. */
 const makeHost = (over = {}) => ({
   canvas: makeCanvas(),
   width: 55,
@@ -89,6 +94,7 @@ const makeHost = (over = {}) => ({
   ...over,
 })
 
+/** Short flush — init rAF/observer steps settle within ~20ms. */
 const flush = () => new Promise((r) => setTimeout(r, 20))
 
 class MockRO {

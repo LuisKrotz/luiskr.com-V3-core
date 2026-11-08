@@ -25,6 +25,7 @@ jest.unstable_mockModule('@core/firebase.js', () => ({
   getDbInstance: jest.fn(async () => ({})),
 }))
 
+/** Generous flush — scroll-state debounces need real timers. */
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
 
 describe('scroll-state tails', () => {

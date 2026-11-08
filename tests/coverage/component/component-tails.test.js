@@ -9,6 +9,7 @@ import '@website/components/feedback/CookieBanner.js'
 import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 
+/** Generous flush — component mount/render steps need real timers. */
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
 
 describe('Component tails', () => {

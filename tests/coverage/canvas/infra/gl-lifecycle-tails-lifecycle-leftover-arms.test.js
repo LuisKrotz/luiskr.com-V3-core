@@ -26,6 +26,7 @@ import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
 import { KEYS, LOCALES, PREF_CLASSES, SWITCH_TYPES } from '@core/constants.js'
 import { THEME } from '@core/tokens/theme/theme.js'
 
+/** Generous flush — GL lifecycle steps need real timers past microtasks. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 let mockGL
@@ -56,6 +57,7 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
+/** Appended canvas — optional class hook the lifecycle maps key on. */
 const makeCanvas = (cls = null, parent = document.body) => {
   const canvas = document.createElement(HTML_TAGS.CANVAS)
 

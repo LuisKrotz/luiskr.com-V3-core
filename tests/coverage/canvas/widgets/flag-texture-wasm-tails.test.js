@@ -14,8 +14,10 @@ import { createMockGL, createMock2D } from '@tests/fixtures/mock-webgl.js'
 import { FLAG_TEXTURE } from '@core/tokens/media/flag-texture.js'
 import { WEBGL_STRINGS } from '@core/tokens/strings/webgl.js'
 
+/** Zero-ms flush — the texture path resolves within one macrotask. */
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
+/** Fake ImageBitmap — sized + close()-able, no pixel data needed. */
 const makeBitmap = (w = FLAG_TEXTURE.WIDTH, h = FLAG_TEXTURE.HEIGHT) => ({
   width: w,
   height: h,

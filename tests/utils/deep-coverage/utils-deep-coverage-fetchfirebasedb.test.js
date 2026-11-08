@@ -10,6 +10,7 @@ import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
 
 import { LOCALES } from '@core/constants.js'
 
+/** Zero-ms flush — fetch promises resolve within one macrotask. */
 const flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 // ─── db.js ───────────────────────────────────────────────────────────────────

@@ -8,6 +8,8 @@
  */
 import { describe, test, expect, jest } from '@jest/globals'
 
+/** Mutable pool-mock state — dispatch() reads these per-call so tests
+ *  steer the reply and record every dispatched payload. */
 let dispatchReply = null
 let dispatchCalls = []
 
@@ -21,6 +23,7 @@ jest.unstable_mockModule('@core/utils/wasm/wasm-pool.js', () => ({
   },
 }))
 
+/** Search-row fixtures — title/path/preview fields cover the rank arms. */
 const items = [
   {
     title: 'Privacy Policy',

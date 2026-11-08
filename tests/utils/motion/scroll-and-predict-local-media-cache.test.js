@@ -6,6 +6,7 @@ import { localMediaCache } from '@core/utils/media/local-media-cache.js'
 import { TEST_URLS } from '@tests/fixtures/test-constants.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
+/** Long flush — cache warm/predict settle windows are ~150ms wide. */
 const _flush = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // ─── local-media-cache ───────────────────────────────────────────────────────

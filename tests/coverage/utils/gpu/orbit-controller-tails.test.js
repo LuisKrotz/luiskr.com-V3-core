@@ -13,6 +13,7 @@ import { ORBIT_EVENTS, POINTER_EVENTS, MOUSE_EVENTS } from '@core/tokens/events/
 
 const { bindOrbit } = await import('@core/utils/gpu/orbit-controller.js')
 
+/** Dispatches an Event with extra fields stamped on — orbit handlers read them. */
 const fire = (el, type, init = {}) => {
   const e = new Event(type)
 

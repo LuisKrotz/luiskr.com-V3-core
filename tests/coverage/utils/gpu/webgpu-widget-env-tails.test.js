@@ -69,6 +69,7 @@ const deadLoader = async () => {
   throw new Error('artifact 404')
 }
 
+/** Saved globals + window descriptor — env stubs redefine then restore. */
 const WorkerSaved = globalThis.Worker
 const OffscreenSaved = globalThis.OffscreenCanvas
 const winDesc = Object.getOwnPropertyDescriptor(globalThis, 'window')

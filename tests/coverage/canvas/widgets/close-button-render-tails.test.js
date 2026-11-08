@@ -10,6 +10,8 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 
+/** Mutable render-mock state — mocks read these per-call so tests steer
+ *  reduced-motion and record every quad-binding call. */
 let reducedMotion = false
 let bindQuadCalls = []
 
@@ -27,6 +29,7 @@ jest.unstable_mockModule('@core/store.js', () => ({
 const { renderStatic, animate, renderWasm, renderWebGL } =
   await import('@core/utils/canvas/widgets/close-button/render.js')
 
+/** Fake WebGL context — every call lands in `calls` as [name, ...args]. */
 const makeGl = () => {
   const calls = []
 
@@ -44,6 +47,7 @@ const makeGl = () => {
   }
 }
 
+/** Host surface the renderer reads — canvas + dims, overridable per test. */
 const makeHost = (over = {}) => {
   const host = {
     canvas: { width: 110, height: 110 },

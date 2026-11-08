@@ -36,6 +36,7 @@ export interface NotifyOpts {
   toastOnly?: boolean
 }
 
+/** One queued toast — payload fields mirror the notify() options shape. */
 interface ToastItem {
   text: string
   type?: string

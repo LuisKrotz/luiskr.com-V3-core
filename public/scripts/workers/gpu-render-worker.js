@@ -31,6 +31,7 @@
  * from the main thread's own rAF, so it keeps full refresh rate.
  */
 
+/** Worker-side frame budget (ms) — the worker's own rAF cadence target. */
 const FRAME_MS = 16
 
 /** bytesPerRow alignment required by copyTextureToBuffer. */

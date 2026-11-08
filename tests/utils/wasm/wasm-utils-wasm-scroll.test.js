@@ -12,6 +12,8 @@ import { HTML_TAGS } from '@core/tokens/elements/html.js'
 // easing math needs `now`. Re-stub here to pass monotonic timestamps.
 const _raf = globalThis.requestAnimationFrame
 
+/** Replaces rAF with a setTimeout shim reporting fake +30ms timestamps —
+ *  drives frame-based code through real timers without a real rAF. */
 const installTimedRaf = () => {
   globalThis.requestAnimationFrame = (cb) => {
     const id = setTimeout(() => cb(performance.now() + 30), 5)

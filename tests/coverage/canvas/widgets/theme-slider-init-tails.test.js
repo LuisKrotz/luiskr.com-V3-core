@@ -12,6 +12,8 @@
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 
+/** Mutable mock-state flags — the module mocks below read these per-call,
+ *  so tests flip them to steer GPU/mount/gl/build/throw/RO-callback branches. */
 let mockGpu = true
 let mountResult = null
 let glResult = null
@@ -19,6 +21,7 @@ let builtResult = null
 let glThrow = false
 let capturedRoCb = null
 
+/** Fake gl-program module — records warn() calls and returns canned programs. */
 const glProgram = {
   getWebGLContext: (_canvas, _attrs) => {
     if (glThrow) throw new Error('ctx')
@@ -48,6 +51,7 @@ jest.unstable_mockModule('@core/utils/gpu/webgpu-widget.js', () => ({
 const { init, tryWasm, initRest, triggerFallback, initWebGL } =
   await import('@core/utils/canvas/widgets/theme-slider/init.js')
 
+/** Canvas stub — null getContext + canned rect drive the sizing arms. */
 const makeCanvas = (rect = { left: 0, top: 0, width: 280, height: 64 }) => ({
   getContext: () => null,
   getBoundingClientRect: () => rect,
@@ -60,6 +64,7 @@ const makeCanvas = (rect = { left: 0, top: 0, width: 280, height: 64 }) => ({
   height: 0,
 })
 
+/** Host surface the init fn reads — canvas + dims, overridable per test. */
 const makeHost = (over = {}) => ({
   canvas: makeCanvas(),
   width: 280,

@@ -9,6 +9,7 @@ import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
 import { IDB_CONFIG } from '@core/constants.js'
 
+/** Zero-ms flush — cache promises resolve within one macrotask. */
 const _flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 // ─── local-media-cache.js ────────────────────────────────────────────────────

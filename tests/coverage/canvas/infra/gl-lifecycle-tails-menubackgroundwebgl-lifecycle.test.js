@@ -13,6 +13,7 @@ import { NAV_MENU_CLASSES } from '@core/tokens/classes/nav.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 
+/** Generous flush — GL lifecycle steps need real timers past microtasks. */
 const _flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 let mockGL
@@ -43,6 +44,7 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
+/** Appended canvas — optional class hook the lifecycle maps key on. */
 const makeCanvas = (cls = null, parent = document.body) => {
   const canvas = document.createElement(HTML_TAGS.CANVAS)
 

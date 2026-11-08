@@ -12,12 +12,15 @@
 import { describe, test, expect, beforeEach, jest } from '@jest/globals'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 
+/** Mutable mock-state flags — the module mocks below read these per-call,
+ *  so tests flip them to steer GPU/mount/gl/build/throw branches. */
 let mockGpu = true
 let mountResult = null
 let glResult = null
 let builtResult = null
 let glThrow = false
 
+/** Fake gl-program module — records warn() calls and returns canned programs. */
 const glProgram = {
   getWebGLContext: () => {
     if (glThrow) throw new Error('ctx')
@@ -52,6 +55,7 @@ jest.unstable_mockModule('@core/utils/gpu/webgpu-widget.js', () => ({
 const { init, tryWasm, initRest, triggerFallback, initWebGL } =
   await import('@core/utils/canvas/widgets/switch-slider/init.js')
 
+/** Canvas stub — null getContext drives the fallback arm. */
 const makeCanvas = () => ({
   getContext: () => null,
   style: {},
@@ -60,6 +64,7 @@ const makeCanvas = () => ({
   height: 0,
 })
 
+/** Host surface the init fn reads — canvas + dims, overridable per test. */
 const makeHost = (over = {}) => ({
   canvas: makeCanvas(),
   dpr: 0,
@@ -82,6 +87,7 @@ const makeHost = (over = {}) => ({
   ...over,
 })
 
+/** Short flush — init rAF/observer steps settle within ~20ms. */
 const flush = () => new Promise((r) => setTimeout(r, 20))
 
 beforeEach(() => {

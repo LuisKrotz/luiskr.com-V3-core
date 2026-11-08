@@ -18,6 +18,7 @@ import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
 import { ARIA_ATTRS } from '@core/tokens/attrs/aria.js'
 import { ATTR_VALUES } from '@core/tokens/attrs/values.js'
 
+/** Generous flush — loader steps settle within a few macrotasks. */
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
 
 /** Mounts the same markup index.html emits statically (mirrors LOADER_CLASSES). */

@@ -18,6 +18,7 @@ import { SECTION_IDS } from '@core/tokens/ids/sections.js'
 import { COMMON_ATTRS } from '@core/tokens/attrs/common.js'
 import { LANG_STRINGS } from '@core/tokens/strings/langs.js'
 
+/** Locale lists the meta writer iterates — all langs, then non-EN only. */
 const LANGS = VALID_LANGS
 const NON_EN_LANGS = LANGS.filter((l) => l !== LOCALES.EN)
 

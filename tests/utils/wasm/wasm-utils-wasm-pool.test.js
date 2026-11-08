@@ -15,6 +15,7 @@ import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 // easing math needs `now`. Re-stub here to pass monotonic timestamps.
 const _raf = globalThis.requestAnimationFrame
 
+/** Replaces rAF with a setTimeout shim — drives frame-based code through real timers. */
 const _installTimedRaf = () => {
   globalThis.requestAnimationFrame = (cb) => {
     const id = setTimeout(() => cb(performance.now() + 30), 5)

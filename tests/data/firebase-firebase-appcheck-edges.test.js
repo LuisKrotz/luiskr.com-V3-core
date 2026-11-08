@@ -10,6 +10,7 @@ import { describe, test, expect, jest, afterEach } from '@jest/globals'
 import { APP_IDS } from '@core/tokens/ids/app.js'
 import { AUTH_STRINGS } from '@core/tokens/strings/auth.js'
 
+/** Fake auth/db instances — markers let tests identify which mock was used. */
 const mockAuth = { currentUser: null, marker: 'auth-instance' }
 const mockDb = { marker: 'db-instance' }
 
@@ -34,6 +35,7 @@ jest.unstable_mockModule('firebase/app', () => ({
   initializeApp: jest.fn((config) => ({ config, marker: APP_IDS.APP })),
 }))
 
+/** AppCheck-init spy — returns a marker instance so tests see the arm used. */
 const mockInitAppCheck = jest.fn(() => ({ marker: 'appcheck' }))
 
 jest.unstable_mockModule('firebase/app-check', () => ({

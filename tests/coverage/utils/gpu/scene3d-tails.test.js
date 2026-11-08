@@ -9,6 +9,8 @@
 import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals'
 import { GPU_WIDGET_ARTIFACTS, GPU_WIDGET_KINDS } from '@core/tokens/motion/gpu-widgets.js'
 
+/** Mutable GPU/decode mock state — the module mocks below read these
+ *  per-call so tests steer capability/device/decode branches. */
 let mockGpu = true
 let mockDevice = { queue: () => ({}) }
 let decodeResult = null

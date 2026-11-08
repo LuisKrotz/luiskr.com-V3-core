@@ -7,6 +7,7 @@ import { wasmPool } from '@core/utils/wasm/wasm-pool.js'
 import { wasmMediaThreads } from '@core/utils/wasm/wasm-media-threads.js'
 import { gpuAccel } from '@core/utils/gpu/gpu-accel.js'
 
+/** Zero-ms flush — worker promises resolve within one macrotask. */
 const _flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 // ─── wasm-media-threads.js ───────────────────────────────────────────────────

@@ -19,6 +19,7 @@ import '@website/components/feedback/CookieBanner.js'
 import '@website/components/home/ContactSection.js'
 import '@website/views/not-found/NotFound.js'
 
+/** Saved Worker global — tests swap in the stub then restore it. */
 const WorkerSaved = globalThis.Worker
 
 /**

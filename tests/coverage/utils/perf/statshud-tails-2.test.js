@@ -20,6 +20,7 @@ import '@cms/playground-editor/CmsPlaygroundEditor.js'
 import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
 import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
 
+/** Generous flush — HUD render steps need real timers past microtasks. */
 const flush = (ms = 100) => new Promise((r) => setTimeout(r, ms))
 
 describe('StatsHud tails 2', () => {

@@ -28,8 +28,10 @@ afterAll(() => {
   document.documentElement.classList.remove(STATE_CLASSES.IS_SAFARI)
 })
 
+/** Looks up a registered custom element class by tag name. */
 const _cls = (tag) => customElements.get(tag)
 
+/** ~20ms flush — Safari-patch timers + microtasks settle within a tick. */
 const tick = () => new Promise((resolve) => setTimeout(resolve, 20))
 
 // Bound after each module-registry reset so commits always reach the store

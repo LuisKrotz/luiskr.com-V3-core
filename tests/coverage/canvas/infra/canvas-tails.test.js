@@ -35,6 +35,7 @@ import { HTML_TAGS } from '@core/tokens/elements/html.js'
 
 globalThis.alert = jest.fn()
 
+/** Bare canvas — these canvas helpers only need the element handle. */
 const makeCanvas = () => document.createElement(HTML_TAGS.CANVAS)
 
 describe('canvas tails', () => {

@@ -23,8 +23,10 @@ afterAll(() => {
   document.documentElement.classList.remove(STATE_CLASSES.IS_SAFARI)
 })
 
+/** Looks up a registered custom element class by tag name. */
 const _cls = (tag) => customElements.get(tag)
 
+/** ~20ms flush — Safari-patch timers + microtasks settle within a tick. */
 const _tick = () => new Promise((resolve) => setTimeout(resolve, 20))
 
 describe('safari-patch — retroactive cleanup', () => {

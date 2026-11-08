@@ -34,6 +34,7 @@ afterAll(() => {
   document.documentElement.classList.remove(STATE_CLASSES.IS_SAFARI)
 })
 
+/** Looks up a registered custom element class by tag name. */
 const cls = (tag) => customElements.get(tag)
 
 /** Hosts a stub element inside `tag`'s own shadow root — the carousel context. */

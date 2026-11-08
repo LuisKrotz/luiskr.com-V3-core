@@ -19,6 +19,7 @@ import '@cms/playground-editor/CmsPlaygroundEditor.js'
 import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
 import { MEDIA_ATTRS } from '@core/tokens/attrs/media.js'
 
+/** Generous flush — component mount/render steps need real timers. */
 const flush = (ms = 100) => new Promise((r) => setTimeout(r, ms))
 
 describe('component tails', () => {

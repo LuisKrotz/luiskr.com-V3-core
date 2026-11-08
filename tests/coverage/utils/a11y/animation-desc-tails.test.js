@@ -27,6 +27,7 @@ import {
   applyAnimationDesc,
 } from '@core/utils/a11y/animation-desc.js'
 
+/** The animation id under test + the desc-element id it maps to. */
 const TEST_ID = ANIMATION_IDS.GENIE_MODAL
 const DESC_ID = `${ANIMATION_DESC_ID_PREFIX}${TEST_ID}`
 

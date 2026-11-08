@@ -9,8 +9,10 @@ import { paintThemeSlider2D } from '@core/utils/canvas/widgets/theme-slider/pain
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
+/** Bare canvas — the painters only need the element handle here. */
 const _makeCanvas = () => document.createElement(HTML_TAGS.CANVAS)
 
+/** Lang-row factory — code + one or two country variants per row. */
 const _lang = (code, cc, cc2 = null) => ({ code, cc, cc2 })
 
 // GL stub whose program creation fails — drives the `if (!built)` fallback arm.

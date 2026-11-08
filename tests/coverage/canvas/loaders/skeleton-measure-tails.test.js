@@ -40,6 +40,7 @@ afterEach(() => {
   proto.getContext = origGetContext
 })
 
+/** Mounted host trio (host/root/content) with an overridable outer rect. */
 const makeHost = (rect = { left: 0, top: 0, width: 400, height: 300 }) => {
   const host = document.createElement(HTML_TAGS.DIV)
   const root = document.createElement(HTML_TAGS.DIV)
@@ -54,6 +55,7 @@ const makeHost = (rect = { left: 0, top: 0, width: 400, height: 300 }) => {
   return { host, root, content }
 }
 
+/** Skeleton element with a canned rect the measurer reads. */
 const makeSkel = (rect) => {
   const el = document.createElement(HTML_TAGS.DIV)
 

@@ -9,6 +9,7 @@
 import { ARROW_TYPES } from '@core/tokens/theme/arrows.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { THEME_CSS_PROPS as CSS_PROPS } from '@core/tokens/css/theme.js'
+import { CANVAS_PAINT_CSS } from '@core/tokens/canvas/paint.js'
 
 /** Theme inks the painter needs — resolved CSS values, safe as canvas colors. */
 interface ArrowPalette {
@@ -21,6 +22,7 @@ interface ArrowPalette {
 /** Cached palette keyed to the theme flag it was sampled under. */
 let _palKey: boolean | null = null
 
+/** The cached palette — invalidated whenever _palKey's theme flag changes. */
 let _pal: ArrowPalette | null = null
 
 /**
@@ -140,7 +142,7 @@ export function paintCarouselArrow2D(
 
     ctx.arc(cx, cy, ringR, startAngle, endAngle)
 
-    ctx.strokeStyle = '#66fcf1'
+    ctx.strokeStyle = CANVAS_PAINT_CSS.NEON_TEAL
 
     ctx.lineWidth = 2.4
 
@@ -163,7 +165,7 @@ export function paintCarouselArrow2D(
 
     ctx.fillStyle = '#ffffff'
 
-    ctx.shadowColor = '#66fcf1'
+    ctx.shadowColor = CANVAS_PAINT_CSS.NEON_TEAL
 
     ctx.shadowBlur = 10
 
@@ -288,7 +290,7 @@ export function paintCarouselArrow2D(
     ctx.stroke()
 
     // Stylized Touch Glove: wrist cuff, palm curve, and pointing index finger
-    ctx.strokeStyle = '#66fcf1'
+    ctx.strokeStyle = CANVAS_PAINT_CSS.NEON_TEAL
 
     ctx.fillStyle = 'rgba(102, 252, 241, 0.15)'
 

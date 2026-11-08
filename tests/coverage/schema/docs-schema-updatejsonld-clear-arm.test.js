@@ -5,6 +5,7 @@
 import { updateJsonLd } from '@core/utils/schema.js'
 import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
 
+/** Page fixtures — file + dir entries cover both schema arms. */
 const _DOC_PAGE = { name: 'guide.md', type: 'file', mtime: '2026-01-02T03:04:05.000Z' }
 const _DIR_PAGE = { name: 'architecture', type: 'dir' }
 

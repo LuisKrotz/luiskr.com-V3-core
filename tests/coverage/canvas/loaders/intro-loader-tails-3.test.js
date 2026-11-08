@@ -12,6 +12,7 @@ import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
 import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
 
+/** Real fallback module — the mock re-exports parts while stubbing others. */
 const actual = await jest.requireActual('@core/locale/fallback.js')
 
 jest.unstable_mockModule('@core/locale/fallback.js', () => ({
@@ -25,6 +26,7 @@ jest.unstable_mockModule('@core/locale/fallback.js', () => ({
 
 const { IntroLoader } = await import('@core/utils/canvas/loaders/intro-loader.js')
 
+/** Generous flush — loader steps settle within a few macrotasks. */
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
 
 describe('intro-loader fallback tails', () => {

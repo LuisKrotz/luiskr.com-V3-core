@@ -12,6 +12,7 @@ import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { ARIA_ATTRS } from '@core/tokens/attrs/aria.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 
+/** Generous flush — polyfill install steps need real macrotask passes. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 describe('legacy-dom tails 2', () => {

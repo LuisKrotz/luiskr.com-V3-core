@@ -16,6 +16,7 @@ import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { TEST_PROJECTS, TEST_TEXT } from '@tests/fixtures/test-constants.js'
 
+/** Four project paths — distinct slugs cover each route-match arm. */
 const pathA = `/${ROUTE_PATHS.PORTFOLIO_SEGMENT}/${TEST_PROJECTS.METCHA}`
 const pathB = `/${ROUTE_PATHS.PORTFOLIO_SEGMENT}/${TEST_PROJECTS.SAGE}`
 const pathC = `/${ROUTE_PATHS.PORTFOLIO_SEGMENT}/${TEST_PROJECTS.CICB}`

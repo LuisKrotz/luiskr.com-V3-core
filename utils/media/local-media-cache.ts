@@ -14,6 +14,7 @@ import { CACHE_CONFIG, IDB_CONFIG } from '@core/tokens/media/cache.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { wasmPool } from '@core/utils/wasm/wasm-pool.js'
 
+/** IDB token destructuring — local aliases keep the call sites short. */
 const {
   MEDIA_DB_NAME: DB_NAME,
   MEDIA_DB_VERSION: DB_VERSION,
@@ -22,6 +23,7 @@ const {
   READWRITE,
 } = IDB_CONFIG
 
+/** Introspection result — memory-hit count + whether IndexedDB is usable. */
 interface CacheStats {
   memoryCachedCount: number
   hasIndexedDB: boolean

@@ -44,6 +44,7 @@ const makeOrt = ({ failCreate = 0, failRun = false, outputs } = {}) => {
   return { ort, state }
 }
 
+/** Wraps a module as an async loader — the engine's import seam shape. */
 const loaderOf = (mod) => async () => mod
 
 describe('ort-engine', () => {

@@ -1,20 +1,17 @@
 /**
  * @file close-button-shaders.ts
  * @description GLSL sources for CloseButtonWebGL, extracted from
- * close-button.ts — quad vertex shader with UV varying, and the
- * liquid-fill fragment shader (turquoise fill, foam crest, bubbles,
- * rotating X strokes, click shockwave).
+ * close-button.ts — vertex stage and precision preamble come from the
+ * shared canvas/glsl library; paint colors come from CANVAS_PAINT_GLSL
+ * (tokens/canvas/paint.ts). lkDistSegment/lkClosePaint keep their `lk`
+ * names — burger-liquid-tails tests assert on them.
  */
 
+import { GLSL_VS_QUAD_UV, GLSL_FS_PRECISION_AUTO } from '@core/utils/canvas/glsl.js'
+import { CANVAS_PAINT_GLSL as PAINT } from '@core/tokens/canvas/paint.js'
+
 /** Fullscreen quad vertex shader — passes a_pos through as v_uv 0..1. */
-export const CLOSE_BUTTON_VS = `
-        attribute vec2 a_pos;
-        varying vec2 v_uv;
-        void main() {
-          v_uv = (a_pos + 1.0) * 0.5;
-          gl_Position = vec4(a_pos, 0.0, 1.0);
-        }
-      `
+export const CLOSE_BUTTON_VS = GLSL_VS_QUAD_UV
 
 /**
  * GLSL helper library for the close-button look — shared between
@@ -57,7 +54,7 @@ export const CLOSE_PAINT_GLSL = `
           // Neutral background — under HC the disc snaps to its pole:
           // pitch black when the disc pole is dark (u_dark=1), pure white
           // otherwise, so the chip stays one solid pole of the pair.
-          vec3 baseBg = mix(vec3(0.22, 0.23, 0.27), vec3(1.0 - u_dark), u_hc);
+          vec3 baseBg = mix(${PAINT.DISC_BG}, vec3(1.0 - u_dark), u_hc);
           vec3 col = baseBg;
 
           // Ink pole — opposite of the disc under HC (white ink on a black
@@ -73,8 +70,8 @@ export const CLOSE_PAINT_GLSL = `
 
           if (pRel.y <= surfaceY && u_liquid > 0.01) {
             float depth = clamp((surfaceY - pRel.y) / (radius * 2.0), 0.0, 1.0);
-            vec3 deepTurquoise = vec3(0.18, 0.65, 0.62);
-            vec3 topTurquoise  = vec3(0.40, 0.988, 0.945); // Turquoise matching awards progress bar (#66fcf1)
+            vec3 deepTurquoise = ${PAINT.TURQUOISE_DEEP};
+            vec3 topTurquoise  = ${PAINT.TURQUOISE_TOP};
             vec3 liquidColor = mix(topTurquoise, deepTurquoise, depth);
 
             // HC: the pour becomes a flat ink-pole flood — the turquoise
@@ -84,7 +81,7 @@ export const CLOSE_PAINT_GLSL = `
             // Glowing foam crest
             float crestDist = abs(pRel.y - surfaceY);
             float crest = 1.0 - smoothstep(0.0, 2.0, crestDist);
-            liquidColor += vec3(0.75, 1.0, 0.98) * crest * 0.75 * (1.0 - u_hc);
+            liquidColor += ${PAINT.FOAM_CREST} * crest * 0.75 * (1.0 - u_hc);
 
             // Procedural rising bubbles inside liquid
             for (int i = 0; i < 4; i++) {
@@ -99,7 +96,7 @@ export const CLOSE_PAINT_GLSL = `
                 float dBubble = length(pRel - bPos);
                 float bRing = (1.0 - smoothstep(bRad - 0.4, bRad + 0.4, dBubble)) * smoothstep(bRad - 1.2, bRad - 0.3, dBubble);
                 float bSpot = 1.0 - smoothstep(0.0, 0.6, length(pRel - (bPos + vec2(0.4, 0.4))));
-                liquidColor += vec3(0.85, 1.0, 0.98) * (bRing * 0.55 + bSpot * 0.75) * (1.0 - u_hc);
+                liquidColor += ${PAINT.BUBBLE_HI} * (bRing * 0.55 + bSpot * 0.75) * (1.0 - u_hc);
               }
             }
 
@@ -133,7 +130,7 @@ export const CLOSE_PAINT_GLSL = `
           float stroke2 = (1.0 - smoothstep(0.9, 1.7, d2)) * step(0.01, progress);
           float totalX = clamp(stroke1 + stroke2, 0.0, 1.0);
 
-          col = mix(col, mix(vec3(1.0, 1.0, 1.0), inkPole, u_hc), totalX * borderAA);
+          col = mix(col, mix(${PAINT.INK_WHITE}, inkPole, u_hc), totalX * borderAA);
 
           // Click shockwave — the turquoise ripple is a decorative tint,
           // dropped under HC.
@@ -141,7 +138,7 @@ export const CLOSE_PAINT_GLSL = `
           if (clickElapsed >= 0.0 && clickElapsed < 0.4) {
             float waveRad = clickElapsed * 45.0;
             float waveShock = (1.0 - smoothstep(0.0, 2.5, abs(d - waveRad))) * (1.0 - clickElapsed / 0.4);
-            col += vec3(0.40, 0.988, 0.945) * waveShock * 0.8 * (1.0 - u_hc);
+            col += ${PAINT.TURQUOISE_TOP} * waveShock * 0.8 * (1.0 - u_hc);
           }
 
           return vec4(col, borderAA);
@@ -150,11 +147,7 @@ export const CLOSE_PAINT_GLSL = `
 
 /** Liquid-fill fragment shader (see class docblock for the effect layers). */
 export const CLOSE_BUTTON_FS = `
-        #ifdef GL_FRAGMENT_PRECISION_HIGH
-        precision highp float;
-        #else
-        precision mediump float;
-        #endif
+        ${GLSL_FS_PRECISION_AUTO}
 
         varying vec2 v_uv;
         uniform vec2 u_resolution;

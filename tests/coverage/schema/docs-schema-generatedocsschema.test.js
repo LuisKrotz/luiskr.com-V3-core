@@ -5,6 +5,7 @@
 import { generateDocsSchema } from '@core/utils/schema.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
 
+/** Page fixtures — file + dir entries cover both schema arms. */
 const DOC_PAGE = { name: 'guide.md', type: 'file', mtime: '2026-01-02T03:04:05.000Z' }
 const DIR_PAGE = { name: 'architecture', type: 'dir' }
 

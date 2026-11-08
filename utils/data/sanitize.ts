@@ -72,7 +72,6 @@ const ALLOWED_ATTRS = new Set([
  * @param {string} html - Raw HTML string (possibly from CMS / i18n store).
  * @returns {string} Safe HTML string ready for use in innerHTML.
  */
-
 export const sanitizeHtml = (html: string): string => {
   if (typeof html !== TYPE_STRINGS.STRING) return ATTR_VALUES.EMPTY
   if (!html.trim()) return ATTR_VALUES.EMPTY

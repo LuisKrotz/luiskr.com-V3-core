@@ -10,6 +10,7 @@ import '@website/components/feedback/CookieBanner.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 
+/** Generous flush — wasm scroll steps need real timers past microtasks. */
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
 
 describe('wasm-scroll tails', () => {

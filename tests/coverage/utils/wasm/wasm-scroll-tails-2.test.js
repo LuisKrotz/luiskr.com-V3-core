@@ -11,6 +11,7 @@ import { wasmSmoothScroll } from '@core/utils/wasm/wasm-scroll.js'
 import '@website/views/legal/Legal.js'
 import '@website/views/home/Home.js'
 
+/** Generous flush — wasm scroll steps need real timers past microtasks. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 describe('wasm-scroll tails 2', () => {

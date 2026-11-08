@@ -9,12 +9,14 @@
 import { describe, test, expect, jest } from '@jest/globals'
 import { NAV_SEARCH_CSS_PROPS } from '@core/tokens/css/nav.js'
 
+/** Fake wasm widget — jest fns record every forwarded session call. */
 const widget = {
   resize: jest.fn(),
   set_tiles: jest.fn(),
   set_colors: jest.fn(),
   frame: jest.fn(() => true),
 }
+/** Mount-handle the widget mock returns — canvas/widget/destroy surface. */
 const handle = { canvas: null, widget, destroy: jest.fn() }
 
 jest.unstable_mockModule('@core/utils/gpu/webgpu-widget.js', () => ({
@@ -25,6 +27,7 @@ jest.unstable_mockModule('@core/utils/gpu/webgpu-widget.js', () => ({
 const { mountRingFill } = await import('@core/utils/gpu/ring-fill.js')
 const { NAV_GLYPH } = await import('@core/tokens/data/nav-glyph.js')
 
+/** Glyph-id token the nav-glyph tile spec keys on. */
 const TILES = 'button'
 
 /** Host + two tiles (one square → circle shape arm, one wide → rrect arm). */
@@ -40,6 +43,7 @@ const makeHost = () => {
   return host
 }
 
+/** Generous flush — live-session rAF steps need real timers. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 describe('ring-fill live session', () => {

@@ -9,8 +9,10 @@ import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 
+/** Bare canvas — the program-failure guards only need the handle. */
 const makeCanvas = () => document.createElement(HTML_TAGS.CANVAS)
 
+/** Lang-row factory — code + one or two country variants per row. */
 const _lang = (code, cc, cc2 = null) => ({ code, cc, cc2 })
 
 // GL stub whose program creation fails — drives the `if (!built)` fallback arm.

@@ -14,6 +14,7 @@ import { THEME } from '@core/tokens/theme/theme.js'
 import store from '@core/store.js'
 import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
 
+/** Mutable GPU-mock state — the webgpu-widget mock below reads these per-call. */
 let mountResult = null
 let mockGpu = true
 let fakeWidget = null
@@ -24,14 +25,17 @@ jest.unstable_mockModule('@core/utils/gpu/webgpu-widget.js', () => ({
   warmWidgetArtifacts: () => undefined,
 }))
 
+/** Fresh-imports the slider class — picks up the per-test mock state. */
 const loadClass = async () =>
   (await import('@core/utils/canvas/widgets/theme-slider.js')).ThemeSliderWebGL
 
+/** Microtask + timer flush — mount queues and event handlers settle. */
 const flush = async () => {
   await Promise.resolve()
   await new Promise((r) => setTimeout(r, 40))
 }
 
+/** Canvas stub with a sized rect — slider drag math reads real boxes. */
 const makeCanvas = () => {
   const canvas = document.createElement(HTML_TAGS.CANVAS)
 
@@ -58,6 +62,7 @@ beforeEach(() => {
   mountResult = { canvas: null, widget: fakeWidget, destroy: jest.fn() }
 })
 
+/** Instantiates a ThemeSliderWebGL on a stub canvas for event tests. */
 const mount = async (theme = THEME.SYSTEM, onThemeChange = null) => {
   const ThemeSliderWebGL = await loadClass()
   const canvas = makeCanvas()

@@ -1,22 +1,24 @@
 /**
  * @file switch-slider-shaders.ts
  * @description GLSL sources for SwitchSliderWebGL's animated toggle scene,
- * extracted from switch-slider.ts — pure data, compiled by initWebGL().
+ * extracted from switch-slider.ts — vertex stage, precision preamble and
+ * the capsule SDF come from the shared canvas/glsl library; every paint
+ * color comes from CANVAS_PAINT_GLSL (tokens/canvas/paint.ts).
  */
 
+import {
+  GLSL_VS_QUAD_UV,
+  GLSL_FS_PRECISION_MEDIUMP,
+  GLSL_SDF_SEGMENT,
+} from '@core/utils/canvas/glsl.js'
+import { CANVAS_PAINT_GLSL as PAINT } from '@core/tokens/canvas/paint.js'
+
 /** Fullscreen-quad vertex shader: a_pos in clip space, v_uv 0–1. */
-export const SWITCH_SLIDER_VS = `
-        attribute vec2 a_pos;
-        varying vec2 v_uv;
-        void main() {
-          v_uv = (a_pos + 1.0) * 0.5;
-          gl_Position = vec4(a_pos, 0.0, 1.0);
-        }
-      `
+export const SWITCH_SLIDER_VS = GLSL_VS_QUAD_UV
 
 /** Toggle fragment shader: pill track, knob, per-context accents. */
 export const SWITCH_SLIDER_FS = `
-        precision mediump float;
+        ${GLSL_FS_PRECISION_MEDIUMP}
         varying vec2 v_uv;
         uniform vec2 u_resolution;
         uniform float u_time;
@@ -24,12 +26,7 @@ export const SWITCH_SLIDER_FS = `
         uniform float u_knob_x;
         uniform float u_context; // 0=stats, 1=grid, 2=motion, 3=contrast
 
-        float distCapsule(vec2 p, vec2 a, vec2 b) {
-          vec2 pa = p - a;
-          vec2 ba = b - a;
-          float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-          return length(pa - ba * h);
-        }
+        ${GLSL_SDF_SEGMENT}
 
         void main() {
           vec2 pixel = v_uv * u_resolution;
@@ -44,21 +41,21 @@ export const SWITCH_SLIDER_FS = `
           float borderAA = 1.0 - smoothstep(13.2, 14.0, trackDist);
 
           // Base track background
-          vec3 offTrack = vec3(0.18, 0.19, 0.22);
+          vec3 offTrack = ${PAINT.TRACK_OFF};
           vec3 onTrack;
 
           if (u_context < 0.5) {
             // Stats: Emerald green
-            onTrack = vec3(0.08, 0.58, 0.36);
+            onTrack = ${PAINT.TRACK_STATS};
           } else if (u_context < 1.5) {
             // Grid: Cyan blueprint
-            onTrack = vec3(0.06, 0.48, 0.72);
+            onTrack = ${PAINT.TRACK_GRID};
           } else if (u_context < 2.5) {
             // Motion: Violet / magenta
-            onTrack = vec3(0.48, 0.24, 0.68);
+            onTrack = ${PAINT.TRACK_MOTION};
           } else {
             // Contrast: Warm amber
-            onTrack = vec3(0.78, 0.50, 0.08);
+            onTrack = ${PAINT.TRACK_CONTRAST};
           }
 
           vec3 col = mix(offTrack, onTrack, u_progress);
@@ -78,7 +75,7 @@ export const SWITCH_SLIDER_FS = `
             float waveY = 14.0 + pulse * (0.3 + 0.7 * u_progress);
             float dWave = abs(pixel.y - waveY);
             float waveGlow = 1.0 - smoothstep(0.0, 1.6, dWave);
-            vec3 waveCol = mix(vec3(0.35, 0.40, 0.45), vec3(0.45, 1.0, 0.65), u_progress);
+            vec3 waveCol = mix(${PAINT.WAVE_OFF}, ${PAINT.WAVE_ON}, u_progress);
             col += waveCol * waveGlow * 0.85;
 
           } else if (u_context < 1.5) {
@@ -88,7 +85,7 @@ export const SWITCH_SLIDER_FS = `
             float isLineX = 1.0 - smoothstep(0.0, 1.0, abs(gridX - 4.0));
             float isLineY = 1.0 - smoothstep(0.0, 1.0, abs(gridY - 3.5));
             float gridPattern = clamp(isLineX + isLineY, 0.0, 1.0);
-            vec3 gridCol = mix(vec3(0.30, 0.35, 0.42), vec3(0.50, 0.85, 1.0), u_progress);
+            vec3 gridCol = mix(${PAINT.GRID_OFF}, ${PAINT.GRID_ON}, u_progress);
             col += gridCol * gridPattern * (0.25 + 0.55 * u_progress);
 
           } else if (u_context < 2.5) {
@@ -99,11 +96,11 @@ export const SWITCH_SLIDER_FS = `
               float streakMove = mod(pixel.x - u_time * 6.0, 20.0);
               float lineY = 1.0 - smoothstep(0.0, 1.2, abs(streakY - 3.5));
               float lineFade = 1.0 - smoothstep(0.0, 12.0, streakMove);
-              col += vec3(0.85, 0.70, 1.0) * lineY * lineFade * 0.45;
+              col += ${PAINT.STREAK} * lineY * lineFade * 0.45;
             } else {
               // Reduced Motion (ON): Calm, perfectly still horizontal centerline datum
               float lineY = 1.0 - smoothstep(0.0, 1.2, abs(pixel.y - 14.0));
-              col += vec3(0.95, 0.85, 1.0) * lineY * 0.60;
+              col += ${PAINT.DATUM} * lineY * 0.60;
             }
           } else {
             // ── 3: CONTRAST (Sweeping Luminance Split / Comparison Wipe) ──
@@ -116,16 +113,16 @@ export const SWITCH_SLIDER_FS = `
             // IN as high contrast turns on — a soft grey hint when off.
             float seamX = 27.0 + sin(u_time * 0.9) * 17.0;
             float side = smoothstep(seamX - 0.9, seamX + 0.9, pixel.x);
-            vec3 wipeCol = mix(vec3(0.05, 0.05, 0.08), vec3(0.98, 0.98, 1.0), side);
+            vec3 wipeCol = mix(${PAINT.WIPE_DARK}, ${PAINT.SURFACE_NEAR_WHITE}, side);
             col = mix(col, wipeCol, 0.30 + 0.60 * u_progress);
             // Hot amber seam riding the boundary — the comparator's cursor.
             float seam = 1.0 - smoothstep(0.0, 1.0, abs(pixel.x - seamX));
-            col += vec3(1.0, 0.78, 0.30) * seam * (0.30 + 0.50 * u_progress);
+            col += ${PAINT.SEAM} * seam * (0.30 + 0.50 * u_progress);
           }
 
           // Inset Track Border Bezel (antialiased)
           float bezel = smoothstep(11.5, 14.0, trackDist);
-          col = mix(col, vec3(0.0, 0.0, 0.0), bezel * 0.35);
+          col = mix(col, ${PAINT.BLACK}, bezel * 0.35);
 
           // 3D Knob with smooth anti-aliased shading
           vec2 knobCenter = vec2(u_knob_x, 14.0);
@@ -134,11 +131,11 @@ export const SWITCH_SLIDER_FS = `
 
           // Knob drop shadow
           float kShadow = (1.0 - smoothstep(knobRadius, knobRadius + 2.5, knobDist)) * 0.35;
-          col = mix(col, vec3(0.0, 0.0, 0.0), kShadow);
+          col = mix(col, ${PAINT.BLACK}, kShadow);
 
           // 3D sphere gradient lighting
           float kSphere = 1.0 - clamp(knobDist / knobRadius, 0.0, 1.0) * 0.15;
-          vec3 knobColor = vec3(0.98, 0.98, 1.0) * kSphere;
+          vec3 knobColor = ${PAINT.SURFACE_NEAR_WHITE} * kSphere;
 
           // Unified solid dot (radius 2.5) with smoothstep anti-aliasing
           float dDot = length(pixel - knobCenter);
@@ -146,13 +143,13 @@ export const SWITCH_SLIDER_FS = `
 
           vec3 dotCol;
           if (u_context < 0.5) {
-            dotCol = mix(vec3(0.6, 0.65, 0.7), vec3(0.1, 0.85, 0.45), u_progress);
+            dotCol = mix(${PAINT.DOT_OFF}, ${PAINT.DOT_STATS}, u_progress);
           } else if (u_context < 1.5) {
-            dotCol = mix(vec3(0.6, 0.65, 0.7), vec3(0.1, 0.65, 0.95), u_progress);
+            dotCol = mix(${PAINT.DOT_OFF}, ${PAINT.DOT_GRID}, u_progress);
           } else if (u_context < 2.5) {
-            dotCol = mix(vec3(0.6, 0.65, 0.7), vec3(0.65, 0.4, 0.95), u_progress);
+            dotCol = mix(${PAINT.DOT_OFF}, ${PAINT.DOT_MOTION}, u_progress);
           } else {
-            dotCol = mix(vec3(0.6, 0.65, 0.7), vec3(1.0, 0.75, 0.25), u_progress);
+            dotCol = mix(${PAINT.DOT_OFF}, ${PAINT.DOT_CONTRAST}, u_progress);
           }
 
           knobColor = mix(knobColor, dotCol, dotLight);

@@ -27,8 +27,10 @@ import { POINTER_EVENTS } from '@core/tokens/events/dom.js'
 
 globalThis.alert = jest.fn()
 
+/** Generous flush — canvas helpers settle within a few macrotasks. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
+/** Bare canvas — these misc helpers only need the element handle. */
 const makeCanvas = () => document.createElement(HTML_TAGS.CANVAS)
 
 describe('canvas misc tails', () => {

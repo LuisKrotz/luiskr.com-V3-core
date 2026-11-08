@@ -10,6 +10,8 @@ import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globa
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { ANIMATION_EVENTS } from '@core/tokens/events/dom.js'
 
+/** Mutable GPU-mock state — the webgpu-widget mock below reads these per-call,
+ *  so tests steer capability/mount-result/call-count/latency branches. */
 let mockGpu = false
 let mountResult = null
 let mountCalls = []
@@ -27,11 +29,13 @@ jest.unstable_mockModule('@core/utils/gpu/webgpu-widget.js', () => ({
   warmWidgetArtifacts: () => undefined,
 }))
 
+/** Short flush — widget mount/event steps settle within ~30ms. */
 const flush = (ms = 30) => new Promise((r) => setTimeout(r, ms))
 
 /** The recording fake widget. */
 let widget = null
 
+/** Widget harness — records the calls the binding layer forwards. */
 const makeWidget = () => {
   widget = {
     frames: [],

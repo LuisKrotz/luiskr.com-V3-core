@@ -1,28 +1,33 @@
 /**
  * @file menu-background-shaders.ts
  * @description GLSL sources for MenuBackgroundWebGL, extracted from
- * menu-background-webgl.ts — shared quad vertex shader plus the
- * domain-warped fbm contour-field fragment shader (Iris van Herpen-like
- * flowing isolines). The OES_standard_derivatives prelude is prefixed
- * only when the extension exists, enabling pixel-constant line width.
+ * menu-background-webgl.ts — vertex stage, derivatives prelude,
+ * precision preamble and the hash/value-noise helpers come from the
+ * shared canvas/glsl library. The domain-warped fbm contour-field
+ * fragment shader (Iris van Herpen-like flowing isolines) prefixes the
+ * OES_standard_derivatives prelude only when the extension exists,
+ * enabling pixel-constant line width.
  */
 
+import {
+  GLSL_DERIV_PRELUDE,
+  GLSL_VS_FULLSCREEN,
+  GLSL_FS_PRECISION_AUTO,
+  GLSL_HASH_SIN_2D,
+  GLSL_VALUE_NOISE,
+} from '@core/utils/canvas/glsl.js'
+
 /** Extension prelude enabling pixel-space isoline AA (WebGL1 only). */
-export const MENU_BG_DERIV_PRELUDE =
-  '#extension GL_OES_standard_derivatives : enable\n#define HAS_DERIV 1\n'
+export const MENU_BG_DERIV_PRELUDE = GLSL_DERIV_PRELUDE
 
 /** Shared fullscreen-quad vertex shader. */
-export const MENU_BG_VS = 'attribute vec2 a_pos;void main(){gl_Position=vec4(a_pos,0.,1.);}'
+export const MENU_BG_VS = GLSL_VS_FULLSCREEN
 
 /** Contour-field fragment shader body (prefix with the deriv prelude). */
 export const MENU_BG_FS_BODY = `
         // highp avoids the hash/noise banding that tears the field on
         // mobile GPUs (mediump trig precision); falls back where absent.
-        #ifdef GL_FRAGMENT_PRECISION_HIGH
-        precision highp float;
-        #else
-        precision mediump float;
-        #endif
+        ${GLSL_FS_PRECISION_AUTO}
         uniform float u_time;
         uniform vec2 u_res;
         uniform vec3 u_color;
@@ -30,13 +35,8 @@ export const MENU_BG_FS_BODY = `
         uniform float u_reveal;
         uniform float u_alpha;
 
-        float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
-        float noise(vec2 p){
-          vec2 i=floor(p),f=fract(p);
-          f=f*f*(3.-2.*f);
-          return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),
-                     mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);
-        }
+        ${GLSL_HASH_SIN_2D}
+        ${GLSL_VALUE_NOISE}
         float fbm(vec2 p){
           float v=0.,a=0.5;
           mat2 m=mat2(0.8,0.6,-0.6,0.8);

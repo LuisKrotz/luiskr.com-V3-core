@@ -16,8 +16,10 @@ import { NAV_GLYPH } from '@core/tokens/data/nav-glyph.js'
 import { NAV_SEARCH_CSS_PROPS } from '@core/tokens/css/nav.js'
 import { POINTER_EVENTS } from '@core/tokens/events/dom.js'
 
+/** Two neon palette vars — enough to cover the multi-color arm. */
 const COLORS = [NAV_SEARCH_CSS_PROPS.NEON_TEAL, NAV_SEARCH_CSS_PROPS.NEON_GREEN]
 
+/** Host with a shadow root + canvas whose getContext returns `ctxResult`. */
 const makeHost = (ctxResult) => {
   const host = document.createElement('div')
 
@@ -56,6 +58,7 @@ const GlyphFx = class {
   free() {}
 }
 
+/** Fake wasm-bindgen glue — the loader's dynamic-import returns this. */
 const glue = async () => ({
   default: async () => ({ memory: { buffer: new ArrayBuffer(64) } }),
   GlyphFx,

@@ -16,8 +16,10 @@ import { CAROUSEL_SPRING } from '@core/tokens/motion/carousel.js'
 import { CAROUSEL_CLASSES } from '@core/tokens/classes/carousel.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 
+/** The animating-class token — assertions read the same class the code sets. */
 const ANIM = CAROUSEL_CLASSES.CAROUSEL_TRACK_ANIMATING
 
+/** Original rAF/cAF — tests swap in the manual queue then restore. */
 const realRaf = globalThis.requestAnimationFrame
 const realCaf = globalThis.cancelAnimationFrame
 

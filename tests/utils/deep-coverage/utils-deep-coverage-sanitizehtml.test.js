@@ -5,6 +5,7 @@
 import { describe, test, expect } from '@jest/globals'
 import { sanitizeHtml } from '@core/utils/data/sanitize.js'
 
+/** Zero-ms flush — sanitizer promises resolve within one macrotask. */
 const _flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 // ─── sanitize.js ─────────────────────────────────────────────────────────────

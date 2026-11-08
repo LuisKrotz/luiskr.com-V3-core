@@ -79,6 +79,7 @@ afterEach(() => {
   proto.getContext = origGetContext
 })
 
+/** Mounted host trio (host/root/content) with a stubbed outer rect. */
 const makeHost = () => {
   const host = document.createElement(HTML_TAGS.DIV)
   const root = document.createElement(HTML_TAGS.DIV)
@@ -93,6 +94,7 @@ const makeHost = () => {
   return { host, root, content }
 }
 
+/** Skeleton element with a canned class + rect the wasm loader measures. */
 const makeSkel = (cls, rect) => {
   const el = document.createElement(HTML_TAGS.DIV)
 

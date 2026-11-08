@@ -6,6 +6,7 @@ import { describe, test, expect, jest } from '@jest/globals'
 import { APP_IDS } from '@core/tokens/ids/app.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 
+/** Fake auth/db instances — markers let tests identify which mock was used. */
 const mockAuth = { currentUser: null, marker: 'auth-instance' }
 const mockDb = { marker: 'db-instance' }
 
@@ -30,6 +31,7 @@ jest.unstable_mockModule('firebase/app', () => ({
   initializeApp: jest.fn((config) => ({ config, marker: APP_IDS.APP })),
 }))
 
+/** Fresh firebase module import — bound after the mocks are installed. */
 const _firebase = await import('@core/firebase.js')
 
 describe('firebase — fresh module edges', () => {

@@ -7,6 +7,7 @@ import { POINTER_EVENTS } from '@core/tokens/events/dom.js'
 import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { DOM_STRINGS } from '@core/tokens/strings/dom.js'
 
+/** Zero-ms flush — loader promises resolve within one macrotask. */
 const _flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 // ─── predictive-loader.js ────────────────────────────────────────────────────

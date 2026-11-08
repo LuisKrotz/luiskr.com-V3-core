@@ -5,6 +5,7 @@
 import { browserInfo, canUseWebGPU, detectBrowser } from '@core/browser/detect.js'
 import { VENDOR_STRINGS } from '@core/tokens/strings/vendor.js'
 
+/** Chainable global-hider — hideWindow()/hideNavigator() mutate then run fn. */
 const withGlobals = (fn) => {
   const win = globalThis.window
   const nav = globalThis.navigator

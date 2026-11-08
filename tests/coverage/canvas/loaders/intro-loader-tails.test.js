@@ -11,6 +11,7 @@ import '@website/components/feedback/CookieBanner.js'
 import { PREF_MUTATIONS, LANG_MUTATIONS } from '@core/tokens/events/mutations.js'
 import { CACHE_STORAGE_KEYS } from '@core/tokens/data/storage.js'
 
+/** Generous flush — loader steps settle within a few macrotasks. */
 const flush = (ms = 60) => new Promise((r) => setTimeout(r, ms))
 
 describe('intro-loader tails', () => {

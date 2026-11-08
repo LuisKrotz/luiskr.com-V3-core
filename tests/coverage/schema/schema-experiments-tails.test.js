@@ -20,6 +20,7 @@ import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { BASE_TITLE } from '@core/tokens/routes.js'
 import { TEST_TEXT, TEST_PROJECTS, TEST_URLS } from '@tests/fixtures/test-constants.js'
 
+/** Experiment URLs the schema emitters assert against. */
 const URL_A = 'https://luiskr.com/earth-playground'
 const URL_B = 'https://luiskr.com/star-field-experiment'
 

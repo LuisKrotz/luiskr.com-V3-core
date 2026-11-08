@@ -7,8 +7,10 @@ import { debugParams, hasDebugFlag, runDebugActions } from '@core/debug/params.j
 import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 
+/** Rewrites the URL search string — the debug-param readers run fresh per call. */
 const setSearch = (s) => window.history.replaceState(null, '', s)
 
+/** Puts the original URL back — afterEach guard against param leakage. */
 const restore = () => {
   setSearch('/')
   document.documentElement.classList.remove(STATE_CLASSES.REDUCED_MOTION)

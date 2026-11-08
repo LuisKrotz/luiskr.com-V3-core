@@ -17,6 +17,7 @@ import { COMPONENT_TAGS } from '@core/tokens/elements/components.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { SECTION_IDS } from '@core/tokens/ids/sections.js'
 
+/** Generous flush — router navigation queues need real timers. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 describe('router tails 2', () => {

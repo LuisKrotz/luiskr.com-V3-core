@@ -11,7 +11,9 @@ import { jest } from '@jest/globals'
 import { CDN_URLS } from '@core/tokens/media/urls.js'
 import { MEDIA } from '@core/tokens/media/suffixes.js'
 
+/** A manifest key containing a space — exercises the URL-encoding arm. */
 const SPACED_KEY = 'brazilian leather/portal/shot'
+/** Raw + percent-encoded expectations for the spaced key. */
 const SPACED_URL = `${CDN_URLS.CDN_BASE}${SPACED_KEY}`
 const ENCODED_URL = `${CDN_URLS.CDN_BASE}brazilian%20leather/portal/shot`
 

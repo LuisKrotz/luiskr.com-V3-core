@@ -13,6 +13,7 @@ import '@website/views/not-found/NotFound.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 
+/** Generous flush — scroll-state debounces need real timers. */
 const flush = (ms = 80) => new Promise((r) => setTimeout(r, ms))
 
 describe('scroll-state tails', () => {

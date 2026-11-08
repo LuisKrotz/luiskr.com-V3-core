@@ -4,6 +4,7 @@
  */
 import { describe, test, expect, jest } from '@jest/globals'
 
+/** Zero-ms flush — layout promises resolve within one macrotask. */
 const flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 // ─── wasm-layout.js ──────────────────────────────────────────────────────────

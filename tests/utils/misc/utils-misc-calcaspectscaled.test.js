@@ -5,6 +5,7 @@
 import { describe, test, expect } from '@jest/globals'
 import { calcAspectScaled } from '@core/utils/aspect.js'
 
+/** Generous flush — async sizing helpers need real macrotask passes. */
 const _flush = (ms = 60) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // ─── aspect ──────────────────────────────────────────────────────────────────

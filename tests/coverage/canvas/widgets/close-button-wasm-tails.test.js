@@ -46,6 +46,7 @@ const flush = async () => {
   await new Promise((r) => setTimeout(r, 40))
 }
 
+/** Canvas stub — canned rect + null ctx drive the wasm-mount arms. */
 const makeCanvas = () => {
   const canvas = document.createElement(HTML_TAGS.CANVAS)
   const parent = document.createElement(HTML_TAGS.BUTTON)

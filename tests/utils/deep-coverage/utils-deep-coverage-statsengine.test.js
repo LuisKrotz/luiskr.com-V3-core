@@ -5,6 +5,7 @@
 import { describe, test, expect, jest } from '@jest/globals'
 import { statsEngine } from '@core/utils/perf/stats-engine.js'
 
+/** Zero-ms flush — stats timers resolve within one macrotask. */
 const flush = (ms = 0) => new Promise((r) => setTimeout(r, ms))
 
 // ─── stats-engine.js ─────────────────────────────────────────────────────────

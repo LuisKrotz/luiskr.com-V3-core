@@ -13,6 +13,8 @@
 //  chrome only.
 // ════════════════════════════════════════════════════════════════════════════
 
+@use 'sass:math';
+
 @import '../../base/variables';
 @import '../../base/mixins';
 @import '../../base/placeholders';
@@ -36,7 +38,7 @@ $carousel-dot-pill: to-rem($space-2xl);
 /// Gap between nav dots.
 $carousel-dot-gap: to-rem($space-xs);
 /// Progress-ring stroke width around the arrow buttons.
-$ring-stroke: to-rem($space-sm / 2);
+$ring-stroke: to-rem(math.div($space-sm, 2));
 
 @import 'dot-nav';
 

@@ -10,6 +10,7 @@ import { describe, test, expect, jest, afterEach } from '@jest/globals'
 import { WASM_POOL } from '@core/tokens/data/wasm.js'
 import { WASM_ACTIONS } from '@core/constants.js'
 
+/** Saved property descriptors — env stubs redefine then restore per test. */
 const uaDesc = Object.getOwnPropertyDescriptor(navigator, 'userAgent')
 const hcDesc = Object.getOwnPropertyDescriptor(navigator, 'hardwareConcurrency')
 const winDesc = Object.getOwnPropertyDescriptor(globalThis, 'window')

@@ -36,6 +36,7 @@ export interface GPUInfo {
   capable: boolean
 }
 
+/** Cached probe result — the adapter/device query runs once per session. */
 let _info: GPUInfo | null = null
 
 /**
