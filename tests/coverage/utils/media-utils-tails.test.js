@@ -318,7 +318,10 @@ describe('media utils tails', () => {
 
       expect(inst).toBe(null)
 
-      // An unknown painted URL marks the registry but never climbs.
+      // An unknown painted URL marks the registry AND rebases the
+      // climb to the ladder entry — every paint the step can observe is
+      // a rung, the other stem's rung, or the LQIP below rung 0, so a
+      // foreign URL restarts at the cheapest tier instead of stalling.
       const stray = document.createElement(HTML_TAGS.IMG)
       const strayKey = `${CDN_URLS.CDN_BASE}covers/stray${MEDIA.EXT}`
 
@@ -327,7 +330,7 @@ describe('media utils tails', () => {
       coverLadderStep(registry, strayKey, stray, rungs, loaded)
 
       expect(registry.get(strayKey)).toBe(strayKey)
-      expect(inst).toBe(null)
+      expect(inst.src).toBe(q50)
 
       // webp bytes fail → the probe retries the rung's jpg once; a dead
       // jpg is terminal and leaves the painted rung standing.
