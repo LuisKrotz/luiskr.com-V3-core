@@ -574,6 +574,12 @@ $ease-spring: linear(
   1
 );
 
+/// Fast-out micro-interaction easing (easeOutQuint) — the snappy curve
+/// behind hover/press affordances: control-arrow nudges, dot morphs,
+/// tile lifts. Declared once so the ~50 callsites share one curve and
+/// can never drift apart.
+$ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
 /// Critically-damped spring easing (ζ=1, ωT=8) sampled at 4%
 /// intervals into a CSS linear() easing — the fastest possible
 /// settle with zero overshoot: value rises, decelerates, and

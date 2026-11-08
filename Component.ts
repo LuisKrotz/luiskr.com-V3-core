@@ -23,6 +23,16 @@ import { COMMON_SELECTORS } from '@core/tokens/selectors/common.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { BASE_HOST_STYLES } from '@core/tokens/styles.js'
+import type { WidthClass } from '@core/tokens/layout/css-classes.js'
+import {
+  currentWidthClass,
+  isTieredStyles,
+  resolveTierKey,
+  watchWidthClassGrow,
+  type TierLoader,
+  type TieredStyles,
+} from '@core/utils/responsive-css.js'
+import { devWarn } from '@core/devlog.js'
 import {
   syncSkeletonLayer,
   destroySkeletonLayer,
@@ -66,8 +76,41 @@ type ScopedStore = { subscribe(_fn: () => void): () => void }
  *     onUpdated, onStoreUpdate(store), onDestroy.
  */
 export class BaseComponent extends HTMLElement {
-  /** `?inline` SCSS text injected once per shadow root. */
-  protected _componentStyles: string
+  /**
+   * Component-local SCSS — either the `?inline` css text or a `?tiers`
+   * {base, tiers} module whose base is adopted synchronously while the
+   * viewport's cumulative media tier loads lazily.
+   */
+  protected _componentStyles: string | TieredStyles
+
+  /**
+   * Width-class key of the media tier currently adopted — gates both
+   * duplicate adoption and the grow-watcher upgrade path.
+   */
+  private _tierKey: WidthClass | undefined
+
+  /** Tier key whose lazy import is in flight — dedupes concurrent loads. */
+  private _tierPending: WidthClass | undefined
+
+  /**
+   * The adopted cumulative tier sheet (constructable path) — spliced in
+   * place when a wider tier supersedes it so equal-specificity media
+   * rules keep source order.
+   */
+  private _tierSheet: CSSStyleSheet | null = null
+
+  /**
+   * Resolved base css — the `?tiers` module's base or the plain `?inline`
+   * string — computed once per _renderInitial and reused by the legacy
+   * <style> rebuild when a cumulative tier lands.
+   */
+  private _componentBase: string = CHAR_STRINGS.EMPTY
+
+  /** Tier css text currently appended to the legacy <style> node. */
+  private _tierText: string = CHAR_STRINGS.EMPTY
+
+  /** Shared grow-watcher unsubscribe — set while mounted with tiers. */
+  private _tierGrowOff: (() => void) | null = null
 
   /**
    * Disposers for listeners added via addScopedListener(). Drained in
@@ -121,9 +164,9 @@ export class BaseComponent extends HTMLElement {
    * `mode: 'open'` keeps `element.shadowRoot` readable — the codebase and the
    * happy-dom tests both rely on that handle for assertions and scoped
    * queries; 'closed' would break both without buying real encapsulation.
-   * @param styles Component-local CSS text (Vite `?inline` import).
+   * @param styles Component-local CSS — `?inline` text or a `?tiers` module.
    */
-  constructor(styles: string = CHAR_STRINGS.EMPTY) {
+  constructor(styles: string | TieredStyles = CHAR_STRINGS.EMPTY) {
     super()
 
     this.attachShadow({ mode: COMMON_ATTRS.OPEN as ShadowRootMode })
@@ -180,6 +223,12 @@ export class BaseComponent extends HTMLElement {
     this._storeUnsubscribers.forEach((unsub) => unsub())
     this._storeUnsubscribers = []
     destroySkeletonLayer(this)
+
+    if (this._tierGrowOff) {
+      this._tierGrowOff()
+      this._tierGrowOff = null
+    }
+
     this.onDestroy?.()
   }
 
@@ -267,11 +316,17 @@ export class BaseComponent extends HTMLElement {
     // 'replaceSync' is the feature probe: it is the synchronous parse entry
     // point, and its presence implies adoptedStyleSheets support (shipped
     // together in Chromium 73/Safari 16.4/Firefox 101).
+    // `?tiers` sheets carry their media blocks in lazily-fetched cumulative
+    // tiers — only the embedded base is adopted synchronously here.
+    const tiered = isTieredStyles(this._componentStyles) ? this._componentStyles : null
+
+    this._componentBase = tiered ? tiered.base : (this._componentStyles as string)
+
     if (
       typeof CSSStyleSheet !== TYPE_STRINGS.UNDEFINED &&
       'replaceSync' in CSSStyleSheet.prototype
     ) {
-      const styleText = `${BASE_HOST_STYLES}\n${this._componentStyles}`
+      const styleText = `${BASE_HOST_STYLES}\n${this._componentBase}`
 
       if (!_sharedSheets.has(styleText)) {
         const sheet = new CSSStyleSheet()
@@ -287,12 +342,31 @@ export class BaseComponent extends HTMLElement {
       // Legacy fallback: reuse existing <style> node across re-mounts
       const existingStyle = sr.querySelector(COMMON_SELECTORS.STYLE)
 
+      this._tierText = CHAR_STRINGS.EMPTY
+
       if (existingStyle) {
         this._styleNode = existingStyle
+        this._styleNode.textContent = `${BASE_HOST_STYLES}\n${this._componentBase}`
       } else {
         this._styleNode = document.createElement(HTML_TAGS.STYLE)
-        this._styleNode.textContent = `${BASE_HOST_STYLES}\n${this._componentStyles}`
+        this._styleNode.textContent = `${BASE_HOST_STYLES}\n${this._componentBase}`
         sr.appendChild(this._styleNode)
+      }
+    }
+
+    // Re-mount resets adoptedStyleSheets to the base sheet — clear the tier
+    // handles so the media tier re-adopts below. A stale pending flag must
+    // go too: its late resolution is gated by the mounted/key checks, but
+    // leaving it set would dedupe the fresh pick into never loading.
+    this._tierSheet = null
+    this._tierKey = undefined
+    this._tierPending = undefined
+
+    if (tiered) {
+      this._adoptWidthTier(currentWidthClass(), tiered)
+
+      if (!this._tierGrowOff) {
+        this._tierGrowOff = watchWidthClassGrow((cls) => this._adoptWidthTier(cls, tiered))
       }
     }
 
@@ -311,6 +385,91 @@ export class BaseComponent extends HTMLElement {
 
     // Render content on mount/re-mount (supports DOM nodes/JSX and HTML strings).
     this._applyRenderOutput(this.render())
+  }
+
+  /**
+   * Loads and adopts the cumulative media tier covering `cls` — the
+   * highest defined tier key at or below the viewport class. Called at
+   * mount with the current class and again from the grow-watcher on
+   * upward crossings; a newer pending load never blocks an already-
+   * resolving narrower tier (cumulative sheets are nested supersets, so
+   * adopting mobile→desktop in any arrival order stays correct).
+   * @param cls viewport width class to cover.
+   * @param tiered the component's `?tiers` module.
+   */
+  private _adoptWidthTier(cls: WidthClass, tiered: TieredStyles): void {
+    const key = resolveTierKey(tiered.tiers, cls)
+
+    if (!key || key === this._tierKey || key === this._tierPending) return
+
+    this._tierPending = key
+
+    // resolveTierKey only returns keys whose loader is defined.
+    ;(tiered.tiers[key] as TierLoader)()
+      .then((mod) => {
+        if (this._tierPending === key) this._tierPending = undefined
+
+        if (!this._isMounted || this._tierKey === key) return
+
+        this._adoptTierText(
+          typeof mod === TYPE_STRINGS.STRING
+            ? (mod as string)
+            : (mod as { default: string }).default
+        )
+        this._tierKey = key
+      })
+      .catch((err: unknown) => {
+        if (this._tierPending === key) this._tierPending = undefined
+
+        devWarn('[component] media-tier stylesheet load failed', err)
+      })
+  }
+
+  /**
+   * Adopts an already-downloaded cumulative tier css — constructable path
+   * shares one parsed sheet per text via `_sharedSheets` and splices it in
+   * at the old tier's position (never dropping sheets a subclass added);
+   * the legacy path rewrites the `<style>` node, where the new cumulative
+   * text replaces the served one outright since it is a strict superset.
+   * @param css cumulative tier css text.
+   */
+  private _adoptTierText(css: string): void {
+    if (!css) return
+
+    // attachShadow() in the constructor guarantees a root for the element's
+    // lifetime — callers only reach this path after the mounted check.
+    const sr = this.shadowRoot as ShadowRoot
+
+    if (
+      typeof CSSStyleSheet !== TYPE_STRINGS.UNDEFINED &&
+      'replaceSync' in CSSStyleSheet.prototype
+    ) {
+      let sheet = _sharedSheets.get(css)
+
+      if (!sheet) {
+        sheet = new CSSStyleSheet()
+        sheet.replaceSync(css)
+        _sharedSheets.set(css, sheet)
+      }
+
+      const sheets = Array.from(sr.adoptedStyleSheets)
+      const at = this._tierSheet ? sheets.indexOf(this._tierSheet) : -1
+
+      if (at >= 0) {
+        sheets.splice(at, 1, sheet)
+      } else {
+        sheets.push(sheet)
+      }
+
+      sr.adoptedStyleSheets = sheets
+      this._tierSheet = sheet
+    } else {
+      // Legacy path — _renderInitial always creates the <style> node before
+      // any tier adopt can reach here.
+      this._tierText = css
+      ;(this._styleNode as HTMLStyleElement).textContent =
+        `${BASE_HOST_STYLES}\n${this._componentBase}\n${css}`
+    }
   }
 
   /**

@@ -347,3 +347,38 @@
     @include focus-ring;
   }
 }
+
+// Transport-control arrow affordance — the shared prev/next glyph contract:
+// nudge outward in the travel direction on hover/focus-visible, squash on
+// press. Written once here because the same interaction ships on the
+// carousel buttons and the card-stack foot nav.
+
+/// Emits the arrow glyph's base display/transition plus the three
+/// interactive states, nested under the control (`&`). `--arrow-dir` on
+/// the control steers the nudge (-1 backward / +1 forward — unset
+/// defaults to +1); the press transform compounds translate+scale so the
+/// arrow keeps its offset instead of snapping back to centre. Reduced
+/// motion clears the whole affordance. Composited transform only.
+/// @param {String} $arrow - the arrow glyph's selector, resolved by the
+///   caller since each block names its own element (e.g. '.foo-arrow').
+@mixin control-arrow($arrow) {
+  #{$arrow} {
+    display: inline-block;
+    transition: transform 0.25s $ease-out;
+  }
+
+  &:is(:hover, :focus-visible) #{$arrow} {
+    transform: translateX(calc(var(--arrow-dir, 1) * #{to-rem($space-2xs * 2)}));
+  }
+
+  &:active #{$arrow} {
+    transform: translateX(calc(var(--arrow-dir, 1) * #{to-rem($space-2xs * 2)})) scale(0.85);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #{$arrow} {
+      transform: none;
+      transition: none;
+    }
+  }
+}

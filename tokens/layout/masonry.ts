@@ -64,6 +64,15 @@ export const INTERNAL_MOSAIC = Object.freeze({
    */
   AREA_SPREAD_MIN: 3,
   /**
+   * Same-aspect tolerance for the majority gate — two h/w ratios within
+   * this multiplicative band count as the same tile shape (±5% covers
+   * CMS size strings rounded to whole pixels). When a strict majority
+   * of the group shares one aspect, the odd items ride the uniform
+   * carousel strip instead of flagging the wall: a wall of
+   * near-identical tiles with one misfit reads as a broken grid.
+   */
+  MAJORITY_RATIO_EPS: 1.05,
+  /**
    * Minimum rendered tile width (px) — the expand-modal trigger
    * ('click to open' pill + corner brackets ≈ 140px) must keep a usable
    * footprint; tiles under this floor re-derive at a smaller divisor.
@@ -77,6 +86,8 @@ export const INTERNAL_MOSAIC = Object.freeze({
    */
   MIN_TILE_H: 89,
   /** Viewport width (px) at/below which the wall swaps back to the
-   *  regular <custom-carousel> — the mobile layout contract. */
-  CAROUSEL_MAX_W: 640,
+   *  regular <custom-carousel> — phones and tablets through 1024: the
+   *  max-area is too tight for a natural-size wall, so it runs the
+   *  same scrolling strip as mobile. */
+  CAROUSEL_MAX_W: 1024,
 })

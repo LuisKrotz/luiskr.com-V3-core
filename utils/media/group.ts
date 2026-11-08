@@ -90,6 +90,28 @@ export const hasIrregularMediaHeights = (items: unknown): boolean => {
 
   if (ratios.length < 2) return false
 
+  // Majority-same gate: sorted-ratio runs within MAJORITY_RATIO_EPS
+  // cluster identical tile shapes. When the largest cluster covers more
+  // than half the sized items, the outliers ride the uniform strip —
+  // "one item is different" is a carousel with a narrow slide, not a
+  // masonry wall with one odd hole.
+  const sorted = [...ratios].sort((a, b) => a - b)
+
+  let bestRun = 1
+  let run = 1
+
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] / sorted[i - 1] <= INTERNAL_MOSAIC.MAJORITY_RATIO_EPS) {
+      run++
+    } else {
+      run = 1
+    }
+
+    if (run > bestRun) bestRun = run
+  }
+
+  if (bestRun * 2 > ratios.length) return false
+
   return (
     Math.max(...ratios) / Math.min(...ratios) >= INTERNAL_MOSAIC.RATIO_SPREAD_MIN ||
     Math.max(...areas) / Math.min(...areas) >= INTERNAL_MOSAIC.AREA_SPREAD_MIN

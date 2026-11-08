@@ -100,7 +100,7 @@
     background: currentColor;
     transform: scaleX(0);
     transform-origin: left center;
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.35s $ease-out;
     pointer-events: none;
   }
 
@@ -187,6 +187,11 @@
     font-size: to-rem(89);
     letter-spacing: to-rem(21);
   }
+
+  @include layout-3840() {
+    font-size: to-rem(144);
+    letter-spacing: to-rem(34);
+  }
 }
 
 %TTL_LG {
@@ -208,6 +213,10 @@
   @include layout-1560() {
     font-size: to-rem(55);
   }
+
+  @include layout-3840() {
+    font-size: to-rem(89);
+  }
 }
 
 %TTL_MD {
@@ -217,6 +226,10 @@
 
   @include layout-768() {
     font-size: to-rem(34);
+  }
+
+  @include layout-3840() {
+    font-size: to-rem(55);
   }
 }
 
@@ -234,6 +247,11 @@
     font-size: to-rem(34);
     letter-spacing: to-rem(5);
   }
+
+  @include layout-3840() {
+    font-size: to-rem(55);
+    letter-spacing: to-rem(8);
+  }
 }
 
 %TTL_XS {
@@ -242,6 +260,10 @@
 
   @include layout-2560() {
     font-size: to-rem(21);
+  }
+
+  @include layout-3840() {
+    font-size: to-rem(34);
   }
 }
 
@@ -252,6 +274,10 @@
 
   @include layout-2560() {
     font-size: to-rem(13);
+  }
+
+  @include layout-3840() {
+    font-size: to-rem(21);
   }
 }
 
@@ -271,6 +297,17 @@
   @include layout-1024() {
     font-size: to-rem(34);
   }
+
+  // Stay one rung above %TXT_MD at every ultrawide band — the
+  // --md single-paragraph promotion is only visible while the
+  // promoted size actually exceeds the base body ramp.
+  @include layout-2560() {
+    font-size: to-rem(55);
+  }
+
+  @include layout-3840() {
+    font-size: to-rem(89);
+  }
 }
 
 %TXT_MD {
@@ -287,6 +324,11 @@
     font-size: to-rem(34);
     line-height: to-rem(55);
   }
+
+  @include layout-3840() {
+    font-size: to-rem(55);
+    line-height: to-rem(89);
+  }
 }
 
 %TXT_SM {
@@ -298,6 +340,11 @@
     font-size: to-rem(21);
     line-height: to-rem(34);
   }
+
+  @include layout-3840() {
+    font-size: to-rem(34);
+    line-height: to-rem(55);
+  }
 }
 
 %TXT_XS {
@@ -308,5 +355,10 @@
   @include layout-2560() {
     font-size: to-rem(13);
     line-height: to-rem(21);
+  }
+
+  @include layout-3840() {
+    font-size: to-rem(21);
+    line-height: to-rem(34);
   }
 }

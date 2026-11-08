@@ -20,7 +20,7 @@
 
   &--open {
     display: block;
-    animation: #{$_B_NAV}-menu-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: #{$_B_NAV}-menu-in 1.4s $ease-out both;
   }
 
   &--settled {
@@ -103,7 +103,7 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
     animation: #{$_B_NAV}-membrane-drift-alt 52s ease-in-out infinite alternate;
   }
 
-  animation: #{$_B_NAV}-membrane-in 2.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: #{$_B_NAV}-membrane-in 2.6s $ease-out both;
 
   .#{$_B_NAV}-menu-modal--settled & {
     opacity: 0.1;
@@ -273,7 +273,7 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
   background: transparent;
   opacity: 1;
   transition:
-    letter-spacing 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    letter-spacing 0.6s $ease-out,
     opacity 0.35s ease,
     filter 0.35s ease,
     transform 0.35s ease;
@@ -292,7 +292,7 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
     opacity: 0.25;
     transform: translateX(-50%) scaleX(0);
     transition:
-      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s $ease-out,
       opacity 0.3s ease;
   }
 
@@ -341,7 +341,7 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
     filter: blur(var(--space-xs));
     transform: translateY(calc(-1 * var(--space-sm)));
     transition:
-      letter-spacing 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      letter-spacing 0.6s $ease-out,
       opacity 0.55s ease,
       filter 0.55s ease,
       transform 0.55s ease;
@@ -427,7 +427,7 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
   font-weight: calc(200 + var(--fw-lift));
   color: var(--menu-ink, var(--text-primary));
   text-transform: uppercase;
-  letter-spacing: to-rem(2);
+  letter-spacing: to-rem($space-2xs);
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -462,15 +462,15 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
   &::before {
     top: 0;
     left: 0;
-    border-top: 1px solid currentColor;
-    border-left: 1px solid currentColor;
+    border-top: to-rem($space-hairline) solid currentColor;
+    border-left: to-rem($space-hairline) solid currentColor;
   }
 
   &::after {
     bottom: 0;
     right: 0;
-    border-bottom: 1px solid currentColor;
-    border-right: 1px solid currentColor;
+    border-bottom: to-rem($space-hairline) solid currentColor;
+    border-right: to-rem($space-hairline) solid currentColor;
   }
 
   &:hover,

@@ -21,7 +21,7 @@ $_B_PREF_CLOSE: 'pref-close';
   background: var(--border-color);
   transition:
     background 0.2s ease,
-    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.3s $ease-out;
   position: relative;
   overflow: hidden;
 
@@ -68,7 +68,7 @@ $_B_PREF_CLOSE: 'pref-close';
       height: to-rem($space-hairline + 1);
       background: var(--text-secondary);
       border-radius: var(--radius-round);
-      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: transform 0.3s $ease-out;
     }
 
     &::before {

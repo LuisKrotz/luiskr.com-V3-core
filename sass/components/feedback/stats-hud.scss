@@ -15,7 +15,7 @@ $_skel-border: rgba(
   255,
   0.18
 ); // separator — white alpha only (AGENTS.md shadow exception: no hex)
-$_skel-label: rgba(255, 255, 255, 0.45); // dim label — white alpha only
+$_skel-label: rgba($color-white, 0.45); // dim label — white alpha only
 
 .#{$_B_STATS} {
   position: fixed;
@@ -30,7 +30,7 @@ $_skel-label: rgba(255, 255, 255, 0.45); // dim label — white alpha only
   padding: to-rem($space-xs) to-rem($space-xl);
   border-radius: var(--radius-round);
 
-  background: rgba(0, 0, 0, 0.78); // pure black alpha — no theme hex
+  background: rgba($color-black, 0.78); // pure black alpha — no theme hex
   backdrop-filter: blur(#{to-rem($space-md)});
   -webkit-backdrop-filter: blur(#{to-rem($space-md)});
   border: var(--border-item-hover);
@@ -39,7 +39,7 @@ $_skel-label: rgba(255, 255, 255, 0.45); // dim label — white alpha only
   font-family: var(--font-mono);
   font-size: to-rem($space-lg);
   font-weight: calc(500 + var(--fw-lift));
-  letter-spacing: to-rem(0.2);
+  letter-spacing: to-rem($space-3xs * 0.2);
   color: $cms-accent;
   white-space: nowrap;
   pointer-events: auto;
@@ -51,7 +51,7 @@ $_skel-label: rgba(255, 255, 255, 0.45); // dim label — white alpha only
   transition:
     opacity 0.25s ease,
     visibility 0.25s ease,
-    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.25s $ease-out;
 
   // Match %MAXAREA gutter at each breakpoint
   @include layout-320() {
@@ -137,7 +137,7 @@ $_skel-label: rgba(255, 255, 255, 0.45); // dim label — white alpha only
     color: $_skel-label;
     font-size: to-rem($space-md);
     text-transform: uppercase;
-    letter-spacing: to-rem(0.6);
+    letter-spacing: to-rem($space-3xs * 0.6);
   }
 
   &-value {

@@ -91,7 +91,10 @@
       // Home-footer legal links (Privacy, LGPD, Terms) rest without an
       // underline; the LK_LINK pseudo-element still sweeps in on hover.
       border-bottom-color: transparent;
-      margin-block: to-rem($space-xs);
+      // No vertical margin — the anchor renders inline (or as a pair's
+      // flex item), so margin-block never applied historically; inside
+      // the inline-flex pairs it would inflate the row above the sep's
+      // line-height and reintroduce the uneven 768/1024 link rhythm.
       line-height: to-rem($space-xl);
       opacity: 0.9;
       transition:
@@ -123,6 +126,28 @@
       @include layout-1024() {
         font-size: to-rem($space-xl);
       }
+    }
+
+    // Separator+item pair — the dot is glued to the FOLLOWING link as
+    // one atomic unit, so a wrap can only break before the pair and the
+    // dot opens the new line with its item instead of dangling alone.
+    // inline-flex + center: the RSS feed anchor is itself inline-flex —
+    // its baseline resolves to the box edge, which sat ~5px below the
+    // sep's text baseline and stretched the pair ~4px taller than its
+    // line-mates (the 768/1024 misalignment). Centered items keep every
+    // pair's box on the same rhythm.
+    &-pair {
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    // A pair that opens a wrapped line hides its leading dot — the
+    // line starts on the label. visibility keeps the pair's box
+    // identical, so hiding never reflows the row the marker measured
+    // (watchOrphanSeps toggles the modifier off a ResizeObserver).
+    &-pair--lead &-sep {
+      visibility: hidden;
     }
 
     // RSS item — the locale feed link rendered as the last legal-nav

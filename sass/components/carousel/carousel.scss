@@ -21,7 +21,11 @@
 /// prefix is declared exactly once (DRY selector rule).
 $_B_CAROUSEL: 'carousel';
 
-/// Arrow-button hit area (square).
+/// Arrow-button hit area (square) — the compact 48px rung.
+$carousel-btn-size-md: to-rem($space-sm * $space-md + $space-md);
+/// Arrow-button hit area — the mobile 40px rung under 1024.
+$carousel-btn-size-sm: to-rem($space-sm * $space-md);
+/// Arrow-button hit area (square) — the 55px rung at ≥1440.
 $carousel-btn-size: to-rem($space-3xl);
 /// Dot diameter — each disc carries its slide number inside; 16px is
 /// the compact sweet spot (two digits at 800-weight still clear the rim).
@@ -32,7 +36,7 @@ $carousel-dot-pill: to-rem($space-2xl);
 /// Gap between nav dots.
 $carousel-dot-gap: to-rem($space-xs);
 /// Progress-ring stroke width around the arrow buttons.
-$ring-stroke: to-rem(2.5);
+$ring-stroke: to-rem($space-sm / 2);
 
 @import 'dot-nav';
 

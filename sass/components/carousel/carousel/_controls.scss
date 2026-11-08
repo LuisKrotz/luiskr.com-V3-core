@@ -16,20 +16,25 @@
     padding: to-rem($space-md) to-rem($space-xl) to-rem($space-lg);
     width: 100%;
 
-    @include layout-768() {
-      padding: to-rem($space-lg) to-rem(calc(($un-768 - $grid-max-area-768) / 2));
+    // Lateral padding = the grid gutter itself — the same $grid-steps
+    // table %MAXAREA iterates, so the buttons always sit inside the
+    // content column (the hand-rolled rungs stopped at 2560 and let
+    // ≥3840 controls drift to the viewport edge).
+    @include grid-steps() using ($step, $gap, $cols) {
+      padding-left: to-rem($gap);
+      padding-right: to-rem($gap);
     }
-    @include layout-1024() {
-      padding: to-rem($space-lg) to-rem(calc(($un-1024 - $grid-max-area-1024) / 2));
+
+    @include layout-768() {
+      padding-top: to-rem($space-lg);
     }
     @include layout-1440() {
-      padding: to-rem($space-xl) to-rem(calc(($un-1440 - $grid-max-area-1440) / 2));
-    }
-    @include layout-1920() {
-      padding: to-rem($space-xl) to-rem(calc(($un-1920 - $grid-max-area-1920) / 2));
+      padding-top: to-rem($space-xl);
+      padding-bottom: to-rem($space-xl);
     }
     @include layout-2560() {
-      padding: to-rem($space-2xl) to-rem(calc(($un-2560 - $grid-max-area-2560) / 2));
+      padding-top: to-rem($space-2xl);
+      padding-bottom: to-rem($space-2xl);
     }
   }
 
@@ -41,16 +46,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: to-rem(40);
-    height: to-rem(40);
+    width: $carousel-btn-size-sm;
+    height: $carousel-btn-size-sm;
     flex-shrink: 0;
     cursor: pointer;
     color: var(--text-muted);
     transition: color 0.2s ease;
 
     @include layout-1024() {
-      width: to-rem(48);
-      height: to-rem(48);
+      width: $carousel-btn-size-md;
+      height: $carousel-btn-size-md;
     }
 
     @include layout-1440() {
@@ -58,8 +63,16 @@
       height: $carousel-btn-size;
     }
 
+    &--prev {
+      --arrow-dir: -1;
+    }
+
+    &--next {
+      --arrow-dir: 1;
+    }
+
     &:hover,
-    &:focus {
+    &:focus-visible {
       color: var(--text-primary);
     }
 
@@ -70,7 +83,7 @@
     // change survives the flattened palette.
     :host-context(html.high-contrast) &,
     :host-context(html.high-contrast) &:hover,
-    :host-context(html.high-contrast) &:focus {
+    :host-context(html.high-contrast) &:focus-visible {
       color: var(--color-white-raw);
     }
 
@@ -97,22 +110,12 @@
       line-height: 1;
       position: relative;
       z-index: 1;
-      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    &--prev:hover &-arrow,
-    &--prev:focus &-arrow {
-      transform: translateX(to-rem(-4));
-    }
-
-    &--next:hover &-arrow,
-    &--next:focus &-arrow {
-      transform: translateX(to-rem(4));
-    }
-
-    &:active &-arrow {
-      transform: scale(0.85);
-    }
+    // Arrow glyphs — the shared transport-control affordance (base/
+    // _mixins.scss control-arrow): nudge outward on hover/focus, squash
+    // on press, compounding the nudge so it doesn't snap back.
+    @include control-arrow('.#{$_B_CAROUSEL}-btn-arrow');
 
     // Countdown ring SVG overlay
     &-ring {

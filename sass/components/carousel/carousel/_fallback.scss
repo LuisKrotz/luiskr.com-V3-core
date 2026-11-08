@@ -38,6 +38,19 @@
         display: block;
         flex: 0 1 auto;
       }
+
+      // 3+ items only ever reach --side via the ≥3840 multi-fit — a
+      // centred cluster leaves a dead band at both strip edges. Spread
+      // them across the max-area column instead; the gutter padding
+      // keeps first/last items on the content edges, and engines
+      // without :has() keep the centred cluster.
+      &:has(> :nth-child(3)) {
+        justify-content: space-between;
+
+        @include grid-steps() using ($step, $gap, $cols) {
+          padding-inline: to-rem($gap);
+        }
+      }
     }
   }
 }

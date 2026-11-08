@@ -114,7 +114,7 @@ $_B_NAV: 'nav';
   }
 
   50% {
-    transform: translateX(-3px);
+    transform: translateX(to-rem(-$space-xs));
     opacity: 1;
   }
 }

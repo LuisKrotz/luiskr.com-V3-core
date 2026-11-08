@@ -14,6 +14,7 @@ import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { GRAVATAR_SIZES } from '@core/tokens/media/dimensions.js'
 import { ladderCeiling, smallMediaBox } from './media/policy.js'
+import { onScrollStop } from './motion/scroll-state.js'
 import type { CoverRung } from './media/manifest.js'
 
 /**
@@ -201,7 +202,10 @@ export function coverLadderStep(
 
   registry?.set(coverKey, painted)
 
-  img.classList.add(loadedClass)
+  // The loaded-class flip is a style recalc — parked behind onScrollStop
+  // like the mount below so a rung landing mid-fling can't spend gesture
+  // frame budget; the LQIP underneath already owns the box.
+  onScrollStop(() => img.classList.add(loadedClass))
 
   const onRung = (rung: CoverRung): boolean => rung.jpg === painted || rung.webp === painted
 
@@ -241,7 +245,18 @@ export function coverLadderStep(
    *  does the layer underneath retire, making the swap atomic per frame.
    *  On `error` the successor removes itself and the painted rung stands.
    *  The clone carries no listeners (cloneNode doesn't copy them), so the
-   *  climb continues through the explicit re-entry below. */
+   *  climb continues through the explicit re-entry below.
+   *
+   *  Scroll-gesture park — the mount itself plus the retire/re-entry it
+   *  schedules are DOM writes, so callers queue advance behind
+   *  onScrollStop the same way loadHighRes parks its layer swap: a rung
+   *  confirming mid-fling must not spend gesture frame budget on layer
+   *  churn (the post-fling freeze), and the painted rung underneath
+   *  already owns the box so nothing blanks while parked. Probes keep
+   *  fetching and decoding off the gesture path — only the visible
+   *  writes wait for idle, and onScrollStop fires synchronously when the
+   *  window isn't scrolling so a static viewport sees no added
+   *  latency. */
   const advance = (): void => {
     const layer = img.closest(HTML_TAGS.PICTURE) ?? img
 
@@ -250,22 +265,24 @@ export function coverLadderStep(
     successor.addEventListener(
       WINDOW_EVENTS.LOAD,
       () => {
-        // A wholesale _updateDom between probe-confirm and mount leaves
-        // the successor detached — the registry's reached tier drives the
-        // rebuilt DOM instead, so a detached successor just exits.
-        if (!successor.isConnected) return
+        onScrollStop(() => {
+          // A wholesale _updateDom between probe-confirm and mount leaves
+          // the successor detached — the registry's reached tier drives the
+          // rebuilt DOM instead, so a detached successor just exits.
+          if (!successor.isConnected) return
 
-        layer.remove()
+          layer.remove()
 
-        coverLadderStep(
-          registry,
-          coverKey,
-          successor,
-          rungs,
-          loadedClass,
-          mobileRungs,
-          boxWidthCssPx
-        )
+          coverLadderStep(
+            registry,
+            coverKey,
+            successor,
+            rungs,
+            loadedClass,
+            mobileRungs,
+            boxWidthCssPx
+          )
+        })
       },
       { once: true }
     )
@@ -295,14 +312,14 @@ export function coverLadderStep(
   if (!ImageCtor) {
     target = next.jpg
 
-    advance()
+    onScrollStop(advance)
 
     return
   }
 
   const probe = new ImageCtor()
 
-  probe.onload = advance
+  probe.onload = () => onScrollStop(advance)
 
   probe.onerror = () => {
     // A manifest-proven webp can still fail to decode — retry the jpg

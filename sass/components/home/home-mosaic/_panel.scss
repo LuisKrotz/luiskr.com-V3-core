@@ -9,7 +9,7 @@
 .home-mosaic-bottom {
   // transition on height so panel animates smoothly
   transition:
-    height 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.52s $ease-out,
     opacity 0.28s ease 0.1s;
   transition:
     height 0.52s $ease-spring,
@@ -46,7 +46,7 @@
   text-shadow: 0 var(--space-pixel) var(--space-2xs) rgba($color-black, 0.7);
 
   .draw-text__char {
-    animation: char-draw 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: char-draw 0.22s $ease-out forwards;
     animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 8ms));
   }
 }

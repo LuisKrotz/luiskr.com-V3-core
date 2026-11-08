@@ -13,20 +13,20 @@
 
 // ── Section titles: animate on mount (replayed via :key re-mount) ──────────
 .home-section-title .draw-text__char {
-  animation: char-draw 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: char-draw 0.8s $ease-out forwards;
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
 }
 
 // ── Inside slides: animate only when the slide becomes active ──────────────
 .aw-c-slide--active .draw-text__char {
-  animation: char-draw 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: char-draw 0.8s $ease-out forwards;
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
 }
 
 // ── Viewport trigger: animate when scrolled into view ──────────────────────
 // .draw-text--visible is added by IntersectionObserver in the component
 .draw-text--visible .draw-text__char {
-  animation: char-draw 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: char-draw 0.8s $ease-out forwards;
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
 }
 
@@ -53,7 +53,7 @@
 
 // ── Related List: animate write effect ─────────────────────────────────────
 .related-list-desc .draw-text__char {
-  animation: char-draw 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: char-draw 0.5s $ease-out forwards;
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 15ms));
 }
 

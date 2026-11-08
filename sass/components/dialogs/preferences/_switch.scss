@@ -8,10 +8,14 @@
 // Replaces 2-button pattern for binary on/off toggles.
 
 $_B_SW: 'pref-switch';
-$_SW_W: 52; // switch pill width
-$_SW_H: 28; // switch pill height
-$_SW_KNOB: 22; // knob diameter
-$_SW_PAD: 3; // padding inside pill
+/// Switch pill width — 52px iOS-proportioned track.
+$_SW_W: $space-2xl + $space-lg + $space-sm;
+/// Switch pill height — 28px keeps the knob + pad proportion.
+$_SW_H: $space-xl + $space-sm + $space-2xs;
+/// Knob diameter — 22px inside the 28px track.
+$_SW_KNOB: $space-xl + $space-3xs;
+/// Padding inside the pill — knob offset from the track edge.
+$_SW_PAD: $space-xs;
 
 // One switch row (label + description + WebGL toggle).
 .#{$_B_SW}-row {
@@ -20,7 +24,7 @@ $_SW_PAD: 3; // padding inside pill
   justify-content: space-between;
   gap: to-rem($space-md);
   padding: to-rem($space-sm) 0;
-  border-bottom: to-rem(1) solid var(--border-color);
+  border-bottom: to-rem($space-hairline) solid var(--border-color);
   cursor: pointer;
   user-select: none;
 
@@ -42,14 +46,14 @@ $_SW_PAD: 3; // padding inside pill
 .#{$_B_SW}-label {
   font-family: var(--font-primary);
   font-weight: calc(600 + var(--fw-lift));
-  font-size: to-rem(15);
+  font-size: to-rem($space-lg + $space-2xs);
   color: var(--text-primary);
 }
 
 // Switch row description.
 .#{$_B_SW}-desc {
   font-family: var(--font-desc);
-  font-size: to-rem(13);
+  font-size: to-rem($space-lg);
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -101,7 +105,7 @@ $_SW_PAD: 3; // padding inside pill
       background: var(--color-white-raw);
       box-shadow: var(--shadow-card);
       transition:
-        transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.2s $ease-out,
         background 0.2s ease;
     }
 

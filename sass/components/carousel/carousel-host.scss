@@ -21,6 +21,12 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
   box-sizing: border-box;
   font-family: var(--font-primary);
   color: var(--text-primary);
+  // Establishes the query container for the cqw slide caps below —
+  // viewport-relative caps can't see the real host width inside
+  // max-area containers, which is how tablet strips ended up with
+  // zero peek space. (safari-compat resets this on engines without
+  // container queries.)
+  container-type: inline-size;
 }
 
 // ── Ratio modifiers for landscape carousels on mobile ─────────────────────────
@@ -78,7 +84,13 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
     &--ratio-16-9,
     &--ratio-21-9,
     &--ratio-32-9 {
-      --carousel-media-height: initial;
+      // `revert`, not `initial`: an `initial` custom property is the
+      // guaranteed-invalid value — it would SEVER inheritance from the
+      // host's published strip height and leave --mf-h unset (the
+      // ragged-heights bug at ≥768). `revert` drops this declaration
+      // so the published --carousel-media-height inherits down to the
+      // slides; unpublished stays unset → natural sizing fallback.
+      --carousel-media-height: revert;
     }
   }
 }
@@ -183,6 +195,27 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
       --mf-w: var(--space-8xl);
       --mf-h: var(--carousel-media-height);
     }
+
+    // Peek geometry ≤1024 (640/768/960/1024): the composed slide —
+    // figure + item padding (+ side margins at exactly 1024) — must
+    // stay under ~88% of the host so the previous/next cards always
+    // show on both edges; vw caps can't see the real host width inside
+    // max-area containers, which is how tablet strips ended up with
+    // zero peek space. cqw resolves against the :host query container;
+    // engines without container queries keep the vw rungs above.
+    @media (max-width: #{$vw-1024}) {
+      @supports (width: 1cqw) {
+        --mf-w: calc(88cqw - #{calc(var(--space-lg) * 2)});
+
+        @include layout-768() {
+          --mf-w: calc(88cqw - #{calc(var(--space-xl) * 2)});
+        }
+
+        @include layout-1024() {
+          --mf-w: calc(88cqw - #{calc(var(--space-xl) * 2 + var(--space-md) * 2)});
+        }
+      }
+    }
   }
 
   // landscape variant: --mf-w carries the vw cap (consumed as the
@@ -207,6 +240,17 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
     @include layout-1920() {
       --mf-w: calc(100vw - var(--space-6xl));
       --mf-max-w: calc(100vw - var(--space-6xl));
+    }
+
+    // 1024 sits inside the peek band too — the relaxed landscape cap
+    // would otherwise fill ~95vw edge-to-edge there. 92cqw keeps the
+    // wider landscape proportion while still showing neighbour peeks;
+    // placed last so it beats the layout-1024 rung at exactly 1024px.
+    @media (max-width: #{$vw-1024}) {
+      @supports (width: 1cqw) {
+        --mf-w: calc(92cqw - #{calc(var(--space-xl) * 2 + var(--space-md) * 2)});
+        --mf-max-w: calc(92cqw - #{calc(var(--space-xl) * 2 + var(--space-md) * 2)});
+      }
     }
   }
 

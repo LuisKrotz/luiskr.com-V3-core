@@ -11,6 +11,18 @@
 // ── Accordion list for related projects ──────────────────────────────────────
 $_B_RELATED: 'related-list';
 
+/// Media-column flex basis per breakpoint — a 140px square thumb on
+/// phones, widening to 260/320px 16:10 crops on larger grids.
+$_MEDIA-W-SM: to-rem($space-5xl - $space-2xs * 2);
+$_MEDIA-W-MD: to-rem($space-lg * ($space-xl - $space-3xs));
+$_MEDIA-W-LG: to-rem($space-6xl + $space-4xl - $space-2xs);
+
+/// Skeleton row heights — reserve the media column's rendered height
+/// (basis × the active aspect ratio) so :empty shimmers the same box
+/// the loaded row will occupy. Mobile mirrors the square basis.
+$_MEDIA-H-MD: to-rem($space-5xl + $space-xl - $space-2xs);
+$_MEDIA-H-LG: to-rem($space-md * ($space-xl + $space-2xs * 2));
+
 // Related-projects conveyor at the bottom of the project page.
 .#{$_B_RELATED} {
   display: flex;
@@ -30,8 +42,8 @@ $_B_RELATED: 'related-list';
     text-decoration: none;
     color: var(--text-primary);
     transition:
-      grid-template-rows 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      grid-template-rows 0.6s $ease-out,
+      opacity 0.6s $ease-out;
     // Spring upgrade where linear() parses — the fold breathes out then
     // settles, same elastic contract the tile hover-lift carries. The
     // opacity fade rides the same easing + duration so height and fade
@@ -61,7 +73,7 @@ $_B_RELATED: 'related-list';
       }
 
       .#{$_B_RELATED}-title {
-        transform: translateY(-2px);
+        transform: translateY(to-rem(-$space-2xs));
       }
     }
   }
@@ -82,7 +94,7 @@ $_B_RELATED: 'related-list';
     background: var(--bg-secondary);
     box-shadow: 0 var(--space-2xs) var(--space-lg) rgba($color-black, 0.15);
     transition:
-      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.55s $ease-out,
       box-shadow 0.4s ease;
     transition:
       transform 0.55s $ease-spring,
@@ -138,14 +150,14 @@ $_B_RELATED: 'related-list';
     // inherit through @extend. The min-height mirrors the loaded row's
     // media-column height.
     &:empty {
-      min-height: to-rem(140);
+      min-height: $_MEDIA-W-SM;
 
       @include layout-768() {
-        min-height: to-rem(163);
+        min-height: $_MEDIA-H-MD;
       }
 
       @include layout-1024() {
-        min-height: to-rem(200);
+        min-height: $_MEDIA-H-LG;
       }
     }
   }
@@ -153,7 +165,7 @@ $_B_RELATED: 'related-list';
   // Media column — fixed-basis thumbnail filling the card's left edge.
   &-media {
     position: relative;
-    flex: 0 0 to-rem(140);
+    flex: 0 0 $_MEDIA-W-SM;
     aspect-ratio: 1 / 1;
     overflow: hidden;
 
@@ -163,12 +175,12 @@ $_B_RELATED: 'related-list';
     mask-image: linear-gradient(90deg, var(--color-white-raw) 70%, transparent 100%);
 
     @include layout-768() {
-      flex-basis: to-rem(260);
+      flex-basis: $_MEDIA-W-MD;
       aspect-ratio: 16 / 10;
     }
 
     @include layout-1024() {
-      flex-basis: to-rem(320);
+      flex-basis: $_MEDIA-W-LG;
     }
   }
 
@@ -178,7 +190,7 @@ $_B_RELATED: 'related-list';
     object-fit: cover;
     object-position: center;
     display: block;
-    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.7s $ease-out;
     // Spring upgrade — the hover zoom breathes: slight overshoot then settle.
     transition: transform 0.7s $ease-spring;
 
@@ -205,8 +217,8 @@ $_B_RELATED: 'related-list';
       inset: 0;
       opacity: 0;
       transition:
-        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        transform 0.7s $ease-out,
+        opacity 0.7s $ease-out;
       transition:
         transform 0.7s $ease-spring,
         opacity 0.7s $ease-spring;
@@ -247,7 +259,7 @@ $_B_RELATED: 'related-list';
     font-family: var(--font-desc);
     font-weight: calc(200 + var(--fw-lift));
     text-transform: uppercase;
-    letter-spacing: to-rem(0.8);
+    letter-spacing: to-rem($space-3xs * 0.8);
     color: var(--text-primary);
     transition: transform 0.45s ease;
     transition: transform 0.45s $ease-spring;
@@ -303,7 +315,7 @@ $_B_RELATED: 'related-list';
     transition:
       color 0.3s ease,
       border-color 0.3s ease,
-      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      transform 0.45s $ease-out;
     // Spring upgrade — the hover lift breathes like the card rows do.
     transition:
       color 0.3s ease,

@@ -39,17 +39,21 @@
   // (title + subtitle + portrait/intro row) left, the bio column centred
   // in the full initial height right, so the whole block fits one viewport.
   // 1024–1279 stays on the stacked tablet flow.
+  // The split's vertical padding lives on .about-main, not the section:
+  // stretched over the full section box, the bio column centres against
+  // the padded bounds too — the air above and below the text block reads
+  // as the section's own padding, which is the documented centred look.
   @include layout-1280() {
     display: grid;
-    grid-template-columns: 3fr 2fr;
+    // 1280–1439: a thinner bio column (7fr/3fr ≈ 70/30) leaves the
+    // profile row enough track width that the grown portrait never
+    // crowds the intro text.
+    grid-template-columns: 7fr 3fr;
     column-gap: to-rem($space-3xl);
-    padding-top: to-rem($space-5xl);
-    padding-bottom: to-rem($space-5xl);
   }
 
-  @include layout-2560() {
-    padding-top: to-rem($space-6xl);
-    padding-bottom: to-rem($space-6xl);
+  @include layout-1440() {
+    grid-template-columns: 3fr 2fr;
   }
   // Isolate internal layout shifts from contributing to page-level CLS
   contain: layout;
@@ -64,6 +68,18 @@
 
     @include layout-1280() {
       grid-column: 1;
+      // The split's extra vertical padding sits on this item so the bio
+      // column beside it can centre inside the section's full padded
+      // height. The section keeps its base 4xl pad — this rung only adds
+      // the step up to the old 5xl total so the block still fits one
+      // viewport.
+      padding-top: to-rem($space-3xl);
+      padding-bottom: to-rem($space-3xl);
+    }
+
+    @include layout-2560() {
+      padding-top: to-rem($space-5xl);
+      padding-bottom: to-rem($space-5xl);
     }
   }
 
@@ -189,7 +205,11 @@
     // of the box) breathes into the page gutter on the left while its
     // right half stays inside the track, clear of the intro text.
     @include layout-1280() {
-      width: max(50%, var(--about-picture-w, 50%));
+      // Clamped to the media track: --about-picture-w (the title's live
+      // width) can outgrow the track at 1280, which pushed the portrait
+      // over the intro text — min() keeps the title-matching growth
+      // while the track stays the hard ceiling.
+      width: min(max(50%, var(--about-picture-w, 50%)), 100%);
       margin: 0;
       align-self: start;
     }
@@ -352,7 +372,18 @@
 
     @include layout-1280() {
       grid-column: 2;
-      align-self: center;
+      // Stretch to the row's full height, then centre the paragraph block
+      // inside it — space-between used to pin the first block to the title
+      // line and the last to the portrait's bottom edge, which read as
+      // spread-not-centred; a centred block keeps equal air above and
+      // below against the left column's visual mass. The column spans the
+      // section's full padded height (the split padding lives on
+      // .about-main); its own padding keeps a clearance floor for locales
+      // whose bio runs taller than the left column.
+      align-self: stretch;
+      justify-content: center;
+      padding-block: to-rem($space-4xl);
+      box-sizing: border-box;
     }
   }
 

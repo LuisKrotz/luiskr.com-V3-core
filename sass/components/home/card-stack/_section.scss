@@ -13,8 +13,9 @@
 //      column left, 5:7 image-only pile in the right track.
 //    · ≥1280 → side-by-side: text column left, DOM/CSS fan coverflow
 //      fills the rest; the column narrows at 1440 and locks at 1920+,
-//      and the whole wrapper clamps to a centred max-width at 2560+
-//      while the dark section background keeps bleeding to the edges.
+//      returns to the 30% share at 2560 (max area fills outright), and
+//      at 3840 the section drops its forced viewport height and sizes
+//      to content like the about section.
 // ════════════════════════════════════════════════════════════════════════════
 
 :host {
@@ -41,7 +42,10 @@
   min-height: 100dvh;
   box-sizing: border-box;
   padding-top: var(--space-3xl);
-  padding-bottom: var(--space-xl);
+  // The foot controls lift clear of the OS bottom-gesture area — space-2xl
+  // pad plus the device safe-area inset (iOS home bar / Android gesture
+  // strip), matching the site-toast clearance contract.
+  padding-bottom: calc(var(--space-2xl) + env(safe-area-inset-bottom));
   background-image: var(--filament-glow);
   // Side cards intentionally overflow the %MAXAREA gutter on the stacked
   // layout (the mock's "peek in from the edges" hint) — clip the x-axis so
@@ -52,7 +56,7 @@
   // the card pile and the foot controls share the viewport; the top pad
   // stays full — it is what clears the header from the fixed nav.
   @media (min-width: 768px) and (max-width: 1279px) and (orientation: landscape) {
-    padding-bottom: var(--space-lg);
+    padding-bottom: calc(var(--space-lg) + env(safe-area-inset-bottom));
   }
 
   // "SELECTED WORK" at left, the view-all pill toggle at the right edge
@@ -69,7 +73,9 @@
     z-index: 5;
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
+    // Vertically centred — the "VIEW ALL (n)" pill aligns to the title
+    // block's midline instead of floating top-aligned off its first line.
+    align-items: center;
     column-gap: var(--space-lg);
     row-gap: var(--space-md);
     // The stacked layouts' title↔deck separator — deliberately generous
@@ -93,24 +99,29 @@
     line-height: 1.05;
     color: var(--text-primary);
     margin: 0;
-    // Stepped heading — the %TTL_XL ramp scaled to the brief: 32px on
-    // phones, 55px on desktop, capped at 70px on ultrawide (never the
-    // mosaic's 89px).
-    font-size: to-rem(32);
-    letter-spacing: to-rem(5);
+    // Stepped heading — the %TTL_XL ramp scaled to the brief: 24px on
+    // phones, 55px on desktop, 89px at ultrawide and 110px on 4K so the
+    // title keeps pace with the max area instead of shrinking into it.
+    font-size: to-rem($space-xl + $space-xs);
+    letter-spacing: var(--space-2xs);
 
     @include layout-768() {
-      letter-spacing: to-rem(8);
+      letter-spacing: to-rem($space-md);
     }
 
     @include layout-1024() {
-      font-size: to-rem(55);
-      letter-spacing: to-rem(13);
+      font-size: to-rem($space-3xl);
+      letter-spacing: to-rem($space-lg);
     }
 
     @include layout-2560() {
-      font-size: to-rem(70);
-      letter-spacing: to-rem(16);
+      font-size: to-rem($space-4xl);
+      letter-spacing: to-rem($space-lg + $space-sm);
+    }
+
+    @include layout-3840() {
+      font-size: to-rem($space-3xl * 2);
+      letter-spacing: to-rem($space-xl);
     }
   }
 
@@ -191,29 +202,22 @@
     grid-template-columns: calc(var(--space-7xl) + var(--space-4xl)) minmax(0, 1fr);
   }
 
-  // Ultrawide containment — the content wrapper (title + text column +
-  // deck) clamps near 1920px and centres; the section's dark background
-  // keeps bleeding to the viewport edges. The padding floor per step is
-  // that step's %MAXAREA gutter (--space-6xl/7xl/8xl), so the debug grid
-  // never shows content crossing the gutter line.
+  // Ultrawide — the wrapper fills the grid's max area outright (no extra
+  // containment: the %MAXAREA gutter IS the margin at these widths) and
+  // the split returns to the 30/70 share so the text column keeps pace
+  // with the widened track instead of freezing at the 1920 cap.
   @media (min-width: 2560px) and (orientation: landscape) {
-    padding-inline: max(
-      var(--space-6xl),
-      calc((100% - var(--space-10xl) - var(--space-6xl) - var(--space-5xl)) / 2)
-    );
+    grid-template-columns: 30% minmax(0, 1fr);
   }
 
+  // 4K — the section stops forcing a full viewport: the scaled-up cards
+  // and copy carry enough presence that the block can size to its content
+  // like the about section does (viewport budget still bounds the card
+  // width via _stageH in measure(), so a short wide window still shrinks
+  // the pile rather than overflowing the page).
   @media (min-width: 3840px) and (orientation: landscape) {
-    padding-inline: max(
-      var(--space-7xl),
-      calc((100% - var(--space-10xl) - var(--space-6xl) - var(--space-5xl)) / 2)
-    );
-  }
-
-  @media (min-width: 7680px) and (orientation: landscape) {
-    padding-inline: max(
-      var(--space-8xl),
-      calc((100% - var(--space-10xl) - var(--space-6xl) - var(--space-5xl)) / 2)
-    );
+    min-height: auto;
+    padding-top: var(--space-5xl);
+    padding-bottom: var(--space-4xl);
   }
 }

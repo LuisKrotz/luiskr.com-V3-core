@@ -19,13 +19,17 @@
     padding: to-rem($space-xs) to-rem($space-lg);
     color: var(--color-white-raw);
     background: transparent;
+    // Jost (--font-desc) — the expand trigger reads as interface chrome,
+    // not a display title, so it leaves the Poiret ramp like the close
+    // bar's caption.
+    font-family: var(--font-desc);
     font-weight: calc(700 + var(--fw-lift));
     white-space: nowrap;
     transition:
       color 0.2s ease,
       opacity 0.2s ease;
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(to-rem($space-2xs));
+    backdrop-filter: blur(to-rem($space-2xs));
     // The animated corner borders
     &::before,
     &::after {
@@ -41,15 +45,15 @@
     &::before {
       top: 0;
       left: 0;
-      border-top: 1px solid var(--color-white-raw);
-      border-left: 1px solid var(--color-white-raw);
+      border-top: to-rem($space-hairline) solid var(--color-white-raw);
+      border-left: to-rem($space-hairline) solid var(--color-white-raw);
     }
 
     &::after {
       bottom: 0;
       right: 0;
-      border-bottom: 1px solid var(--color-white-raw);
-      border-right: 1px solid var(--color-white-raw);
+      border-bottom: to-rem($space-hairline) solid var(--color-white-raw);
+      border-right: to-rem($space-hairline) solid var(--color-white-raw);
     }
 
     .internal-expand:hover &,
@@ -131,7 +135,7 @@
       cursor: pointer;
       transition:
         background 0.2s ease,
-        transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        transform 0.3s $ease-out;
 
       .#{$_B_PREF_CLOSE}-canvas {
         position: absolute;
@@ -167,7 +171,7 @@
           height: to-rem($space-2xs);
           border-radius: var(--radius-round);
           background: currentColor;
-          transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+          transition: transform 0.3s $ease-out;
         }
 
         &::before {
@@ -224,15 +228,15 @@
       &::before {
         top: 0;
         left: 0;
-        border-top: to-rem(1) solid currentColor;
-        border-left: to-rem(1) solid currentColor;
+        border-top: to-rem($space-hairline) solid currentColor;
+        border-left: to-rem($space-hairline) solid currentColor;
       }
 
       &::after {
         bottom: 0;
         right: 0;
-        border-bottom: to-rem(1) solid currentColor;
-        border-right: to-rem(1) solid currentColor;
+        border-bottom: to-rem($space-hairline) solid currentColor;
+        border-right: to-rem($space-hairline) solid currentColor;
       }
 
       &:hover,
@@ -288,7 +292,7 @@
     position: relative;
     padding: to-rem($space-sm) to-rem($space-xl);
     text-transform: uppercase;
-    letter-spacing: to-rem(2);
+    letter-spacing: to-rem($space-2xs);
     transition: color 0.2s ease;
 
     // Animated corner borders
@@ -306,20 +310,23 @@
     &::before {
       top: 0;
       left: 0;
-      border-top: 1px solid currentColor;
-      border-left: 1px solid currentColor;
+      border-top: to-rem($space-hairline) solid currentColor;
+      border-left: to-rem($space-hairline) solid currentColor;
     }
 
     &::after {
       bottom: 0;
       right: 0;
-      border-bottom: 1px solid currentColor;
-      border-right: 1px solid currentColor;
+      border-bottom: to-rem($space-hairline) solid currentColor;
+      border-right: to-rem($space-hairline) solid currentColor;
     }
 
     &:hover,
     &:focus-visible {
-      color: var(--white);
+      // --color-white-raw, NOT --white: dark mode re-pins --white to a
+      // near-black page ink, which vanished the label + brackets on the
+      // always-dark modal — the raw token stays white in every theme.
+      color: var(--color-white-raw);
 
       &::before,
       &::after {
@@ -390,14 +397,14 @@
     // initial declaration lets the tint paint in the first frame and the
     // frost land right after.
     &--glass::before {
-      -webkit-backdrop-filter: blur(16px);
-      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(to-rem($space-lg + $space-xs));
+      backdrop-filter: blur(to-rem($space-lg + $space-xs));
     }
 
     // The genie warp is the entrance — the CSS zoom only runs when JS
     // marks the content with --css-zoom (transition unavailable).
     &--css-zoom {
-      animation: modal-zoom-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      animation: modal-zoom-in 0.45s $ease-out forwards;
     }
 
     @include layout-1024() {
@@ -469,7 +476,7 @@
       width: fit-content;
       max-width: 100%;
       margin: 0 auto;
-      border-radius: to-rem(12);
+      border-radius: to-rem($space-lg - $space-3xs);
       box-shadow: var(--shadow-card);
       overflow: hidden;
       background-color: var(--bg-dark);
@@ -544,6 +551,12 @@
 
       @include layout-1024() {
         border-radius: to-rem($space-lg);
+        // Proportional viewport cap — the mount stamps aspect-ratio on
+        // the box, so binding height pulls width down through the ratio:
+        // a media item taller than the modal's usable area (dialog
+        // padding ×2 + the close bar) fits the visible area instead of
+        // overflowing into scroll at 1024.
+        max-height: calc(100dvh - #{to-rem($space-5xl * 2)} - #{to-rem($space-4xl)});
       }
 
       &--video {
@@ -555,6 +568,13 @@
         height: auto;
         border-radius: to-rem($space-md);
         box-shadow: var(--shadow-card);
+
+        @include layout-1024() {
+          // Same proportional cap, priced against the video content's
+          // own chrome (padding-top 4xl + padding-bottom xl + the
+          // close-bottom bar's margin/height ≈ 3xl).
+          max-height: calc(100dvh - #{to-rem($space-4xl)} - #{to-rem($space-3xl)});
+        }
       }
     }
 
@@ -695,7 +715,7 @@
 @keyframes modal-zoom-in {
   from {
     opacity: 0;
-    transform: scale(0.7) translateY(40px);
+    transform: scale(0.7) translateY(#{to-rem($space-sm * $space-md)});
   }
   to {
     opacity: 1;
@@ -711,6 +731,6 @@
   }
   to {
     opacity: 0;
-    transform: scale(0.7) translateY(40px);
+    transform: scale(0.7) translateY(#{to-rem($space-sm * $space-md)});
   }
 }

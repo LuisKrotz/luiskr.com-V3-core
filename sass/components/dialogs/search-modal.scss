@@ -125,7 +125,7 @@ $_B_SM: 'search-modal';
 
     transition:
       background 0.2s ease,
-      transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      transform 0.3s $ease-out;
 
     // CSS-drawn X via pseudo-elements: canvas absent or WebGL unavailable.
     &:not(:has(.#{$_B_SM}-close-canvas)),
@@ -138,7 +138,7 @@ $_B_SM: 'search-modal';
         height: to-rem($space-hairline + 1);
         background: var(--text-secondary);
         border-radius: var(--radius-round);
-        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        transition: transform 0.3s $ease-out;
       }
 
       &::before {

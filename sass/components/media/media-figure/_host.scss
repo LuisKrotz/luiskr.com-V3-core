@@ -39,6 +39,39 @@
   width: auto;
   content-visibility: visible;
   contain-intrinsic-size: none;
+
+  // …but the media layers inside may still skip their own raster while
+  // the slide sits outside the track's clip: every layer is a
+  // definite-box replaced element (attr dims on the placeholder, the
+  // absolute 100%×100% fill on thumb/high/video), so skipping defers
+  // only their bitmap decode+paint — the figure's laid-out box keeps
+  // the IO warm/climb and the nav-centering rect honest either way.
+  .render-placeholder,
+  .render-media {
+    content-visibility: auto;
+  }
+}
+
+// In mosaic-tile context the skyline packer owns the box outright — the
+// tile's inline width/height ARE the contract (a shrunk pocket-fit can
+// be narrower than any natural rung), so the figure fills it instead of
+// rendering at its intrinsic cap and cropping through overflow:hidden.
+:host-context(.media-mosaic-item),
+:host(.media-mosaic-item-figure),
+:host([classes*='media-mosaic-item-figure']) {
+  width: 100%;
+  height: 100%;
+  content-visibility: visible;
+  contain-intrinsic-size: none;
+
+  figure,
+  .render-placeholder,
+  .render-media {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+  }
 }
 
 :host(.internal-main-item),
@@ -72,6 +105,14 @@
       -webkit-border-radius: to-rem($space-lg);
       border-radius: to-rem($space-lg);
     }
+
+    // Same content-column bound as the placeholder below — the figure
+    // carries the dark surface + radius, so its own box must pull back
+    // inside the gutter too (it would otherwise stay full-bleed while
+    // the media inside shrank).
+    @include grid-steps() using ($step, $gap, $cols) {
+      max-width: min(100%, var(--mf-natural-w), calc(100vw - #{to-rem($gap * 2)}));
+    }
   }
 
   .render-placeholder {
@@ -91,6 +132,14 @@
       max-width: min(100%, var(--mf-natural-w));
       max-height: min(70vh, var(--mf-natural-h));
       max-height: min(70dvh, var(--mf-natural-h));
+    }
+
+    // The cover never paints past the grid's content column at ANY
+    // resolution — a source wider than the max-area (a 4K video is
+    // legitimately 3840px) must still pull back inside the same
+    // gutter %MAXAREA enforces on the rest of the page.
+    @include grid-steps() using ($step, $gap, $cols) {
+      max-width: min(100%, var(--mf-natural-w), calc(100vw - #{to-rem($gap * 2)}));
     }
   }
 
@@ -131,22 +180,23 @@
       max-height: 70dvh;
     }
 
-    @include layout-2560() {
-      // Ultra-wide bleed cap: without it, width:100% on a 5K viewport
-      // makes the 70vh height clamp crop the video to a panoramic sliver
-      // (≈5:1 displayed aspect). 175dvh keeps ≈2.5:1 — still full-bleed
-      // cinematic, but the top-anchored crop stays readable.
-      max-width: 175vh;
-      max-width: 175dvh;
+    // The cover is bounded by the grid's content column at EVERY step —
+    // it may fill the max-area outright but never paint past it (the
+    // gutter is %MAXAREA's own padding table). The 175dvh sliver
+    // protection composes underneath: short ultrawide windows keep the
+    // ≈2.5:1 cinematic bound instead of cropping to a panorama.
+    @include grid-steps() using ($step, $gap, $cols) {
+      max-width: min(175vh, calc(100vw - #{to-rem($gap * 2)}));
+      max-width: min(175dvh, calc(100vw - #{to-rem($gap * 2)}));
     }
   }
 
   figure {
     // The placeholder caps the bleed, but the media layers absolutely
     // fill the *figure* — it must carry the same cap or the crop remains.
-    @include layout-2560() {
-      max-width: 175vh;
-      max-width: 175dvh;
+    @include grid-steps() using ($step, $gap, $cols) {
+      max-width: min(175vh, calc(100vw - #{to-rem($gap * 2)}));
+      max-width: min(175dvh, calc(100vw - #{to-rem($gap * 2)}));
       margin-inline: auto;
     }
   }

@@ -21,7 +21,7 @@ $_B_TOAST: 'site-toast';
   flex-direction: column;
   gap: to-rem($space-sm);
 
-  max-width: to-rem(400);
+  max-width: to-rem($space-7xl + $space-xl + $space-2xs);
   pointer-events: none;
 
   font-family: var(--font-primary);
@@ -46,7 +46,7 @@ $_B_TOAST: 'site-toast';
     border-radius: var(--radius-md);
     border: var(--border-item-hover);
     border-left: to-rem($space-2xs) solid var(--color-accent);
-    background: rgba(0, 0, 0, 0.78); // pure black alpha — no theme hex
+    background: rgba($color-black, 0.78); // pure black alpha — no theme hex
     -webkit-backdrop-filter: blur(#{to-rem($space-md)});
     backdrop-filter: blur(#{to-rem($space-md)});
     box-shadow: var(--shadow-card);
@@ -55,13 +55,13 @@ $_B_TOAST: 'site-toast';
     font-size: to-rem($space-lg);
     line-height: 1.4;
 
-    animation: #{$_B_TOAST}-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: #{$_B_TOAST}-in 0.28s $ease-out both;
 
     // Backdrop blur is expensive on mobile GPUs — solid fallback like cookies
     @media (max-width: $bk-768) {
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
-      background: rgba(0, 0, 0, 0.92);
+      background: rgba($color-black, 0.92);
     }
   }
 
@@ -73,7 +73,7 @@ $_B_TOAST: 'site-toast';
     font-weight: calc(500 + var(--fw-lift));
     font-size: to-rem($space-md);
     text-transform: uppercase;
-    letter-spacing: to-rem(0.6);
+    letter-spacing: to-rem($space-3xs * 0.6);
     opacity: 0.7;
   }
 

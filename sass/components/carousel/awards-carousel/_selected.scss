@@ -141,15 +141,15 @@
       &::before {
         top: 0;
         left: 0;
-        border-top: 1px solid var(--grey);
-        border-left: 1px solid var(--grey);
+        border-top: to-rem($space-hairline) solid var(--grey);
+        border-left: to-rem($space-hairline) solid var(--grey);
       }
 
       &::after {
         bottom: 0;
         right: 0;
-        border-bottom: 1px solid var(--grey);
-        border-right: 1px solid var(--grey);
+        border-bottom: to-rem($space-hairline) solid var(--grey);
+        border-right: to-rem($space-hairline) solid var(--grey);
       }
 
       &:hover,

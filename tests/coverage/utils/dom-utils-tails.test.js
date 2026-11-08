@@ -8,9 +8,11 @@ import {
   deepQuerySelector,
   deepQuerySelectorAll,
   viewportWidth,
+  viewportHeight,
   resetViewportCache,
   flushLayout,
   isIntentionalFlush,
+  isPlainClick,
 } from '@core/utils/dom.js'
 
 import '@website/views/legal/Legal.js'
@@ -116,6 +118,31 @@ describe('dom-utils tails', () => {
       globalThis.window = prevWindow
       resetViewportCache()
     }
+  })
+
+  test('viewportHeight returns 0 without a window (SSR arm)', () => {
+    const prevWindow = globalThis.window
+
+    resetViewportCache()
+    delete globalThis.window
+
+    try {
+      expect(viewportHeight()).toBe(0)
+    } finally {
+      globalThis.window = prevWindow
+      resetViewportCache()
+    }
+  })
+
+  test('isPlainClick rejects each modifier key and non-primary buttons', () => {
+    expect(isPlainClick({ button: 0 })).toBe(true)
+    expect(isPlainClick({})).toBe(true) // button undefined — synthetic/keyboard
+    expect(isPlainClick({ button: 1 })).toBe(false)
+    expect(isPlainClick({ button: 2 })).toBe(false)
+    expect(isPlainClick({ button: 0, ctrlKey: true })).toBe(false)
+    expect(isPlainClick({ button: 0, metaKey: true })).toBe(false)
+    expect(isPlainClick({ button: 0, shiftKey: true })).toBe(false)
+    expect(isPlainClick({ button: 0, altKey: true })).toBe(false)
   })
 
   test('flushLayout marks the intentional window and returns offsetHeight', () => {

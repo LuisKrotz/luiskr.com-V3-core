@@ -119,6 +119,23 @@ export const CAROUSEL_LAYOUT = Object.freeze({
   RATIO_21_9: 21 / 9,
   /** Numeric 32:9 aspect ratio */
   RATIO_32_9: 32 / 9,
+  /**
+   * Viewport ceiling (px) for the half-natural render cap — the
+   * 640/768/960/1024 mobile+tablet bands never upscale a slide past
+   * half its source pixels; mirrors the `(max-width: 1024px)` cap block
+   * in media-figure/_placeholder.scss.
+   */
+  HALF_NATURAL_MAX_VW: 1024,
+  /** Scale applied to source dims when projecting the half-capped strip height */
+  HALF_NATURAL_SCALE: 0.5,
+  /**
+   * Minimum viewport (px) at which >2-item groups may also settle into
+   * the centered side-by-side row — on ≥3840 ultrawide a handful of
+   * slides can't fill the track, so when the whole set projects inside
+   * the host the controls-free row wins ("fewer items than the
+   * viewport" case).
+   */
+  MULTI_FIT_MIN_VW: 3840,
   /** String token key for 16:9 */
   ASPECT_RATIO_16_9: '16:9',
   /** String token key for 21:9 */

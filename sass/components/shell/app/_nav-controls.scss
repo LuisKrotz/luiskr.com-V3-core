@@ -102,6 +102,12 @@ $_B_JOUST: 'joust';
   :host-context(html.high-contrast) & {
     color: var(--white);
   }
+
+  // ≤375px: an opened chip's label pours at one step smaller so the
+  // four-disc strip still fits the width without squeezing siblings off.
+  @media (max-width: $vw-375) {
+    font-size: var(--space-md);
+  }
 }
 
 // Hover/focus opens the label: the width leads, the slide and the fade
@@ -156,26 +162,6 @@ $_B_JOUST: 'joust';
 
     .#{$_B_NAV}-menu-label {
       @extend %nav-chip-open;
-    }
-  }
-
-  // ≤374px: the menu chip keeps its label pinned open — at this width the
-  // tap-to-reveal pour reads as an unlabeled button, so "MENU" stays
-  // visible like the desktop hover state. The open properties are spelled
-  // out because %nav-chip-open lives outside any media query and Sass
-  // can't extend across that boundary.
-  @media (max-width: $bk-375) {
-    padding-right: var(--space-md);
-
-    .#{$_B_NAV}-menu-label {
-      max-width: $_chip-label-max;
-      margin-left: var(--space-xs);
-      opacity: 1;
-      transform: translateX(0);
-
-      @supports (interpolate-size: allow-keywords) {
-        width: auto;
-      }
     }
   }
 
@@ -428,5 +414,5 @@ $_B_JOUST: 'joust';
 
 // Language dialog shell (shared with preferences modal).
 .lang-dialog {
-  max-width: to-rem(480);
+  max-width: to-rem($space-7xl + $space-4xl + $space-lg + $space-3xs);
 }

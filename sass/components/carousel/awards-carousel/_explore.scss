@@ -80,7 +80,7 @@
     box-sizing: border-box;
     border-radius: to-rem($space-lg);
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 to-rem($space-2xs) to-rem($space-md) rgba($color-black, 0.08);
 
     &-cover {
       width: 100%;
@@ -110,8 +110,8 @@
         object-fit: cover;
         object-position: bottom;
         pointer-events: none;
-        -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), transparent);
-        mask-image: linear-gradient(to top, rgba(0, 0, 0, 1), transparent);
+        -webkit-mask-image: linear-gradient(to top, rgba($color-black, 1), transparent);
+        mask-image: linear-gradient(to top, rgba($color-black, 1), transparent);
       }
 
       &--skel {
@@ -194,15 +194,15 @@
       &::before {
         top: 0;
         left: 0;
-        border-top: 1px solid var(--grey);
-        border-left: 1px solid var(--grey);
+        border-top: to-rem($space-hairline) solid var(--grey);
+        border-left: to-rem($space-hairline) solid var(--grey);
       }
 
       &::after {
         bottom: 0;
         right: 0;
-        border-bottom: 1px solid var(--grey);
-        border-right: 1px solid var(--grey);
+        border-bottom: to-rem($space-hairline) solid var(--grey);
+        border-right: to-rem($space-hairline) solid var(--grey);
       }
 
       &:hover,

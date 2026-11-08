@@ -235,7 +235,7 @@
   // The class lands on the [data-content] wrapper (display: contents), so the
   // animation must target its children to be visible.
   &-content-in > * {
-    animation: skeleton-content-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: skeleton-content-in 0.45s $ease-out;
   }
 }
 

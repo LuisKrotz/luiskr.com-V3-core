@@ -124,7 +124,9 @@
     align-items: center;
     justify-content: center;
     gap: var(--space-sm);
-    padding: var(--space-xs) var(--space-sm);
+    // Touch-target pad — the counter+icon cluster is the stacked layouts'
+    // index button; space-md/space-lg hits the ≥44px tap-box floor.
+    padding: var(--space-md) var(--space-lg);
     color: var(--text-muted);
     cursor: pointer;
     transition: color 0.25s ease;
@@ -145,7 +147,9 @@
     .#{$_B_CARD_STACK}-nav-index-num {
       font-family: var(--font-ui);
       font-weight: calc(400 + var(--fw-lift));
-      font-size: calc(var(--space-md) + var(--space-xs));
+      // Same enlarged cut as the prev/next controls — the counter is a
+      // tap surface too on the stacked layouts.
+      font-size: calc(var(--space-lg) + var(--space-2xs));
       letter-spacing: var(--space-2xs);
       white-space: nowrap;
     }
@@ -178,6 +182,7 @@
   }
 
   &-prev {
+    --arrow-dir: -1;
     justify-self: start;
   }
 
@@ -188,25 +193,38 @@
     grid-row: 1;
     font-family: var(--font-ui);
     font-weight: calc(400 + var(--fw-lift));
-    font-size: calc(var(--space-md) + var(--space-xs));
+    // Enlarged touch controls on the stacked layouts — one rung up in
+    // size with space-md/space-lg padding for the ≥44px tap target.
+    font-size: calc(var(--space-lg) + var(--space-2xs));
     letter-spacing: var(--space-2xs);
     text-transform: uppercase;
     color: var(--text-muted);
     cursor: pointer;
-    padding: var(--space-xs) var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
     transition: color 0.25s ease;
+
+    // Arrow glyphs — the shared transport-control affordance (base/
+    // _mixins.scss control-arrow): nudge outward on hover/focus, squash
+    // on press, compounding the nudge so it doesn't snap back. Composited
+    // transform only.
+    @include control-arrow('.#{$_B_CARD_STACK}-arrow');
 
     &:hover,
     &:focus-visible {
       color: var(--text-primary);
     }
 
+    // The fan tiers restore the compact cut — pointer precision makes
+    // the small labels comfortable there.
     @media (min-width: 1280px) {
       grid-row: 2;
+      font-size: calc(var(--space-md) + var(--space-xs));
+      padding: var(--space-xs) var(--space-sm);
     }
   }
 
   &-next {
+    --arrow-dir: 1;
     grid-column: 3;
     justify-self: end;
     color: var(--text-primary);
@@ -299,13 +317,22 @@
   &--auto &-autoplay::before {
     content: '';
     position: absolute;
-    inset: calc(var(--space-xs) * -1);
+    // Same border-path contract as the card's -timer band: the arc is
+    // the button's own hairline border lighting up, not a second ring
+    // floating outside it.
+    inset: calc(var(--space-hairline) * -1);
     border-radius: var(--radius-round);
-    padding: var(--space-2xs);
+    padding: var(--space-hairline);
+    // Same feathered ends as the card band: the tail ramps in over the
+    // first 6% (without it `max(p-4%,0%)` clamps to a hard block while
+    // p<4%) and the crest dissolves over the last 2%.
     background: conic-gradient(
       from 0deg,
-      var(--color-accent) var(--card-stack-timer-p),
-      transparent var(--card-stack-timer-p)
+      transparent 0%,
+      var(--color-accent) 6%,
+      var(--color-accent) max(calc(var(--card-stack-timer-p) - 4%), 0%),
+      color-mix(in srgb, var(--color-accent) 45%, var(--color-white-raw)) var(--card-stack-timer-p),
+      transparent calc(var(--card-stack-timer-p) + 2%)
     );
     -webkit-mask:
       linear-gradient(var(--color-white-raw) 0 0) content-box,

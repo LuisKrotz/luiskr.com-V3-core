@@ -28,6 +28,12 @@ export const AWARDS_CLASSES = Object.freeze({
   AWARDS_FOOTER_LINKS: _B_AWARDS_FOOTER_LINKS,
   AWARDS_FOOTER_ITEM: `${_B_AWARDS_FOOTER_LINKS}-item`,
   AWARDS_FOOTER_SEP: `${_B_AWARDS_FOOTER_LINKS}-sep`,
+  /** Separator+item atomic pair — nowrap box so a wrapped line can only
+   *  break before the unit; the dot can never orphan at a line's end. */
+  AWARDS_FOOTER_PAIR: `${_B_AWARDS_FOOTER_LINKS}-pair`,
+  /** Modifier toggled on a pair that leads a wrapped line — its
+   *  separator hides so the line opens on the label, not a dot. */
+  AWARDS_FOOTER_PAIR_LEAD: `${_B_AWARDS_FOOTER_LINKS}-pair--lead`,
   /** RSS feed anchor — last legal-nav entry; the delegated SPA click
    *  handler skips it so the browser fetches the XML file natively. */
   AWARDS_FOOTER_FEED: `${_B_AWARDS_FOOTER_LINKS}-feed`,

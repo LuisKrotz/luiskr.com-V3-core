@@ -17,7 +17,7 @@
     // Desktop clearance: ≥24px margin on each side of the item — combined
     // with the item padding this keeps every media box (and its
     // click-to-open affordance) visually separated from neighbours.
-    margin-inline: to-rem(24);
+    margin-inline: to-rem($space-xl + $space-xs);
   }
 
   &:first-of-type {
@@ -71,7 +71,11 @@
   background-color: var(--bg-secondary);
 }
 
-.carousel-fallback .internal-extra-item.landscape {
+// Only the plain fallback gets the max-area treatment — in the
+// multi-item --side row the 100% width would stretch every landscape
+// item to the grid column and spread the group edge-to-edge instead of
+// centering at natural size (the ≥3840 fit fallback).
+.carousel-fallback:not(.carousel-fallback--side) .internal-extra-item.landscape {
   @extend %MAXAREA;
 
   box-sizing: border-box;

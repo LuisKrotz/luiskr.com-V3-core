@@ -25,15 +25,64 @@
     }
 
     // Marquee modifier (project view only): the title becomes an
-    // edge-to-edge uppercase ticker — horizontal padding clears so the
-    // strip spans the full bleed, overflow clips the looping copies.
+    // uppercase ticker bounded by the max-area — %MAXAREA carries the
+    // grid gutters as padding and overflow-clip-margin clips the strip
+    // at the CONTENT edge, so ticker text never paints into the gutter
+    // padding (the padding-box clip let it bleed to the element edge —
+    // the "bigger than max-width" bug). Engines without the property
+    // keep the border-box clip, the old full-bleed look.
     &--marquee {
+      @extend %MAXAREA;
+
+      font-family: var(--font-ui);
+      font-weight: calc(500 + var(--fw-lift));
+
+      // The ticker's bottom pad rides the ≥1920 all-5xl shorthand — far
+      // too much air for a heading strip parked directly above the
+      // cover (title.pb + internal-main.pt opened ~300px of dead band).
+      @include layout-1920() {
+        padding-bottom: var(--space-3xl);
+      }
+
+      // %MAXAREA's `padding: 0 <gap> 0` shorthand rungs lose source-order
+      // to &-title's own padding shorthand above (its ≥1024 rung sets
+      // lateral padding to 0, which is what let the ticker bleed past
+      // the max-area). Re-declare the same gutters as padding-inline —
+      // a longhand the shorthand can't override — emitted inside this
+      // block so they win at every step.
+      padding-inline: to-rem($gap-272);
+
+      @include grid-steps() using ($step, $gap, $cols) {
+        padding-inline: to-rem($gap);
+      }
+
       overflow: hidden;
-      padding-left: 0;
-      padding-right: 0;
+      overflow-clip-margin: content-box;
       text-align: left;
       text-transform: uppercase;
       white-space: nowrap;
+
+      // Edge dissolve bounded to the max-area box: mask-origin/-clip
+      // size the gradient to the CONTENT box so 0%→100% spans the
+      // content area exactly — the ticker melts out over --space-xl
+      // inside each area edge instead of hard-clipping there, and the
+      // gutter padding itself stays mask-free (fully transparent).
+      -webkit-mask-image: linear-gradient(
+        to right,
+        transparent,
+        var(--color-white-raw) var(--space-xl),
+        var(--color-white-raw) calc(100% - var(--space-xl)),
+        transparent
+      );
+      mask-image: linear-gradient(
+        to right,
+        transparent,
+        var(--color-white-raw) var(--space-xl),
+        var(--color-white-raw) calc(100% - var(--space-xl)),
+        transparent
+      );
+      mask-origin: content-box;
+      mask-clip: content-box;
     }
   }
 
@@ -153,7 +202,7 @@
       object-fit: cover;
 
       &--thumb {
-        filter: blur(12px);
+        filter: blur(to-rem($space-lg - $space-3xs));
         transform: scale(1.05);
         z-index: 1;
         // Mobile: filter:blur triggers paint every frame — extremely expensive on mobile GPU.
@@ -168,7 +217,7 @@
       &--high {
         opacity: 0;
         z-index: 2;
-        transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        transition: opacity 0.5s $ease-out;
 
         &.render-media--loaded {
           opacity: 1;
@@ -204,8 +253,9 @@
     margin: 0 auto;
     padding-top: var(--space-2xl);
     padding-bottom: var(--space-xl);
-    // Min-height matches the carousel item height, set as a CSS var by Carousel.vue
-    min-height: var(--carousel-item-height, auto);
+    // Text blocks size to their copy — never to the carousel strip
+    // height: --carousel-item-height on the shared <section> used to
+    // pin paragraphs into a ~70dvh box of dead air.
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -239,6 +289,13 @@
     @include layout-2560() {
       padding-top: var(--space-6xl);
       padding-bottom: var(--space-4xl);
+    }
+
+    // 4K keeps the 1920-era top air — the 2560 rung's 233px reads as a
+    // dead band under a natural-width cover that no longer fills the
+    // widened column.
+    @include layout-3840() {
+      padding-top: var(--space-5xl);
     }
 
     .legal & {
@@ -367,7 +424,7 @@
 
     /* Handle */
     &::-webkit-scrollbar-thumb {
-      border-radius: to-rem(3);
+      border-radius: var(--radius-xs);
       background: var(--grey-3);
 
       // HC: track is --black (pure black light / pure white dark) and
@@ -644,7 +701,11 @@
 
     // Unified-footer top row — the legal nav hugs the left edge and the
     // right column (source pill over the home + socials row) hugs the
-    // right on desktop; everything stacks centered on mobile.
+    // right on desktop; everything stacks centered on mobile. The row
+    // handoff waits for layout-1440: the widened nav (legal + animations
+    // + sitemap + feed) plus the socials column can't share one line
+    // inside the 1280/1366 max-areas, so the stacked tablet treatment
+    // holds through both.
     &-top {
       display: flex;
       flex-direction: column;
@@ -653,7 +714,7 @@
       width: 100%;
       text-align: center;
 
-      @include layout-768() {
+      @include layout-1440() {
         flex-direction: row;
         align-items: flex-end;
         justify-content: space-between;
@@ -663,7 +724,7 @@
     }
 
     &-legal {
-      @include layout-768() {
+      @include layout-1440() {
         flex: 1 1 auto;
         min-width: 0;
         text-align: left;
@@ -676,7 +737,7 @@
       align-items: center;
       gap: var(--space-xl);
 
-      @include layout-768() {
+      @include layout-1440() {
         flex-shrink: 0;
         align-items: flex-end;
         text-align: right;
@@ -703,7 +764,7 @@
       color: var(--text-primary);
       flex-shrink: 0;
 
-      @include layout-768() {
+      @include layout-1440() {
         padding: var(--space-md) var(--space-xl);
         border: var(--space-hairline) solid var(--border-color);
         border-radius: var(--radius-round);
@@ -721,7 +782,7 @@
       font-weight: calc(400 + var(--fw-lift));
       border-bottom-color: transparent;
 
-      @include layout-768() {
+      @include layout-1440() {
         border-bottom-color: currentColor;
 
         &::after {
@@ -735,7 +796,7 @@
     &-socials {
       margin: 0;
 
-      @include layout-768() {
+      @include layout-1440() {
         text-align: right;
       }
     }
@@ -759,7 +820,15 @@
       background: var(--bg-secondary);
 
       @include layout-1024() {
-        padding: var(--space-xl) var(--space-5xl);
+        padding-block: var(--space-xl);
+
+        // Lateral gutter follows the grid's max-area steps (the same
+        // contract %MAXAREA uses) — the fixed $space-5xl padding let
+        // the links/legal/docs rows stretch past the column at
+        // ultrawide (144px where 3840's grid gutter is 377px).
+        @include grid-steps() using ($step, $gap, $cols) {
+          padding-inline: to-rem($gap);
+        }
       }
 
       &-separator {
@@ -788,6 +857,14 @@
       &-pair {
         display: inline-block;
         white-space: nowrap;
+      }
+
+      // A pair that opens a wrapped line hides its leading dot — the
+      // line starts on the label. visibility keeps the pair's box
+      // identical, so hiding never reflows the row the marker measured
+      // (watchOrphanSeps toggles the modifier off a ResizeObserver).
+      &-pair--lead &-separator {
+        visibility: hidden;
       }
 
       // Animated hairline between the socials row and the disclaimer
@@ -1076,7 +1153,15 @@
       text-align: center;
       color: var(--text-primary);
 
-      @include layout-768() {
+      // ≤1024 bands: the docs entry spans the whole content column —
+      // the centered treatment read like an orphaned sub-block against
+      // the full-width links/disclaimer rows around it.
+      @media (max-width: #{$vw-1024}) {
+        align-items: flex-start;
+        text-align: left;
+      }
+
+      @include layout-1440() {
         flex-direction: row;
         align-items: baseline;
         justify-content: flex-start;
@@ -1092,6 +1177,12 @@
 
         display: inline-block;
         max-width: var(--space-6xl);
+        // ≤1024: unclamp so the heading can run the full column width —
+        // the 6xl cap was the "docs not using entire width" bug.
+        @media (max-width: #{$vw-1024}) {
+          max-width: none;
+        }
+
         font-size: var(--space-2xl);
         line-height: 1.15;
         font-weight: calc(300 + var(--fw-lift));
@@ -1108,7 +1199,7 @@
           transform: scaleX(1);
         }
 
-        @include layout-768() {
+        @include layout-1440() {
           display: inline-flex;
           align-items: baseline;
           gap: var(--space-md);
@@ -1135,7 +1226,7 @@
         display: none;
         font-weight: calc(300 + var(--fw-lift));
 
-        @include layout-768() {
+        @include layout-1440() {
           display: inline-block;
           line-height: 1;
           padding-bottom: var(--space-2xs);

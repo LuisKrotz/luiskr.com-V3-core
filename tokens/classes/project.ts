@@ -67,6 +67,9 @@ export const INTERNAL_CLASSES = Object.freeze({
    *  BEFORE the pair: the dot always opens the wrapped line instead of
    *  dangling at the previous line's end. */
   INTERNAL_FOOTER_ITEMS_PAIR: `${_B_INTERNAL_FOOTER_ITEMS}-pair`,
+  /** Modifier toggled on a pair that leads a wrapped line — its
+   *  separator hides so the line opens on the label, not a dot. */
+  INTERNAL_FOOTER_ITEMS_PAIR_LEAD: `${_B_INTERNAL_FOOTER_ITEMS}-pair--lead`,
   INTERNAL_FOOTER_ITEMS_NOTE: `${_B_INTERNAL_FOOTER_ITEMS}-note`,
   INTERNAL_FOOTER_ITEMS_NOTE_TEXT: `${_B_INTERNAL_FOOTER_ITEMS}-note-text`,
   INTERNAL_FOOTER_ITEMS_CREDIT: `${_B_INTERNAL_FOOTER_ITEMS}-credit`,

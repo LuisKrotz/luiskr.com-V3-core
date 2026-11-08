@@ -57,11 +57,14 @@ figure {
 :host([classes*='internal-extra-item']) .render-placeholder {
   height: var(--mf-h, calc(70dvh - #{to-rem($space-xl * 2)}));
   width: auto;
-  max-width: var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem(48)}));
+  max-width: var(
+    --mf-max-w,
+    calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem($space-md * ($space-sm + $space-3xs))})
+  );
   max-height: none;
 
   @include layout-375() {
-    min-width: to-rem(320);
+    min-width: to-rem($space-6xl + $space-4xl - $space-2xs);
   }
 }
 

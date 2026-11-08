@@ -4,6 +4,7 @@
  */
 import {
   generateCarouselItemListSchema,
+  generateProjectArticleSchema,
   generateProjectSchema,
   generateStarIndexSchema,
   setRobotsMeta,
@@ -32,6 +33,31 @@ describe('schema tails', () => {
     expect(list.itemListElement[2].name).toContain('Item')
   })
 
+  test('carousel ItemList resolves absolute links, covers/ images, slugs and descriptions', () => {
+    const list = generateCarouselItemListSchema([
+      // Absolute external link passes through verbatim; image (no src)
+      // resolves through the covers/ CDN folder.
+      {
+        label: TEST_TEXT.HEADING,
+        link: 'https://press.example.com/story',
+        image: 'press-shot',
+        description: 'External press mention',
+      },
+      // No link at all — the slug arm builds the canonical project URL.
+      { slug: 'slug-only', label: TEST_TEXT.SECOND },
+    ])
+
+    const first = list.itemListElement[0]
+    const second = list.itemListElement[1]
+
+    expect(first.url).toBe('https://press.example.com/story')
+    expect(first.image).toContain('press-shot')
+    expect(first.description).toBe('External press mention')
+    expect(second.url).toContain('slug-only')
+    expect(second.image).toBeUndefined()
+    expect(second.description).toBeUndefined()
+  })
+
   test('updateJsonLd wraps an entity array in a @graph container', () => {
     updateJsonLd([{ '@type': 'One' }, { '@type': 'Two' }])
 
@@ -45,6 +71,26 @@ describe('schema tails', () => {
   test('project schema returns an empty graph for missing inputs', () => {
     expect(generateProjectSchema(null, TEST_PROJECTS.CICB)).toEqual([])
     expect(generateProjectSchema({ title: TEST_TEXT.HEADING }, '')).toEqual([])
+  })
+
+  test('an unmapped locale ships its raw code as inLanguage', () => {
+    // 'xx' has no LOCALE_TAGS entry — the `|| lang` arm emits the code
+    // verbatim instead of dropping the language hint entirely. The video
+    // cover routes through videoObjectFor's own inLanguage line.
+    const graph = generateProjectArticleSchema(
+      {
+        title: TEST_TEXT.HEADING,
+        folder: 'demo',
+        cover: { src: 'clip.mp4', isVideo: true },
+        sections: [],
+      },
+      TEST_PROJECTS.CICB,
+      'xx'
+    )
+
+    const video = graph.find((e) => e['@type'] === 'VideoObject')
+
+    expect(video.inLanguage).toBe('xx')
   })
 
   test('setRobotsMeta early-returns without a DOM', () => {

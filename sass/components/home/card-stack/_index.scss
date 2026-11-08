@@ -14,7 +14,12 @@
     // deck and foot rows even while opacity:0, starving the pile's
     // stage budget and shoving the controls off their row.
     position: absolute;
-    inset-inline: 0;
+    // Anchored to the section's PADDING box, so inset-inline must repeat
+    // the %MAXAREA gutter ramp itself — the sheet's edge lands on the
+    // grid gutter line (max area), not the section's physical edge.
+    // grid-steps is the same map %MAXAREA + the debug overlay iterate,
+    // so the three can never drift apart.
+    inset-inline: to-rem($gap-272);
     bottom: 0;
     display: flex;
     flex-direction: column;
@@ -33,6 +38,10 @@
     transition:
       opacity 0.28s ease,
       transform 0.28s ease;
+
+    @include grid-steps() using ($step, $gap, $cols) {
+      inset-inline: to-rem($gap);
+    }
 
     .#{$_B_CARD_STACK}--index-open & {
       opacity: 1;

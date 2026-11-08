@@ -41,6 +41,45 @@
 
 $_B: 'anim-demo';
 
+// ── Demo prop dimensions ─────────────────────────────────────────────────────
+// Miniature stages resize each widget's production geometry to demo scale —
+// constants stay raw px numbers (token compositions) and wrap to-rem() at
+// use so arithmetic (halving, scaling) keeps working on them.
+$_STAGE-H: $space-md * ($space-xl - $space-3xs); // 160
+$_ICON-BOX: $space-3xl + $space-3xs; // 56
+$_FLAG-H: $space-md * $space-md; // 64
+$_SWITCH-W: $space-md * ($space-lg - $space-3xs); // 96
+$_SWITCH-H: $space-3xl - $space-sm; // 50
+$_THEME-W: $space-md * ($space-2xl + $space-3xs); // 280
+$_THEME-H: $space-md * $space-md; // 64
+$_LOADER-OUT: $space-md * ($space-md + $space-3xs); // 72
+$_LOADER-IN: $space-3xl - $space-xs; // 52
+$_BAR-H: $space-md * ($space-md + $space-3xs); // 72
+$_RAIL-W: $space-5xl - $space-2xs * 2; // 140
+$_BURN-MIN-H: $space-md * ($space-lg + $space-2xs); // 120
+$_TILE-BOX: $space-4xl - $space-3xs; // 88
+$_TILE-H: $space-md * ($space-lg + $space-2xs); // 120
+$_FAN-H: $space-sm * ($space-2xl + $space-2xs * 2); // 190
+$_FAN-PERSP: $space-8xl + $space-3xl * 2; // 720
+$_FAN-W: $space-md * ($space-md + $space-3xs); // 72
+$_FAN-CARD-H: $space-4xl + $space-xl - $space-2xs; // 108
+$_CHIP-W: $space-md * $space-md; // 64
+$_CHIP-H: $space-sm * $space-md; // 40
+$_PANE-W: $space-md * ($space-2xl + $space-3xs); // 280
+$_PANE-H: $space-5xl - $space-2xs * 2; // 140
+$_SEARCH-W: $space-md * ($space-2xl + $space-3xs); // 280
+$_SEARCH-H: $space-2xl + $space-md + $space-2xs; // 44
+$_SLIDE-W: $space-md * ($space-lg + $space-2xs); // 120
+$_SLIDE-H: $space-3xl + $space-xl - $space-2xs; // 74
+$_DECK-W: $space-md * ($space-xl + $space-2xs * 2); // 200
+$_DECK-H: $space-5xl + $space-sm + $space-3xs; // 150
+$_DECK-SM-W: $space-5xl + $space-sm + $space-3xs; // 150
+$_DECK-SM-H: $space-4xl + $space-xs; // 92
+$_STRIP-W: $space-md * ($space-lg - $space-3xs); // 96
+$_STRIP-H: $space-md * $space-md; // 64
+$_MODAL-W: $space-6xl + $space-sm + $space-2xs; // 240
+$_MODAL-H: $space-5xl - $space-2xs * 2; // 140
+
 // ── Stage chrome ────────────────────────────────────────────────────────────
 :host {
   display: block;
@@ -54,7 +93,7 @@ $_B: 'anim-demo';
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: to-rem(160);
+  min-height: to-rem($_STAGE-H);
   padding: to-rem($space-md);
   border: var(--border-item-hover);
   border-radius: var(--radius-md);
@@ -83,8 +122,8 @@ $_B: 'anim-demo';
   &-icon-wrap {
     position: relative;
     display: block;
-    width: to-rem(56);
-    height: to-rem(56);
+    width: $_ICON-BOX;
+    height: $_ICON-BOX;
   }
 
   // Centered icon canvas — burger / close-button widget surfaces, bumped
@@ -92,8 +131,8 @@ $_B: 'anim-demo';
   &-icon {
     position: relative;
     inset: auto;
-    width: to-rem(56);
-    height: to-rem(56);
+    width: $_ICON-BOX;
+    height: $_ICON-BOX;
     border-radius: var(--radius-full);
   }
 
@@ -102,7 +141,7 @@ $_B: 'anim-demo';
   &-flag {
     position: relative;
     inset: auto;
-    height: to-rem(64);
+    height: $_FLAG-H;
     width: auto;
     border-radius: var(--radius-hairline);
   }
@@ -112,8 +151,8 @@ $_B: 'anim-demo';
   &-switch {
     position: relative;
     inset: auto;
-    width: to-rem(96);
-    height: to-rem(50);
+    width: $_SWITCH-W;
+    height: $_SWITCH-H;
     border-radius: var(--radius-full);
   }
 
@@ -123,8 +162,8 @@ $_B: 'anim-demo';
   &-theme {
     position: relative;
     inset: auto;
-    width: to-rem(280);
-    height: to-rem(64);
+    width: $_THEME-W;
+    height: $_THEME-H;
     border-radius: var(--radius-full);
     box-shadow: var(--shadow-card);
   }
@@ -147,7 +186,7 @@ $_B: 'anim-demo';
     transform: translateX(-#{to-rem($space-lg)});
     transition:
       opacity 0.34s ease,
-      transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+      transform 0.34s $ease-out;
 
     // The stagger — each item lands one beat later, mirroring the real
     // menu's per-item reveal delay.
@@ -176,10 +215,10 @@ $_B: 'anim-demo';
     position: absolute;
     top: 50%;
     left: 50%;
-    width: to-rem(72);
-    height: to-rem(72);
-    margin: -#{to-rem(36)} 0 0 -#{to-rem(36)};
-    border: to-rem(2) solid transparent;
+    width: $_LOADER-OUT;
+    height: $_LOADER-OUT;
+    margin: -#{$_LOADER-OUT * 0.5} 0 0 -#{$_LOADER-OUT * 0.5};
+    border: to-rem($space-2xs) solid transparent;
     border-top-color: var(--color-accent);
     border-radius: var(--radius-full);
     animation: #{$_B}-spin 1.6s linear infinite;
@@ -189,17 +228,17 @@ $_B: 'anim-demo';
     position: absolute;
     top: 50%;
     left: 50%;
-    width: to-rem(52);
-    height: to-rem(52);
-    margin: -#{to-rem(26)} 0 0 -#{to-rem(26)};
-    border: to-rem(2) solid transparent;
+    width: $_LOADER-IN;
+    height: $_LOADER-IN;
+    margin: -#{$_LOADER-IN * 0.5} 0 0 -#{$_LOADER-IN * 0.5};
+    border: to-rem($space-2xs) solid transparent;
     border-bottom-color: var(--menu-ink-2);
     border-radius: var(--radius-full);
     animation: #{$_B}-spin-reverse 1.1s linear infinite;
   }
 
   &-loader-counter {
-    height: to-rem(72);
+    height: $_BAR-H;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -209,8 +248,8 @@ $_B: 'anim-demo';
   }
 
   &-loader-bar {
-    width: to-rem(140);
-    height: to-rem(2);
+    width: $_RAIL-W;
+    height: to-rem($space-2xs);
     border-radius: var(--radius-hairline);
     background: var(--border-color);
     overflow: hidden;
@@ -253,7 +292,7 @@ $_B: 'anim-demo';
     transform: translate(to-rem($space-sm), to-rem($space-sm));
 
     &--in {
-      animation: #{$_B}-toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation: #{$_B}-toast-in 0.28s $ease-out both;
     }
 
     &--out {
@@ -263,7 +302,7 @@ $_B: 'anim-demo';
     strong {
       font-size: to-rem($space-xs);
       text-transform: uppercase;
-      letter-spacing: to-rem(0.6);
+      letter-spacing: to-rem($space-3xs * 0.6);
       opacity: 0.7;
     }
 
@@ -291,7 +330,7 @@ $_B: 'anim-demo';
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: to-rem(120);
+    min-height: $_BURN-MIN-H;
     padding: to-rem($space-md);
     background: linear-gradient(135deg, var(--bg-dark) 0%, var(--menu-ink) 140%);
   }
@@ -355,8 +394,8 @@ $_B: 'anim-demo';
 
   &-tile {
     position: relative;
-    width: to-rem(88);
-    height: to-rem(88);
+    width: $_TILE-BOX;
+    height: $_TILE-BOX;
     border-radius: var(--radius-md);
     background: var(--bg-primary);
     border: var(--border-item-hover);
@@ -373,7 +412,7 @@ $_B: 'anim-demo';
     // The spring variant reads the same modifier — the overshoot ease
     // above is the mosaic tile's lift contract.
     &--spring {
-      height: to-rem(120);
+      height: $_TILE-H;
     }
   }
 
@@ -390,7 +429,7 @@ $_B: 'anim-demo';
   &-divider {
     position: relative;
     width: 100%;
-    height: to-rem(2);
+    height: to-rem($space-2xs);
     border: none;
     margin: 0;
     background: var(--border-color);
@@ -427,21 +466,21 @@ $_B: 'anim-demo';
       position: absolute;
       width: to-rem($space-md);
       height: to-rem($space-md);
-      transition: inset 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: inset 0.25s $ease-out;
     }
 
     &::before {
       top: 0;
       left: 0;
-      border-top: to-rem(2) solid var(--color-accent);
-      border-left: to-rem(2) solid var(--color-accent);
+      border-top: to-rem($space-2xs) solid var(--color-accent);
+      border-left: to-rem($space-2xs) solid var(--color-accent);
     }
 
     &::after {
       bottom: 0;
       right: 0;
-      border-bottom: to-rem(2) solid var(--color-accent);
-      border-right: to-rem(2) solid var(--color-accent);
+      border-bottom: to-rem($space-2xs) solid var(--color-accent);
+      border-right: to-rem($space-2xs) solid var(--color-accent);
     }
 
     &--hover::before,
@@ -491,15 +530,15 @@ $_B: 'anim-demo';
 
   &-slide {
     flex: 0 0 auto;
-    width: to-rem(96);
-    height: to-rem(64);
+    width: $_STRIP-W;
+    height: $_STRIP-H;
     border-radius: var(--radius-sm);
     background: linear-gradient(150deg, var(--menu-ink-2) 0%, var(--menu-ink) 100%);
   }
 
   &-progress {
     width: 100%;
-    height: to-rem(2);
+    height: to-rem($space-2xs);
     border-radius: var(--radius-hairline);
     background: var(--border-color);
     overflow: hidden;
@@ -543,7 +582,7 @@ $_B: 'anim-demo';
     position: absolute;
     top: 0;
     left: 0;
-    height: to-rem(2);
+    height: to-rem($space-2xs);
     width: 100%;
     transform: scaleX(0);
     transform-origin: left;
@@ -699,8 +738,8 @@ $_B: 'anim-demo';
   &-fan {
     position: relative;
     width: 100%;
-    height: to-rem(190);
-    perspective: to-rem(720);
+    height: $_FAN-H;
+    perspective: $_FAN-PERSP;
     transform-style: preserve-3d;
   }
 
@@ -708,8 +747,8 @@ $_B: 'anim-demo';
     position: absolute;
     top: 50%;
     left: 50%;
-    width: to-rem(72);
-    height: to-rem(108);
+    width: $_FAN-W;
+    height: $_FAN-CARD-H;
     border-radius: var(--radius-sm);
     border: var(--border-item-hover);
     background: var(--bg-darker);
@@ -760,8 +799,8 @@ $_B: 'anim-demo';
 
   &-chip {
     position: relative;
-    width: to-rem(64);
-    height: to-rem(40);
+    width: $_CHIP-W;
+    height: $_CHIP-H;
     border-radius: var(--radius-full);
     background: var(--bg-darker);
     overflow: hidden;
@@ -799,8 +838,8 @@ $_B: 'anim-demo';
   //    outgoing one out while the incoming fades in underneath. ──────
   &-panes {
     position: relative;
-    width: to-rem(280);
-    height: to-rem(140);
+    width: $_PANE-W;
+    height: $_PANE-H;
   }
 
   &-pane {
@@ -827,8 +866,8 @@ $_B: 'anim-demo';
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: to-rem(280);
-    height: to-rem(44);
+    width: $_SEARCH-W;
+    height: $_SEARCH-H;
     padding: 0 to-rem($space-md);
     border-radius: var(--radius-full);
     border: var(--border-item-hover);
@@ -879,8 +918,8 @@ $_B: 'anim-demo';
   // ── Custom-carousel — the strip variant with project-card slides:
   //    taller, wider cards than the awards strip. ────────────────────
   &-strip--project &-slide {
-    width: to-rem(120);
-    height: to-rem(74);
+    width: $_SLIDE-W;
+    height: $_SLIDE-H;
   }
 
   // ── Mentions-deck — three stacked cards; data-index = stack slot
@@ -888,16 +927,16 @@ $_B: 'anim-demo';
   //    at the back — the drag-dismiss gesture on a loop. ─────────────
   &-deck {
     position: relative;
-    width: to-rem(200);
-    height: to-rem(150);
+    width: $_DECK-W;
+    height: $_DECK-H;
   }
 
   &-deck-card {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: to-rem(150);
-    height: to-rem(92);
+    width: $_DECK-SM-W;
+    height: $_DECK-SM-H;
     border-radius: var(--radius-sm);
     border: var(--border-item-hover);
     background: var(--bg-darker);
@@ -935,8 +974,8 @@ $_B: 'anim-demo';
   //    the default (loading) state, --ready swaps to the sheen sweep. ─
   &-modal {
     position: relative;
-    width: to-rem(240);
-    height: to-rem(140);
+    width: $_MODAL-W;
+    height: $_MODAL-H;
     border-radius: var(--radius-md);
     border: var(--border-item-hover);
     background: var(--bg-darker);

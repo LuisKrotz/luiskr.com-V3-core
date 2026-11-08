@@ -145,6 +145,29 @@ export type CardStackTier = CardStackFanTier | CardStackStackTier
  * breakpoints the card-stack partials use (768 / 1280 / 1440 / 1920).
  */
 export const CARD_STACK_TIERS: readonly CardStackTier[] = Object.freeze([
+  /** Ultrawide (≥2560) — the same coverflow with a bigger front card so
+   *  the deck fills the widened max area instead of stranding a 1920-
+   *  sized pile in a sea of dark stage. The fan steps tighten a notch
+   *  (FIRST_STEP .5 / STEP .11) so the arc still lands inside the deck
+   *  track — extent ≈ 1.77 card widths either way. */
+  Object.freeze({
+    MIN_VW: 2560,
+    PORTRAIT: false,
+    CARD_SHARE: 0.56,
+    HEIGHT_SHARE: 0.88,
+    FIRST_STEP: 0.5,
+    CARD_H_RATIO: 9 / 16,
+    STACKED: false,
+    STEP: 0.11,
+    DEPTH: 0.75,
+    DEPTH_STEP: 0.22,
+    ROT_Y: 38,
+    ROT_STEP: 3,
+    ROT_MAX: 52,
+    PEEK: 8,
+    PERSPECTIVE: 2.3,
+    EDGE_ROOM: 1,
+  } as CardStackFanTier),
   /** Full HD and up (≥1920) — the reference coverflow: a landscape
    *  front card centred and flat, an AIRY arc of rotated cards per
    *  side — the ±1 neighbour keeps ~45% of its face readable at a
@@ -247,15 +270,16 @@ export const CARD_STACK_TIERS: readonly CardStackTier[] = Object.freeze([
   /** Tablet landscape (1024–1279) — the side-by-side page split arrives
    *  one band early: the desktop-style .card-stack-info column carries
    *  the copy on the left while the deck keeps the MOBILE pile pose on
-   *  the right — image-only portrait 5:7 sheets (the photography's
-   *  native upright crop), the height budget sizing their width. */
+   *  the right — image-only 16:9 landscape sheets like the fan tiers,
+   *  sized by the deck column's width (the height budget only bites on
+   *  very short windows). */
   Object.freeze({
     MIN_VW: 1024,
     PORTRAIT: false,
     CARD_SHARE: 1,
     HEIGHT_SHARE: 0.9,
     FIRST_STEP: 0.4,
-    CARD_H_RATIO: 7 / 5,
+    CARD_H_RATIO: 9 / 16,
     STACKED: true,
     IN_CARD_INFO: false,
     DEAL_X: 0.11,
@@ -370,9 +394,10 @@ export const CARD_STACK_LAYOUT = Object.freeze({
   Z_STRIDE: 10,
   /** Card width floor (px) on the smallest phones. */
   CARD_W_MIN: 200,
-  /** Card width cap (px) — the ultrawide wrapper already bounds the deck,
-   *  this only guards degenerate measurements. */
-  CARD_W_MAX: 760,
+  /** Card width cap (px) — the ultrawide ≥2560 tier legitimately sizes
+   *  past 1.2k (56% of a ~2.2k deck track), so the cap only guards
+   *  degenerate measurements (unbounded viewports, missing rects). */
+  CARD_W_MAX: 1400,
   /** Fraction of card height an entering card starts below its slot —
    *  the deck's fade-in rises this far while fading opacity back in, so a
    *  card leaving the peek window dissolves instead of snapping out. */

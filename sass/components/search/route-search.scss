@@ -215,7 +215,7 @@ $_B_RS: 'route-search';
     font-family: var(--font-desc);
     font-size: to-rem($space-lg);
     font-weight: calc(300 + var(--fw-lift));
-    letter-spacing: to-rem(0.4);
+    letter-spacing: to-rem($space-3xs * 0.4);
 
     &::placeholder {
       color: var(--text-muted);

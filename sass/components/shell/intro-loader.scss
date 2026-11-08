@@ -48,8 +48,8 @@ $_B_LOADER: 'intro-loader';
   z-index: 100000;
   overflow: hidden;
   transition:
-    opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.45s $ease-out,
+    transform 0.45s $ease-out;
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
@@ -113,8 +113,16 @@ $_B_LOADER: 'intro-loader';
     position: absolute;
     inset: 0;
     background-image:
-      linear-gradient(to right, rgba($color-white, 0.03) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba($color-white, 0.03) 1px, transparent 1px);
+      linear-gradient(
+        to right,
+        rgba($color-white, 0.03) to-rem($space-hairline),
+        transparent to-rem($space-hairline)
+      ),
+      linear-gradient(
+        to bottom,
+        rgba($color-white, 0.03) to-rem($space-hairline),
+        transparent to-rem($space-hairline)
+      );
     background-size: to-rem($space-4xl) to-rem($space-4xl);
     -webkit-mask-image: radial-gradient(
       ellipse 60% 60% at 50% 50%,
@@ -180,7 +188,7 @@ $_B_LOADER: 'intro-loader';
     width: to-rem($space-8xl);
     height: to-rem($space-8xl);
     border-radius: var(--radius-round);
-    border: 1px solid rgba($color-white, 0.1);
+    border: to-rem($space-hairline) solid rgba($color-white, 0.1);
     border-top-color: rgba($color-white, 0.8);
     border-right-color: rgba($color-white, 0.3);
     border-bottom-color: transparent;
@@ -197,7 +205,7 @@ $_B_LOADER: 'intro-loader';
     width: to-rem($space-9xl);
     height: to-rem($space-9xl);
     border-radius: var(--radius-round);
-    border: 1px solid rgba($color-white, 0.05);
+    border: to-rem($space-hairline) solid rgba($color-white, 0.05);
     border-bottom-color: rgba($color-white, 0.4);
     animation: intro-loader-spin-ccw 12s linear infinite;
   }

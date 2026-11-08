@@ -36,11 +36,11 @@
 }
 .slide-left-enter-from {
   opacity: 0;
-  transform: translateX(to-rem(48));
+  transform: translateX(to-rem($space-sm * $space-md + $space-md));
 }
 .slide-left-leave-to {
   opacity: 0;
-  transform: translateX(to-rem(-32));
+  transform: translateX(to-rem(-$space-2xl + $space-2xs));
 }
 
 // Slide right: new page enters from left
@@ -56,11 +56,11 @@
 }
 .slide-right-enter-from {
   opacity: 0;
-  transform: translateX(to-rem(-48));
+  transform: translateX(to-rem(-$space-sm * $space-md - $space-md));
 }
 .slide-right-leave-to {
   opacity: 0;
-  transform: translateX(to-rem(32));
+  transform: translateX(to-rem($space-2xl - $space-2xs));
 }
 
 // Slide up: new page enters from bottom
@@ -76,11 +76,11 @@
 }
 .slide-up-enter-from {
   opacity: 0;
-  transform: translateY(to-rem(48));
+  transform: translateY(to-rem($space-sm * $space-md + $space-md));
 }
 .slide-up-leave-to {
   opacity: 0;
-  transform: translateY(to-rem(-24));
+  transform: translateY(to-rem(-$space-xl - $space-xs));
 }
 
 // Slide down: when leaving About/Legal
@@ -96,11 +96,11 @@
 }
 .slide-down-enter-from {
   opacity: 0;
-  transform: translateY(to-rem(-32));
+  transform: translateY(to-rem(-$space-2xl + $space-2xs));
 }
 .slide-down-leave-to {
   opacity: 0;
-  transform: translateY(to-rem(32));
+  transform: translateY(to-rem($space-2xl - $space-2xs));
 }
 
 // ── Global Reduced Motion Override ─────────────────────────────────────────

@@ -317,7 +317,7 @@ const videoObjectFor = (
   folder: string,
   title: string,
   description: string,
-  lang: string = LOCALES.EN
+  lang: string
 ): Record<string, unknown> => {
   const { source, thumb } = buildMediaUrls(CDN_URLS.CDN_BASE, folder, media)
 

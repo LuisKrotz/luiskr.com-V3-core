@@ -2,7 +2,7 @@
 //  card-stack/_info.scss — the active-project text column: the
 //  burn-animated project title, the <draw-text> description writer, and
 //  the "Check out →" link. LANDSCAPE TIERS ONLY — the left column
-//  bottom-aligned with the controls row; on the stacked phone/portrait
+//  vertically centered on the active card; on the stacked phone/portrait
 //  layouts each card carries its own copy inside (-card-info, see
 //  card-stack/_deck.scss) and this column stays out of the tree.
 //  (The "PROJECT 01 OF 08" counter lives in the section header — see
@@ -26,27 +26,42 @@
       display: flex;
       grid-row: 2;
       grid-column: 1;
-      align-self: end;
+      // Centered on the active card — the deck center-anchors every card,
+      // so a bottom-pinned column sits a half-card lower than the hero.
+      align-self: center;
       position: relative;
       flex-direction: column;
       align-items: flex-start;
       gap: var(--space-lg);
       min-width: 0;
       z-index: 3;
+
+      @media (min-width: 3840px) and (orientation: landscape) {
+        gap: var(--space-xl);
+      }
     }
   }
 
   // Project title — plain text the paper-burn consumes and re-knits on
-  // every nav (burn-out → swap → burn-in); ~24px uppercase display cut.
+  // every nav (burn-out → swap → burn-in); ~24px uppercase display cut,
+  // stepped up at ultrawide so it holds presence beside the bigger cards.
   &-info-title {
-    font-family: var(--font-primary);
-    font-weight: calc(300 + var(--fw-lift));
+    font-family: var(--font-ui);
+    font-weight: calc(500 + var(--fw-lift));
     text-transform: uppercase;
     letter-spacing: var(--space-3xs);
     line-height: 1.12;
     color: var(--text-primary);
     margin: 0;
-    font-size: to-rem(24);
+    font-size: to-rem($space-xl + $space-xs);
+
+    @media (min-width: 2560px) and (orientation: landscape) {
+      font-size: var(--space-2xl);
+    }
+
+    @media (min-width: 3840px) and (orientation: landscape) {
+      font-size: var(--space-3xl);
+    }
   }
 
   // While the canvas owns the title's pixels the DOM glyphs stay mounted
@@ -68,17 +83,29 @@
 
   // Body copy — Jost (--font-desc), standard reading size; the full
   // CMS description always runs (never truncated — the column just
-  // wraps and the section grows if it must).
+  // wraps and the section grows if it must). The 75% bound keeps a
+  // quarter-column gutter between the text's right edge and the deck's
+  // side cards at every landscape width — full-width copy reads flush
+  // against the fan at 1920+.
   &-info-desc {
     font-family: var(--font-desc);
     font-weight: calc(300 + var(--fw-lift));
     font-size: calc(var(--space-lg) + var(--space-xs));
     line-height: 1.55;
+    max-width: 75%;
     color: var(--text-muted-on-dark);
     margin: 0;
 
     @media (min-width: 1920px) and (orientation: landscape) {
       font-size: calc(var(--space-lg) + var(--space-sm));
+    }
+
+    @media (min-width: 2560px) and (orientation: landscape) {
+      font-size: var(--space-xl);
+    }
+
+    @media (min-width: 3840px) and (orientation: landscape) {
+      font-size: calc(var(--space-xl) + var(--space-sm));
     }
   }
 
@@ -95,5 +122,13 @@
     text-decoration: none;
     color: var(--text-primary);
     cursor: pointer;
+
+    @media (min-width: 2560px) and (orientation: landscape) {
+      font-size: calc(var(--space-lg) + var(--space-xs));
+    }
+
+    @media (min-width: 3840px) and (orientation: landscape) {
+      font-size: calc(var(--space-xl) + var(--space-2xs));
+    }
   }
 }

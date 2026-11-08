@@ -76,9 +76,10 @@
   max-height: calc(88dvh);
   background: var(--bg-primary);
   color: var(--text-primary);
-  border: to-rem(1) solid var(--border-color);
+  border: to-rem($space-hairline) solid var(--border-color);
   border-radius: to-rem($space-xl);
-  box-shadow: 0 to-rem(24) to-rem(48) to-rem(-12) rgba($color-black, 0.35);
+  box-shadow: 0 to-rem($space-xl + $space-xs) to-rem($space-md * ($space-sm + $space-3xs))
+    to-rem($space-3xs - $space-lg) rgba($color-black, 0.35);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -103,7 +104,7 @@
   align-items: center;
   justify-content: space-between;
   padding: to-rem($space-xl) to-rem($space-2xl);
-  border-bottom: to-rem(1) solid var(--border-color);
+  border-bottom: to-rem($space-hairline) solid var(--border-color);
 }
 
 // Dialog heading.
@@ -113,6 +114,6 @@
   margin: 0;
   font-family: var(--font-primary);
   font-weight: calc(700 + var(--fw-lift));
-  letter-spacing: to-rem(-0.2);
+  letter-spacing: to-rem($space-3xs * -0.2);
   color: inherit;
 }

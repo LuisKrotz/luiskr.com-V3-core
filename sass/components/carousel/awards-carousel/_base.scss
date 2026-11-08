@@ -23,7 +23,7 @@ $awc-peek: 10vw;
   position: relative;
   width: 100%;
   opacity: 0;
-  transform: translate3d(0, 32px, 0);
+  transform: translate3d(0, to-rem($space-2xl - $space-2xs), 0);
   transition:
     opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
     transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -96,7 +96,7 @@ $awc-peek: 10vw;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transform: translateY(6px);
+    transform: translateY(to-rem($space-sm + $space-3xs));
   }
   to {
     opacity: 1;

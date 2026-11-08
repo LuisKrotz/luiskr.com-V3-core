@@ -4,6 +4,16 @@
 //  <media-figure> shadow root; not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
+/// Touch-target floor — the narrowest usable slide box at ≥375px
+/// viewports, always capped by --mf-natural-w so small sources keep
+/// their native box (8px × 35 = 280px).
+$_MF-MIN-W: to-rem($space-md * ($space-2xl + $space-3xs));
+
+/// Side-chrome reservation inside the --mf-max-w fallback — the item
+/// padding + neighbour margins a figure never grows into
+/// (8px × 6 = 48px).
+$_MF-CHROME: to-rem($space-md * ($space-sm + $space-3xs));
+
 // ── SVG placeholder — maintains aspect ratio before image loads ───────────────
 // The transparent SVG img sets the intrinsic size; all media layers are
 // absolutely positioned on top of it.
@@ -51,12 +61,12 @@
     @include layout-375() {
       // Floor capped at the file's own width — a sub-280px source keeps
       // its natural box instead of being stretched past its pixels.
-      min-width: min(#{to-rem(280)}, var(--mf-natural-w));
+      min-width: min(#{$_MF-MIN-W}, var(--mf-natural-w));
     }
 
     @include layout-1024() {
       max-width: min(
-        var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem(48)})),
+        var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{$_MF-CHROME})),
         var(--mf-natural-w)
       );
     }
@@ -87,7 +97,7 @@
   max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-xl * 2)})), var(--mf-natural-w));
 
   @include layout-375() {
-    min-width: min(#{to-rem(280)}, var(--mf-natural-w));
+    min-width: min(#{$_MF-MIN-W}, var(--mf-natural-w));
   }
 
   @include layout-768() {
@@ -101,7 +111,7 @@
     // --mf-max-w is only declared for landscape items — regular slides get
     // the viewport-gutter cap (padding + side-margin clearance per side).
     max-width: min(
-      var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem(48)})),
+      var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{$_MF-CHROME})),
       var(--mf-natural-w)
     );
   }
@@ -109,7 +119,7 @@
   @include layout-1440() {
     max-height: min(#{to-rem($space-8xl)}, var(--mf-natural-h));
     max-width: min(
-      var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem(48)})),
+      var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{$_MF-CHROME})),
       var(--mf-natural-w)
     );
   }
@@ -117,7 +127,7 @@
   @include layout-2560() {
     max-height: min(#{to-rem($space-9xl)}, var(--mf-natural-h));
     max-width: min(
-      var(--mf-max-w, calc(100vw - #{to-rem($space-4xl * 2)} - #{to-rem(48)})),
+      var(--mf-max-w, calc(100vw - #{to-rem($space-4xl * 2)} - #{$_MF-CHROME})),
       var(--mf-natural-w)
     );
   }
@@ -127,47 +137,93 @@
 // shared --mf-h strip height × the file's own ratio, so the media layers
 // fill it with zero crop and zero distortion (cover on a ratio-matched
 // box is a no-op) — a carousel never mixes heights and never distorts.
-// The width caps above (viewport gutter, --mf-natural-w) would break the
-// ratio and force cover to crop, so they do not apply here: a wide
-// source simply becomes a wider slide in the scrollable track. The one
-// bound kept is the 280px floor — extreme-ratio sources would otherwise
-// collapse to unusable slivers; the floored box crops vertically instead
-// (top-anchored — the page's top band shows). Slide + fallback ancestors
-// both listed because :host-context() accepts only compound selectors;
-// figures outside <custom-carousel> (internals, mosaic) keep the
-// natural caps.
+// Width IS capped here at the same ceiling inline figures get — an
+// uncapped wide source painted past the max-area on tablet/mobile.
+// The cap only lands when the ratio-driven width would overflow; cover
+// crops the sides of the capped box (the file is wider than the area by
+// definition) — the same trade the inline rules already make. The 280px
+// floor keeps extreme-ratio sources (full-page screenshots a few
+// hundred px wide by several thousand tall) a usable card instead of
+// collapsing to slivers — cover fills the floored box top-anchored, so
+// a floored item shows the page's top band. Capped at the file's own
+// width so a sub-280px source is never stretched past its pixels.
+// Slide + fallback ancestors both listed because :host-context() accepts
+// only compound selectors; figures outside <custom-carousel> (internals,
+// mosaic) keep the natural caps.
 :host-context(.carousel-slide) .render-placeholder,
 :host-context(.carousel-fallback) .render-placeholder {
   max-height: var(--mf-h);
-  max-width: none;
-  // The 280px floor keeps extreme-ratio sources (full-page screenshots a
-  // few hundred px wide by several thousand tall) a usable card instead
-  // of collapsing to slivers — cover fills the floored box top-anchored,
-  // so a floored item shows the page's top band. Capped at the file's
-  // own width so a sub-280px source is never stretched past its pixels.
-  min-width: min(#{to-rem(280)}, var(--mf-natural-w));
+  max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-xl * 2)})), var(--mf-natural-w));
+
+  @include layout-768() {
+    max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-2xl * 2)})), var(--mf-natural-w));
+  }
+
+  @include layout-1024() {
+    max-width: min(
+      var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{$_MF-CHROME})),
+      var(--mf-natural-w)
+    );
+  }
+
+  // Floor also clamps to the slide box — on the narrowest viewports the
+  // 280px floor would exceed the capped max-width (min wins over max) and
+  // push the slide past the max-area.
+  min-width: min(#{$_MF-MIN-W}, var(--mf-natural-w), calc(90vw - #{to-rem($space-xl * 2)}));
 }
 
-// Landscape items keep the same fixed --mf-h strip height as every other
-// slide — only the width cap relaxes to viewport-gutter margins so wide
-// media can stretch across most of the viewport. max-height must NOT be
-// re-declared here: with an explicit `height` the max-* constraint would
-// still clamp the used height and re-introduce the ragged-height bug.
+// Landscape extra-items — same fixed --mf-h strip height as every other
+// slide (the filmstrip's uniform-height contract), but their width
+// follows the file's own ratio UNCAPPED: the scroll track absorbs a
+// wide slide, so a narrow landscape source renders as a full-height
+// wide card instead of a box capped to --mf-natural-w whose cover-crop
+// kept only a centre sliver (the "white item" bug) or a short card
+// breaking the shared strip height. Portrait items keep their caps —
+// their mild trim is the accepted trade that keeps filmstrip boxes
+// narrow. The :host-context() form is the live selector — the slide
+// wrapper carries both classes while the figure only receives
+// 'landscape' in class/classes. The ≤1024 half-natural block below
+// still re-caps on mobile/tablet (its own contract).
+:host-context(.internal-extra-item.landscape) .render-placeholder,
 :host(.internal-extra-item.landscape) .render-placeholder,
-:host([classes*='internal-extra-item'][classes*='landscape']) .render-placeholder {
+:host([classes*='internal-extra-item'][classes*='landscape']) .render-placeholder,
+:host([classes*='landscape']) .render-placeholder,
+:host(.landscape) .render-placeholder {
   @include layout-1024() {
-    max-width: min(var(--mf-max-w, calc(100vw - #{to-rem($space-3xl)})), var(--mf-natural-w));
+    max-width: none;
   }
+}
 
-  @include layout-1280() {
-    max-width: min(var(--mf-max-w, calc(100vw - #{to-rem($space-4xl)})), var(--mf-natural-w));
-  }
-
-  @include layout-1440() {
-    max-width: min(var(--mf-max-w, calc(100vw - #{to-rem($space-7xl)})), var(--mf-natural-w));
-  }
-
-  @include layout-1920() {
-    max-width: min(var(--mf-max-w, calc(100vw - #{to-rem($space-6xl)})), var(--mf-natural-w));
+// ── ≤1024 half-natural render cap (640/768/960/1024 bands) ────────────────────
+// Mobile + tablet slides never render WIDER than half the source's own
+// pixels — the vw caps used to force media to ~100% of the strip
+// (the "forced to 100%" bug) and consumed the whole host, which is how
+// tablet strips lost their neighbour peeks. Heights stay uniform —
+// the strip contract (max-height: --mf-h) is preserved here; the
+// sizing.ts publisher instead bounds --mf-h itself at the biggest
+// item's HALF-fit (calcMediaBox on halved dims), so the shared height
+// is honest and every item keeps its own aspect width — "biggest el
+// sets the height, widths proportional", never upscaled past half.
+// The 280px floor halves alongside so it can never exceed the cap
+// (min-width would otherwise win and force the box past half-natural).
+// Declared last: equal specificity, latest source order wins over every
+// min-width rung above — including the two-class landscape selectors.
+@media (max-width: #{$vw-1024}) {
+  :host-context(.carousel-slide) .render-placeholder,
+  :host-context(.carousel-fallback) .render-placeholder,
+  :host(.internal-extra-item) .render-placeholder,
+  :host([classes*='internal-extra-item']) .render-placeholder,
+  :host(.internal-extra-item.landscape) .render-placeholder,
+  :host([classes*='internal-extra-item'][classes*='landscape']) .render-placeholder {
+    max-height: var(--mf-h);
+    max-width: min(
+      var(--mf-w, calc(90vw - #{to-rem($space-2xl * 2)})),
+      calc(var(--mf-natural-w) / 2)
+    );
+    min-width: min(
+      #{$_MF-MIN-W},
+      calc(var(--mf-natural-w) / 2),
+      calc(90vw - #{to-rem($space-xl * 2)})
+    );
   }
 }

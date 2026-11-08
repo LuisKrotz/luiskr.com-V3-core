@@ -3,8 +3,9 @@
 //  --bg-secondary (light in light mode, dark in dark mode) containing the
 //  CONTACT / GET IN TOUCH heading + subtitle, the primary mailto channel
 //  beside the secondary link list, and the <mentions-deck> awards fan —
-//  all inside a %MAXAREA column. Mobile collapses the channels into pills
-//  (filled mail pill, outline link pills). The nav's --on-dark variant
+//  all inside a %MAXAREA column. Every viewport shares the desktop
+//  treatment — the mail block and the arrow links stack vertically on
+//  small screens, no pill chrome. The nav's --on-dark variant
 //  keys off this section.
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -21,10 +22,15 @@
   width: 100%;
 }
 
+// Root block token — cross-child selectors (the mail channel's hover on
+// the shared links-arrow class) compose off this instead of repeating
+// the block literal.
+$_B_CONTACT: 'contact';
+
 // The contact band: full-bleed --bg-secondary (light surface in light
 // mode, stays dark in dark mode) with the contact content in a %MAXAREA
 // column; inks ride the themed --text-* vars so they flip with it.
-.contact {
+.#{$_B_CONTACT} {
   @extend %MAXAREA;
 
   box-sizing: border-box;
@@ -110,51 +116,36 @@
     }
   }
 
-  // Primary mailto channel — desktop: large label over a muted large address link;
-  // mobile: a filled pill carrying uppercase label + compact address.
+  // Primary mailto channel — large label over a muted address link on
+  // every viewport (no filled pill on mobile — it reads as the same
+  // quiet text block the desktop shows, just stacked).
   &-mail {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: to-rem($space-3xs);
+    align-items: flex-start;
+    gap: to-rem($space-2xs);
     text-decoration: none;
     cursor: pointer;
-    color: var(--color-black-raw);
-    background: var(--color-white-raw);
-    border-radius: var(--radius-round);
-    padding: to-rem($space-lg) to-rem($space-xl);
-    box-shadow: var(--shadow-card);
-    width: 100%;
+    color: inherit;
+    background: transparent;
+    border-radius: var(--radius-none);
+    padding: 0;
+    width: auto;
     box-sizing: border-box;
-    text-align: center;
-
-    @include layout-768() {
-      align-items: flex-start;
-      text-align: left;
-      color: inherit;
-      background: transparent;
-      border-radius: var(--radius-none);
-      padding: 0;
-      box-shadow: none;
-      width: auto;
-      gap: to-rem($space-2xs);
-    }
+    text-align: left;
 
     &-label {
       @extend %TTL_BASE;
 
       font-size: to-rem($space-lg);
       line-height: 1.2;
-      letter-spacing: to-rem($space-3xs);
-      text-transform: uppercase;
-      font-weight: calc(400 + var(--fw-lift));
+      letter-spacing: 0;
+      text-transform: capitalize;
+      font-weight: calc(300 + var(--fw-lift));
+      color: var(--text-primary);
 
       @include layout-768() {
         font-size: to-rem($space-xl);
-        letter-spacing: 0;
-        text-transform: capitalize;
-        font-weight: calc(300 + var(--fw-lift));
-        color: var(--text-primary);
       }
 
       @include layout-1024() {
@@ -171,16 +162,14 @@
       @extend %LK_LINK;
 
       font-size: to-rem($space-lg);
-      line-height: to-rem($space-xl);
+      line-height: 1.2;
       letter-spacing: 0;
       text-transform: lowercase;
       font-weight: calc(300 + var(--fw-lift));
-      color: var(--color-grey-3-raw);
+      color: var(--text-muted);
 
       @include layout-768() {
         font-size: to-rem($space-xl);
-        line-height: 1.2;
-        color: var(--text-muted);
       }
 
       @include layout-1024() {
@@ -190,23 +179,35 @@
       @include layout-2560() {
         font-size: to-rem($space-3xl);
       }
+
+      // Space between the address and its trailing arrow.
+      .#{$_B_CONTACT}-links-arrow {
+        margin-left: to-rem($space-2xs);
+      }
+    }
+
+    // Mail's arrow rides the shared -links-arrow class — the hover nudge
+    // lands through the same rule the channel links use.
+    &:hover .#{$_B_CONTACT}-links-arrow,
+    &:focus-visible .#{$_B_CONTACT}-links-arrow {
+      transform: translateX(to-rem($space-2xs));
     }
   }
 
-  // Secondary channel list — desktop: a row of arrow links each with a
-  // muted caption; mobile: a column of outline pills (label only).
+  // Secondary channel list — a row of arrow links on every viewport (it
+  // wraps on narrow screens instead of collapsing into a stacked list),
+  // each with an optional muted caption.
   &-links {
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: to-rem($space-md);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: to-rem($space-md) to-rem($space-xl);
     margin: 0;
     padding: 0;
     list-style: none;
 
     @include layout-768() {
-      flex-direction: row;
-      align-items: flex-start;
       gap: to-rem($space-2xl);
     }
 
@@ -221,13 +222,8 @@
     &-item {
       display: flex;
       flex-direction: column;
-      align-items: stretch;
-      text-align: center;
-
-      @include layout-768() {
-        align-items: flex-start;
-        text-align: left;
-      }
+      align-items: flex-start;
+      text-align: left;
     }
 
     &-link {
@@ -236,27 +232,24 @@
 
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       gap: to-rem($space-sm);
       color: inherit;
       text-decoration: none;
       text-transform: uppercase;
       font-size: to-rem($space-lg);
       letter-spacing: to-rem($space-3xs);
-      font-weight: calc(400 + var(--fw-lift));
+      font-weight: calc(300 + var(--fw-lift));
       cursor: pointer;
-      border: to-rem($space-hairline) solid var(--border-color);
-      border-radius: var(--radius-round);
-      padding: to-rem($space-lg) to-rem($space-xl);
+      // No pill chrome on any viewport — the desktop treatment (bare
+      // arrow link + muted caption) is the layout everywhere.
+      border-color: transparent;
+      border-radius: var(--radius-none);
+      padding: 0;
       line-height: 1.2;
 
       @include layout-768() {
-        justify-content: flex-start;
-        border-color: transparent;
-        border-radius: var(--radius-none);
-        padding: 0;
         font-size: to-rem($space-xl);
-        font-weight: calc(300 + var(--fw-lift));
       }
 
       @include layout-2560() {
@@ -264,32 +257,34 @@
       }
     }
 
-    // The '→' hint on desktop arrow links — the pills drop it on mobile.
+    // The '→' hint on the arrow links — shown on every viewport now the
+    // pill styling is gone. inline-block so the hover translate applies.
     &-arrow {
-      display: none;
+      display: inline-block;
       font-weight: calc(300 + var(--fw-lift));
-
-      @include layout-768() {
-        display: inline;
-      }
+      transition: transform 0.25s ease;
     }
 
-    // Optional muted caption under a channel link — desktop only.
+    // The arrow slides right on hover/focus — same affordance the
+    // card-stack and carousel controls carry. The mail channel's arrow
+    // rides the identical class, so the mail anchor hooks in too.
+    &-link:hover &-arrow,
+    &-link:focus-visible &-arrow {
+      transform: translateX(to-rem($space-2xs));
+    }
+
+    // Optional muted caption under a channel link.
     &-caption {
       @extend %TTL_BASE;
 
-      display: none;
+      display: block;
       font-size: to-rem($space-lg);
       line-height: 1.3;
       letter-spacing: 0;
       color: var(--text-muted);
       font-weight: calc(300 + var(--fw-lift));
       text-transform: none;
-
-      @include layout-768() {
-        display: block;
-        padding-top: to-rem($space-xs);
-      }
+      padding-top: to-rem($space-xs);
 
       @include layout-2560() {
         font-size: to-rem($space-xl);

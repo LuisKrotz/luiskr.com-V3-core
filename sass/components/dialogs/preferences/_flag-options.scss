@@ -5,6 +5,14 @@
 
 $_B_FLAG: 'flag';
 
+/// Flag row height — 44px keeps the 4:3 SVG ratio crisp at the row's
+/// rendered size ($space-2xl + $space-md + $space-2xs).
+$_FLAG_H: to-rem($space-2xl + $space-md + $space-2xs);
+
+/// Half-flag width inside a split pair — 33px so two crops share the
+/// 44px-high row evenly ($space-2xl - $space-3xs).
+$_FLAG_W: to-rem($space-2xl - $space-3xs);
+
 // Icon inside an option button.
 .pref-option-icon {
   font-size: to-rem($space-2xl);
@@ -31,19 +39,19 @@ $_B_FLAG: 'flag';
 
 // Flag images & WebGL Canvas — SVG from local repo
 .#{$_B_FLAG}-img {
-  height: to-rem(44);
+  height: $_FLAG_H;
   width: auto;
   display: block;
-  border-radius: to-rem(3);
+  border-radius: var(--radius-xs);
   box-shadow: 0 to-rem($space-hairline) to-rem($space-xs) rgba($color-black, 0.25);
 }
 
 // Flag WebGL canvas in the language options.
 .#{$_B_FLAG}-canvas {
-  height: to-rem(44);
+  height: $_FLAG_H;
   width: auto;
   display: block;
-  border-radius: to-rem(3);
+  border-radius: var(--radius-xs);
   box-shadow: 0 to-rem($space-hairline) to-rem($space-xs) rgba($color-black, 0.25);
   pointer-events: none;
 }
@@ -56,17 +64,17 @@ $_B_FLAG: 'flag';
   position: relative;
 
   .flag-img {
-    height: to-rem(44);
-    width: to-rem(33); // force equal width so both flags share space evenly
+    height: $_FLAG_H;
+    width: $_FLAG_W; // force equal width so both flags share space evenly
     object-fit: cover;
     border-radius: 0;
 
     &:first-child {
-      border-radius: to-rem(3) 0 0 to-rem(3);
+      border-radius: var(--radius-xs) 0 0 var(--radius-xs);
       object-position: left center;
     }
     &:last-child {
-      border-radius: 0 to-rem(3) to-rem(3) 0;
+      border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
       object-position: right center;
     }
   }
@@ -76,5 +84,5 @@ $_B_FLAG: 'flag';
 .pref-option-label {
   font-family: var(--font-primary);
   font-weight: calc(700 + var(--fw-lift));
-  font-size: to-rem(16);
+  font-size: to-rem($space-lg + $space-xs);
 }

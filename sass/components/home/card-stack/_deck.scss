@@ -192,14 +192,17 @@
   // "light" crest.
   &-timer {
     position: absolute;
-    inset: 0;
+    // inset:0 resolves against the card's PADDING box — one hairline
+    // inside the border, which reads as a second thinner ring (the
+    // "rough edge" seam). Outsetting by the border width drops the band
+    // exactly on the border annulus: the lit arc IS the border, same
+    // hairline thickness, no parallel line.
+    inset: calc(var(--space-hairline) * -1);
     border-radius: inherit;
-    // The band IS the card's own border — one hairline on the same path,
-    // so the countdown lights the border itself instead of overlaying a
-    // second stripe inside it. `from 0deg` starts the lap at 12 o'clock;
-    // the leading edge runs an accent-tinted crest while the tail
-    // feathers in over the first stops — no hard seam at the start
-    // point, no hard hotspot at the head.
+    // `from 0deg` starts the lap at 12 o'clock; the tail feathers in
+    // over the first stops and the accent-tinted crest dissolves over
+    // the last 2% — no hard seam at the start, no hard-cut edge at
+    // the head (0.75% used to read as a hard edge).
     padding: var(--space-hairline);
     background: conic-gradient(
       from 0deg,
@@ -207,7 +210,7 @@
       var(--color-accent) 6%,
       var(--color-accent) max(calc(var(--card-stack-timer-p) - 4%), 0%),
       color-mix(in srgb, var(--color-accent) 45%, var(--color-white-raw)) var(--card-stack-timer-p),
-      transparent var(--card-stack-timer-p)
+      transparent calc(var(--card-stack-timer-p) + 2%)
     );
     -webkit-mask:
       linear-gradient(var(--color-white-raw) 0 0) content-box,
@@ -221,15 +224,19 @@
     opacity: 0;
     transition: opacity 0.28s ease;
 
-    // The light's bloom — a fat copy of the same lit arc on a wider
-    // band, blurred into a soft halo around the hairline core (the mask
-    // clips the blur to the band so it hugs the card edge).
+    // The light's bloom — a copy of the same lit arc on a band only
+    // slightly wider than the border itself, blurred into a soft halo
+    // around the hairline core (the mask clips the blur to the band so
+    // it hugs the card edge). The band stays narrow on purpose: a fat
+    // halo read as a thicker border whenever the light was on. The
+    // extra outset centres the band on the border path so the glow
+    // spills to BOTH sides of the edge instead of pooling inside.
     &::after {
       content: '';
       position: absolute;
-      inset: 0;
+      inset: calc(var(--space-2xs) * -1);
       border-radius: inherit;
-      padding: var(--space-sm);
+      padding: var(--space-xs);
       background: inherit;
       -webkit-mask:
         linear-gradient(var(--color-white-raw) 0 0) content-box,
@@ -239,8 +246,8 @@
         linear-gradient(var(--color-white-raw) 0 0) content-box,
         linear-gradient(var(--color-white-raw) 0 0);
       mask-composite: exclude;
-      filter: blur(var(--space-2xs));
-      opacity: 0.5;
+      filter: blur(var(--space-xs));
+      opacity: 0.4;
       pointer-events: none;
     }
   }
@@ -362,7 +369,10 @@
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-sm);
-    padding: 0 var(--space-lg) var(--space-lg);
+    // Wider side gutters — the copy used to sit a hairline from the
+    // card's dark edges; space-xl airs the text measure on the stacked
+    // layouts (mobile + tablet).
+    padding: 0 var(--space-xl) var(--space-xl);
     // The draw-pile swap (above) hides this column on non-front cards —
     // it fades back in as the card crosses into the front slot mid-deal.
     // Padding rides the transition too: the 768-landscape breakpoint
@@ -379,7 +389,7 @@
     // own top padding since the cover no longer sits above it.
     @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
       flex: 1 1 54%;
-      padding-top: var(--space-lg);
+      padding-top: var(--space-xl);
     }
 
     @media (min-width: 1024px) and (orientation: landscape) {
@@ -391,8 +401,8 @@
   // the cover's bottom edge (the negative margin drops it onto the
   // scrim); the paper-burn knits/consumes its ink on front changes.
   &-card-info-title {
-    font-family: var(--font-primary);
-    font-weight: calc(300 + var(--fw-lift));
+    font-family: var(--font-ui);
+    font-weight: calc(500 + var(--fw-lift));
     text-transform: uppercase;
     letter-spacing: var(--space-2xs);
     line-height: 1.12;
@@ -431,11 +441,20 @@
     z-index: 2;
   }
 
-  // The card's own CMS description — Jost, NEVER truncated: the card
-  // box grows (CARD_H_RATIO) to carry the whole entry.
+  // The card's own CMS description — Jost, the first-sentence mobile
+  // summary (info.ts arms the writer with it; the desktop column keeps
+  // the full text in the DOM so SEO reads one as the other's summary).
+  // The ≤4-line visual cap bounds the card on stacked tiers — the
+  // element only renders there (fan tiers hide -card-info entirely).
   &-card-info-desc {
     font-family: var(--font-desc);
-    font-weight: calc(300 + var(--fw-lift));
+    // One weight rung + a 25% lift toward --text-primary — the 300/muted
+    // cut read faint against the card's dark-gray fill on small screens.
+    font-weight: calc(400 + var(--fw-lift));
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
     // The narrowest phones run one step smaller — the card's ~212px
     // text measure already wraps the long CMS copy to many lines.
     font-size: var(--space-lg);
@@ -454,7 +473,7 @@
     @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
       font-size: var(--space-lg);
     }
-    color: var(--text-muted-on-dark);
+    color: color-mix(in srgb, var(--text-muted-on-dark) 75%, var(--text-primary));
     margin: 0;
   }
 

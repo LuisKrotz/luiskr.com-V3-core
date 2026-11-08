@@ -110,6 +110,9 @@ export const CARD_STACK_CLASSES = Object.freeze({
   CARD_STACK_NAV: `${_B_CARD_STACK}-nav`,
   CARD_STACK_PREV: `${_B_CARD_STACK}-prev`,
   CARD_STACK_NEXT: `${_B_CARD_STACK}-next`,
+  /** Arrow glyph inside the prev/next foot buttons — nudges outward on
+   *  hover/focus (the carousel controls' ±4px affordance contract). */
+  CARD_STACK_ARROW: `${_B_CARD_STACK}-arrow`,
   /** Autoplay play/pause transport in the foot nav — the border-light
    *  countdown's only manual control. */
   CARD_STACK_AUTOPLAY: `${_B_CARD_STACK}-autoplay`,
