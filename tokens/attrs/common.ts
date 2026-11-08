@@ -48,6 +48,8 @@ export const COMMON_ATTRS = Object.freeze({
   CLASSES: 'classes',
   /** `trigger` — DrawText trigger attribute name (viewport/manual). */
   TRIGGER: 'trigger',
+  /** `animation` — AnimDemo attribute naming the ANIMATION_IDS entry it demos. */
+  ANIMATION: 'animation',
   /**
    * `ordered` — DrawText queue flag: marks the element as part of the
    * document-order reveal session, so its `offset` is read as a scheduled

@@ -41,7 +41,6 @@ export const PREF_CLASSES = Object.freeze({
   PREF_OPTION_BTN: `${_B_PREF_OPTION}-btn`,
   PREF_OPTION_ICON: `${_B_PREF_OPTION}-icon`,
   PREF_OPTION_LABEL: `${_B_PREF_OPTION}-label`,
-  PREF_OPTION_SUB: `${_B_PREF_OPTION}-sub`,
   PREF_STAT_CARD: `${_B_PREF}-stat-card`,
   PREF_FOOTER: `${_B_PREF}-footer`,
   PREF_DONE_BTN: `${_B_PREF}-done-btn`,

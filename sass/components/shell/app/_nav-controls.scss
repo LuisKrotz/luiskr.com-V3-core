@@ -1,55 +1,200 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  app/_nav-controls.scss — nav right-side controls: the WebGL burger
-//  canvas + the CSS four-squares fallback icon, the always-visible mobile
-//  strip, and the 4-column language-dialog variant shared with preferences.
+//  app/_nav-controls.scss — nav right-side controls: the round chips (menu,
+//  search, preferences, language), their shared expand reveal and neon
+//  border draw, the WebGL burger canvas + CSS four-squares fallback, the
+//  mobile strip, and the language-dialog variant shared with preferences.
 //  Imported by app.scss (manifest) — uses $_B_NAV defined there.
 // ════════════════════════════════════════════════════════════════════════════
 
-// ── Nav layout ──────────────────────────────────────────────────────────────
-// A single menu for every breakpoint: logo on the left, burger on the right,
-// everything else lives inside the fullscreen menu modal.
+// Chip expand timing — one symmetric curve for every chip property so the
+// padding, the label width, its slide and its fade all land together. Ease-
+// in-out sine: no front-loaded punch, no overshoot, soft settle.
+$_chip-dur: 0.8s;
+$_chip-ease: cubic-bezier(0.37, 0, 0.63, 1);
+$_chip-label-max: var(--space-8xl);
 
-// ── Burger button (WebGL canvas) ──────────────────────────────────────────
+// Joust block — the shared click-to-reveal contract (core/tokens/classes/
+// joust.ts): on hover-less input the gate pins `#{$_B_JOUST}--open` on the
+// chip root so the first tap pours the label exactly like :hover does.
+$_B_JOUST: 'joust';
+
+// ── Round chip base — every nav chip is a full circle at rest ───────────────
+%nav-chip {
+  @extend %RESETBTN;
+
+  position: relative;
+  z-index: var(--z-nav);
+  display: inline-flex;
+  align-items: center;
+  // This shadow root has no global border-box reset — content-box would add
+  // the horizontal padding to min-width and render the disc as a pill.
+  box-sizing: border-box;
+  // Center absorbs the leftover slack so the icon sits dead-center in the
+  // collapsed circle; once the label pours in there is no free space and
+  // the group pins left, same as flex-start.
+  justify-content: center;
+  height: var(--space-2xl);
+  min-width: var(--space-2xl);
+  padding: 0 var(--space-sm) 0 var(--space-sm);
+  border-radius: var(--radius-round);
+  background: var(--border-color);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    padding-right $_chip-dur $_chip-ease;
+
+  &:hover,
+  &:focus-visible,
+  &.#{$_B_JOUST}--open {
+    background: var(--border-color-hover, var(--border-color));
+    padding-right: var(--space-md);
+  }
+
+  // Icon element never shrinks — it is the fixed-size disc content.
+  > :first-child {
+    flex: 0 0 auto;
+  }
+}
+
+// The label reveal — a width/opacity/slide triple on the same curve. The
+// label is the chip's last child; it clips its own overflow so the chip
+// itself never clips the glyph streaks.
+%nav-chip-label {
+  flex: 0 0 auto;
+  cursor: pointer;
+  display: inline-block;
+  max-width: 0;
+  margin-left: 0;
+  opacity: 0;
+  transform: translateX(-0.5em);
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: var(--font-primary);
+  font-size: var(--space-lg);
+  font-weight: calc(600 + var(--fw-lift));
+  text-transform: uppercase;
+  letter-spacing: to-rem($space-2xs);
+  color: var(--text-primary);
+  transition:
+    max-width $_chip-dur $_chip-ease,
+    margin-left $_chip-dur $_chip-ease,
+    opacity $_chip-dur * 0.6 ease-in-out $_chip-dur * 0.2,
+    transform $_chip-dur $_chip-ease;
+
+  // Exact-width reveal where supported: max-width can only interpolate to a
+  // guess (--space-8xl = 610px), so the visible growth finishes a fifth of
+  // the way into the curve on open and slams shut in the last fifth on
+  // close — the punch. width: 0 → auto interpolates to the measured label
+  // width instead, so the pour runs the full curve in both directions.
+  // max-width stays as the fallback driver elsewhere and demotes to a
+  // static overflow cap here.
+  @supports (interpolate-size: allow-keywords) {
+    interpolate-size: allow-keywords;
+    max-width: $_chip-label-max;
+    width: 0;
+    transition:
+      width $_chip-dur $_chip-ease,
+      margin-left $_chip-dur $_chip-ease,
+      opacity $_chip-dur * 0.6 ease-in-out $_chip-dur * 0.2,
+      transform $_chip-dur $_chip-ease;
+  }
+
+  :host-context(html.high-contrast) & {
+    color: var(--white);
+  }
+}
+
+// Hover/focus opens the label: the width leads, the slide and the fade
+// follow on the same curve.
+%nav-chip-open {
+  max-width: $_chip-label-max;
+  margin-left: var(--space-xs);
+  opacity: 1;
+  transform: translateX(0);
+
+  @supports (interpolate-size: allow-keywords) {
+    width: auto;
+  }
+}
+
+// ── Burger button (WebGL canvas) ────────────────────────────────────────────
 .#{$_B_NAV}-burger-canvas {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--space-2xl);
+  height: var(--space-2xl);
   cursor: pointer;
   display: block;
   border-radius: var(--radius-round);
+  opacity: 0;
+  transition: opacity 0.4s ease;
 
   &.is-fallback {
     display: none;
   }
 }
 
-// ── Burger button wrapper — the shared round disc (like the close button):
-// the WebGL canvas paints the liquid squares on top of it, the CSS
-// fallback button mirrors the same icon when GL is unavailable. ─────────
+.#{$_B_NAV}-burger-wrap:has(.#{$_B_NAV}-burger-fallback[aria-expanded='true'])
+  .#{$_B_NAV}-burger-canvas {
+  opacity: 1;
+}
+
+// ── Burger chip — the menu disc, reveal shared with the other chips ─────────
 .#{$_B_NAV}-burger-wrap {
-  position: relative;
-  z-index: var(--z-nav);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--space-2xl);
-  height: var(--space-2xl);
-  border-radius: var(--radius-round);
-  background: var(--border-color);
-  transition: background 0.2s ease;
+  @extend %nav-chip;
+
+  // The fallback button is already one full disc wide — any rest padding
+  // would stretch the wrap into a pill. Hover re-adds padding-right for
+  // the label pour-in.
+  padding: 0;
 
   &:hover,
-  &:focus-within {
-    background: var(--border-color-hover, var(--border-color));
+  &:focus-within,
+  &.#{$_B_JOUST}--open {
+    padding-right: var(--space-md);
+
+    .#{$_B_NAV}-menu-label {
+      @extend %nav-chip-open;
+    }
+  }
+
+  // ≤374px: the menu chip keeps its label pinned open — at this width the
+  // tap-to-reveal pour reads as an unlabeled button, so "MENU" stays
+  // visible like the desktop hover state. The open properties are spelled
+  // out because %nav-chip-open lives outside any media query and Sass
+  // can't extend across that boundary.
+  @media (max-width: $bk-375) {
+    padding-right: var(--space-md);
+
+    .#{$_B_NAV}-menu-label {
+      max-width: $_chip-label-max;
+      margin-left: var(--space-xs);
+      opacity: 1;
+      transform: translateX(0);
+
+      @supports (interpolate-size: allow-keywords) {
+        width: auto;
+      }
+    }
+  }
+
+  .#{$_B_NAV}-menu-label {
+    @extend %nav-chip-label;
   }
 }
 
-// ── Burger button fallback (CSS-based four-squares liquid icon) ──────────
+// Four rounded squares on a 2x2 grid — the CSS mirror of the shader's
+// metaball icon; the open state pours them into the close X.
 .#{$_B_NAV}-burger-fallback {
   @extend %RESETBTN;
 
-  display: none;
-  width: 100%;
-  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--space-2xl);
+  height: var(--space-2xl);
   cursor: pointer;
   border-radius: var(--radius-round);
   background: transparent;
@@ -57,10 +202,6 @@
   padding: 0;
   position: relative;
 
-  // Four rounded squares on a 2x2 grid — the CSS mirror of the shader's
-  // metaball icon. Every transform begins with translate(-50%,-50%) so
-  // centering survives the width stretch when the squares become the
-  // close-X bars; the per-corner offsets follow the recentering.
   .#{$_B_NAV}-burger-square {
     position: absolute;
     top: 50%;
@@ -69,12 +210,6 @@
     height: var(--space-sm);
     background: var(--text-primary);
     border-radius: var(--radius-2xs);
-    transition:
-      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-      width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-      height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-      background 0.3s ease,
-      border-radius 0.45s ease;
     transition:
       transform 0.45s $ease-spring,
       width 0.45s $ease-spring,
@@ -100,16 +235,11 @@
     }
   }
 
-  // HC: the wrap disc collapses to one pole (--border-color → pitch black in
-  // light-HC, pure white in dark-HC) and --text-primary/--text-secondary
-  // collapse to the SAME pole — the squares would paint ink-on-ink, so all
-  // icon states re-pin to the opposite pole (--white).
+  // HC: all icon states re-pin to the opposite pole (--white).
   :host-context(html.high-contrast) & .#{$_B_NAV}-burger-square {
     background: var(--white);
   }
 
-  // Hover/focus: the squares migrate to the center and round into
-  // overlapping circles — the CSS approximation of the liquid merge.
   &:hover,
   &:focus-visible {
     .#{$_B_NAV}-burger-square {
@@ -118,11 +248,7 @@
     }
   }
 
-  // Open: the pooled squares pour into THE existing close X — each
-  // diagonal pair converges on center and stretches into that bar's
-  // exact geometry (the ~17px × 2.6px stroke of the 34px close button),
-  // nth 1+4 forming the \ arm and nth 2+3 the / arm. --text-secondary is
-  // the same ink the close button's own CSS fallback paints.
+  // Open: the squares pour into the close X — nth 1+4 the \ arm, nth 2+3 the / arm.
   &[aria-expanded='true'] {
     .#{$_B_NAV}-burger-square {
       width: var(--space-xl);
@@ -142,179 +268,151 @@
     }
   }
 
-  .#{$_B_NAV}-burger-wrap:has(.#{$_B_NAV}-burger-canvas.is-fallback) & {
-    display: block;
+  nav-grid-icon {
+    transition: opacity 0.4s ease;
+  }
+
+  &[aria-expanded='true'] nav-grid-icon {
+    opacity: 0;
   }
 }
 
-// ── Burger strip (always visible) — burger + flag + gear round chips. ──
+// ── Mobile strip — burger + language + search + preferences chips ───────────
 .#{$_B_NAV}-mobile-strip {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-xs);
 }
 
-// ── Round nav chips (flag language + gear preferences) — same disc
-// treatment as the burger wrap: 34px round, hover-inked. ──────────────
-.#{$_B_NAV}-flag-btn,
-.#{$_B_NAV}-gear-btn {
-  @extend %RESETBTN;
-
-  position: relative;
+// Icon-aura canvas — the WASM ring-fill overlay spanning the strip; the
+// comet tail + sparks draw on the hovered chip's rrect perimeter.
+// pointer-events none so the aura never eats chip clicks.
+.#{$_B_NAV}-icon-aura-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
   z-index: var(--z-nav);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--space-2xl);
-  min-width: var(--space-2xl);
-  border-radius: var(--radius-round);
-  background: var(--border-color);
-  padding: 0;
-  overflow: hidden;
-  cursor: pointer;
-  transition: background 0.2s ease;
-
-  &:hover,
-  &:focus-visible {
-    background: var(--border-color-hover, var(--border-color));
-  }
 }
 
-// Flag chip: the locale flag sits centered in the disc; on hover/focus
-// the chip stretches horizontally on the water curve (critically damped
-// — fast rise, zero overshoot, lands like water coming to rest) and the
-// language name slides in at hairline weight, its fade trailing the
-// stretch so the text pours in behind the growing pill.
+// ── Language chip (flag position, globe glyph) ──────────────────────────────
 .#{$_B_NAV}-flag-btn {
-  padding: 0 var(--space-sm);
-  gap: 0;
-  transition:
-    background 0.2s ease,
-    padding 0.9s cubic-bezier(0.22, 1, 0.36, 1);
-  transition:
-    background 0.2s ease,
-    padding 0.9s $ease-water;
+  @extend %nav-chip;
 
-  // HC: the flag name rides inside the disc — same ink-on-ink collapse as
-  // the burger squares, same opposite-pole re-pin.
-  :host-context(html.high-contrast) & .#{$_B_NAV}-flag-label {
-    color: var(--white);
+  gap: 0;
+
+  &:hover,
+  &:focus-visible,
+  &.#{$_B_JOUST}--open {
+    .#{$_B_NAV}-flag-label {
+      @extend %nav-chip-open;
+    }
   }
 
   .#{$_B_NAV}-flag-label {
-    display: inline-block;
-    max-width: 0;
-    opacity: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    margin-left: 0;
-    font-family: var(--font-primary);
-    font-size: var(--space-lg);
-    font-weight: calc(200 + var(--fw-lift));
-    color: var(--text-primary);
-    transition:
-      max-width 0.9s cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 0.55s ease 0.08s,
-      margin-left 0.9s cubic-bezier(0.22, 1, 0.36, 1);
-    transition:
-      max-width 0.9s $ease-water,
-      opacity 0.55s ease 0.08s,
-      margin-left 0.9s $ease-water;
-  }
-
-  &:hover,
-  &:focus-visible {
-    padding: 0 var(--space-md);
-
-    .#{$_B_NAV}-flag-label {
-      max-width: var(--space-8xl);
-      opacity: 1;
-      margin-left: var(--space-xs);
-    }
+    @extend %nav-chip-label;
   }
 }
 
-// Gear chip: a machined-steel gear — parametric SVG layers shaded by a
-// fixed light ramp (--nav-gear-*), the rotor group on a slow perpetual
-// spin while the specular glint stays put (the light never moves, which
-// is what sells the 3D). The steel ramp is theme-adaptive:
-// --text-primary is dark ink in light mode and white in dark mode, so
-// the same color-mixes yield dark steel vs light steel on the chip.
-.#{$_B_NAV}-gear-svg {
+// ── Preferences chip (brush glyph) ──────────────────────────────────────────
+.#{$_B_NAV}-gear-btn {
+  @extend %nav-chip;
+
+  gap: 0;
+
+  &:hover,
+  &:focus-visible,
+  &.#{$_B_JOUST}--open {
+    .#{$_B_NAV}-gear-label {
+      @extend %nav-chip-open;
+    }
+  }
+
+  .#{$_B_NAV}-gear-label {
+    @extend %nav-chip-label;
+  }
+}
+
+// ── Search chip (terminal glyph) ────────────────────────────────────────────
+// Hidden by the route gate on /search + the 404 — the surface is already there.
+.#{$_B_NAV}-search-btn {
+  @extend %nav-chip;
+
+  gap: 0;
+
+  &:hover,
+  &:focus-visible,
+  &.#{$_B_JOUST}--open {
+    .#{$_B_NAV}-search-label {
+      @extend %nav-chip-open;
+    }
+  }
+
+  .#{$_B_NAV}-search-label {
+    @extend %nav-chip-label;
+  }
+}
+
+// Search magnifier — machined-steel treatment with the orbiting sparks.
+.#{$_B_NAV}-search-svg {
   width: var(--space-xl);
   height: var(--space-xl);
   display: block;
-  fill: var(--text-primary);
   transition: filter 0.3s ease;
 
-  --nav-gear-hi: color-mix(in srgb, var(--text-primary) 22%, var(--color-white-raw));
-  --nav-gear-mid: var(--text-primary);
-  --nav-gear-lo: color-mix(in srgb, var(--text-primary) 42%, var(--color-black-raw));
-  --nav-gear-edge-hi: color-mix(in srgb, var(--text-primary) 10%, var(--color-white-raw));
-  --nav-gear-edge-lo: color-mix(in srgb, var(--text-primary) 18%, var(--color-black-raw));
-  --nav-gear-hole: color-mix(in srgb, var(--text-primary) 40%, var(--color-black-raw));
-  --nav-gear-hole-lo: color-mix(in srgb, var(--text-primary) 16%, var(--color-black-raw));
-  --nav-gear-hole-hi: color-mix(in srgb, var(--text-primary) 80%, var(--color-white-raw));
-  --nav-gear-glint: color-mix(in srgb, var(--color-white-raw) 85%, var(--text-primary));
+  --nav-search-hi: color-mix(in srgb, var(--text-primary) 16%, var(--color-white-raw));
+  --nav-search-mid: var(--text-primary);
+  --nav-search-lo: color-mix(in srgb, var(--text-primary) 36%, var(--color-black-raw));
+  --nav-search-edge-hi: color-mix(in srgb, var(--text-primary) 12%, var(--color-white-raw));
+  --nav-search-edge-lo: color-mix(in srgb, var(--text-primary) 20%, var(--color-black-raw));
+  --nav-search-glint: color-mix(in srgb, var(--color-white-raw) 88%, var(--text-primary));
 }
 
-// HC: the steel ramp would collapse every mix to the disc's own pole —
-// flatten the whole gear to the opposite pole (--white) so the silhouette
-// stays readable on the chip.
-:host-context(html.high-contrast) .#{$_B_NAV}-gear-svg {
-  fill: var(--white);
-  --nav-gear-hi: var(--white);
-  --nav-gear-mid: var(--white);
-  --nav-gear-lo: var(--white);
-  --nav-gear-edge-hi: var(--white);
-  --nav-gear-edge-lo: var(--white);
-  --nav-gear-hole: var(--white);
-  --nav-gear-hole-lo: var(--white);
-  --nav-gear-hole-hi: var(--white);
-  --nav-gear-glint: var(--white);
+:host-context(html.high-contrast) .#{$_B_NAV}-search-svg {
+  --nav-search-hi: var(--white);
+  --nav-search-mid: var(--white);
+  --nav-search-lo: var(--white);
+  --nav-search-edge-hi: var(--white);
+  --nav-search-edge-lo: var(--white);
+  --nav-search-glint: var(--white);
 }
 
-// The spinning parts — silhouette, holes, hub. fill-box/center pins the
-// rotation to the gear's own bbox so the slow turn (one rev per 18s)
-// stays perfectly centered at any rendered size.
-.#{$_B_NAV}-gear-rotor {
+// Orbiting sparks inside the lens — one rev per ~14s.
+.#{$_B_NAV}-search-rotor {
   transform-box: fill-box;
   transform-origin: center;
-  animation: #{$_B_NAV}-gear-spin 18s linear infinite;
+  animation: #{$_B_NAV}-search-spin 14s linear infinite;
 }
 
-// Fixed catch-light — a stroke-only arc, inked from the glint token.
-.#{$_B_NAV}-gear-glint {
-  stroke: var(--nav-gear-glint);
-  opacity: 0.55;
+.#{$_B_NAV}-search-glint {
+  fill: var(--nav-search-glint);
 }
 
-.#{$_B_NAV}-gear-btn {
+.#{$_B_NAV}-search-btn {
   &:hover,
   &:focus-visible {
-    .#{$_B_NAV}-gear-svg {
+    .#{$_B_NAV}-search-svg {
       filter: brightness(1.15);
     }
   }
 }
 
-// Perpetual slow turn (emitted at root like the other nav keyframes).
-@keyframes #{$_B_NAV}-gear-spin {
+@keyframes #{$_B_NAV}-search-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-// Reduced motion freezes the rotor — the document-level sweep can't
-// reach inside the shadow root, so the sheet needs its own copy plus
-// the store-driven html.reduced-motion flag via :host-context.
+// Reduced motion freezes the rotors — the document-level sweep can't reach
+// inside the shadow root, so the sheet carries its own copy plus the
+// store-driven html.reduced-motion flag via :host-context.
 @media (prefers-reduced-motion: reduce) {
-  .#{$_B_NAV}-gear-rotor {
+  .#{$_B_NAV}-search-rotor {
     animation: none;
   }
 }
 
-:host-context(html.reduced-motion) .#{$_B_NAV}-gear-rotor {
+:host-context(html.reduced-motion) .#{$_B_NAV}-search-rotor {
   animation: none;
 }
 

@@ -21,7 +21,9 @@ import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { EARTH_SHARE, STAR_SHARE } from '@core/tokens/playground/share.js'
 import { LOCALE_TAGS, LOCALES } from '@core/tokens/locales.js'
 import { BASE_TITLE } from '@core/tokens/routes.js'
-import { updateJsonLd } from '@core/utils/schema.js'
+import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
+import { updateJsonLd, licenseUrlFor } from '@core/utils/schema.js'
+import { mediaProvenanceFields } from '@core/tokens/media/credits.js'
 import { devWarn } from '@core/devlog.js'
 import type { RouteDescriptor } from '@core/router/types.js'
 
@@ -127,36 +129,47 @@ export const pickShareImage = (urls: string[]): string =>
  * @param name    localized gallery label
  * @param urls    the full share set
  * @param bcp     BCP-47 tag for inLanguage
+ * @param lang    locale code — resolves the license/acquireLicensePage targets
  * @returns ItemList JSON-LD entity
  */
 export const shareGalleryEntity = (
   pageUrl: string,
   name: string,
   urls: string[],
-  bcp: string
-): Record<string, unknown> => ({
-  '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
-  '@type': 'ItemList',
-  '@id': `${pageUrl}#share-gallery`,
-  name,
-  inLanguage: bcp,
-  numberOfItems: urls.length,
-  itemListElement: urls.map((u, i) => ({
-    '@type': 'ListItem',
-    position: i + 1,
-    item: {
-      '@type': 'ImageObject',
-      '@id': `${pageUrl}#share-${i + 1}`,
-      url: u,
-      contentUrl: u,
-      name: `${name} ${i + 1}`,
-      inLanguage: bcp,
-      author: { '@type': 'Person', name: BASE_TITLE, url: NET_STRINGS.SITE_URL },
-      creator: { '@type': 'Person', name: BASE_TITLE, url: NET_STRINGS.SITE_URL },
-      isPartOf: { '@id': `${pageUrl}#webpage` },
-    },
-  })),
-})
+  bcp: string,
+  lang?: string
+): Record<string, unknown> => {
+  const license = licenseUrlFor(lang)
+
+  return {
+    '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+    '@type': 'ItemList',
+    '@id': `${pageUrl}#share-gallery`,
+    name,
+    inLanguage: bcp,
+    numberOfItems: urls.length,
+    itemListElement: urls.map((u, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'ImageObject',
+        '@id': `${pageUrl}#share-${i + 1}`,
+        url: u,
+        contentUrl: u,
+        name: `${name} ${i + 1}`,
+        inLanguage: bcp,
+        author: { '@type': 'Person', name: BASE_TITLE, url: NET_STRINGS.SITE_URL },
+        creator: { '@type': 'Person', name: BASE_TITLE, url: NET_STRINGS.SITE_URL },
+        ...mediaProvenanceFields({
+          licenseUrl: license,
+          copyrightNotice: `${CHAR_STRINGS.COPYRIGHT} ${BASE_TITLE}`,
+          creditText: BASE_TITLE,
+        }),
+        isPartOf: { '@id': `${pageUrl}#webpage` },
+      },
+    })),
+  }
+}
 
 /**
  * Rotates one playground's share surface: draws a random capture from
@@ -191,7 +204,7 @@ const syncShare = async (
   const bcp = (to.lang && LOCALE_TAGS[to.lang]?.bcp) || to.lang || LOCALES.EN
   const name = String(to.meta.title || BASE_TITLE)
 
-  updateJsonLd([...baseGraphOf(image), shareGalleryEntity(canonicalUrl, name, urls, bcp)])
+  updateJsonLd([...baseGraphOf(image), shareGalleryEntity(canonicalUrl, name, urls, bcp, to.lang)])
 }
 
 /**
@@ -235,6 +248,24 @@ export const cancelShare = (): void => {
     setShareImageMetas(DEFAULT_IMAGE)
   }
 }
+
+/**
+ * Currently bound share capture — the og:image pick the last rotation
+ * applied (null when no rotation is active). Rich-route emitters read
+ * it so their own JSON-LD `screenshot` matches the card metas.
+ * @returns the applied capture URL, or null
+ */
+export const currentShareImage = (): string | null => appliedImage
+
+/**
+ * Cached share URLs for one manifest — the set the last rotation
+ * loaded ([] until a manifest resolves). Rich-route emitters append
+ * the matching gallery ItemList so re-emitted graphs keep the capture
+ * set instead of dropping it when their own entities rebuild.
+ * @param manifestUrl site-served share manifest URL
+ * @returns the cached share-image URLs (empty when unavailable)
+ */
+export const shareImagesCached = (manifestUrl: string): string[] => stateOf(manifestUrl).urls || []
 
 /**
  * Test/state reset — clears the manifest caches, pick state and sequence

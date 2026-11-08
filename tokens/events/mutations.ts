@@ -15,6 +15,7 @@ export const MODAL_MUTATIONS = Object.freeze({
   TOGGLE_PREFERENCES_MODAL: 'togglePreferencesModal',
   SET_MODAL: 'setModal',
   SET_NAV_MENU: 'setNavMenu',
+  TOGGLE_SEARCH_MODAL: 'toggleSearchModal',
 })
 
 /**

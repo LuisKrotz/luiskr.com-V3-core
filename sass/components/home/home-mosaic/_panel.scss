@@ -39,7 +39,7 @@
 // Card description.
 .home-mosaic-desc {
   @extend %TXT_SM;
-  font-family: var(--font-primary);
+  font-family: var(--font-desc);
   font-weight: calc(200 + var(--fw-lift));
   line-height: 1.55;
   color: rgba($color-white, 0.92);

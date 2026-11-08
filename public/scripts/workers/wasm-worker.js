@@ -947,5 +947,67 @@ self.onmessage = async (e) => {
       pos.buffer,
       col.buffer,
     ])
+  } else if (type === 'ROUTE_SEARCH') {
+    // Route-search autocomplete scorer — mirrors scoreRoutesJs in
+    // core/utils/wasm/wasm-search.ts exactly (AND semantics across query
+    // terms; title > keywords > path > preview; empty query returns the
+    // whole catalog in order). Kept as plain JS in the worker: the wasm
+    // engine exports only numeric helpers today, and the scoring cost is
+    // the loop, not the arithmetic.
+    const { query = '', items = [] } = payload
+
+    const norm = (s) =>
+      (s || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+
+    const terms = norm(query).split(' ').filter(Boolean)
+
+    const hits = []
+
+    if (!terms.length) {
+      for (let i = 0; i < items.length; i++) hits.push({ i, s: 1 })
+    } else {
+      items.forEach((item, i) => {
+        const t = norm(item.t)
+        const p = norm(item.p)
+        const d = norm(item.d)
+        const kws = (item.k || []).map(norm)
+
+        let score = 0
+        let matchedAll = true
+
+        for (const term of terms) {
+          let best = 0
+
+          if (t === term) best = 100
+          else if (t.startsWith(term)) best = 60
+          else if (t.includes(term)) best = 40
+
+          for (const kw of kws) {
+            if (kw.includes(term)) best = Math.max(best, 25)
+          }
+
+          if (p.includes(term)) best = Math.max(best, 15)
+          if (d.includes(term)) best = Math.max(best, 10)
+
+          if (best === 0) {
+            matchedAll = false
+            break
+          }
+
+          score += best
+        }
+
+        if (matchedAll) hits.push({ i, s: score })
+      })
+
+      hits.sort((a, b) => b.s - a.s || a.i - b.i)
+    }
+
+    self.postMessage({ id, type: 'ROUTE_SEARCH_RESULT', results: hits })
   }
 }

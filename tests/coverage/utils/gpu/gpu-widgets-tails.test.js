@@ -25,7 +25,7 @@ describe('gpu-widgets tokens', () => {
 
   it('widget kinds mirror the rust/ crate ordering', () => {
     expect(Object.values(GPU_WIDGET_KINDS)).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
     ])
   })
 
@@ -53,6 +53,7 @@ describe('gpu-widgets tokens', () => {
     expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.RING_SHEEN]).toBe(16)
     expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.CORNER_BRACKETS]).toBe(16)
     expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.GENIE]).toBe(24)
+    expect(GPU_WIDGET_UNIFORM_F32S[GPU_WIDGET_KINDS.RING_FILL]).toBe(16)
   })
 
   it('flag personalities cover every shipped locale pair', () => {

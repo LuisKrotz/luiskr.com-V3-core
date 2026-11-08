@@ -17,6 +17,15 @@
   --color-accent: #{$cms-accent};
   --color-accent-hover: #{$cms-accent-hover};
   --color-accent-contrast: #{$cms-accent-contrast};
+  // Nav icon neon palette — consumed by the search/preferences glyphs.
+  // Light theme publishes the deepened re-cut (≥3:1 on the light chip
+  // disc); html.dark-mode re-pins the bright set in _dark-mode.scss.
+  --nav-neon-teal: #{$neon-teal-light};
+  --nav-neon-green: #{$neon-green-light};
+  --nav-neon-violet: #{$neon-violet-light};
+  --nav-neon-magenta: #{$neon-magenta-light};
+  --nav-neon-orange: #{$neon-orange-light};
+  --nav-neon-chrome: #{$neon-chrome-light};
   // Keyboard focus ring ink — tracks the theme-aware control accent
   // (deep teal in light mode, signature cyan in dark via the override
   // below), so Tab affordance matches the project palette in both themes.
@@ -138,6 +147,7 @@
   --space-8xl: #{to-rem($space-8xl)};
   --space-9xl: #{to-rem($space-9xl)};
   --space-10xl: #{to-rem($space-10xl)};
+  --space-deck-lift: #{to-rem($space-deck-lift)};
 
   // Border radius tokens
   --radius-none: 0;
@@ -166,11 +176,15 @@
 
   // Font stacks
   --font-mono: #{$font-mono};
-  --font-primary: 'Raleway', sans-serif;
+  --font-serif: #{$font-serif};
+  --font-primary: #{$font-sans};
+  --font-ui: #{$font-ui};
+  --font-desc: #{$font-desc};
 
   // Cyrillic surface — Russian pages swap the whole type stack to Fira
-  // Sans (Raleway's letterforms are latin-first; Fira carries native
-  // cyrillic coverage). The class is toggled at boot + on locale commits.
+  // Sans (the primary face is a display cut; Fira carries native
+  // cyrillic coverage for text). The class is toggled at boot + on
+  // locale commits.
   &.cyrillic-font {
     --font-primary: 'Fira Sans', sans-serif;
   }

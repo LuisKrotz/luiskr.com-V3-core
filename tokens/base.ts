@@ -49,10 +49,27 @@ export const _B_STATS_HUD = 'stats-hud'
  */
 export const _B_DRAW_TEXT = 'draw-text'
 /**
+ * BEM block fragment `anim-demo` — the /animations route live-demo stage's
+ * tag + class names compose from this single declaration
+ * (zero-hardcoding rule 9).
+ */
+export const _B_ANIM_DEMO = 'anim-demo'
+/**
  * BEM block fragment `home-mosaic` — declared once here; every domain class token composes
  * from this fragment (zero-hardcoding rule 9).
  */
 export const _B_HOME_MOSAIC = 'home-mosaic'
+/**
+ * BEM block fragment `card-stack` — the stacked featured-project deck's tag +
+ * class names compose from this single declaration (zero-hardcoding rule 9).
+ */
+export const _B_CARD_STACK = 'card-stack'
+/**
+ * BEM block fragment `media-mosaic` — the internals natural-size masonry
+ * wall's tag + class names compose from this single declaration
+ * (zero-hardcoding rule 9).
+ */
+export const _B_MEDIA_MOSAIC = 'media-mosaic'
 /**
  * BEM block fragment "b media figure" — composed by the token groups below into full class names.
  */
@@ -100,7 +117,7 @@ export const _B_INTERNAL = 'internal'
 /**
  * BEM block fragment "b related" — composed by the token groups below into full class names.
  */
-export const _B_RELATED = 'related-mosaic'
+export const _B_RELATED = 'related-list'
 /**
  * BEM block fragment "b awc" — composed by the token groups below into full class names.
  */
@@ -156,6 +173,26 @@ export const _B_DOCS = 'docs'
  * this single declaration (zero-hardcoding rule 9).
  */
 export const _B_SF = 'sf'
+/**
+ * BEM block fragment `route-search` — the not-found route-search component's
+ * tag + class names compose from this single declaration (zero-hardcoding
+ * rule 9).
+ */
+export const _B_ROUTE_SEARCH = 'route-search'
+
+/**
+ * BEM block fragment `sitemap` — the sitemap page's view chrome + 3D map
+ * class names compose from this single declaration (zero-hardcoding
+ * rule 9).
+ */
+export const _B_SITEMAP = 'sitemap'
+
+/**
+ * BEM block fragment `search-modal` — the nav search dialog's tag +
+ * class names compose from this single declaration (zero-hardcoding
+ * rule 9).
+ */
+export const _B_SEARCH_MODAL = 'search-modal'
 
 // ─── Composed blocks — declared once, reused by the per-component class ────
 // groups under tokens/classes/ and the selector token files.
@@ -225,6 +262,34 @@ export const _B_ABOUT_PROFILE_TEXT = `${_B_ABOUT_PROFILE}-text`
  */
 export const _B_ABOUT_ITEM = `${_B_ABOUT}-item`
 /**
+ * BEM block fragment "b about intro" — the hero statement paragraph column in the
+ * reworked about grid — composed by the token groups below into full class names.
+ */
+export const _B_ABOUT_INTRO = `${_B_ABOUT}-intro`
+/**
+ * BEM block fragment "b about profile media" — the portrait + name column wrapper —
+ * composed by the token groups below into full class names.
+ */
+export const _B_ABOUT_PROFILE_MEDIA = `${_B_ABOUT_PROFILE}-media`
+/**
+ * BEM block fragment "b about profile name" — the author name label under the portrait —
+ * composed by the token groups below into full class names.
+ */
+export const _B_ABOUT_PROFILE_NAME = `${_B_ABOUT_PROFILE}-name`
+/**
+ * BEM block fragment "b about profile hud" — the floating location-coordinate
+ * readouts orbiting the portrait — composed by the token groups below into
+ * full class names.
+ */
+export const _B_ABOUT_PROFILE_HUD = `${_B_ABOUT_PROFILE}-hud`
+/**
+ * BEM block fragment "b about main" — the left column wrapper (title, subtitle
+ * and the portrait/intro row) that lets the bio column beside it run the
+ * section's full height — composed by the token groups below into full class
+ * names.
+ */
+export const _B_ABOUT_MAIN = `${_B_ABOUT}-main`
+/**
  * BEM block fragment `awards-footer` — declared once here; every domain class token composes
  * from this fragment (zero-hardcoding rule 9).
  */
@@ -250,6 +315,22 @@ export const _B_CONTACT_SOCIAL = `${_B_CONTACT}-social`
  * BEM block fragment "b contact other" — composed by the token groups below into full class names.
  */
 export const _B_CONTACT_OTHER = `${_B_CONTACT}-other`
+/**
+ * BEM block fragment "b contact mail" — the primary e-mail channel block in the
+ * redesigned contact band — composed by the token groups below into full class names.
+ */
+export const _B_CONTACT_MAIL = `${_B_CONTACT}-mail`
+/**
+ * BEM block fragment "b contact links" — the secondary channel list (phone,
+ * LinkedIn, GitHub) in the redesigned contact band — composed by the token
+ * groups below into full class names.
+ */
+export const _B_CONTACT_LINKS = `${_B_CONTACT}-links`
+/**
+ * BEM block fragment `mentions-deck` — the stacked mentions/awards card deck's
+ * tag + class names compose from this single declaration (zero-hardcoding rule 9).
+ */
+export const _B_MENTIONS_DECK = 'mentions-deck'
 /**
  * BEM block fragment `expand-modal` — declared once here; every domain class token composes
  * from this fragment (zero-hardcoding rule 9).
@@ -360,6 +441,13 @@ export const _B_NAV_BURGER = `${_B_NAV}-burger`
  */
 export const _B_NAV_MENU_MODAL = `${_B_NAV}-menu-modal`
 /**
+ * BEM block fragment `joust` — the shared click-to-reveal contract for
+ * round icon chips (first tap on hover-less input pours the label out,
+ * second tap activates); the `joust`/`joust--open`/`joust-label` class
+ * tokens compose from this fragment (zero-hardcoding rule 9).
+ */
+export const _B_JOUST = 'joust'
+/**
  * BEM block fragment `…` — declared once here; every domain class token composes from this
  * fragment (zero-hardcoding rule 9).
  */
@@ -407,6 +495,49 @@ export const _B_SPP_ROW = `${_B_SPP}-row`
  * BEM block fragment "b spp switch" — composed by the token groups below into full class names.
  */
 export const _B_SPP_SWITCH = `${_B_SPP}-switch`
+/**
+ * BEM block fragment `card-stack-deck` — the fanned pointer/swipe region;
+ * the deck's class + selector tokens compose from this fragment
+ * (zero-hardcoding rule 9).
+ */
+export const _B_CARD_STACK_DECK = `${_B_CARD_STACK}-deck`
+/**
+ * BEM block fragment `card-stack-card` — every card-level class token
+ * composes from this fragment (zero-hardcoding rule 9).
+ */
+export const _B_CARD_STACK_CARD = `${_B_CARD_STACK}-card`
+/**
+ * BEM block fragment `card-stack-card-img` — the progressive-cover image
+ * layers (placeholder/thumb/high/loaded) compose from this fragment
+ * (zero-hardcoding rule 9).
+ */
+export const _B_CARD_STACK_CARD_IMG = `${_B_CARD_STACK_CARD}-img`
+/**
+ * BEM block fragment `card-stack-info` — the active-project text column
+ * (title, subtitle, description, "Check out" link) beside/below the fan;
+ * its class + selector tokens compose from this fragment (rule 9).
+ */
+export const _B_CARD_STACK_INFO = `${_B_CARD_STACK}-info`
+/**
+ * BEM block fragment `card-stack-toggle` — the "view all" header pill's
+ * class + selector tokens compose from this fragment (rule 9).
+ */
+export const _B_CARD_STACK_TOGGLE = `${_B_CARD_STACK}-toggle`
+/**
+ * BEM block fragment `card-stack-hint` — the "drag or swipe" affordance
+ * copy + gesture icon compose from this fragment (zero-hardcoding rule 9).
+ */
+export const _B_CARD_STACK_HINT = `${_B_CARD_STACK}-hint`
+/**
+ * BEM block fragment `card-stack-dot` — each nav dot's class + selector
+ * tokens compose from this fragment (zero-hardcoding rule 9).
+ */
+export const _B_CARD_STACK_DOT = `${_B_CARD_STACK}-dot`
+/**
+ * BEM block fragment `card-stack-index` — the all-projects index rail's
+ * class + selector tokens compose from this fragment (zero-hardcoding rule 9).
+ */
+export const _B_CARD_STACK_INDEX = `${_B_CARD_STACK}-index`
 
 /**
  * Shared key token `related` — single source for a literal repeated across modules

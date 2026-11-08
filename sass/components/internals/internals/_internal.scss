@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  internals/_internal.scss — the .internal chrome itself: title, content
 //  column, media sizing contracts (--mf-w/--mf-h for <media-figure>),
-//  expand control, footer panel, and the note-dot-pulse keyframes.
+//  expand control, and the footer panel.
 //  Imported by internals.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -23,6 +23,59 @@
     @include layout-1920() {
       padding: var(--space-5xl);
     }
+
+    // Marquee modifier (project view only): the title becomes an
+    // edge-to-edge uppercase ticker — horizontal padding clears so the
+    // strip spans the full bleed, overflow clips the looping copies.
+    &--marquee {
+      overflow: hidden;
+      padding-left: 0;
+      padding-right: 0;
+      text-align: left;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+  }
+
+  // The translating strip: two identical halves (each sized to span the
+  // viewport by the JS fit pass) slide -50% on an endless loop — a transform-only
+  // animation, so the ticker stays on the compositor. Duration defaults
+  // to a slow drift until JS derives copyW ÷ speed for constant px/s.
+  &-title-marquee {
+    display: inline-flex;
+    white-space: nowrap;
+    will-change: transform;
+    animation: internal-title-marquee 60s linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+
+    // Shadow DOM: mirror the store-driven reduced-motion flag.
+    :host-context(html.reduced-motion) & {
+      animation: none;
+    }
+  }
+
+  // One half of the strip: a flex-fixed run of "TITLE /" units whose
+  // count JS fits to the viewport, so the -50% translate seam always
+  // lands off-screen. Width is pure content — any extra space would open
+  // a gap at the loop seam.
+  &-title-copy {
+    display: inline-flex;
+    flex: 0 0 auto;
+  }
+
+  // One "TITLE |" repetition — the measured unit; flex-fixed so units
+  // never shrink and the measured width stays the real stride.
+  &-title-unit {
+    flex: 0 0 auto;
+  }
+
+  // The pipe between repetitions — symmetric inline padding keeps the
+  // stride even, so "TITLE | TITLE |" reads at a steady rhythm.
+  &-title-sep {
+    padding-inline: var(--space-xl);
   }
 
   &-main {
@@ -230,6 +283,24 @@
           padding-bottom: var(--space-6xl);
         }
       }
+    }
+
+    // Single-paragraph promotions — fitDescriptionSizes (layout.ts)
+    // measures the block at the base body size and stamps the modifier:
+    // a sentence occupying one line gets the XL display ramp, a longer
+    // single paragraph gets TXT_LG. line-height: normal releases the
+    // TXT_MD line-height, which was sized for the base font and would
+    // otherwise squeeze the promoted text.
+    &--xl &-text {
+      @extend %TTL_XL;
+
+      line-height: normal;
+    }
+
+    &--md &-text {
+      @extend %TXT_LG;
+
+      line-height: normal;
     }
 
     &-text {
@@ -571,12 +642,114 @@
       }
     }
 
+    // Unified-footer top row — the legal nav hugs the left edge and the
+    // right column (source pill over the home + socials row) hugs the
+    // right on desktop; everything stacks centered on mobile.
+    &-top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-xl);
+      width: 100%;
+      text-align: center;
+
+      @include layout-768() {
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--space-2xl);
+        text-align: left;
+      }
+    }
+
+    &-legal {
+      @include layout-768() {
+        flex: 1 1 auto;
+        min-width: 0;
+        text-align: left;
+      }
+    }
+
+    &-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-xl);
+
+      @include layout-768() {
+        flex-shrink: 0;
+        align-items: flex-end;
+        text-align: right;
+      }
+    }
+
+    // "PROJECT SOURCE CODE: GIT" — underlined centered line on mobile,
+    // outlined capsule pill pinned to the row's right on desktop.
+    &-source {
+      @extend %TTL_BASE;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2xs);
+      margin: 0;
+      padding: 0 0 var(--space-2xs);
+      border-bottom: var(--space-hairline) solid var(--text-primary);
+      font-family: var(--font-desc);
+      font-size: var(--space-lg);
+      font-weight: calc(400 + var(--fw-lift));
+      letter-spacing: var(--space-3xs);
+      text-transform: uppercase;
+      color: var(--text-primary);
+      flex-shrink: 0;
+
+      @include layout-768() {
+        padding: var(--space-md) var(--space-xl);
+        border: var(--space-hairline) solid var(--border-color);
+        border-radius: var(--radius-round);
+      }
+    }
+
+    &-source-link {
+      @extend %LK_LINK;
+
+      font-family: var(--font-desc);
+      color: var(--text-primary);
+      text-decoration: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-weight: calc(400 + var(--fw-lift));
+      border-bottom-color: transparent;
+
+      @include layout-768() {
+        border-bottom-color: currentColor;
+
+        &::after {
+          transform: scaleX(1);
+        }
+      }
+    }
+
+    // Home + social channels — the links reuse -items-link, so the row
+    // only carries flow alignment (right-aligned on desktop).
+    &-socials {
+      margin: 0;
+
+      @include layout-768() {
+        text-align: right;
+      }
+    }
+
     &-items {
       @extend %TTL_BASE;
       @extend %TTL_XS;
 
       // Full-bleed footer stripe spanning the whole viewport width — the
       // links row and the legal disclaimer share the grid's max area.
+      // Jost (--font-desc) is the footer-chrome face: every descendant
+      // inherits it unless it carries its own family (source pill already
+      // Jost, credit keeps the editorial serif italic).
+      font-family: var(--font-desc);
       box-sizing: border-box;
       width: 100%;
       margin: 0;
@@ -592,14 +765,29 @@
       &-separator {
         padding: 0 var(--space-md);
         display: none;
+        font-size: var(--space-lg);
+        opacity: 0.6;
 
         @include layout-375() {
           display: inline-block;
         }
 
+        @include layout-1024() {
+          font-size: var(--space-xl);
+        }
+
         @include layout-2560() {
           padding: 0 var(--space-lg);
         }
+      }
+
+      // Separator+item pair — the dot is glued to the FOLLOWING link as
+      // one atomic unit, so a wrap can only break before the pair: the
+      // separator opens the new line instead of dangling at the old
+      // line's end.
+      &-pair {
+        display: inline-block;
+        white-space: nowrap;
       }
 
       // Animated hairline between the socials row and the disclaimer
@@ -710,6 +898,14 @@
           width: auto;
         }
 
+        @include layout-768() {
+          font-size: var(--space-lg);
+        }
+
+        @include layout-1024() {
+          font-size: var(--space-xl);
+        }
+
         &.router-link-active {
           opacity: 1;
           border-bottom-color: var(--color-accent);
@@ -722,25 +918,14 @@
         @extend %TTL_XXS;
         @extend %MAXAREA;
 
-        // Collapsed: -note-text is justified and clamped to its first line
-        // (CSS ellipsis); -note-more renders three dots that pulse while the
-        // note is truncated — the "show more" affordance. The element is a
-        // real <button> so Enter/Space expand it (aria-expanded + :focus-visible).
-        display: flex;
-        align-items: baseline;
-        gap: var(--space-2xs);
+        // The disclaimer always renders in full — no clamp and no
+        // "show more" affordance.
         clear: both;
         width: 100%;
         padding: 0;
-        border: none;
         margin: var(--space-md) auto var(--space-lg);
-        font-family: inherit;
         font-weight: calc(300 + var(--fw-lift));
         line-height: var(--space-xl);
-        text-align: left;
-        color: inherit;
-        background: none;
-        cursor: pointer;
         // Mobile reads better capitalized (the authored sentence case);
         // the uppercase treatment resumes at tablet/desktop widths.
         text-transform: none;
@@ -750,169 +935,229 @@
         }
 
         &-text {
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 1;
-          line-clamp: 1;
-          overflow: hidden;
-          flex: 1 1 auto;
-          min-width: 0;
+          display: block;
           text-align: justify;
           text-align-last: left;
-          text-decoration: underline;
-          text-decoration-color: transparent;
-          text-underline-offset: var(--space-3xs);
-          transition: text-decoration-color 0.35s ease;
-        }
-
-        // Trailing "···" affordance — a bordered pill so it reads as a
-        // control, not typographic ellipsis; hidden until JS measures real
-        // truncation (is-truncated); dots pulse in a staggered wave.
-        &-more {
-          flex: none;
-          display: inline-flex;
-          align-items: center;
-          align-self: center;
-          gap: var(--space-xs);
-          padding: var(--space-2xs) var(--space-sm);
-          border: var(--space-3xs) solid var(--border-color);
-          border-radius: var(--radius-round);
-          transform: translateY(var(--space-3xs));
-          opacity: 0;
-          transition:
-            opacity 0.3s ease,
-            transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-            border-color 0.3s ease;
-        }
-
-        &-dot {
-          width: var(--space-xs);
-          height: var(--space-xs);
-          border-radius: var(--radius-round);
-          background: currentColor;
-          animation: note-dot-pulse 2.4s ease-in-out infinite;
-
-          &:nth-child(2) {
-            animation-delay: 0.25s;
-          }
-
-          &:nth-child(3) {
-            animation-delay: 0.5s;
-          }
-        }
-
-        &.is-truncated &-more {
-          opacity: 0.85;
-          transform: translateY(0);
-        }
-
-        &.is-open {
-          display: block;
-        }
-
-        &.is-open &-text {
-          display: block;
-          overflow: visible;
-          text-decoration: none;
-        }
-
-        &.is-open &-more {
-          display: none;
-        }
-
-        &:hover,
-        &:focus-visible {
-          color: var(--color-accent-contrast);
-        }
-
-        &:hover &-text,
-        &:focus-visible &-text {
-          text-decoration-color: currentColor;
-        }
-
-        &:hover &-more,
-        &:focus-visible &-more {
-          opacity: 1;
-          border-color: var(--border-item-hover);
-        }
-
-        &:active &-more {
-          transform: translateY(0) scale(0.92);
         }
       }
 
-      // Authorship block — sits under the second animated divider in both
-      // loaded and skeleton socials states. Centered, muted via the
-      // theme-aware secondary ink (AAA-safe on --bg-secondary).
+      // Authorship colophon — large editorial italic serif centered under
+      // the second divider, followed by the small-caps copyright line.
+      // Both are muted via theme-aware inks (AAA-safe on --bg-secondary).
       &-credit,
       &-rights {
-        @extend %TTL_BASE;
-        @extend %TTL_XXS;
-
         width: 100%;
         margin: 0 auto;
         text-align: center;
-        color: var(--text-secondary);
-        line-height: var(--space-xl);
-        // Quiet colophon, not small caps — drop %TTL_XXS's uppercase and
-        // set the authorship copy in italic instead.
-        text-transform: none;
-        font-style: italic;
       }
 
       &-credit {
+        @extend %TTL_BASE;
+
         max-width: var(--space-9xl);
-        margin-bottom: var(--space-sm);
+        margin-bottom: var(--space-xl);
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-size: var(--space-xl);
+        font-weight: calc(400 + var(--fw-lift));
+        line-height: 1.45;
+        color: var(--text-secondary);
+
+        @include layout-2560() {
+          font-size: var(--space-2xl);
+        }
+      }
+
+      &-rights {
+        @extend %TTL_BASE;
+
+        font-size: var(--space-lg);
+        line-height: var(--space-xl);
+        font-weight: calc(300 + var(--fw-lift));
+        text-transform: uppercase;
+        letter-spacing: var(--space-2xs);
+        color: var(--text-muted);
+      }
+
+      // RSS item — the locale feed link rendered as the last legal-nav
+      // entry (inline inside the links flow). The glyph paints in
+      // currentColor (inherits the link ink, so it meets the same
+      // contrast as the label in every theme).
+      &-feed {
+        display: inline-flex;
+        align-items: center;
+
+        &-link {
+          @extend %TTL_BASE;
+          @extend %LK_LINK;
+
+          display: inline-flex;
+          align-items: center;
+          gap: var(--space-xs);
+          color: inherit;
+          text-decoration: none;
+          font-size: var(--space-lg);
+          line-height: var(--space-xl);
+          font-weight: calc(300 + var(--fw-lift));
+          text-transform: uppercase;
+          cursor: pointer;
+
+          @include layout-1024() {
+            font-size: var(--space-xl);
+          }
+
+          // Broadcast pulse — on hover/focus the two arcs (the glyph's
+          // only <path>s) fade outward in a staggered wave. Opacity only,
+          // so it stays on the compositor.
+          &:hover path,
+          &:focus-visible path {
+            animation: internal-footer-feed-wave 1.4s ease-in-out infinite;
+          }
+
+          &:hover path:last-child,
+          &:focus-visible path:last-child {
+            animation-delay: 0.2s;
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            &:hover path,
+            &:focus-visible path {
+              animation: none;
+            }
+          }
+
+          // Shadow DOM: mirror the store-driven reduced-motion flag.
+          :host-context(html.reduced-motion) &:hover path,
+          :host-context(html.reduced-motion) &:focus-visible path {
+            animation: none;
+          }
+        }
+
+        &-icon {
+          flex: none;
+          width: var(--space-md);
+          height: var(--space-md);
+          fill: currentColor;
+          stroke: currentColor;
+          stroke-width: 2.5;
+          stroke-linecap: round;
+        }
+
+        // Arcs are stroked outlines only — the dot keeps the fill.
+        &-wave {
+          fill: none;
+        }
+      }
+
+      @keyframes internal-footer-feed-wave {
+        0%,
+        100% {
+          opacity: 1;
+        }
+
+        50% {
+          opacity: 0.3;
+        }
       }
     }
 
-    // Docs-portal entry — a dedicated footer area below the legal links:
-    // untranslated English title, localized "English only" description.
+    // Docs-portal entry — stacked centered two-line heading + subtitle on
+    // mobile; large inline heading + underlined arrow + muted subtitle
+    // on desktop. Untranslated English title, localized "English only"
+    // description.
     &-docs {
-      @extend %TTL_BASE;
-      @extend %TTL_XS;
-
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: var(--space-3xs);
+      justify-content: center;
+      gap: var(--space-md);
       width: 100%;
-      padding: var(--space-lg) var(--space-2xl) var(--space-xl);
+      margin: var(--space-xl) 0 0;
       text-align: center;
       color: var(--text-primary);
-      background: var(--bg-secondary);
+
+      @include layout-768() {
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: var(--space-2xl);
+        margin-top: var(--space-2xl);
+        text-align: left;
+      }
 
       &-link {
         @extend %TTL_BASE;
-        @extend %TTL_XS;
         @extend %LK_LINK;
 
-        color: inherit;
-        text-decoration: none;
-        text-transform: uppercase;
+        display: inline-block;
+        max-width: var(--space-6xl);
+        font-size: var(--space-2xl);
+        line-height: 1.15;
         font-weight: calc(300 + var(--fw-lift));
+        color: var(--text-primary);
+        text-decoration: none;
         cursor: pointer;
+        padding-bottom: var(--space-xs);
+        border-bottom-color: currentColor;
+        transition:
+          opacity 0.2s ease,
+          border-bottom-color 0.3s ease;
+
+        &::after {
+          transform: scaleX(1);
+        }
+
+        @include layout-768() {
+          display: inline-flex;
+          align-items: baseline;
+          gap: var(--space-md);
+          max-width: none;
+          padding-bottom: 0;
+          border-bottom-color: transparent;
+
+          &::after {
+            transform: scaleX(0);
+          }
+
+          &:hover::after,
+          &:focus-visible::after {
+            transform: scaleX(1);
+          }
+        }
+
+        @include layout-1024() {
+          font-size: var(--space-3xl);
+        }
+      }
+
+      &-arrow {
+        display: none;
+        font-weight: calc(300 + var(--fw-lift));
+
+        @include layout-768() {
+          display: inline-block;
+          line-height: 1;
+          padding-bottom: var(--space-2xs);
+          border-bottom: var(--space-hairline) solid currentColor;
+        }
       }
 
       &-desc {
         @extend %TTL_BASE;
-        @extend %TTL_XXS;
 
-        opacity: 0.7;
+        font-size: var(--space-lg);
+        font-weight: calc(300 + var(--fw-lift));
+        color: var(--text-muted);
       }
     }
   }
 }
 
-// Three-dot pulse for the disclaimer "more" affordance — each dot eases
-// between dim and full ink; nth-child delays stagger the wave.
-@keyframes note-dot-pulse {
-  0%,
-  100% {
-    opacity: 0.25;
-  }
-
-  50% {
-    opacity: 1;
+// Title marquee loop — one -50% translate of the two-copy strip lands the
+// second copy exactly where the first sat (the seamless seam).
+@keyframes internal-title-marquee {
+  to {
+    transform: translateX(-50%);
   }
 }

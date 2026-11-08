@@ -33,6 +33,8 @@ export * from './strings/text.js'
 export const MEDIA_QUERIES = Object.freeze({
   POINTER_FINE: '(pointer: fine)',
   POINTER_COARSE: '(pointer: coarse)',
+  /** Primary input cannot hold :hover — the joust (tap-to-reveal) trigger. */
+  HOVER_NONE: '(hover: none)',
   MAX_WIDTH_768: '(max-width: 768px)',
   /** Architecture-map visibility bound — the docs map column only exists at $vw-1024+1. */
   MIN_WIDTH_1025: '(min-width: 1025px)',

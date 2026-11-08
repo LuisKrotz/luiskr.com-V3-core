@@ -36,6 +36,12 @@ export const uiMutations = (store: Store): MutationMap => ({
       typeof open === TYPE_STRINGS.BOOLEAN ? (open as boolean) : !store.state.langDialogOpen
   },
   // Boolean payload sets explicitly; a non-boolean toggles — same
+  // contract as the sibling dialog flags above.
+  toggleSearchModal: (open) => {
+    store.state.searchModalOpen =
+      typeof open === TYPE_STRINGS.BOOLEAN ? (open as boolean) : !store.state.searchModalOpen
+  },
+  // Boolean payload sets explicitly; a non-boolean toggles — same
   // set/toggle contract as the dialog flags above. Committed by
   // <app-nav>'s menu state machine so subscribers (carousel autoplay,
   // media videos) pause while the fullscreen overlay owns the frame.

@@ -20,11 +20,10 @@ import { LANG_SLUGS } from './locale/lang-slugs.js'
  * German/Brazilian, Talian = Italian/Brazilian, Castellano and Portuñol
  * straddle AR/UY/BR). `es-ga`/`es-ct` are region-qualified codes for
  * Galicia/Catalonia whose flags the renderer draws as striped variants.
- * `short` is the 2-letter chip label; omitted means "uppercase the code".
  */
 const _RAW_LANG_OPTIONS = [
   { code: LOCALES.EN, label: 'English', cc: 'us', flag: '🇺🇸' },
-  { code: LOCALES.BR, short: 'PT', label: 'Português (BR)', cc: 'br', flag: '🇧🇷' },
+  { code: LOCALES.BR, label: 'Português', cc: 'br', flag: '🇧🇷' },
   { code: LOCALES.ES, label: 'Español', cc: 'es', flag: '🇪🇸' },
   { code: LOCALES.DE, label: 'Deutsch', cc: 'ch', cc2: 'de', flag: '🇩🇪' },
   { code: LOCALES.HRK, label: 'Hunsrik', cc: 'de', cc2: 'br', flag: '🇧🇷' },
@@ -42,16 +41,11 @@ const _RAW_LANG_OPTIONS = [
 ]
 
 /**
- * Language picker rows with `short` defaulted to the uppercased locale
- * code (PT stays 'PT', EN becomes 'EN').
- * @type {Readonly<Array<{code: string, label: string, cc: string, cc2?: string, flag: string, short: string}>>}
+ * Language picker rows — frozen registry driving the lang dialog, the
+ * router's VALID_LANGS, and the per-flag WebGL widgets.
+ * @type {Readonly<Array<{code: string, label: string, cc: string, cc2?: string, flag: string}>>}
  */
-export const LANG_OPTIONS = Object.freeze(
-  _RAW_LANG_OPTIONS.map((item) => ({
-    ...item,
-    short: item.short || item.code.toUpperCase(),
-  }))
-)
+export const LANG_OPTIONS = Object.freeze(_RAW_LANG_OPTIONS)
 
 /**
  * One language-picker row — element type of LANG_OPTIONS, derived from the
@@ -83,12 +77,16 @@ export interface LangSlugMap {
   terms: string
   /** License page segment. */
   license: string
+  /** Search page segment. */
+  search: string
   /** Earth playground segment. */
   earthPlayground: string
   /** Star-field experiment segment. */
   starField: string
   /** Animations-reference segment. */
   animations: string
+  /** Sitemap page segment. */
+  sitemap: string
 }
 
 /**

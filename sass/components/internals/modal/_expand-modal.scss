@@ -101,6 +101,9 @@
     &-title {
       @extend .ttl-xs;
 
+      // Jost (--font-desc) — the media caption in the chrome bar reads as
+      // interface text, not a display title, so it leaves the Poiret ramp.
+      font-family: var(--font-desc);
       color: var(--text-muted-on-dark);
       font-weight: calc(200 + var(--fw-lift));
       white-space: nowrap;
@@ -352,6 +355,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    // `safe` refinement: a natural-size media item wider than the content
+    // column must fall back to start alignment — centered overflow would
+    // clip its leading edge beyond the dialog's scroll reach. Engines
+    // without the safe keyword drop this declaration and keep plain
+    // center (previous behaviour).
+    align-items: safe center;
     justify-content: flex-start;
     transform-origin: center top;
 
@@ -452,8 +461,11 @@
     &-figure {
       position: relative;
       display: block;
-      // Preserve intrinsic media width: narrow screenshots stay pixel-sharp
-      // instead of being stretched to the modal's full content width.
+      // Preserve the stamped media box — the item caps at the dialog
+      // width, so the figure's fit-content wrap tracks the capped box;
+      // vertical oversize keeps overflowing into the dialog's scroll
+      // (every pixel reachable) instead of cropping through this
+      // figure's overflow:hidden.
       width: fit-content;
       max-width: 100%;
       margin: 0 auto;
@@ -463,14 +475,12 @@
       background-color: var(--bg-dark);
 
       &--video {
-        max-width: min(100%, calc(100ch - 4rem));
-        max-height: calc(100vh - 12rem);
-        max-height: calc(100dvh - 12rem);
+        // Same no-reduction contract as images: no 100ch/100dvh caps —
+        // the figure wraps the stamped natural box and oversized players
+        // overflow into the dialog's scroll instead of shrinking.
         display: flex;
         align-items: center;
         justify-content: center;
-        flex: 1;
-        width: 100%;
         margin: 0 auto;
         box-shadow: none;
         background-color: transparent;
@@ -516,18 +526,19 @@
       display: block;
       position: relative;
       z-index: 1;
+      max-width: 100%;
       width: auto;
       height: auto;
-      max-width: 100%;
-      // No max-height on images — the mount path stamps the WASM-computed
-      // box as explicit px (calcMediaBox with an unbounded height), so a
-      // "huge length" capture keeps its full fitted width and overflows
-      // vertically into the dialog's own scroll instead of being squashed
-      // to the viewport. scale-down stays as the intrinsic-dims safety:
-      // `none` when the stamped box is larger than the file, `contain`
-      // when declared metadata overstates it — declared metadata larger
-      // than the real bitmap can never force an upscale. Centered so a
-      // mismatch letterboxes symmetrically instead of top-anchoring.
+      // The mount path stamps the declared natural width + aspect-ratio —
+      // max-width caps the box at the dialog width so an oversized file
+      // never outspans the modal sideways; aspect-ratio (not a stamped
+      // px height) keeps the box proportional when the cap binds, and
+      // vertical oversize still overflows into the dialog's own scroll.
+      // scale-down stays as the intrinsic-dims safety: `none` when the
+      // stamped box is larger than the file, `contain` when declared
+      // metadata overstates it — declared metadata larger than the real
+      // bitmap can never force an upscale. Centered so a mismatch
+      // letterboxes symmetrically instead of top-anchoring.
       object-fit: scale-down;
       object-position: center;
 
@@ -536,9 +547,10 @@
       }
 
       &--video {
+        // Same width cap as images — the stamped natural box stands
+        // under it; a too-wide player fits the dialog instead of
+        // bleeding off the edge.
         max-width: 100%;
-        max-height: calc(100vh - 12rem);
-        max-height: calc(100dvh - 12rem);
         width: auto;
         height: auto;
         border-radius: to-rem($space-md);

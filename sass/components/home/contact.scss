@@ -1,8 +1,11 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  contact.scss — the home page's contact footer: a full-bleed band on
-//  --bg-secondary (light in light mode, dark in dark mode) containing
-//  heading, email/social links and CTA copy inside a %MAXAREA column.
-//  The nav's --on-dark variant keys off this section.
+//  --bg-secondary (light in light mode, dark in dark mode) containing the
+//  CONTACT / GET IN TOUCH heading + subtitle, the primary mailto channel
+//  beside the secondary link list, and the <mentions-deck> awards fan —
+//  all inside a %MAXAREA column. Mobile collapses the channels into pills
+//  (filled mail pill, outline link pills). The nav's --on-dark variant
+//  keys off this section.
 // ════════════════════════════════════════════════════════════════════════════
 
 @import '../../base/variables';
@@ -34,7 +37,7 @@
   border-image: var(--metallic-hairline) 1;
   background-image: var(--filament-glow);
   display: block;
-  text-align: center;
+  text-align: left;
   max-width: 100%;
 
   @include layout-768() {
@@ -43,21 +46,273 @@
   }
 
   &-title {
-    @extend .ttl-lg;
+    @extend %TTL_BASE;
 
     text-transform: uppercase;
     color: inherit;
     margin: 0;
     box-sizing: border-box;
     width: 100%;
-    text-align: center;
-    padding: to-rem($space-2xl) 0 to-rem($space-xl);
+    text-align: left;
+    font-size: to-rem($space-2xl);
+    font-weight: calc(300 + var(--fw-lift));
+    letter-spacing: to-rem($space-3xs);
+    line-height: 1.15;
+    padding: to-rem($space-xl) 0 to-rem($space-lg);
 
     @include layout-768() {
-      padding: to-rem($space-3xl) 0 to-rem($space-2xl);
+      letter-spacing: to-rem($space-2xs);
+      padding: to-rem($space-2xl) 0 to-rem($space-xs);
+    }
+
+    @include layout-1024() {
+      font-size: to-rem($space-3xl);
+    }
+
+    @include layout-2560() {
+      font-size: to-rem($space-4xl);
     }
   }
 
+  // "Let's create something extraordinary" — the quiet line under the title (desktop).
+  &-subtitle {
+    @extend .ttl-xs;
+
+    display: none;
+    font-family: var(--font-desc);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: calc(300 + var(--fw-lift));
+    margin: 0;
+    padding: 0 0 to-rem($space-3xl);
+    letter-spacing: to-rem($space-2xs);
+
+    @include layout-768() {
+      display: block;
+    }
+  }
+
+  // The channel row — mail block left, secondary links right (desktop);
+  // stacks into pills on small viewports.
+  &-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: to-rem($space-md);
+    padding-bottom: to-rem($space-xl);
+
+    @include layout-768() {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: to-rem($space-2xl);
+      padding-bottom: to-rem($space-2xl);
+    }
+  }
+
+  // Primary mailto channel — desktop: large label over a muted large address link;
+  // mobile: a filled pill carrying uppercase label + compact address.
+  &-mail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: to-rem($space-3xs);
+    text-decoration: none;
+    cursor: pointer;
+    color: var(--color-black-raw);
+    background: var(--color-white-raw);
+    border-radius: var(--radius-round);
+    padding: to-rem($space-lg) to-rem($space-xl);
+    box-shadow: var(--shadow-card);
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+
+    @include layout-768() {
+      align-items: flex-start;
+      text-align: left;
+      color: inherit;
+      background: transparent;
+      border-radius: var(--radius-none);
+      padding: 0;
+      box-shadow: none;
+      width: auto;
+      gap: to-rem($space-2xs);
+    }
+
+    &-label {
+      @extend %TTL_BASE;
+
+      font-size: to-rem($space-lg);
+      line-height: 1.2;
+      letter-spacing: to-rem($space-3xs);
+      text-transform: uppercase;
+      font-weight: calc(400 + var(--fw-lift));
+
+      @include layout-768() {
+        font-size: to-rem($space-xl);
+        letter-spacing: 0;
+        text-transform: capitalize;
+        font-weight: calc(300 + var(--fw-lift));
+        color: var(--text-primary);
+      }
+
+      @include layout-1024() {
+        font-size: to-rem($space-2xl);
+      }
+
+      @include layout-2560() {
+        font-size: to-rem($space-3xl);
+      }
+    }
+
+    &-addr {
+      @extend %TTL_BASE;
+      @extend %LK_LINK;
+
+      font-size: to-rem($space-lg);
+      line-height: to-rem($space-xl);
+      letter-spacing: 0;
+      text-transform: lowercase;
+      font-weight: calc(300 + var(--fw-lift));
+      color: var(--color-grey-3-raw);
+
+      @include layout-768() {
+        font-size: to-rem($space-xl);
+        line-height: 1.2;
+        color: var(--text-muted);
+      }
+
+      @include layout-1024() {
+        font-size: to-rem($space-2xl);
+      }
+
+      @include layout-2560() {
+        font-size: to-rem($space-3xl);
+      }
+    }
+  }
+
+  // Secondary channel list — desktop: a row of arrow links each with a
+  // muted caption; mobile: a column of outline pills (label only).
+  &-links {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: to-rem($space-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    @include layout-768() {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: to-rem($space-2xl);
+    }
+
+    @include layout-1024() {
+      gap: to-rem($space-3xl);
+    }
+
+    @include layout-1440() {
+      gap: to-rem($space-4xl);
+    }
+
+    &-item {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
+
+      @include layout-768() {
+        align-items: flex-start;
+        text-align: left;
+      }
+    }
+
+    &-link {
+      @extend %TTL_BASE;
+      @extend %LK_LINK;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: to-rem($space-sm);
+      color: inherit;
+      text-decoration: none;
+      text-transform: uppercase;
+      font-size: to-rem($space-lg);
+      letter-spacing: to-rem($space-3xs);
+      font-weight: calc(400 + var(--fw-lift));
+      cursor: pointer;
+      border: to-rem($space-hairline) solid var(--border-color);
+      border-radius: var(--radius-round);
+      padding: to-rem($space-lg) to-rem($space-xl);
+      line-height: 1.2;
+
+      @include layout-768() {
+        justify-content: flex-start;
+        border-color: transparent;
+        border-radius: var(--radius-none);
+        padding: 0;
+        font-size: to-rem($space-xl);
+        font-weight: calc(300 + var(--fw-lift));
+      }
+
+      @include layout-2560() {
+        font-size: to-rem($space-2xl);
+      }
+    }
+
+    // The '→' hint on desktop arrow links — the pills drop it on mobile.
+    &-arrow {
+      display: none;
+      font-weight: calc(300 + var(--fw-lift));
+
+      @include layout-768() {
+        display: inline;
+      }
+    }
+
+    // Optional muted caption under a channel link — desktop only.
+    &-caption {
+      @extend %TTL_BASE;
+
+      display: none;
+      font-size: to-rem($space-lg);
+      line-height: 1.3;
+      letter-spacing: 0;
+      color: var(--text-muted);
+      font-weight: calc(300 + var(--fw-lift));
+      text-transform: none;
+
+      @include layout-768() {
+        display: block;
+        padding-top: to-rem($space-xs);
+      }
+
+      @include layout-2560() {
+        font-size: to-rem($space-xl);
+      }
+    }
+  }
+
+  // The mounted <mentions-deck> — a metallic hairline separates the
+  // channel row from SOME MENTIONS (the reference's divider).
+  &-mentions {
+    display: block;
+    margin-top: to-rem($space-xl);
+    border-top: to-rem($space-hairline) solid transparent;
+    border-image: var(--metallic-hairline) 1;
+    padding-top: to-rem($space-xl);
+
+    @include layout-768() {
+      margin-top: to-rem($space-2xl);
+      padding-top: to-rem($space-2xl);
+    }
+  }
+
+  // Skeleton row — shimmer link slots shown while the contact node loads.
   &-social,
   &-other {
     @extend .ttl-xs;
@@ -85,12 +340,13 @@
     width: 100%;
     box-sizing: border-box;
     padding: 0 0 to-rem($space-2xl);
+    text-align: center;
 
     @include layout-768() {
       padding: 0 0 to-rem($space-lg);
     }
 
-    // Social/mail links display animated underline on hover.
+    // Skeleton link slots display animated underline on hover.
     &-link {
       @extend .ttl-sm;
       @extend %LK_LINK;

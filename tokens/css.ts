@@ -8,6 +8,7 @@
 /* istanbul ignore file */
 
 export * from './css/carousel.js'
+export * from './css/mosaic.js'
 export * from './css/theme.js'
 export * from './css/genie.js'
 export * from './css/skeleton.js'

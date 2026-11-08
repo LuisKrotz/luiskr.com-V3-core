@@ -86,7 +86,7 @@
 // Card title text inside the overlay.
 .home-mosaic-title {
   @extend %TTL_SM;
-  font-family: var(--font-primary);
+  font-family: var(--font-desc);
   font-weight: calc(100 + var(--fw-lift));
   text-transform: uppercase;
   letter-spacing: 0.08em;

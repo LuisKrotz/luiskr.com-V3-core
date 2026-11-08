@@ -1,0 +1,374 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  mentions-deck.scss — the "Some mentions" card deck inside the home
+//  contact band (<mentions-deck>): section title, the flat card strip
+//  (numbered mention cards — dark neighbours, light front), and the
+//  centered hint + dot-nav chrome. Single partial — the surface
+//  is small enough to not need the cardstack split.
+//  ALL card geometry (position/size/rotation/opacity) is computed in JS by
+//  mentions-deck/deck.ts and written as inline styles — this sheet owns
+//  colors, chrome, captions, breakpoints and transitions, never layout
+//  numbers.
+// ════════════════════════════════════════════════════════════════════════════
+
+@import '../../base/variables';
+@import '../../base/mixins';
+@import '../../base/fonts';
+@import '../../base/placeholders';
+@import '../../base/structure';
+
+$_B_MENTIONS_DECK: 'mentions-deck';
+
+// Shadow host — block surface inside the contact band.
+:host {
+  display: block;
+  width: 100%;
+}
+
+.#{$_B_MENTIONS_DECK} {
+  display: block;
+  width: 100%;
+  color: var(--text-primary);
+
+  // "SOME MENTIONS" section heading — left-aligned, geometric caps.
+  &-title {
+    @extend %TTL_BASE;
+
+    font-size: to-rem($space-xl);
+    font-weight: calc(300 + var(--fw-lift));
+    letter-spacing: to-rem($space-3xs);
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: inherit;
+    text-align: left;
+    margin: 0;
+    padding: 0 0 to-rem($space-xl);
+
+    @include layout-1024() {
+      font-size: to-rem($space-2xl);
+    }
+
+    @include layout-2560() {
+      font-size: to-rem($space-3xl);
+    }
+  }
+
+  // Strip region — JS writes its height (card height × DECK_H_RATIO) and
+  // overflow clips whatever slips past the edge. On wide decks the edge
+  // is a dissolve lane: a mask gradient fades the outer
+  // --mentions-deck-fade px (card width × FADE_FRAC, published by JS per
+  // measure; the token default only covers pre-measure frames) to 0 at
+  // the boundary, so a card crossing the clip dissolves into the edge
+  // instead of showing a hard slice while JS's uniform opacity curve
+  // dims it. On mobile decks JS publishes 0 — the lane collapses to the
+  // clip edge and partial neighbours peek at full color instead of
+  // vignetting into the band.
+  // touch-action: pan-y keeps vertical page scroll native while
+  // horizontal drags reach the passive pointermove stream; user-select
+  // is off so a swipe can't start a text selection mid-gesture.
+  &-deck {
+    --mentions-deck-fade: #{to-rem($space-5xl)};
+
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    touch-action: pan-y;
+    user-select: none;
+    cursor: grab;
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-white-raw) var(--mentions-deck-fade),
+      var(--color-white-raw) calc(100% - var(--mentions-deck-fade)),
+      transparent
+    );
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-white-raw) var(--mentions-deck-fade),
+      var(--color-white-raw) calc(100% - var(--mentions-deck-fade)),
+      transparent
+    );
+
+    // Live drag — kills the settle transitions so every card's transform
+    // tracks the pointer 1:1; releases back into the animated settle.
+    &--dragging {
+      cursor: grabbing;
+
+      .#{$_B_MENTIONS_DECK}-card {
+        transition: none;
+      }
+    }
+  }
+
+  // Card shell — center-anchored: JS's transform always starts with
+  // translate(-50%, -50%) so x offsets are relative to the deck-center
+  // anchor. Neighbour cards ride a subtle hairline + white lift so the
+  // dark faces still read as cards on the dark band; the front card
+  // flips to the light paper surface the reference design spotlights.
+  &-card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    container-type: inline-size; // cqw text scales with the card, not the viewport
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-white-raw) 78%, var(--bg-dark));
+    color: var(--color-black-raw);
+    border: to-rem($space-hairline) solid
+      color-mix(in srgb, var(--color-white-raw) 35%, transparent);
+    box-shadow: var(--shadow-card);
+    box-sizing: border-box;
+    // transform drives both the settle glide and the drag tracking;
+    // visibility drops off-canvas cards for pointer/AT.
+    transition:
+      transform 0.42s cubic-bezier(0.3, 0.9, 0.35, 1),
+      opacity 0.42s ease,
+      box-shadow 0.35s ease,
+      background-color 0.35s ease,
+      color 0.35s ease;
+
+    @include layout-768() {
+      background: color-mix(in srgb, var(--color-white-raw) 5%, var(--bg-dark));
+      color: var(--color-white-raw);
+      border-color: var(--border-color-on-dark);
+    }
+
+    &--active {
+      background: var(--color-white-raw);
+      color: var(--color-black-raw);
+      border-color: transparent;
+      box-shadow: var(--shadow-card-featured);
+      cursor: pointer;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  // Stretched-link pattern — the anchor fills the card. The grid pins
+  // the ordinal top-left, the corner icon top-right, the mention copy
+  // bottom-left and the badge image on the right column, mirroring the
+  // reference card anatomy.
+  &-card-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto 1fr;
+    column-gap: to-rem($space-md);
+    width: 100%;
+    height: 100%;
+    padding: to-rem($space-lg) to-rem($space-xl);
+    box-sizing: border-box;
+    text-decoration: none;
+    color: inherit;
+    border-radius: inherit;
+
+    &:has(.#{$_B_MENTIONS_DECK}-card-img) {
+      .#{$_B_MENTIONS_DECK}-card-text {
+        grid-column: 1;
+      }
+    }
+  }
+
+  // Zero-padded ordinal in the top-left corner ('01') — quiet caption,
+  // card-width-scaled (cqw) like the copy below.
+  &-card-num {
+    @extend .ttl-xxs;
+
+    font-family: var(--font-ui);
+    grid-column: 1;
+    grid-row: 1;
+    font-weight: calc(400 + var(--fw-lift));
+    letter-spacing: to-rem($space-3xs);
+    opacity: 0.65;
+    font-size: var(--space-lg); // fallback: Safari < 16 / iOS < 16
+    font-size: clamp(var(--space-md), 4cqw, var(--space-lg));
+  }
+
+  // Small corner mark — the row's glyph when the CMS ships one ('🏆').
+  &-card-icon {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    font-size: to-rem($space-lg);
+    line-height: 1;
+    opacity: 0.7;
+  }
+
+  // Mention copy — the CMS description markup stacked under the ordinal
+  // in the lead column (spanning both columns when no image is present).
+  &-card-text {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    align-self: start;
+    font-family: var(--font-desc);
+    padding-top: to-rem($space-sm);
+    text-transform: uppercase;
+    font-weight: calc(400 + var(--fw-lift));
+    letter-spacing: 0;
+    line-height: 1.32;
+    font-size: var(--space-lg); // fallback: Safari < 16 / iOS < 16
+    font-size: clamp(var(--space-md), 4cqw, var(--space-lg));
+  }
+
+  // Badge/trophy image — right column, vertically centered across both
+  // rows. Explicit rem width prevents the intrinsic HTML width attribute
+  // from inflating the `auto` grid track and crushing the 1fr text column.
+  &-card-img {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    align-self: center;
+    justify-self: end;
+    width: to-rem($space-4xl);
+    max-height: to-rem($space-5xl);
+    height: auto;
+    object-fit: contain;
+
+    @include layout-768() {
+      width: calc(#{to-rem($space-4xl)} + #{to-rem($space-xl)});
+    }
+  }
+
+  // Chrome row under the strip — the hint copy and minimalist dot nav
+  // both centered, stacked per the reference design.
+  &-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: to-rem($space-sm);
+    width: 100%;
+    padding-top: to-rem($space-lg);
+  }
+
+  // Hand glyph inside the hint — stacked above the hint text on mobile,
+  // inline beside it on desktop; slides a small swipe loop.
+  &-hint-icon {
+    display: block;
+    width: to-rem($space-2xl);
+    height: to-rem($space-2xl);
+    fill: currentColor;
+    animation: mentions-deck-swipe 2.4s ease-in-out infinite;
+    will-change: transform;
+
+    @include layout-768() {
+      display: inline-block;
+      width: to-rem($space-lg);
+      height: to-rem($space-lg);
+    }
+  }
+
+  // "Drag or swipe…" affordance copy — centered small caps.
+  &-hint {
+    @extend .ttl-xxs;
+
+    font-family: var(--font-ui);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: to-rem($space-sm);
+    margin: 0;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: calc(300 + var(--fw-lift));
+    letter-spacing: to-rem($space-3xs);
+    text-align: center;
+
+    @include layout-768() {
+      flex-direction: row;
+      gap: to-rem($space-xs);
+    }
+  }
+
+  // Minimalist pagination dots — subtle muted discs that morph into a
+  // compact white pill when active, while preserving ≥24px tap targets.
+  &-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: to-rem($space-2xs);
+    flex-shrink: 0;
+  }
+
+  &-dot {
+    @extend %RESETBTN;
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(#{to-rem($space-lg)} + #{to-rem($space-md)});
+    min-width: calc(#{to-rem($space-lg)} + #{to-rem($space-md)});
+    border-radius: var(--radius-round);
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: min-width 0.4s $ease-spring;
+
+    &::after {
+      content: '';
+      display: block;
+      width: to-rem($space-sm);
+      height: to-rem($space-sm);
+      border-radius: var(--radius-round);
+      background: color-mix(in srgb, var(--text-primary) 28%, transparent);
+      transition:
+        width 0.4s $ease-spring,
+        background-color 0.25s ease;
+    }
+
+    &--active {
+      min-width: calc(#{to-rem($space-xl)} + #{to-rem($space-md)});
+
+      &::after {
+        width: to-rem($space-xl);
+        background: var(--text-primary);
+      }
+    }
+
+    &:hover:not(&--active),
+    &:focus-visible:not(&--active) {
+      &::after {
+        background: color-mix(in srgb, var(--text-primary) 55%, transparent);
+      }
+    }
+
+    :host-context(html.high-contrast) &::after {
+      background: var(--text-primary);
+    }
+  }
+
+  // Visually-hidden slide numeral — keeps the text node in the accessibility
+  // tree without cluttering the minimalist 5px dot indicators.
+  &-dot-num {
+    position: absolute;
+    width: to-rem($space-hairline);
+    height: to-rem($space-hairline);
+    padding: 0;
+    margin: calc(-1 * to-rem($space-hairline));
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+    pointer-events: none;
+  }
+}
+
+// Hand swipe loop — slides right and returns like a card grab; killed
+// entirely under reduced motion.
+@keyframes mentions-deck-swipe {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(to-rem($space-sm));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{$_B_MENTIONS_DECK}-hint-icon {
+    animation: none;
+  }
+}

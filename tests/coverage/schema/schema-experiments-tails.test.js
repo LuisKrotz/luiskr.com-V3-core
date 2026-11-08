@@ -14,7 +14,11 @@ import {
   generateProjectSchema,
 } from '@core/utils/schema.js'
 import { LOCALES } from '@core/tokens/locales.js'
-import { TEST_TEXT, TEST_PROJECTS } from '@tests/fixtures/test-constants.js'
+import { MEDIA_CREDIT_SOURCES } from '@core/tokens/media/credits.js'
+import { NET_STRINGS } from '@core/tokens/strings/net.js'
+import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
+import { BASE_TITLE } from '@core/tokens/routes.js'
+import { TEST_TEXT, TEST_PROJECTS, TEST_URLS } from '@tests/fixtures/test-constants.js'
 
 const URL_A = 'https://luiskr.com/earth-playground'
 const URL_B = 'https://luiskr.com/star-field-experiment'
@@ -146,6 +150,117 @@ describe('experiment schema builders', () => {
 
     expect(crumbs.itemListElement).toHaveLength(3)
     expect(crumbs.itemListElement[1].item).toBe(URL_B)
+  })
+
+  test('star body graph exposes credited images and videos without invented dates', () => {
+    const graph = generateStarBodySchema({
+      url: `${URL_B}/earth`,
+      indexUrl: URL_B,
+      indexName: 'Star Field',
+      name: 'Earth',
+      tagline: TEST_TEXT.BODY,
+      media: {
+        images: [
+          { src: TEST_URLS.IMG, caption: TEST_TEXT.HEADING, credit: TEST_TEXT.BODY },
+          { src: TEST_URLS.B, caption: TEST_TEXT.HEADING },
+          { src: '' },
+        ],
+        videos: [
+          {
+            src: TEST_URLS.VIDEO,
+            caption: TEST_TEXT.HEADING,
+            credit: TEST_TEXT.BODY,
+            poster: TEST_URLS.A,
+          },
+          { src: TEST_URLS.B, poster: 'poster-relative' },
+          { src: '' },
+        ],
+      },
+    })
+
+    const page = graph.find((entity) => entity['@type'] === 'WebPage')
+    const article = graph.find((entity) => entity['@type'] === 'Article')
+    const images = graph.filter((entity) => entity['@type'] === 'ImageObject')
+    const videos = graph.filter((entity) => entity['@type'] === 'VideoObject')
+
+    expect(page.primaryImageOfPage.url).toBe(TEST_URLS.IMG)
+    expect(page.mainEntity['@id']).toBe(`${URL_B}/earth#article`)
+    expect(article.image).toEqual([TEST_URLS.IMG, TEST_URLS.B])
+    expect(article.about.image).toBe(TEST_URLS.IMG)
+    expect(images).toHaveLength(2)
+    expect(images[0].creditText).toBe(TEST_TEXT.BODY)
+    expect(images[0].representativeOfPage).toBe(true)
+    expect(images[1].representativeOfPage).toBe(false)
+    expect(videos).toHaveLength(2)
+    expect(videos[0].thumbnailUrl).toEqual([TEST_URLS.A])
+    expect(videos[1].thumbnailUrl).toEqual([TEST_URLS.IMG])
+    expect(videos[0].creditText).toBe(TEST_TEXT.BODY)
+    expect(videos[0].uploadDate).toBeUndefined()
+    expect(videos[0].duration).toBeUndefined()
+    expect(videos[0].embedUrl).toBeUndefined()
+
+    const withoutPoster = generateStarBodySchema({
+      url: `${URL_B}/moon`,
+      indexUrl: URL_B,
+      indexName: 'Star Field',
+      name: 'Moon',
+      media: { videos: [{ src: TEST_URLS.VIDEO }] },
+    })
+
+    expect(withoutPoster.some((entity) => entity['@type'] === 'VideoObject')).toBe(false)
+  })
+
+  test('credited dossier media resolves the source licence provenance', () => {
+    const credit = Object.keys(MEDIA_CREDIT_SOURCES)[0]
+
+    const graph = generateStarBodySchema({
+      url: `${URL_B}/sirius`,
+      indexUrl: URL_B,
+      indexName: 'Star Field',
+      name: 'Sirius',
+      lang: 'en',
+      media: { images: [{ src: TEST_URLS.IMG, credit }] },
+    })
+
+    const image = graph.find(
+      (entity) => entity['@type'] === 'ImageObject' && entity['@id']?.endsWith('#image-1')
+    )
+
+    const page = graph.find((entity) => entity['@type'] === 'WebPage')
+
+    // Third-party assets point at the SOURCE's terms page — the site's
+    // MPL license never covers NASA/ESA imagery — and carry no creator
+    // ref back to the site person.
+    expect(image.license).toBe(MEDIA_CREDIT_SOURCES[credit].licenseUrl)
+    expect(image.acquireLicensePage).toBe(MEDIA_CREDIT_SOURCES[credit].licenseUrl)
+    expect(image.copyrightNotice).toBe(credit)
+    expect(image.creditText).toContain('Source:')
+    expect(image.creator).toBeUndefined()
+
+    // The WebPage's representative image carries the same provenance.
+    expect(page.primaryImageOfPage.license).toBe(MEDIA_CREDIT_SOURCES[credit].licenseUrl)
+    expect(page.primaryImageOfPage.copyrightNotice).toBe(credit)
+    expect(page.primaryImageOfPage.creator).toBeUndefined()
+  })
+
+  test('uncredited dossier media falls back to the site-owned provenance', () => {
+    const graph = generateStarBodySchema({
+      url: `${URL_B}/sol`,
+      indexUrl: URL_B,
+      indexName: 'Star Field',
+      name: 'Sol',
+      lang: 'en',
+      media: { images: [{ src: TEST_URLS.IMG }] },
+    })
+
+    const image = graph.find(
+      (entity) => entity['@type'] === 'ImageObject' && entity['@id']?.endsWith('#image-1')
+    )
+
+    expect(image.license).toBe(`${NET_STRINGS.SITE_URL}/license`)
+    expect(image.acquireLicensePage).toBe(`${NET_STRINGS.SITE_URL}/license`)
+    expect(image.copyrightNotice).toBe(`${CHAR_STRINGS.COPYRIGHT} ${BASE_TITLE}`)
+    expect(image.creditText).toBe(BASE_TITLE)
   })
 
   test('star body graph falls back to empty description and no facts', () => {

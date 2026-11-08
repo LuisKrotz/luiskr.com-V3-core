@@ -18,8 +18,12 @@
 
 // ── High-contrast LIGHT — pure white field, pitch-black inks, opaque borders.
 // Every var the base/dark themes define gets a stronger-contrast value here
-// so no token stays at its decorative alpha when HC is on.
-html.high-contrast {
+// so no token stays at its decorative alpha when HC is on. The mixin body is
+// shared with classless surfaces (the CSS-styled RSS XML document) that can
+// only reach the theme through @media (prefers-contrast: more).
+/// Emits the high-contrast LIGHT token overrides — pure white field,
+/// pitch-black opaque inks, ring shadows, no ambient wash.
+@mixin high-contrast-light-tokens {
   // Surfaces stay white-family but borders and inks go opaque pitch black.
   --bg-primary: #ffffff;
   --bg-secondary: #ffffff;
@@ -44,6 +48,15 @@ html.high-contrast {
   --focus-ring-halo: 0 0 0 #{to-rem($space-md)} #ffffff;
   --btn-accent-fill: rgba(0, 0, 0, 0.25);
   --glass-bg: #ffffff;
+
+  // Nav glyph inks collapse to the field pole — the chip disc flips to
+  // pitch black (--border-color), so the page-white ink stays maximal.
+  --nav-neon-teal: var(--bg-primary);
+  --nav-neon-green: var(--bg-primary);
+  --nav-neon-violet: var(--bg-primary);
+  --nav-neon-magenta: var(--bg-primary);
+  --nav-neon-orange: var(--bg-primary);
+  --nav-neon-chrome: var(--bg-primary);
 
   // Menu inks pushed to the deepest end of the palette.
   --menu-bg: #ffffff;
@@ -91,7 +104,9 @@ html.high-contrast {
 }
 
 // ── High-contrast DARK — pure black field, pure white inks, opaque borders.
-html.high-contrast.dark-mode {
+/// Emits the high-contrast DARK token overrides — layered on top of the
+/// dark theme, same collapse-to-extremes policy as the light HC set.
+@mixin high-contrast-dark-tokens {
   --bg-primary: #000000;
   --bg-secondary: #000000;
   --bg-dark: #000000;
@@ -114,6 +129,15 @@ html.high-contrast.dark-mode {
   --focus-ring-halo: 0 0 0 #{to-rem($space-md)} #000000;
   --btn-accent-fill: rgba(255, 255, 255, 0.35);
   --glass-bg: #000000;
+
+  // Nav glyph inks collapse to the field pole — the chip disc flips to
+  // pure white (--border-color), so the page-black ink stays maximal.
+  --nav-neon-teal: var(--bg-primary);
+  --nav-neon-green: var(--bg-primary);
+  --nav-neon-violet: var(--bg-primary);
+  --nav-neon-magenta: var(--bg-primary);
+  --nav-neon-orange: var(--bg-primary);
+  --nav-neon-chrome: var(--bg-primary);
 
   --menu-bg: #000000;
   --menu-ink: var(--color-white-raw);
@@ -151,4 +175,14 @@ html.high-contrast.dark-mode {
   --skel-bg-1: var(--color-white-raw);
   --skel-bg-2: var(--bg-primary);
   --skel-bg-3: var(--skel-bg-1);
+}
+
+// App surface — the stored accessibility preference lands as classes on
+// <html>; dark HC stacks on top of .dark-mode.
+html.high-contrast {
+  @include high-contrast-light-tokens;
+}
+
+html.high-contrast.dark-mode {
+  @include high-contrast-dark-tokens;
 }

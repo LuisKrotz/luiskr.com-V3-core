@@ -48,6 +48,7 @@ $_SW_PAD: 3; // padding inside pill
 
 // Switch row description.
 .#{$_B_SW}-desc {
+  font-family: var(--font-desc);
   font-size: to-rem(13);
   color: var(--text-muted);
   line-height: 1.4;

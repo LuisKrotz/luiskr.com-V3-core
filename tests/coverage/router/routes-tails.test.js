@@ -76,6 +76,7 @@ describe('routes tails', () => {
       $$: () => carousels,
       translations: { sections: [[[{}], [{}], [{}], [{}], [{}], [{}]]], folder: 'f' },
       isLandscapeGroup: () => false,
+      isMosaicGroup: () => false,
       _bindIdle: 1,
     }
 
@@ -91,6 +92,7 @@ describe('routes tails', () => {
       $$: () => [bare],
       translations: null,
       isLandscapeGroup: () => false,
+      isMosaicGroup: () => false,
       _bindIdle: null,
     })
   })

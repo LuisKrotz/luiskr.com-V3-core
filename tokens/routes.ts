@@ -10,6 +10,7 @@ export * from './routes/paths.js'
 export * from './routes/aliases.js'
 export * from './routes/names.js'
 export * from './routes/translation-keys.js'
+export * from './routes/search.js'
 
 // ─── Application constants ────────────────────────────────────────────────────
 /**

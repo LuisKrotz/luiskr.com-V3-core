@@ -12,6 +12,9 @@
 /** Image extensions accepted into every share set — one declaration so all sets admit the same capture formats. */
 const SHARE_IMAGE_EXTS = Object.freeze(['.png', '.jpg', '.jpeg', '.webp'])
 
+/** Video extensions accepted into every share set — a recorded engine capture dropped under a set's share/ prefix joins the sitemap video tags and the JSON-LD VideoObject entries the same way screenshots join the image surfaces. */
+const SHARE_VIDEO_EXTS = Object.freeze(['.mp4', '.webm'])
+
 /**
  * Earth Playground share-capture tokens. Sole declaration site — consumers
  * (build generators, runtime share rotation) import members from this
@@ -24,6 +27,8 @@ export const EARTH_SHARE = Object.freeze({
   MANIFEST_URL: '/meta/earth-playground-share.json',
   /** Image extensions accepted into the share set. */
   IMAGE_EXTS: SHARE_IMAGE_EXTS,
+  /** Video extensions accepted into the share set. */
+  VIDEO_EXTS: SHARE_VIDEO_EXTS,
 })
 
 /**
@@ -39,4 +44,6 @@ export const STAR_SHARE = Object.freeze({
   MANIFEST_URL: '/meta/star-field-share.json',
   /** Image extensions accepted into the share set. */
   IMAGE_EXTS: SHARE_IMAGE_EXTS,
+  /** Video extensions accepted into the share set. */
+  VIDEO_EXTS: SHARE_VIDEO_EXTS,
 })

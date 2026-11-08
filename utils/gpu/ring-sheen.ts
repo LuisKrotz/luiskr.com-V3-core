@@ -1,6 +1,6 @@
 /**
  * @file utils/gpu/ring-sheen.ts — the WebGPU mount for the tile
- * border-sheen ring. `.home-mosaic-item` and `.related-mosaic-item`
+ * border-sheen ring. `.home-mosaic-item` and `.related-list-inner`
  * each carry two masked pseudo-element layers (`::after` static ring,
  * `::before` opacity-pulsed sheen on a 9s alternate loop). This module
  * replaces both layers grid-wide with ONE overlay canvas: per-tile
@@ -76,7 +76,7 @@ export interface RingSheenSession {
  * container. Returns null when the surface can't mount (no GPU, no
  * IntersectionObserver, reduced motion) — the CSS rings stay.
  * @param container The positioned ancestor the canvas fills
- *   (`.home-mosaic` / `.related-mosaic`).
+ *   (`.home-mosaic` / `.related-list`).
  * @param tilesSelector Class selector for the ringed tiles.
  * @param canvasClass Overlay canvas class (the `:has()` gate keys on it).
  * @returns A session handle, or null when nothing was mounted.

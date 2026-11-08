@@ -20,5 +20,6 @@ export const APP_EVENTS = Object.freeze({
   CLOSE: _K_CLOSE,
   OPEN_LANG_DIALOG: 'open-lang-dialog',
   OPEN_PREFERENCES_MODAL: 'open-preferences-modal',
+  OPEN_SEARCH_MODAL: 'open-search-modal',
   NOTIFY: 'notify',
 })

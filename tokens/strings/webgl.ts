@@ -15,6 +15,11 @@ export const WEBGL_STRINGS = Object.freeze({
   WEBGL2: 'webgl2',
   WEBGL_LOSE_CONTEXT: 'WEBGL_lose_context',
   WEBGL_DEBUG_RENDERER_INFO: 'WEBGL_debug_renderer_info',
+  // Software-rasterizer name fragments — an UNMASKED_RENDERER_WEBGL
+  // string containing one of these means a CPU rasterizer (SwiftShader,
+  // llvmpipe, Windows Basic Render) is backing the context: GL widgets
+  // would render at a crawl, so they stay on their CSS/2D fallback.
+  SW_RENDERER_TAGS: Object.freeze(['SwiftShader', 'llvmpipe', 'Software', 'Basic Render']),
   POWER_PREF_HIGH: 'high-performance',
   POWER_PREF_LOW: 'low-power',
   POWER_PREF_DEFAULT: 'default',

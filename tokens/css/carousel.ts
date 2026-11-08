@@ -12,7 +12,8 @@
 export const CAROUSEL_CSS_PROPS = Object.freeze({
   CAROUSEL_ITEM_HEIGHT: '--carousel-item-height',
   CAROUSEL_MEDIA_HEIGHT: '--carousel-media-height',
-  CAROUSEL_LANDSCAPE_MEDIA_HEIGHT: '--carousel-landscape-media-height',
-  CAROUSEL_LANDSCAPE_MEDIA_WIDTH: '--carousel-landscape-media-width',
+  /** Edge-dissolve lane width on the <mentions-deck> strip — cardW ×
+   *  FADE_FRAC, published per measure so the mask matches the fade curve. */
+  MENTIONS_DECK_FADE: '--mentions-deck-fade',
   RANGE_PCT: '--range-pct',
 })

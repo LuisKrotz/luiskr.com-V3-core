@@ -21,6 +21,7 @@ export const createGetters = (store: Store): StoreGetters => ({
   getPreferencesOpen: () => store.state.preferencesOpen,
   getLangDialogOpen: () => store.state.langDialogOpen,
   getNavMenuOpen: () => store.state.navMenuOpen,
+  getSearchModalOpen: () => store.state.searchModalOpen,
   // Derived: true while ANY page-covering overlay is open — expand modal,
   // nav menu, preferences dialog, or language dialog. Ambient surfaces
   // (carousel autoplay, page videos) gate on this single flag so a new
@@ -30,7 +31,8 @@ export const createGetters = (store: Store): StoreGetters => ({
       store.state.modalObject.open ||
       store.state.navMenuOpen ||
       store.state.preferencesOpen ||
-      store.state.langDialogOpen
+      store.state.langDialogOpen ||
+      store.state.searchModalOpen
     ),
   getModalOrigin: () => store.state.modalOrigin,
   getReducedMotion: () => store.state.reducedMotion,

@@ -30,6 +30,8 @@ export const MEDIA_ATTRS = Object.freeze({
   FETCH_PRIORITY_LOW: 'low',
   IS_VIDEO: 'is-video',
   CAN_EXPAND: 'can-expand',
+  NATURAL_WIDTH: 'natural-width',
+  NATURAL_HEIGHT: 'natural-height',
   AUTO_PLAY: 'auto-play',
   CAPTIONS: 'captions',
   CONTROLS: 'controls',

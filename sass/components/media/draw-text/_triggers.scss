@@ -1,7 +1,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  draw-text/_triggers.scss — the reveal triggers: section-title mount,
 //  active carousel slide, IntersectionObserver visibility, pending/done
-//  states, and the related-mosaic write effect.
+//  states, and the related-list write effect.
 //  Imported by draw-text.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -51,8 +51,8 @@
   border-bottom-color: var(--grey);
 }
 
-// ── Related Mosaic: animate write effect ─────────────────────────────────────
-.related-mosaic-desc .draw-text__char {
+// ── Related List: animate write effect ─────────────────────────────────────
+.related-list-desc .draw-text__char {
   animation: char-draw 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 15ms));
 }

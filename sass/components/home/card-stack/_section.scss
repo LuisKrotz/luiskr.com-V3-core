@@ -1,0 +1,219 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  card-stack/_section.scss — the shadow host and the .card-stack section
+//  wrapper: %MAXAREA column, header title + "view all" toggle pill.
+//
+//  Responsive contract (mirrors the CARD_STACK_TIERS viewport bands in
+//  core/tokens/motion/card-stack.ts):
+//    · base = the stacked mobile layout — header → "entire card" deck →
+//      controls; the project copy lives INSIDE each card there (also
+//      tablet PORTRAIT at any height).
+//    · 768–1023px landscape → one-column still, but the card goes WIDE:
+//      16:9 sheet, cover left / copy right.
+//    · 1024–1279px landscape → the desktop split arrives early: text
+//      column left, 5:7 image-only pile in the right track.
+//    · ≥1280 → side-by-side: text column left, DOM/CSS fan coverflow
+//      fills the rest; the column narrows at 1440 and locks at 1920+,
+//      and the whole wrapper clamps to a centred max-width at 2560+
+//      while the dark section background keeps bleeding to the edges.
+// ════════════════════════════════════════════════════════════════════════════
+
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+.#{$_B_CARD_STACK} {
+  @extend %MAXAREA;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  // All three rows are content-sized on the one-column stacked layout;
+  // leftover viewport height is distributed as EVEN gaps between header,
+  // pile and foot — the pile drops clear of the section title and the
+  // controls sit right under the pile's bottom band instead of floating
+  // a full flexible row away at the viewport's bottom edge.
+  grid-template-rows: auto auto auto;
+  align-content: space-evenly;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding-top: var(--space-3xl);
+  padding-bottom: var(--space-xl);
+  background-image: var(--filament-glow);
+  // Side cards intentionally overflow the %MAXAREA gutter on the stacked
+  // layout (the mock's "peek in from the edges" hint) — clip the x-axis so
+  // the bleed never becomes a horizontal scrollbar.
+  overflow-x: clip;
+
+  // 768–1279 landscape — the short band tightens only its BOTTOM pad so
+  // the card pile and the foot controls share the viewport; the top pad
+  // stays full — it is what clears the header from the fixed nav.
+  @media (min-width: 768px) and (max-width: 1279px) and (orientation: landscape) {
+    padding-bottom: var(--space-lg);
+  }
+
+  // "SELECTED WORK" at left, the view-all pill toggle at the right edge
+  // of the same row. (The position indicator lives on the stacked
+  // layouts' nav-index icon — see card-stack/_controls.scss.)
+  // flex-wrap instead of a fixed 2-column grid: long localized titles
+  // (e.g. "AUSGEWÄHLTE ARBEITEN") wrap internally and push the pill to
+  // its own line instead of floating over the glyphs; short titles keep
+  // the side-by-side lockup.
+  &-header {
+    grid-row: 1;
+    grid-column: 1 / -1;
+    position: relative;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: var(--space-lg);
+    row-gap: var(--space-md);
+    // The stacked layouts' title↔deck separator — deliberately generous
+    // so the "SELECTED WORK" heading never crowds the card pile even
+    // when the section then runs taller than the viewport.
+    margin-bottom: var(--space-3xl);
+
+    // Landscape bands compress it back — the short viewport budget is
+    // tighter than the separation brief.
+    @media (min-width: 768px) and (orientation: landscape) {
+      margin-bottom: var(--space-xl);
+    }
+  }
+
+  &-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: var(--font-primary);
+    font-weight: calc(100 + var(--fw-lift));
+    text-transform: uppercase;
+    line-height: 1.05;
+    color: var(--text-primary);
+    margin: 0;
+    // Stepped heading — the %TTL_XL ramp scaled to the brief: 32px on
+    // phones, 55px on desktop, capped at 70px on ultrawide (never the
+    // mosaic's 89px).
+    font-size: to-rem(32);
+    letter-spacing: to-rem(5);
+
+    @include layout-768() {
+      letter-spacing: to-rem(8);
+    }
+
+    @include layout-1024() {
+      font-size: to-rem(55);
+      letter-spacing: to-rem(13);
+    }
+
+    @include layout-2560() {
+      font-size: to-rem(70);
+      letter-spacing: to-rem(16);
+    }
+  }
+
+  &-toggle {
+    @extend %RESETBTN;
+    @extend %TTL_XS;
+
+    flex: 0 0 auto;
+    font-family: var(--font-ui);
+    font-weight: calc(500 + var(--fw-lift));
+    font-size: calc(var(--space-md) + var(--space-xs));
+    text-transform: uppercase;
+    letter-spacing: var(--space-2xs);
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: var(--space-md) var(--space-xl);
+    border-radius: var(--radius-round);
+    border: var(--space-hairline) solid var(--border-color);
+    background: color-mix(in srgb, var(--text-primary) 4%, transparent);
+    transition:
+      color 0.25s ease,
+      border-color 0.25s ease,
+      background-color 0.25s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--text-primary);
+      border-color: var(--color-accent);
+      background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+    }
+  }
+
+  &-toggle-count {
+    font-weight: calc(300 + var(--fw-lift));
+    margin-left: var(--space-3xs);
+  }
+}
+
+// ─── Side-by-side tiers (≥1024 landscape, the DOM/CSS fan coverflow) ────
+// Text column left, coverflow right. The column split opens one band
+// early on tablet landscape (1024–1279, where pickTier still serves the
+// DOM pile — the fan tier starts at ≥1280 unqualified like pickTier,
+// which serves the fan at any ≥1280 aspect). The locked px column at
+// 1280 hands off to a 30% share at
+// 1440, and the ~450px reading cap at 1920 — each is a whole-column
+// track so the deck's minmax(0,1fr) absorbs whatever's left.
+.#{$_B_CARD_STACK} {
+  // Tablet landscape (1024–1279) — the desktop page split arrives one
+  // band early: text column left, the 5:7 image pile centred in the
+  // right track. A 34% share keeps the column readable at 1024 where
+  // the locked px track would starve the deck.
+  @media (min-width: 1024px) and (max-width: 1279px) and (orientation: landscape) {
+    grid-template-columns: 34% minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    column-gap: var(--space-3xl);
+  }
+
+  // Small desktop (13" laptops) — the text column locks to ~377px so the
+  // coverflow gets the constrained remainder.
+  @media (min-width: 1280px) {
+    grid-template-columns: var(--space-7xl) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    column-gap: var(--space-3xl);
+    padding-top: var(--space-4xl);
+    padding-bottom: var(--space-2xl);
+  }
+
+  // Standard desktop — the mock's 30/70 split (the %MAXAREA 1440 gutter
+  // already supplies the generous left margin).
+  @media (min-width: 1440px) and (orientation: landscape) {
+    grid-template-columns: 30% minmax(0, 1fr);
+    column-gap: var(--space-4xl);
+  }
+
+  // Full HD — the text column caps near 450px (longer measure would tire
+  // reading) and the deck claims the extra width.
+  @media (min-width: 1920px) and (orientation: landscape) {
+    grid-template-columns: calc(var(--space-7xl) + var(--space-4xl)) minmax(0, 1fr);
+  }
+
+  // Ultrawide containment — the content wrapper (title + text column +
+  // deck) clamps near 1920px and centres; the section's dark background
+  // keeps bleeding to the viewport edges. The padding floor per step is
+  // that step's %MAXAREA gutter (--space-6xl/7xl/8xl), so the debug grid
+  // never shows content crossing the gutter line.
+  @media (min-width: 2560px) and (orientation: landscape) {
+    padding-inline: max(
+      var(--space-6xl),
+      calc((100% - var(--space-10xl) - var(--space-6xl) - var(--space-5xl)) / 2)
+    );
+  }
+
+  @media (min-width: 3840px) and (orientation: landscape) {
+    padding-inline: max(
+      var(--space-7xl),
+      calc((100% - var(--space-10xl) - var(--space-6xl) - var(--space-5xl)) / 2)
+    );
+  }
+
+  @media (min-width: 7680px) and (orientation: landscape) {
+    padding-inline: max(
+      var(--space-8xl),
+      calc((100% - var(--space-10xl) - var(--space-6xl) - var(--space-5xl)) / 2)
+    );
+  }
+}

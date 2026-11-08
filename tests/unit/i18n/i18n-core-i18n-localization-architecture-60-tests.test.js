@@ -44,7 +44,6 @@ describe('Core i18n & Localization Architecture (60+ Tests)', () => {
       expect(LANG_OPTIONS.length).toBe(16)
       LANG_OPTIONS.forEach((opt) => {
         expect(VALID_LANGS).toContain(opt.code)
-        expect(typeof opt.short).toBe(TYPE_STRINGS.STRING)
         expect(typeof opt.label).toBe(TYPE_STRINGS.STRING)
         expect(typeof opt.cc).toBe(TYPE_STRINGS.STRING)
       })

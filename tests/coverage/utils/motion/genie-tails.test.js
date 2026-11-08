@@ -113,4 +113,36 @@ describe('genie tails', () => {
 
     globalThis.requestAnimationFrame = originalRaf
   })
+
+  test('genieEnter/Leave honor a custom class contract (search-modal variant)', () => {
+    const classes = {
+      backdrop: 'fixture-backdrop',
+      backdropEnter: 'fixture-backdrop--enter',
+      backdropLeave: 'fixture-backdrop--leave',
+      dialog: 'fixture-panel',
+    }
+
+    const backdrop = document.createElement(HTML_TAGS.DIV)
+    const dialog = document.createElement(HTML_TAGS.DIV)
+
+    dialog.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 300 })
+
+    const component = {
+      $: (sel) =>
+        sel.includes(classes.backdrop) ? backdrop : sel.includes(classes.dialog) ? dialog : null,
+    }
+
+    store.commit(MODAL_MUTATIONS.SET_MODAL_ORIGIN, { x: 10, y: 20 })
+    store.commit(PREF_MUTATIONS.SET_REDUCED_MOTION, false)
+
+    genieEnter(component, classes)
+
+    expect(backdrop.classList.contains(classes.backdropEnter)).toBe(true)
+
+    const done = jest.fn()
+
+    genieLeave(component, done, classes)
+
+    expect(backdrop.classList.contains(classes.backdropLeave)).toBe(true)
+  })
 })

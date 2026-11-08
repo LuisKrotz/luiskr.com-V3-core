@@ -174,6 +174,11 @@ export const webmSibling = (url: string): string =>
  *   tiers exist, this ladder replaces `rungs` wholesale: every mobile
  *   rung is a fraction of its full-width twin's bytes and the box cannot
  *   resolve the difference anyway.
+ * @param boxWidthCssPx The layout box the ceiling judges — defaults to
+ *   the rendered img width. Hero surfaces pass a layout context (e.g.
+ *   the viewport width) instead: a coverflow card renders ~300 CSS px
+ *   wide inside a desktop section, but it IS the presentation — the
+ *   small-box ceiling would cap its climb at a visibly soft rung.
  */
 export function coverLadderStep(
   registry: Map<string, string> | undefined,
@@ -181,11 +186,14 @@ export function coverLadderStep(
   img: HTMLImageElement | null,
   rungs: CoverRung[],
   loadedClass: string,
-  mobileRungs: CoverRung[] = []
+  mobileRungs: CoverRung[] = [],
+  boxWidthCssPx?: number
 ): void {
   if (!img) return
 
-  const ladder = smallMediaBox(img.clientWidth) && mobileRungs.length ? mobileRungs : rungs
+  const box = boxWidthCssPx ?? img.clientWidth
+
+  const ladder = smallMediaBox(box) && mobileRungs.length ? mobileRungs : rungs
 
   if (!ladder.length) return
 
@@ -200,27 +208,25 @@ export function coverLadderStep(
   let idx = ladder.findIndex(onRung)
 
   if (idx < 0) {
-    // Off-ladder paint — the <source media> mobile entry rung, a
-    // registry tier from a different box class (viewport crossed 768px
-    // between loads), or a foreign URL. A painted rung from the OTHER
-    // stem rebases to the chosen ladder's entry: a small box switches to
-    // the mobile stem (probe its cheapest tier — every byte saved past
-    // the box's resolution is pure waste), and a big box that painted a
-    // mobile rung restarts the full ladder so the climb upgrades toward
-    // real resolution. A truly foreign URL on the full ladder still
-    // stalls — it may already be the best resolvable answer.
-    if (ladder === mobileRungs || mobileRungs.some(onRung)) {
-      idx = -1
-    } else {
-      return
-    }
+    // Off-ladder paint — the cover's own LQIP thumb (when rungs[0] IS the
+    // original the high layer first paints covers.src so the blur-up swap
+    // resolves instantly from cache), the <source media> mobile entry
+    // rung, a registry tier from a different box class (viewport crossed
+    // 768px between loads), or a foreign URL. Every paint this function
+    // can observe is a ladder rung, the other stem's rung, or the LQIP
+    // below rung 0 — all rebase to the chosen ladder's entry so the
+    // climb walks upward: a small box probes the mobile stem's cheapest
+    // tier (every byte saved past the box's resolution is pure waste)
+    // and a big box restarts the full ladder so the climb upgrades
+    // toward real resolution.
+    idx = -1
   }
 
   // Budget ceiling — the climb stops once the painted rung reaches the
   // connection/box policy's top tier; rungs above it (raw original +
   // uncompressed are the multi-MB tiers) can never be resolved by a box
   // this small or afforded by a link this constrained.
-  if (idx >= ladder.length - 1 || idx >= ladderCeiling(ladder.length, img.clientWidth)) return
+  if (idx >= ladder.length - 1 || idx >= ladderCeiling(ladder.length, box)) return
 
   const next = ladder[idx + 1]
 
@@ -251,7 +257,15 @@ export function coverLadderStep(
 
         layer.remove()
 
-        coverLadderStep(registry, coverKey, successor, rungs, loadedClass, mobileRungs)
+        coverLadderStep(
+          registry,
+          coverKey,
+          successor,
+          rungs,
+          loadedClass,
+          mobileRungs,
+          boxWidthCssPx
+        )
       },
       { once: true }
     )

@@ -91,35 +91,26 @@ export const CAROUSEL_LAYOUT = Object.freeze({
   VISIBILITY_RATIO: 0.15,
   /** px delta below which ResizeObserver width reports are ignored — sub-pixel RO noise must not trigger a re-fit storm */
   FIT_EPS_PX: 4,
+
+  /** Desktop downscale ladder for carousel items — steps compound on the
+   *  running width while each result still clears DESKTOP_SCALE_MIN_W;
+   *  the first step that would drop it under the floor stops the walk
+   *  (smaller render = denser pixels). Mobile (≤ CAROUSEL_MAX_W) is
+   *  untouched. */
+  DESKTOP_SCALE_STEPS: [2, 1.5, 1.75],
+  /** Width floor (px) the compounding ladder never crosses — the last
+   *  step whose result stays above it is the one applied to height. */
+  DESKTOP_SCALE_MIN_W: 320,
   /** Approx flex gap (px) added per item in the side-by-side width projection */
   ITEM_GAP_PX: 32,
   /** Minimum slide media width (px) — tall media floor so a fixed strip height never yields slivers; mirrors min-width in media-figure.scss */
-  MEDIA_MIN_WIDTH: 320,
-  /** Viewport width below which the media min-width floor is dropped — on sub-375px screens the floor would push media past the edges */
-  MEDIA_MIN_WIDTH_VW: 375,
-  /** Outer margin (px) applied to each slide item on desktop — media keeps padding + this margin of clearance on each side */
-  ITEM_MARGIN_PX: 24,
+  MEDIA_MIN_WIDTH: 280,
+  /** Outer margin (px) applied to each slide item on desktop — media keeps padding + this margin of clearance on each side; mirrors margin-inline: $space-md in carousel-host.scss */
+  ITEM_MARGIN_PX: 8,
   /** Viewport width at which the slide side margin kicks in — mirrors layout-1024 in carousel-host.scss / internals.scss */
   ITEM_MARGIN_VW: 1024,
-  /** Strip height ladder (px) — mirrors --mf-h breakpoints in carousel-host.scss: below 1024 it is 70dvh minus a breakpoint pad, at/above these widths it is a fixed $space-* value */
-  STRIP_H_1024: 377,
-  STRIP_H_1440: 610,
-  STRIP_H_2560: 987,
-  /** px subtracted from 70dvh for the sub-1024 strip heights — mirrors --mf-h's calc() at <768 / ≥768 */
-  STRIP_SUB_MOBILE: 42,
-  STRIP_SUB_TABLET: 68,
-  /** Horizontal item padding (both sides, px) per breakpoint — mirrors .internal-extra-item padding-inline ladder */
-  ITEM_PAD_DEFAULT: 26,
+  /** Horizontal item padding (both sides, px) — mirrors the ≥768 rung of the .internal-extra-item padding-inline ladder, the only rung the ≥960 side-by-side projection can reach */
   ITEM_PAD_768: 42,
-  ITEM_PAD_1440: 68,
-  ITEM_PAD_1920: 110,
-  /** px subtracted from the viewport for the regular-item desktop width cap — mirrors the --mf-max-w gutter fallback (2×space-3xl + 2×margin) */
-  REG_CAP_SUB: 158,
-  /** px subtracted from the viewport for landscape-item width caps — mirrors the landscape --mf-max-w ladder */
-  LAND_CAP_SUB_1024: 55,
-  LAND_CAP_SUB_1280: 89,
-  LAND_CAP_SUB_1440: 377,
-  LAND_CAP_SUB_1920: 233,
   /** Max slide height (px) used when window.innerHeight is unavailable (SSR/tests) */
   MAX_HEIGHT_FALLBACK: 600,
   /** Numeric 16:9 aspect ratio */

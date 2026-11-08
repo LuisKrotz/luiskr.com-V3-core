@@ -42,27 +42,47 @@ export const APP_IDS = Object.freeze({
   /** Cookie-banner message text — aria-labelledby target giving the
    *  consent aside a *visible* label (aria-label alone is invisible). */
   COOKIES_INFO: `${_B_COOKIES}-info`,
+  /** Route-search listbox — the combobox's aria-controls target. */
+  ROUTE_SEARCH_LIST: 'route-search-list',
+  ROUTE_SEARCH_INPUT: 'route-search-input',
+  SEARCH_MODAL_TITLE: 'search-modal-title',
+  /** Route-search option id PREFIX — aria-activedescendant points at
+   *  `<prefix><n>` rows inside the listbox. */
+  ROUTE_SEARCH_OPTION_PREFIX: 'route-search-option-',
   /** Parked reader article — the light-DOM skip link's static target.
    *  Deliberately different from MAIN_CONTENT (which lives inside the
    *  app-root shadow tree): identical ids across trees are legal, but
    *  DOM-wide uniqueness checkers count the composed tree. At runtime a
    *  delegated handler re-aims the link at the shadow #main-content. */
   READER_CONTENT: 'reader-content',
+  /** Sitemap collapsible-group region id PREFIX — the toggle's
+   *  aria-controls points at `<prefix><group-key>` (the wall container
+   *  that mounts the group's children on first open). */
+  SITEMAP_GROUP_PREFIX: 'sitemap-group-',
 })
 
-/**
- * Frozen nav-gear SVG gradient-id map — the defs↔url(#…) link ids inside
- * the machined-gear glyph (nav gear.tsx). Sole declaration site; the
- * markup reads members via the `url()` ref helper instead of re-declaring
- * the literals (zero-hardcoding rules 4–5).
- */
-export const NAV_GEAR_IDS = Object.freeze({
-  /** Radial face ramp — the tooth ring's base metal fill. */
-  FACE: 'nav-gear-face',
-  /** Linear rim ramp — top-lit edge stroke on the outline + groove. */
-  RIM: 'nav-gear-rim',
-  /** Radial hub ramp — the raised center cylinder. */
-  HUB: 'nav-gear-hub',
-  /** Linear cavity ramp — drilled lightening holes + the center bore. */
-  HOLE: 'nav-gear-hole',
+/** Gradient ids for the nav search magnifier SVG. */
+export const NAV_SEARCH_IDS = Object.freeze({
+  /** Radial glass ramp — the lens face's soft convex fill. */
+  GLASS: 'nav-search-glass',
+  /** Linear rim ramp — top-lit metal ring edge. */
+  RIM: 'nav-search-rim',
+  /** Linear handle ramp — the machined grip's edge shading. */
+  HANDLE: 'nav-search-handle',
+  /** Prompt chevron neon gradient (search glyph). */
+  CHEV: 'nav-search-chev',
+  /** Motion streak gradient (search glyph). */
+  STREAK: 'nav-search-streak',
+  /** Brush shaft gradient. */
+  SHAFT: 'nav-brush-shaft',
+  /** Chrome ferrule gradient. */
+  FERRULE: 'nav-brush-ferrule',
+  /** Bristle tip gradient. */
+  TIP: 'nav-brush-tip',
+  /** Paint swoosh gradient. */
+  SWOOSH: 'nav-brush-swoosh',
+  /** Globe outline gradient (language glyph). */
+  GLOBE: 'nav-globe-line',
+  /** Grid outline gradient (menu glyph). */
+  GRID: 'nav-grid-line',
 })

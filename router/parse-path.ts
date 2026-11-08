@@ -23,6 +23,7 @@ import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { TRANSLATION_KEYS } from '@core/tokens/routes/translation-keys.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { ROUTE_STRINGS } from '@core/tokens/strings/routes.js'
+import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
 import { VALID_LANGS } from '@core/i18n.js'
 import { appText, componentText, routeSlugs } from '@core/locale/ui-text.js'
 import type { RouteDescriptor, RouteMeta } from '@core/router/types.js'
@@ -104,6 +105,36 @@ function legalRoute(
   )
 }
 
+/** 404 descriptor — terminal fallback for unresolvable paths. */
+function notFoundDesc(lang: string, cleanPath: string): RouteDescriptor {
+  return titled(
+    ROUTE_NAMES.NOT_FOUND,
+    VIEW_TAGS.VIEW_NOT_FOUND,
+    lang,
+    cleanPath,
+    String(appText(SECTION_UI_KEYS.NOT_FOUND)),
+    {
+      translation: TRANSLATION_KEYS.NOT_FOUND,
+    }
+  )
+}
+
+/**
+ * Locale a bare slug belongs to: scans every non-English slug table for
+ * the segment and returns the locale only when exactly one owns it —
+ * shared slugs (`busca` in br/cas/riv/gl, `kontakt` in de/hrk, …) have
+ * no fair canonical owner and stay unresolvable.
+ * @param first the first path segment (unprefixed URL)
+ * @returns the owning locale code, or null on zero/ambiguous matches
+ */
+function slugOwner(first: string): string | null {
+  const owners = (VALID_LANGS as readonly string[]).filter(
+    (loc) => loc !== LOCALES.EN && (Object.values(routeSlugs(loc)) as string[]).includes(first)
+  )
+
+  return owners.length === 1 ? owners[0] : null
+}
+
 /**
  * Pure resolution: pathname → route descriptor { name, view, lang,
  * path, meta, params }. meta.scrollTo triggers a post-nav smooth-scroll
@@ -132,6 +163,38 @@ export function parsePath(pathname: string): RouteDescriptor {
     pathSegments = segments.slice(1)
   }
 
+  const resolved = resolveLocalized(pathSegments, lang, cleanPath)
+
+  if (resolved) return resolved
+
+  // Bare foreign slug on an unprefixed URL — exactly one locale may own
+  // it (`/pesquisar` → br). Resolved recursively through the owning
+  // locale's table so the descriptor + canonical read as `/br/pesquisar`.
+  if (lang === LOCALES.EN) {
+    const owner = slugOwner(pathSegments[0])
+
+    // A proven owner always resolves — every slug-table key has a check
+    // in resolveLocalized, so the retry can't fall through to null.
+    if (owner) return resolveLocalized(pathSegments, owner, cleanPath) as RouteDescriptor
+  }
+
+  return notFoundDesc(lang, cleanPath)
+}
+
+/**
+ * Resolves a path under one locale's slug table — every route check the
+ * parser knows, in priority order. Returns null instead of a 404 so the
+ * caller can retry under another locale (bare-slug fallback).
+ * @param pathSegments path segments after the locale prefix
+ * @param lang locale code driving `routeSlugs` + the canonical prefix
+ * @param cleanPath original pathname for the descriptor
+ * @returns the matched route descriptor, or null when nothing matches
+ */
+function resolveLocalized(
+  pathSegments: string[],
+  lang: string,
+  cleanPath: string
+): RouteDescriptor | null {
   const slugs = routeSlugs(lang)
 
   // Locale prefix every canonical path carries — '' for English (unprefixed),
@@ -164,6 +227,7 @@ export function parsePath(pathname: string): RouteDescriptor {
       {
         translation: TRANSLATION_KEYS.HOME,
         scrollTo: SECTION_IDS.ABOUT,
+        ogType: SCHEMA_STRINGS.SCHEMA_OG_PROFILE,
       }
     )
   }
@@ -208,6 +272,7 @@ export function parsePath(pathname: string): RouteDescriptor {
         title: `${BASE_TITLE} ${CHAR_STRINGS.PIPE_SEP} Project`,
         projectRoute: true,
         canonical,
+        ogType: SCHEMA_STRINGS.SCHEMA_OG_ARTICLE,
       },
       params: { projectSlug, rawSlug, slug },
     }
@@ -347,15 +412,49 @@ export function parsePath(pathname: string): RouteDescriptor {
     }
   }
 
-  // 404
-  return titled(
-    ROUTE_NAMES.NOT_FOUND,
-    VIEW_TAGS.VIEW_NOT_FOUND,
-    lang,
-    cleanPath,
-    String(appText(SECTION_UI_KEYS.NOT_FOUND)),
-    {
-      translation: TRANSLATION_KEYS.NOT_FOUND,
+  // Sitemap — localized slug plus the English-segment alias under a
+  // locale prefix, canonicalizing onto the locale's own slug. The page
+  // itself is cross-lingual (it lists every localized URL), so the
+  // title comes from the APP `sitemap` label.
+  if (first === slugs.sitemap || first === ROUTE_PATHS.SITEMAP_SEGMENT) {
+    return {
+      name: ROUTE_NAMES.SITEMAP,
+      view: VIEW_TAGS.VIEW_SITEMAP,
+      lang,
+      path: cleanPath,
+      meta: {
+        title: `${String(appText(SECTION_UI_KEYS.SITEMAP))} ${CHAR_STRINGS.PIPE_SEP} ${BASE_TITLE}`,
+        translation: TRANSLATION_KEYS.SITEMAP,
+        canonical: `${locPrefix}${CHAR_STRINGS.SLASH}${slugs.sitemap}`,
+      },
+      params: {},
     }
-  )
+  }
+
+  // Search — localized slug plus the English-segment and legacy `busca`
+  // aliases under a locale prefix, canonicalizing onto the locale's own
+  // slug. The `?q=` query rides location.search — parsePath only
+  // resolves the path.
+  if (
+    first === slugs.search ||
+    first === ROUTE_PATHS.SEARCH_SEGMENT ||
+    first === ROUTE_STRINGS.SEARCH_BUSCA
+  ) {
+    return {
+      name: ROUTE_NAMES.SEARCH,
+      view: VIEW_TAGS.VIEW_SEARCH,
+      lang,
+      path: cleanPath,
+      meta: {
+        title: `${String(appText(SECTION_UI_KEYS.SEARCH))} ${CHAR_STRINGS.PIPE_SEP} ${BASE_TITLE}`,
+        translation: TRANSLATION_KEYS.SEARCH,
+        canonical: `${locPrefix}${CHAR_STRINGS.SLASH}${slugs.search}`,
+      },
+      params: {},
+    }
+  }
+
+  // No match under this locale — the caller decides between a
+  // cross-locale retry and the 404.
+  return null
 }

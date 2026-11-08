@@ -10,6 +10,7 @@ import { jest } from '@jest/globals'
 import { updateReaderContent } from '@core/locale/reader-content.js'
 
 import { READER_CLASSES } from '@core/tokens/classes/reader.js'
+import { COMMON_ATTRS } from '@core/tokens/attrs/common.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
@@ -170,5 +171,51 @@ describe('reader-content tails', () => {
     await updateReaderContent(pathA + TEST_TEXT.UNKNOWN)
 
     expect(globalThis.fetch).toHaveBeenCalledTimes(1)
+  })
+
+  test('demotes fetched mirror h1s to h2, preserving attributes — the routed view owns the level-one heading', async () => {
+    const markup =
+      `<h1 class="${TEST_TEXT.STALE}" id="${TEST_TEXT.SECOND}">${TEST_TEXT.HEADING}</h1>` +
+      `<h1>${TEST_TEXT.BODY}</h1>`
+
+    globalThis.fetch = jest.fn(async () => pageOf(docOf(markup)))
+
+    await updateReaderContent(`/${TEST_TEXT.HELLO}`)
+
+    const el = parked()
+
+    expect(el.querySelectorAll(HTML_TAGS.H1).length).toBe(0)
+
+    const h2s = el.querySelectorAll(HTML_TAGS.H2)
+
+    expect(h2s.length).toBe(2)
+    expect(h2s[0].getAttribute(COMMON_ATTRS.CLASS)).toBe(TEST_TEXT.STALE)
+    expect(h2s[0].getAttribute(COMMON_ATTRS.ID)).toBe(TEST_TEXT.SECOND)
+    expect(h2s[0].textContent).toBe(TEST_TEXT.HEADING)
+    expect(h2s[1].textContent).toBe(TEST_TEXT.BODY)
+  })
+
+  test('adopting the emitted article demotes its h1 before seeding the cache', async () => {
+    const held = parked()
+
+    if (held) held.remove()
+
+    // Emitted copy ships a real <h1> for no-JS/crawlers; once adopted it
+    // must demote so the live view's h1 stays the only one — and the
+    // demoted markup is what the pathname cache seeds.
+    const emitted = document.createElement(HTML_TAGS.ARTICLE)
+
+    emitted.classList.add(READER_CLASSES.CONTENT)
+    emitted.innerHTML = `<h1>${TEST_TEXT.HEADING}</h1><p>${TEST_TEXT.BODY}</p>`
+
+    document.body.appendChild(emitted)
+
+    globalThis.fetch = jest.fn(async () => pageOf(docOf('<p>never</p>')))
+
+    await updateReaderContent(window.location.pathname)
+
+    expect(globalThis.fetch).not.toHaveBeenCalled()
+    expect(emitted.querySelectorAll(HTML_TAGS.H1).length).toBe(0)
+    expect(emitted.querySelector(HTML_TAGS.H2).textContent).toBe(TEST_TEXT.HEADING)
   })
 })

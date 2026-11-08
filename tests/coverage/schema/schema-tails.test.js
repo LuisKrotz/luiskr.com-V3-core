@@ -20,6 +20,7 @@ describe('schema tails', () => {
   test('carousel ItemList handles empty, title-only and CDN paths', () => {
     expect(generateCarouselItemListSchema([])).toBeNull()
     expect(generateCarouselItemListSchema(null)).toBeNull()
+    expect(generateCarouselItemListSchema()).toBeNull()
 
     const list = generateCarouselItemListSchema([
       { label: TEST_TEXT.HEADING, link: '/a', src: 'covers/x.jpg' },

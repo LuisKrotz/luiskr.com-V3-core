@@ -31,6 +31,17 @@ export const GENERIC_DIMENSIONS = Object.freeze({
   AWARD_ICON_SIZE: 60,
   /** Fallback intrinsic height for media items missing `size` — portrait-leaning so the aspect projection stays conservative */
   ITEM_FALLBACK_HEIGHT: 1200,
+  /** Natural-height ceiling for packed-card layout — full-page
+   *  screenshots (4-6k px tall) would otherwise pack into multi-wall
+   *  slivers; the pack treats taller sources as this height so the tile
+   *  shows a top-anchored cover crop instead. */
+  MAX_NATURAL_HEIGHT: 2560,
+  /** Natural-width ceiling for packed-card layout — ultrawide captures
+   *  (multi-monitor playground screenshots, 5-7k px wide) would
+   *  otherwise clamp to a full-wall banner strip; the pack treats
+   *  wider sources as this width so the tile packs inside the wall
+   *  rhythm and cover-crops the sides. */
+  MAX_NATURAL_WIDTH: 2560,
 })
 
 /** Image decode budgets shared by progressive media pipelines. */

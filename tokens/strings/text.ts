@@ -16,6 +16,10 @@ export const NAV_TEXT = Object.freeze({
   ABOUT: 'About',
   ABOUT_ME: 'About Me',
   GET_IN_TOUCH: 'Get in Touch',
+  LINKEDIN: 'LinkedIn',
+  LATITUDE: 'Latitude',
+  LONGITUDE: 'Longitude',
+  ALTITUDE: 'Altitude',
   SOME_MENTIONS: 'Some mentions',
 })
 
@@ -26,6 +30,8 @@ export const LABEL_TEXT = Object.freeze({
   LOADING: 'Loading',
   LOGOUT: 'Logout',
   INSTRUCTIONS: 'Instructions',
+  /** The sitemap locale-decoder fieldset's <legend> label. */
+  LEGEND: 'Legend',
 })
 
 /**

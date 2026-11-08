@@ -22,6 +22,8 @@ export interface LangSlugMap {
   earthPlayground: string
   starField: string
   animations: string
+  search: string
+  sitemap: string
 }
 
 /**
@@ -46,6 +48,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'earth-playground',
     starField: 'star-field-experiment',
     animations: 'animations',
+    search: 'search',
+    sitemap: 'sitemap',
   },
   br: {
     about: 'sobre',
@@ -57,6 +61,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'playground-da-terra',
     starField: 'experimento-campo-estelar',
     animations: 'animacoes',
+    search: 'pesquisar',
+    sitemap: 'mapa-do-site',
   },
   es: {
     about: 'acerca',
@@ -68,6 +74,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'playground-de-la-tierra',
     starField: 'experimento-campo-estelar',
     animations: 'animaciones',
+    search: 'busqueda',
+    sitemap: 'mapa-del-sitio',
   },
   de: {
     about: 'ueber',
@@ -79,6 +87,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'erde-playground',
     starField: 'sternenfeld-experiment',
     animations: 'animationen',
+    search: 'suche',
+    sitemap: 'sitemap',
   },
   hrk: {
     about: 'iwwer-mich',
@@ -90,6 +100,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'erd-playground',
     starField: 'sternfeld-experiment',
     animations: 'animatsione',
+    search: 'suach',
+    sitemap: 'sitemap',
   },
   cas: {
     about: 'sobre-mi',
@@ -101,6 +113,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'playground-de-la-tierra',
     starField: 'experimento-campo-estelar',
     animations: 'animaciones',
+    search: 'busca',
+    sitemap: 'mapa-del-sitio',
   },
   riv: {
     about: 'sobre-yo',
@@ -112,6 +126,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'playground-da-terra',
     starField: 'experimento-campo-estelar',
     animations: 'animacoes',
+    search: 'busca',
+    sitemap: 'mapa-do-site',
   },
   gn: {
     about: 'che-rehegua',
@@ -123,6 +139,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'yvy-nembosarai',
     starField: 'mbyja-nembosarai',
     animations: 'jeguama',
+    search: 'jeheka',
+    sitemap: 'pe-saito-mapa',
   },
   it: {
     about: 'chi-sono',
@@ -134,6 +152,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'playground-della-terra',
     starField: 'esperimento-campo-stellare',
     animations: 'animazioni',
+    search: 'ricerca',
+    sitemap: 'mappa-del-sito',
   },
   ru: {
     about: 'obo-mne',
@@ -145,6 +165,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'zemnaya-pesochnitsa',
     starField: 'zvezdnoe-pole',
     animations: 'animatsii',
+    search: 'poisk',
+    sitemap: 'karta-sajta',
   },
   fr: {
     about: 'a-propos',
@@ -156,6 +178,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'playground-de-la-terre',
     starField: 'experience-champ-etoile',
     animations: 'animations',
+    search: 'recherche',
+    sitemap: 'plan-du-site',
   },
   tln: {
     about: 'de-mi',
@@ -167,6 +191,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'playground-della-terra',
     starField: 'esperimento-canpo-stelare',
     animations: 'animassion',
+    search: 'cir',
+    sitemap: 'mapa-del-sito',
   },
   gl: {
     about: 'sobre-min',
@@ -178,6 +204,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'playground-da-terra',
     starField: 'experimento-campo-estelar',
     animations: 'animacions',
+    search: 'busca',
+    sitemap: 'mapa-do-sitio',
   },
   ca: {
     about: 'quant-a-mi',
@@ -189,6 +217,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'playground-de-la-terra',
     starField: 'experiment-camp-estelar',
     animations: 'animacions',
+    search: 'cerca',
+    sitemap: 'mapa-del-lloc',
   },
   nl: {
     about: 'over-mij',
@@ -200,6 +230,8 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'aarde-playground',
     starField: 'sterrenveld-experiment',
     animations: 'animaties',
+    search: 'zoeken',
+    sitemap: 'sitemap',
   },
   ga: {
     about: 'faoi-mhe',
@@ -211,5 +243,7 @@ export const LANG_SLUGS: Record<string, LangSlugMap> = {
     earthPlayground: 'playground-an-domhain',
     starField: 'turgnamh-reimse-realta',
     animations: 'beochan',
+    search: 'cuardach',
+    sitemap: 'mapa-an-tsuimh',
   },
 }

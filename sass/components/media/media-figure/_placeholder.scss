@@ -39,7 +39,7 @@
     // source from upscaling past its pixels, and the 70dvh cap bounds a
     // very tall source. Width stays aspect-driven, capped by --mf-w on
     // mobile/tablet and --mf-max-w (or the viewport gutter calc) on
-    // desktop — and by --mf-natural-w — with a 320px floor at ≥375px
+    // desktop — and by --mf-natural-w — with a 280px floor at ≥375px
     // viewports so very tall media keep a usable touch target instead
     // of collapsing to slivers.
     height: var(--mf-h, auto);
@@ -49,9 +49,9 @@
     max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-xl * 2)})), var(--mf-natural-w));
 
     @include layout-375() {
-      // Floor capped at the file's own width — a sub-320px source keeps
+      // Floor capped at the file's own width — a sub-280px source keeps
       // its natural box instead of being stretched past its pixels.
-      min-width: min(#{to-rem(320)}, var(--mf-natural-w));
+      min-width: min(#{to-rem(280)}, var(--mf-natural-w));
     }
 
     @include layout-1024() {
@@ -67,7 +67,7 @@
 // height is pinned to --mf-h so every slide fills the carousel row, width
 // is aspect-driven (auto → height × intrinsic ratio) capped by --mf-w on
 // mobile/tablet and by --mf-max-w (or the viewport-gutter calc: item
-// padding + 24px margins per side) on desktop, and floored at 320px on
+// padding + side margins) on desktop, and floored at 280px on
 // ≥375px viewports so tall media keep a usable touch target instead of
 // collapsing to slivers. The transparent placeholder only sizes the box —
 // the real media layers cover-crop it, so a floored/capped width never
@@ -87,7 +87,7 @@
   max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-xl * 2)})), var(--mf-natural-w));
 
   @include layout-375() {
-    min-width: min(#{to-rem(320)}, var(--mf-natural-w));
+    min-width: min(#{to-rem(280)}, var(--mf-natural-w));
   }
 
   @include layout-768() {
@@ -99,7 +99,7 @@
   @include layout-1024() {
     max-height: min(#{to-rem($space-7xl)}, var(--mf-natural-h));
     // --mf-max-w is only declared for landscape items — regular slides get
-    // the viewport-gutter cap (padding + 24px margin clearance per side).
+    // the viewport-gutter cap (padding + side-margin clearance per side).
     max-width: min(
       var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{to-rem(48)})),
       var(--mf-natural-w)
@@ -121,6 +121,31 @@
       var(--mf-natural-w)
     );
   }
+}
+
+// Carousel slides — the aspect-exact strip: every item's box is the
+// shared --mf-h strip height × the file's own ratio, so the media layers
+// fill it with zero crop and zero distortion (cover on a ratio-matched
+// box is a no-op) — a carousel never mixes heights and never distorts.
+// The width caps above (viewport gutter, --mf-natural-w) would break the
+// ratio and force cover to crop, so they do not apply here: a wide
+// source simply becomes a wider slide in the scrollable track. The one
+// bound kept is the 280px floor — extreme-ratio sources would otherwise
+// collapse to unusable slivers; the floored box crops vertically instead
+// (top-anchored — the page's top band shows). Slide + fallback ancestors
+// both listed because :host-context() accepts only compound selectors;
+// figures outside <custom-carousel> (internals, mosaic) keep the
+// natural caps.
+:host-context(.carousel-slide) .render-placeholder,
+:host-context(.carousel-fallback) .render-placeholder {
+  max-height: var(--mf-h);
+  max-width: none;
+  // The 280px floor keeps extreme-ratio sources (full-page screenshots a
+  // few hundred px wide by several thousand tall) a usable card instead
+  // of collapsing to slivers — cover fills the floored box top-anchored,
+  // so a floored item shows the page's top band. Capped at the file's
+  // own width so a sub-280px source is never stretched past its pixels.
+  min-width: min(#{to-rem(280)}, var(--mf-natural-w));
 }
 
 // Landscape items keep the same fixed --mf-h strip height as every other

@@ -25,6 +25,23 @@ $_B_PREF_CLOSE: 'pref-close';
   position: relative;
   overflow: hidden;
 
+  // Narrow viewports — the disc reads oversized against the compact
+  // dialog header, so it steps down a size and the X strokes follow.
+  @media (max-width: $bk-540) {
+    width: to-rem($space-2xl);
+    height: to-rem($space-2xl);
+  }
+
+  &:not(:has(.#{$_B_PREF_CLOSE}-canvas)),
+  &:has(.#{$_B_PREF_CLOSE}-canvas.is-fallback) {
+    @media (max-width: $bk-540) {
+      &::before,
+      &::after {
+        width: to-rem($space-lg);
+      }
+    }
+  }
+
   // WebGL Canvas
   .#{$_B_PREF_CLOSE}-canvas {
     position: absolute;

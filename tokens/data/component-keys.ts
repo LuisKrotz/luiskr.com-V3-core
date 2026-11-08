@@ -81,4 +81,5 @@ export const A11Y_INDEX_TOKEN = '{index}'
 export const SECTION_COMPONENT_KEYS = Object.freeze({
   RELATED_TITLE: `${_K_RELATED}.title`,
   CONTACT_TITLE: `${_B_CONTACT}.title`,
+  CONTACT_SUBTITLE: `${_B_CONTACT}.subtitle`,
 })

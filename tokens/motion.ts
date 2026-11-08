@@ -9,9 +9,11 @@
 /* istanbul ignore file */
 
 export * from './motion/carousel.js'
+export * from './motion/card-stack.js'
 export * from './motion/animation.js'
 export * from './motion/skeleton.js'
 export * from './motion/gpu.js'
 export * from './motion/gpu-widgets.js'
 export * from './motion/notify.js'
 export * from './motion/prefetch.js'
+export * from './motion/mentions-deck.js'

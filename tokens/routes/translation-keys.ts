@@ -32,4 +32,6 @@ export const TRANSLATION_KEYS = Object.freeze({
   STAR_FIELD: 'star-field',
   DOCS: _B_DOCS,
   ANIMATIONS: _K_ANIMATIONS,
+  SEARCH: 'search',
+  SITEMAP: 'sitemap',
 })

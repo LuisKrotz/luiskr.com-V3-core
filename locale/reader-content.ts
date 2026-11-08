@@ -29,6 +29,26 @@ let holder: HTMLElement | null = null
 let generation = 0
 
 /**
+ * Demotes every <h1> inside the parked mirror to <h2>. Emitted markup
+ * ships a real <h1> for no-JS documents, crawlers and reader modes, but
+ * once JS mounts the routed view supplies the document's level-one
+ * heading — an <h1> left in the mirror would double it in the live DOM
+ * for every JS-rendering agent. Idempotent: a no-op when no <h1> remains.
+ * @param root Element whose descendant <h1>s are rewritten in place.
+ */
+export const demoteReaderH1 = (root: ParentNode): void => {
+  root.querySelectorAll(HTML_TAGS.H1).forEach((el) => {
+    const h2 = document.createElement(HTML_TAGS.H2)
+    const attrs = el.attributes
+
+    for (let i = 0; i < attrs.length; i++) h2.setAttribute(attrs[i].name, attrs[i].value)
+
+    h2.innerHTML = el.innerHTML
+    el.replaceWith(h2)
+  })
+}
+
+/**
  * Locates or creates the offscreen article holder. Emitted pages hoist
  * theirs via main.ts; when none exists (first paint on a non-emitted
  * route) an empty one is appended so later navigations can fill it.
@@ -40,6 +60,11 @@ const ensureHolder = (): HTMLElement => {
 
   if (parked) {
     holder = parked
+
+    // JS owns the outline now — demote the mirror's <h1> before it can
+    // double the view's level-one heading, and before the seed below so
+    // cached markup matches what same-path swaps would re-insert.
+    demoteReaderH1(parked)
 
     // The statically-emitted article already mirrors this exact page — seed
     // the cache from its markup instead of re-downloading the document.
@@ -92,9 +117,11 @@ export const updateReaderContent = async (path: string): Promise<void> => {
 
       if (res.ok) {
         const doc = new DOMParser().parseFromString(await res.text(), 'text/html')
+        const article = doc.querySelector<HTMLElement>(`article.${READER_CLASSES.CONTENT}`)
 
-        markup =
-          doc.querySelector(`article.${READER_CLASSES.CONTENT}`)?.innerHTML ?? ATTR_VALUES.EMPTY
+        if (article) demoteReaderH1(article)
+
+        markup = article?.innerHTML ?? ATTR_VALUES.EMPTY
       }
 
       cache.set(path, markup)

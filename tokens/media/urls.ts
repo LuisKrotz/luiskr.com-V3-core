@@ -32,3 +32,15 @@ export const SOCIAL_URLS = Object.freeze({
   WHATSAPP: 'https://api.whatsapp.com/send?phone=+5551982274782',
   INSTAGRAM: 'https://www.instagram.com/j_luiskrotz',
 })
+
+/**
+ * Frozen link-marker map — substring/protocol probes used to classify CMS
+ * link rows (e.g. components/contact line1) without hardcoding the checks
+ * at each consumer. Sole declaration site (zero-hardcoding rules 4–5).
+ */
+export const URL_MARKERS = Object.freeze({
+  /** `mailto:` URI scheme — identifies the direct-email link row. */
+  MAILTO: 'mailto:',
+  /** `linkedin` hostname fragment — identifies the LinkedIn profile row. */
+  LINKEDIN: 'linkedin',
+})

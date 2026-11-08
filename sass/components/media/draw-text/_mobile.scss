@@ -28,7 +28,7 @@
   .draw-text--visible .draw-text__word,
   .home-section-title .draw-text__word,
   .aw-c-slide--active .draw-text__word,
-  .related-mosaic-desc .draw-text__word {
+  .related-list-desc .draw-text__word {
     opacity: 0;
     animation: word-draw 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     animation-delay: calc(var(--offset, 0ms) + var(--wi, 0) * var(--word-delay, 100ms));
@@ -38,7 +38,7 @@
   .draw-text--visible .draw-text__char,
   .home-section-title .draw-text__char,
   .aw-c-slide--active .draw-text__char,
-  .related-mosaic-desc .draw-text__char {
+  .related-list-desc .draw-text__char {
     opacity: 1;
     transform: none;
     animation: none;

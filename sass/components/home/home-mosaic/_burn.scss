@@ -35,7 +35,7 @@
 .home-mosaic-title-dup {
   @extend %TTL_SM;
   display: block;
-  font-family: var(--font-primary);
+  font-family: var(--font-desc);
   font-weight: calc(100 + var(--fw-lift));
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -51,7 +51,7 @@
   position: absolute;
   inset: 0;
   display: block;
-  font-family: var(--font-primary);
+  font-family: var(--font-desc);
   font-weight: calc(100 + var(--fw-lift));
   text-transform: uppercase;
   letter-spacing: 0.08em;

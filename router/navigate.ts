@@ -16,6 +16,7 @@ import { DOM_STRINGS } from '@core/tokens/strings/dom.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
 import { ROUTE_STRINGS } from '@core/tokens/strings/routes.js'
+import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { SPACE } from '@core/tokens/layout/space.js'
 import { deepQuerySelector } from '@core/utils/dom.js'
@@ -71,6 +72,7 @@ export function setMetaDescription(text: string): void {
     QUERY_STRINGS.META_TW_DESCRIPTION,
     QUERY_STRINGS.META_DC_DESCRIPTION,
     QUERY_STRINGS.META_OG_IMAGE_ALT,
+    QUERY_STRINGS.META_TW_IMAGE_ALT,
   ]) {
     setMetaContent(selector, text)
   }
@@ -118,6 +120,11 @@ export function syncDocumentHead(to: RouteDescriptor): void {
   setMetaContent(QUERY_STRINGS.META_OG_URL, canonicalUrl)
 
   setMetaContent(QUERY_STRINGS.META_TW_URL, canonicalUrl)
+
+  // og:type follows the route class — article on project pages, profile on
+  // about, website elsewhere — so share crawlers see the same type the
+  // statically-emitted document declares.
+  setMetaContent(QUERY_STRINGS.META_OG_TYPE, to.meta.ogType || SCHEMA_STRINGS.SCHEMA_OG_WEBSITE)
 
   if (to.meta.description) setMetaDescription(to.meta.description)
 

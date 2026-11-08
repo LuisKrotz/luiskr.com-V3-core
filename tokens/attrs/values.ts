@@ -27,4 +27,6 @@ export const ATTR_VALUES = Object.freeze({
   /** URL scheme prefix check + img loading/audio-video preload values. */
   HTTP: 'http',
   LAZY: 'lazy',
+  /** `off` — autocomplete/spellcheck disable value. */
+  OFF: 'off',
 })

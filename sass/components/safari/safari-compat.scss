@@ -54,12 +54,14 @@
     padding-top: 43.75%;
   }
 
-  // ── Internals: related mosaic grid ──────────────────────────────────────
+  // ── Internals: related list media column ─────────────────────────────
 
-  .related-mosaic-item,
-  .rltd-ms-item {
+  // The list rows are grid-track slots (no aspect-ratio); only the media
+  // thumbnail carries one — 1/1 on mobile, 16/10 at ≥768px. Same
+  // padding-top trick: padding-% resolves against the flex-basis width.
+  .related-list-media {
     height: 0;
-    padding-bottom: 62.5%; // 10 ÷ 16 = 62.5%
+    padding-top: 100%; // 1 ÷ 1 square on mobile
   }
 
   // ── Structure: hero skeleton ────────────────────────────────────────────
@@ -69,15 +71,13 @@
   }
 }
 
-// Featured mosaic card (aspect-ratio: 16/9 at 1024+)
-// Written outside the @supports not block to allow @include layout-1024()
+// Related list media column (aspect-ratio: 16/10 at 768+)
+// Written outside the @supports not block to allow @include layout-768()
 // — Sass cannot nest @include mixins inside @supports not blocks in older Sass.
-.related-mosaic-item--featured,
-.rltd-ms-item--featured {
-  @include layout-1024() {
+.related-list-media {
+  @include layout-768() {
     @supports not (aspect-ratio: 1) {
-      height: 0;
-      padding-bottom: 56.25%; // 9 ÷ 16 = 56.25%
+      padding-top: 62.5%; // 10 ÷ 16 = 62.5%
     }
   }
 }

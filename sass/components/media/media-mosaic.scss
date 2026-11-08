@@ -1,0 +1,69 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  media-mosaic.scss — <media-mosaic> Shadow DOM styles (?inline, adopted
+//  into the component's shadow root). Styles the internals natural-size
+//  masonry wall: the full-bleed secondary-surface strip, the %MAXAREA
+//  content column the wall packs into, and the positioned tiles.
+//  ALL geometry (tile position/width/height, wall height) is computed in JS
+//  by the skyline packer and written as inline styles — this sheet owns
+//  surfaces, spacing, radii and the pre-pack min-height reservation, never
+//  layout numbers.
+// ════════════════════════════════════════════════════════════════════════════
+
+@import '../../base/variables';
+@import '../../base/mixins';
+@import '../../base/fonts';
+@import '../../base/placeholders';
+@import '../../base/structure';
+
+// ── Shadow host — the full-bleed strip matching .internal-extra ──────────────
+// %MAXAREA supplies the grid-gutter padding per breakpoint; the vertical
+// rhythm mirrors the .internal-extra-scroll ladder so the wall reads as the
+// same section band the carousel paints on regular groups.
+:host {
+  @extend %MAXAREA;
+
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-primary);
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  padding-top: var(--space-2xl);
+  padding-bottom: var(--space-2xl);
+
+  @include layout-768() {
+    padding-top: var(--space-3xl);
+    padding-bottom: var(--space-3xl);
+  }
+
+  @include layout-1440() {
+    padding-top: var(--space-4xl);
+    padding-bottom: var(--space-4xl);
+  }
+
+  @include layout-1920() {
+    padding-top: var(--space-5xl);
+    padding-bottom: var(--space-5xl);
+  }
+}
+
+// ── The packed wall ───────────────────────────────────────────────────────────
+// position/width/height are set inline by the facade (the container is the
+// skyline packer's coordinate space). --media-mosaic-height arrives from the
+// project section wrapper as the pre-pack estimate, so a deferred mosaic
+// reserves its final box instead of collapsing and shifting siblings.
+.media-mosaic {
+  min-height: var(--media-mosaic-height, auto);
+
+  // One packed tile — top/left/width/height are ALL inline (skyline pack).
+  // Radius/overflow clip the figure's own radius+shadow to the tile box,
+  // matching the .internal-extra-item media chrome.
+  &-item {
+    border-radius: var(--space-md);
+    overflow: hidden;
+
+    @include layout-1024() {
+      border-radius: var(--space-lg);
+    }
+  }
+}

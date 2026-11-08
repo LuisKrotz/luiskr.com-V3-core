@@ -1,32 +1,34 @@
 /**
  * @file tokens/css/nav.js
- * @description Nav gear SVG paint CSS custom-property names — the steel
- * ramp stops the gear gradients reference; declared by the nav-controls
- * SCSS on .nav-gear-svg. Grouped subset of CSS_PROPS.
+ * @description Nav strip glyph paint CSS custom-property names — the
+ * search magnifier's glass/rim ramp and the neon palette the globe, grid,
+ * brush and search glyphs reference; declared by the nav-controls SCSS and
+ * the token sheet. Grouped subset of CSS_PROPS.
  */
 
 /**
- * Nav gear paint custom-property names. Sole declaration site — consumers
- * import members from this frozen map rather than re-declaring the
- * literals (zero-hardcoding rule).
+ * CSS custom properties for the nav strip glyphs. Sole declaration site —
+ * consumers import members from this frozen map rather than re-declaring
+ * the literals (zero-hardcoding rule).
  */
-export const NAV_GEAR_CSS_PROPS = Object.freeze({
-  /** Bright steel — face/hub highlight stop. */
-  GEAR_HI: '--nav-gear-hi',
-  /** Base steel — the metal mid tone (--text-primary pass-through). */
-  GEAR_MID: '--nav-gear-mid',
-  /** Shadowed steel — face/hub edge stop. */
-  GEAR_LO: '--nav-gear-lo',
-  /** Lit rim — tooth-edge highlight where the light lands. */
-  GEAR_EDGE_HI: '--nav-gear-edge-hi',
-  /** Dark rim — tooth-edge underside. */
-  GEAR_EDGE_LO: '--nav-gear-edge-lo',
-  /** Hole mid — drilled-cavity wall tone. */
-  GEAR_HOLE: '--nav-gear-hole',
-  /** Hole deep — the unlit cavity core. */
-  GEAR_HOLE_LO: '--nav-gear-hole-lo',
-  /** Hole lit — the far inner wall catching the light. */
-  GEAR_HOLE_HI: '--nav-gear-hole-hi',
-  /** Specular glint — the fixed top-left rim arc. */
-  GEAR_GLINT: '--nav-gear-glint',
+export const NAV_SEARCH_CSS_PROPS = Object.freeze({
+  /** Glass highlight — lens face lit center. */
+  SEARCH_HI: '--nav-search-hi',
+  /** Glass base — lens face mid tone. */
+  SEARCH_MID: '--nav-search-mid',
+  /** Glass shadow — lens face edge falloff. */
+  SEARCH_LO: '--nav-search-lo',
+  /** Lit rim — ring edge highlight where the light lands. */
+  SEARCH_EDGE_HI: '--nav-search-edge-hi',
+  /** Dark rim — ring edge underside. */
+  SEARCH_EDGE_LO: '--nav-search-edge-lo',
+  /** Specular glint — the orbiting lens flare. */
+  SEARCH_GLINT: '--nav-search-glint',
+  /** Neon palette — published from the token sheet. */
+  NEON_TEAL: '--nav-neon-teal',
+  NEON_GREEN: '--nav-neon-green',
+  NEON_VIOLET: '--nav-neon-violet',
+  NEON_MAGENTA: '--nav-neon-magenta',
+  NEON_ORANGE: '--nav-neon-orange',
+  NEON_CHROME: '--nav-neon-chrome',
 })

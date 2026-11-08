@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  preferences/_flag-options.scss — option row iconography — flag canvas/img + split flag + option label/sub-label.
+//  preferences/_flag-options.scss — option row iconography — flag canvas/img + split flag + option label.
 //  Imported by preferences.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -77,10 +77,4 @@ $_B_FLAG: 'flag';
   font-family: var(--font-primary);
   font-weight: calc(700 + var(--fw-lift));
   font-size: to-rem(16);
-}
-
-// Option sub-label (locale name/description).
-.pref-option-sub {
-  font-size: to-rem(13);
-  color: var(--text-muted);
 }

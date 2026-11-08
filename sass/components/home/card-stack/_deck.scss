@@ -1,0 +1,514 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  card-stack/_deck.scss — the coverflow stage and the card shell: the
+//  landscape cover fill and the JS-driven 3D pose surface. deck.ts writes
+//  every card's transform/width/height and the deck's own `perspective`
+//  (the tier's camera distance) inline — nothing here owns layout numbers
+//  beyond the stage's height contract per layout tier.
+//  Imported by card-stack.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+.#{$_B_CARD_STACK} {
+  // Coverflow stage — fills its grid row on every layout (the row is
+  // minmax(0,1fr), so the deck box is whatever the viewport leaves
+  // between header and foot — the height-budgeted measurement shrinks
+  // the cards instead of letting the section overflow). The perspective
+  // property is written by measure() from the active tier so the
+  // "camera" pulls back on small desktops.
+  &-deck {
+    grid-row: 2;
+    grid-column: 1;
+    align-self: stretch;
+    position: relative;
+    z-index: 2;
+    isolation: isolate;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    cursor: grab;
+    touch-action: pan-y; // vertical scroll stays native; horizontal is ours
+    user-select: none;
+    -webkit-user-drag: none;
+
+    // Side-by-side tiers — the deck claims the right column from 1024
+    // landscape up (unqualified ≥1280 like pickTier's fan gate, plus the
+    // tablet-landscape band where the pile shares the split); below that
+    // the one-column grid keeps it full-width and centred.
+    @media (min-width: 1280px), (min-width: 1024px) and (orientation: landscape) {
+      grid-column: 2;
+    }
+
+    // Desktop GL fan (≥1280) — the deck overhangs its column by 10%
+    // per side so the front card can run ~45% wider than the column
+    // while the fan's marching slivers still fit inside the box: the
+    // reference's front card fills ~35% of the viewport and the side
+    // cards keep reaching toward the screen edges. The bleed lands in
+    // the grid gap and the section's right gutter (overflow-x: clip
+    // only bites at the section edge itself).
+    @media (min-width: 1280px) and (orientation: landscape) {
+      width: 120%;
+      margin-inline: -10%;
+    }
+
+    &--dragging {
+      cursor: grabbing;
+
+      .#{$_B_CARD_STACK}-card {
+        transition: none;
+      }
+    }
+  }
+
+  // Card — the cover plane. JS writes width/height/transform
+  // (translate(-50%,-50%) anchor on the deck centre → translate3d →
+  // tilt); the shell owns only chrome: the dark frame, radius, border,
+  // shadow. On the stacked layouts the cover runs edge to edge (the
+  // whole card is the project sheet); on fan tiers it insets a padded
+  // frame around the landscape plane.
+  &-card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    box-sizing: border-box;
+    padding: 0;
+    border-radius: var(--radius-lg);
+    border: var(--space-hairline) solid var(--border-color-on-dark);
+    background: color-mix(in srgb, var(--color-white-raw) 6%, var(--bg-dark));
+    box-shadow: var(--shadow-card);
+    // The shell stays unclipped so the edge light's bloom can spill off
+    // the card into the dark — the content clip lives on the link below.
+    overflow: visible;
+    transition:
+      transform 0.52s cubic-bezier(0.3, 0.9, 0.35, 1),
+      opacity 0.28s ease,
+      visibility 0.45s ease,
+      border-color 0.28s ease,
+      box-shadow 0.28s ease;
+    will-change: transform;
+
+    // Front card — the lit, face-on plane of the coverflow.
+    &--active {
+      background: color-mix(in srgb, var(--color-white-raw) 9%, var(--bg-dark));
+      border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-white-raw) 25%);
+      box-shadow: var(--shadow-card-featured);
+    }
+
+    // Draw-pile faces — on the stacked layouts only the ACTIVE card
+    // carries project copy: behind it the pile reads as plain cover
+    // sheets (the reference's dealt deck), so the info column lifts out
+    // of flow and fades out while the media stretches to fill the
+    // sheet. (The fan tiers hide the info entirely — the ≥1024
+    // landscape rule below — so this only ever bites on stacked cards.)
+    &:not(&--active) {
+      .#{$_B_CARD_STACK}-card-media {
+        flex: 1 1 auto;
+        aspect-ratio: auto;
+      }
+
+      .#{$_B_CARD_STACK}-card-info {
+        position: absolute;
+        inset-inline: 0;
+        bottom: 0;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+    }
+
+    // Living card edge — the same hairline sheen every bordered surface
+    // carries (related rows, mosaic tiles, footer divider family): a
+    // gradient ring clipped to the border band via mask-composite, split
+    // into two masked layers frozen at opposite gradient stops while
+    // ::before cross-fades its opacity (compositor-thread only).
+    &::after,
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: var(--space-hairline);
+      background: linear-gradient(
+        120deg,
+        transparent 32%,
+        var(--border-item-hover) 45%,
+        var(--color-accent-contrast) 50%,
+        var(--border-item-hover) 55%,
+        transparent 68%
+      );
+      background-size: 300% 300%;
+      -webkit-mask:
+        linear-gradient(var(--color-white-raw) 0 0) content-box,
+        linear-gradient(var(--color-white-raw) 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(var(--color-white-raw) 0 0) content-box,
+        linear-gradient(var(--color-white-raw) 0 0);
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    &::after {
+      background-position: 0% 0%;
+    }
+
+    &::before {
+      background-position: 100% 100%;
+      animation: #{$_B_CARD_STACK}-border-sheen 9s ease-in-out infinite alternate;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+
+      &::before {
+        animation: none;
+      }
+    }
+
+    // Off-fan card — it leaves in place: only its opacity and visibility
+    // ease, so it never slides across the deck while hiding.
+    &--hidden {
+      transition:
+        opacity 0.28s ease,
+        visibility 0.45s ease;
+    }
+
+    // Landscape bands ≥1024 — the image-only card chrome: the inset
+    // padded frame around the cover plane (the ≥1280 text column owns
+    // the copy on the fan tiers, and the 1024–1279 pile carries no copy
+    // at all; every band below keeps the entire-card in-card copy like
+    // mobile).
+    @media (min-width: 1024px) and (orientation: landscape) {
+      padding: var(--space-md);
+    }
+  }
+
+  // Autoplay border light — the countdown as a light filling the card's
+  // border band clockwise from 12 o'clock: a conic-gradient clipped to
+  // the border ring via the same mask-composite the edge sheen uses.
+  // --card-stack-timer-p is written per-frame on the host by autoplay.ts
+  // (registered @property interpolation doesn't work inside shadow-
+  // adopted sheets) — one inline write drives this ring and the
+  // transport's off the same banked clock, frozen mid-lap while paused.
+  // A soft accent ramp behind a white-hot leading edge sells the
+  // "light" crest.
+  &-timer {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    // The band IS the card's own border — one hairline on the same path,
+    // so the countdown lights the border itself instead of overlaying a
+    // second stripe inside it. `from 0deg` starts the lap at 12 o'clock;
+    // the leading edge runs an accent-tinted crest while the tail
+    // feathers in over the first stops — no hard seam at the start
+    // point, no hard hotspot at the head.
+    padding: var(--space-hairline);
+    background: conic-gradient(
+      from 0deg,
+      transparent 0%,
+      var(--color-accent) 6%,
+      var(--color-accent) max(calc(var(--card-stack-timer-p) - 4%), 0%),
+      color-mix(in srgb, var(--color-accent) 45%, var(--color-white-raw)) var(--card-stack-timer-p),
+      transparent var(--card-stack-timer-p)
+    );
+    -webkit-mask:
+      linear-gradient(var(--color-white-raw) 0 0) content-box,
+      linear-gradient(var(--color-white-raw) 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(var(--color-white-raw) 0 0) content-box,
+      linear-gradient(var(--color-white-raw) 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.28s ease;
+
+    // The light's bloom — a fat copy of the same lit arc on a wider
+    // band, blurred into a soft halo around the hairline core (the mask
+    // clips the blur to the band so it hugs the card edge).
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: var(--space-sm);
+      background: inherit;
+      -webkit-mask:
+        linear-gradient(var(--color-white-raw) 0 0) content-box,
+        linear-gradient(var(--color-white-raw) 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(var(--color-white-raw) 0 0) content-box,
+        linear-gradient(var(--color-white-raw) 0 0);
+      mask-composite: exclude;
+      filter: blur(var(--space-2xs));
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+
+  // The countdown's paint — only the front card's border fills, gated
+  // behind --auto so a stopped deck shows no ring at all. Paused/held
+  // needs no rule — the JS writer stops and the gradient holds the
+  // banked position.
+  &--auto &-card--active &-timer {
+    opacity: 1;
+  }
+
+  // The whole card is the link — the content clip (the shell is open for
+  // the edge light), rounded to the inset radius the cover uses so the
+  // corners read as one frame. On the stacked layouts it stacks cover
+  // over the in-card copy (column flex); on fan tiers the media fills
+  // it entirely.
+  &-card-link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    // The stacked front card is height:auto (copy-grown) — inheriting
+    // its min-height floor keeps the link at the full card box so the
+    // info column's margin-top:auto pins CHECK OUT to the card's
+    // bottom edge even when the description runs short.
+    min-height: inherit;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--color-white-raw);
+    outline: none;
+
+    // 768–1023 landscape — the card goes WIDE: the cover takes the left
+    // column and the copy the right, so the whole unit (controls
+    // included) fits the short landscape viewport instead of stacking
+    // a portrait card taller than the screen.
+    @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+      flex-direction: row;
+    }
+
+    @media (min-width: 1024px) and (orientation: landscape) {
+      display: block;
+      // The padded frame makes the card's min-height floor larger than
+      // the link's 100% (the inner box the padding leaves) — inheriting
+      // it here would stretch the absolute media past the card's own
+      // bottom border, so the image appears to overflow the frame.
+      min-height: 0;
+    }
+  }
+
+  // Cover image — the card's top band on stacked layouts (edge to edge,
+  // the project sheet's hero); the padded frame fill on fan tiers. The
+  // bottom scrim keeps the overlapping project title legible when the
+  // cover's own lower edge runs bright behind the glyphs.
+  &-card-media {
+    position: relative;
+    flex: 0 0 auto;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+
+    // 768–1023 landscape — left column of the wide card; stretches to
+    // the card's height so the cover fills its half edge to edge. The
+    // bottom scrim stays off — it only exists to keep the straddling
+    // title legible on the portrait stack's cover seam, and the wide
+    // card's title sits in the right column instead.
+    @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+      flex: 0 0 46%;
+      align-self: stretch;
+      aspect-ratio: auto;
+
+      &::after {
+        content: none;
+      }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset-inline: 0;
+      bottom: 0;
+      height: 45%;
+      background: linear-gradient(transparent, color-mix(in srgb, var(--bg-dark) 85%, transparent));
+      pointer-events: none;
+    }
+
+    @media (min-width: 1024px) and (orientation: landscape) {
+      position: absolute;
+      inset: 0;
+      aspect-ratio: auto;
+      border-radius: var(--radius-md);
+
+      &::after {
+        content: none;
+      }
+    }
+
+    img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  // In-card project copy — the stacked layouts' "entire card" body under
+  // the cover: title, Jost description and the link affordance (the
+  // card's own <a> is the anchor — this span is styled copy). Hidden on
+  // fan tiers, where the text column carries the active project instead.
+  // No top padding — the title's negative margin straddles the cover's
+  // bottom seam.
+  &-card-info {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: 0 var(--space-lg) var(--space-lg);
+    // The draw-pile swap (above) hides this column on non-front cards —
+    // it fades back in as the card crosses into the front slot mid-deal.
+    // Padding rides the transition too: the 768-landscape breakpoint
+    // flips this column's geometry (seam-straddle → flush side column)
+    // and an untransitioned snap reads as a positioning bug on a slow
+    // resize/rotate. (flex-basis itself can't join — auto↔54% is a
+    // discrete flip, which would just delay the snap.)
+    transition:
+      opacity 0.3s ease,
+      visibility 0.3s ease,
+      padding 0.3s ease;
+
+    // 768–1023 landscape — right column of the wide card; it needs its
+    // own top padding since the cover no longer sits above it.
+    @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+      flex: 1 1 54%;
+      padding-top: var(--space-lg);
+    }
+
+    @media (min-width: 1024px) and (orientation: landscape) {
+      display: none;
+    }
+  }
+
+  // The card's own project name — small uppercase display cut straddling
+  // the cover's bottom edge (the negative margin drops it onto the
+  // scrim); the paper-burn knits/consumes its ink on front changes.
+  &-card-info-title {
+    font-family: var(--font-primary);
+    font-weight: calc(300 + var(--fw-lift));
+    text-transform: uppercase;
+    letter-spacing: var(--space-2xs);
+    line-height: 1.12;
+    color: var(--text-primary);
+    margin: calc(-1 * var(--space-xl)) 0 0;
+    font-size: calc(var(--space-xl) + var(--space-sm));
+    // Breakpoint geometry eases instead of snapping — the negative
+    // seam-straddle margin and the font rung both flip at 768
+    // landscape, and a hard snap there reads as the title "breaking".
+    transition:
+      margin-top 0.3s ease,
+      font-size 0.3s ease;
+
+    // 768–1023 landscape — the cover is the card's left column, so there
+    // is no bottom seam to straddle; the title sits flush in the right
+    // copy column instead, one rung smaller to fit the short viewport.
+    @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+      margin-top: 0;
+      font-size: var(--space-xl);
+    }
+  }
+
+  // While the canvas owns the in-card title's pixels the DOM glyphs
+  // stay mounted for layout/a11y but paint nothing.
+  &-card-info-title--burning {
+    color: transparent;
+    text-shadow: none;
+  }
+
+  // In-card combustion canvas — positioned over the title box by JS
+  // (inline left/top/width/height); never intercepts pointer input.
+  &-card-info-title-burn {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  // The card's own CMS description — Jost, NEVER truncated: the card
+  // box grows (CARD_H_RATIO) to carry the whole entry.
+  &-card-info-desc {
+    font-family: var(--font-desc);
+    font-weight: calc(300 + var(--fw-lift));
+    // The narrowest phones run one step smaller — the card's ~212px
+    // text measure already wraps the long CMS copy to many lines.
+    font-size: var(--space-lg);
+    line-height: 1.5;
+
+    // Tablets and up run only a half-step larger — the longer text
+    // measure already wraps the copy well; the small print keeps the
+    // card compact enough to share the viewport with the controls.
+    @include layout-414() {
+      font-size: calc(var(--space-lg) + var(--space-2xs));
+    }
+
+    // 768–1023 landscape — the wide card's copy column is the card's
+    // whole height budget on a short viewport: back to the smallest
+    // rung so the title + copy + CTA fit beside the cover.
+    @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+      font-size: var(--space-lg);
+    }
+    color: var(--text-muted-on-dark);
+    margin: 0;
+  }
+
+  // The card's own "Check out →" affordance — pinned to the body bottom.
+  &-card-info-cta {
+    @extend %LK_LINK;
+
+    margin-top: auto;
+    font-family: var(--font-ui);
+    font-weight: calc(500 + var(--fw-lift));
+    font-size: calc(var(--space-lg) + var(--space-2xs));
+    letter-spacing: var(--space-2xs);
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+
+  &-card-img {
+    &-thumb {
+      // kodak LQIP under the high layer — blurs into the proven rungs.
+      filter: blur(var(--space-sm));
+      transform: scale(var(--scale-up-sm));
+    }
+
+    &-high {
+      opacity: 0;
+      transition: opacity 0.45s ease;
+
+      &-loaded {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// Border sheen — the two masked ring layers sit frozen at opposite
+// gradient stops while ::before breathes its opacity up and down: the
+// bright region reads as light migrating around the rim with no edge
+// ever moving (only opacity animates — composited).
+@keyframes #{$_B_CARD_STACK}-border-sheen {
+  0% {
+    opacity: 0.15;
+  }
+
+  100% {
+    opacity: 0.9;
+  }
+}
+
+// Keyboard focus — the card's own border carries the focus ring, so the
+// outline sits around the whole card instead of clipping inside it.
+.#{$_B_CARD_STACK}-card:focus-within {
+  border-color: var(--focus-ring);
+}
+
+// (No @property/@keyframes — shadow-adopted sheets can't register or
+// interpolate custom properties; autoplay.ts writes --card-stack-timer-p
+// per frame instead, which also freezes correctly on pause/hold.)

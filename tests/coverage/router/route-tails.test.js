@@ -500,6 +500,53 @@ describe('route tails', () => {
     expect(loc.lang).toBe(LOCALES.DE)
   })
 
+  test('parsePath — br search resolves pesquisar canonically and busca as legacy alias', () => {
+    const br = parsePath(`/${LOCALES.BR}/${LANG_SLUGS.br.search}`)
+
+    expect(br.name).toBe(ROUTE_NAMES.SEARCH)
+    expect(br.view).toBe(VIEW_TAGS.VIEW_SEARCH)
+    expect(br.lang).toBe(LOCALES.BR)
+    expect(br.meta.canonical).toBe(`/${LOCALES.BR}/${LANG_SLUGS.br.search}`)
+
+    const legacy = parsePath(`/${LOCALES.BR}/${ROUTE_STRINGS.SEARCH_BUSCA}`)
+
+    expect(legacy.name).toBe(ROUTE_NAMES.SEARCH)
+    expect(legacy.meta.canonical).toBe(`/${LOCALES.BR}/${LANG_SLUGS.br.search}`)
+
+    // The alias works unprefixed too — `/busca` → en search, canonical /search.
+    const bare = parsePath(`/${ROUTE_STRINGS.SEARCH_BUSCA}`)
+
+    expect(bare.name).toBe(ROUTE_NAMES.SEARCH)
+    expect(bare.meta.canonical).toBe(`/${LANG_SLUGS.en.search}`)
+  })
+
+  test('parsePath — bare foreign slug resolves to the unique owning locale', () => {
+    const r = parsePath(`/${LANG_SLUGS.br.search}`)
+
+    expect(r.name).toBe(ROUTE_NAMES.SEARCH)
+    expect(r.lang).toBe(LOCALES.BR)
+    expect(r.meta.canonical).toBe(`/${LOCALES.BR}/${LANG_SLUGS.br.search}`)
+
+    const about = parsePath(`/${LANG_SLUGS.br.about}`)
+
+    expect(about.name).toBe(ROUTE_NAMES.ABOUT)
+    expect(about.lang).toBe(LOCALES.BR)
+  })
+
+  test('parsePath — ambiguous bare slug and prefixed foreign slug stay 404', () => {
+    // `contato` is canonical in both br and riv — no single owner → 404.
+    const ambiguous = parsePath(`/${LANG_SLUGS.br.contact}`)
+
+    expect(ambiguous.name).toBe(ROUTE_NAMES.NOT_FOUND)
+    expect(ambiguous.lang).toBe(LOCALES.EN)
+
+    // A locale prefix pins the table — /fr/pesquisar never falls back.
+    const prefixed = parsePath(`/${LOCALES.FR}/${LANG_SLUGS.br.search}`)
+
+    expect(prefixed.name).toBe(ROUTE_NAMES.NOT_FOUND)
+    expect(prefixed.lang).toBe(LOCALES.FR)
+  })
+
   test('parsePath — empty path falls back to the root descriptor', () => {
     const r = parsePath(CHAR_STRINGS.EMPTY)
 

@@ -1,14 +1,14 @@
 /**
  * @file locale/cyrillic-font.ts
  * @description Cyrillic font plumbing — Russian (`ru`) renders in Fira
- * Sans instead of the site's default Raleway (which is latin-first).
+ * Sans instead of the site's default Poiret One (a display cut).
  * `syncCyrillicFont` toggles the documentElement state class that flips
  * `--font-primary`, lazy-injects the Fira Sans Google Fonts stylesheet
  * exactly once, and mirrors the locale onto `<html lang>` (the SPA never
  * rewrote it, so the attribute used to stay 'en' on every route).
  *
  * The inverse holds too: leaving `ru` removes the class so Fira Sans
- * never ships to non-cyrillic surfaces, and on `ru` no Raleway file is
+ * never ships to non-cyrillic surfaces, and on `ru` no Poiret One file is
  * ever fetched — @font-face downloads happen only for families actually
  * matched by `--font-primary`.
  */

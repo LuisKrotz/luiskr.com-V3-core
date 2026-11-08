@@ -24,6 +24,8 @@ export const ROUTE_NAMES = Object.freeze({
   STAR_FIELD: 'Star Field',
   DOCS: 'In-depth project docs',
   ANIMATIONS: 'Animations Reference',
+  SEARCH: 'Search',
+  SITEMAP: 'Sitemap',
 })
 
 /**

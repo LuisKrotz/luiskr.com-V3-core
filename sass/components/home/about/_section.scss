@@ -1,5 +1,11 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  about/_section.scss — the About section itself — %MAXAREA column, metallic hairline edge, filament-glow accent, bio profile grid (picture + two text columns), side-info, mentions, awards grid, and the about-glitch image keyframes.
+//  about/_section.scss — the About section itself — %MAXAREA column,
+//  metallic hairline top edge, filament-glow accent, and the two-track
+//  profile split — .about-main (title + subtitle + portrait/intro row:
+//  light-field mesh canvas + location HUD + TV-glitch canvas) on the
+//  left, the single bio column vertically centred in the section's
+//  full initial height on the right so the whole block fits one
+//  viewport.
 //  Imported by about.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -9,129 +15,183 @@
   width: 100%;
 }
 
-// About section — %MAXAREA column with filament-glow accent. The metallic
-// hairline top border only runs ≥768 — on stacked mobile layout it reads as
-// a stray divider floating between the bio and the mentions.
+// Portrait light-field mesh — a 2D canvas painted by about/mesh.ts (a polar
+// dot lattice displaced by a traveling radial wave + dotted guide spokes);
+// the bleed lets the outer ring + lines breathe past the picture box.
+
+// About section — %MAXAREA column with filament-glow accent and the metallic
+// hairline top edge: the gradient divider marking the handoff from the
+// selected-work deck to the bio. It runs on every breakpoint — contact and
+// home-mosaic carry the same chrome.
 .about {
   @extend %MAXAREA;
 
+  display: flex;
+  flex-direction: column;
+  gap: to-rem($space-2xl);
   background-image: var(--filament-glow);
-  padding-top: to-rem($space-3xl);
-  // Smooth transition when masonry above changes height (hover expand/collapse)
-  transition: padding-top 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  padding-top: to-rem($space-4xl);
+  padding-bottom: to-rem($space-4xl);
+  border-top: to-rem($space-hairline) solid transparent;
+  border-image: var(--metallic-hairline) 1;
 
-  @include layout-768() {
-    border-top: to-rem($space-hairline) solid transparent;
-    border-image: var(--metallic-hairline) 1;
-    padding-top: to-rem($space-4xl);
+  // ≥1280: the section itself becomes the two-track split — .about-main
+  // (title + subtitle + portrait/intro row) left, the bio column centred
+  // in the full initial height right, so the whole block fits one viewport.
+  // 1024–1279 stays on the stacked tablet flow.
+  @include layout-1280() {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    column-gap: to-rem($space-3xl);
+    padding-top: to-rem($space-5xl);
+    padding-bottom: to-rem($space-5xl);
   }
 
-  @include layout-1024() {
-    padding-top: to-rem($space-5xl);
+  @include layout-2560() {
+    padding-top: to-rem($space-6xl);
+    padding-bottom: to-rem($space-6xl);
   }
   // Isolate internal layout shifts from contributing to page-level CLS
   contain: layout;
 
+  // ── Main column ─────────────────────────────────────────────────────────
+  // Left column of the ≥1280 split — wraps the title, subtitle and the
+  // portrait/intro row into ONE grid item so the bio column beside it can
+  // run the section's full initial height without spanning grid rows.
+  // Below 1280 it is a plain block — the stacked order is unchanged.
+  &-main {
+    min-width: 0; // lets the column shrink inside the grid track
+
+    @include layout-1280() {
+      grid-column: 1;
+    }
+  }
+
   // ── Title ───────────────────────────────────────────────────────────────
+  // Centred on every stacked layout (mobile, 768, tablet, 1024–1279);
+  // the left rail only exists on the ≥1280 split.
   &-title {
     @extend .ttl-xl;
 
     font-family: var(--font-primary);
     font-weight: calc(100 + var(--fw-lift));
-    text-align: left;
+    text-align: center;
     text-transform: uppercase;
     padding: 0 0 to-rem($space-xl);
 
     @include layout-768() {
-      padding: 0 0 to-rem($space-3xl);
+      padding: 0 0 to-rem($space-md);
+    }
+    @include layout-1280() {
+      text-align: left;
     }
     @include layout-1024() {
-      padding: 0 0 to-rem($space-3xl);
+      padding: 0 0 to-rem($space-lg);
     }
     @include layout-1440() {
-      padding: 0 0 to-rem($space-4xl);
-    }
-    @include layout-2560() {
-      padding: 0 0 to-rem($space-5xl);
+      padding: 0 0 to-rem($space-xl);
     }
   }
 
-  // ── Profile picture + 2-column text row ─────────────────────────────────
-  // Grid: [pic 2fr] [gap 1fr] [text-1 5fr] [gap 1fr] [text-2 5fr]
-  // The .ab-pf-text wrapper uses display:contents at 1024px+ so its
-  // two children become direct grid items in columns 3 and 5.
+  // Tagline under the title — the `subtitle` node, small-caps muted chrome
+  // hugging the title line. Centred on every stacked layout (mobile,
+  // 768, 1024–1279) under the centred title; ≥1280 it returns to the
+  // left rail above the portrait.
+  &-subtitle {
+    @extend .ttl-sm;
+
+    font-family: var(--font-desc);
+    font-weight: calc(200 + var(--fw-lift));
+    text-transform: uppercase;
+    letter-spacing: to-rem($space-2xs);
+    color: var(--text-muted);
+    margin: 0;
+    text-align: center;
+    padding-bottom: to-rem($space-xl);
+
+    @include layout-768() {
+      padding-bottom: to-rem($space-2xl);
+    }
+    @include layout-1280() {
+      text-align: left;
+    }
+    @include layout-1440() {
+      padding-bottom: to-rem($space-3xl);
+    }
+    @include layout-2560() {
+      padding-bottom: to-rem($space-4xl);
+    }
+  }
+
+  // ── Profile row ─────────────────────────────────────────────────────────
+  // Mobile/tablet: media → intro stacked inside .about-main. ≥1280: the
+  // portrait/intro row — media 3fr | intro 2fr. The picture pins to the
+  // column's left edge (flush under the title); the mesh field's left
+  // bleed reaches into the page gutter while its right half stays
+  // inside the track, clear of the intro text.
+  // The top margin gives the field's upper ring/lattice clearance below
+  // the subtitle line.
   &-profile-section {
     display: flex;
     flex-direction: column;
     gap: to-rem($space-2xl);
-    padding-bottom: to-rem($space-4xl);
 
-    @include layout-768() {
-      // Tablet: picture on top (row 1, full width), text cols side-by-side below (row 2)
+    @include layout-1280() {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto;
-      gap: to-rem($space-2xl);
-    }
+      grid-template-columns: 3fr 2fr;
+      align-items: center;
+      column-gap: to-rem($space-3xl);
+      margin-top: to-rem($space-2xl);
 
-    @include layout-1024() {
-      // Full grid: 2fr gap 5fr gap 5fr  (14 fractional units)
-      // Cols: 1=pic, 2=gap, 3=text-1, 4=gap, 5=text-2
-      grid-template-columns: 2fr 1fr 5fr 1fr 5fr;
-      grid-template-rows: auto;
-      align-items: start;
-      gap: 0;
-      padding-bottom: to-rem($space-5xl);
-    }
+      // Explicit tracks: the intro <p> is conditional (no `frame`/col1 lead →
+      // absent), so auto-placement can't be trusted to hold the media in col 1.
+      .about-profile-media {
+        grid-column: 1;
+      }
 
-    @include layout-2560() {
-      padding-bottom: to-rem($space-6xl);
+      .about-intro {
+        grid-column: 2;
+      }
     }
+  }
+
+  // Portrait column — picture box + author name underneath; centred inside
+  // the full-width row on the stacked mobile/tablet layout, pinned to the
+  // media track's left edge on the ≥1280 split (see &-profile-picture).
+  &-profile-media {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: to-rem($space-lg);
   }
 
   &-profile-picture {
     flex-shrink: 0;
-    align-self: start;
-    position: relative; // anchors the glitch overlay canvas
-    // Mobile / 768px: fixed square size driven by space tokens
-    width: to-rem($space-5xl);
-    height: to-rem($space-5xl);
+    align-self: center;
+    position: relative; // anchors the glitch overlay + mesh canvases
     margin: 0;
-    // Stay in column 1 on all grid layouts
-    grid-column: 1;
-    grid-row: 1;
+    // The wave rings must paint outside the square box
+    overflow: visible;
+    // Square box driven by space tokens as the FLOOR — once about/
+    // titlefit.ts publishes --about-picture-w (the rendered width of the
+    // "ABOUT ME" title line) the larger value wins, so the portrait
+    // matches the title text on every locale/breakpoint and only ever
+    // grows past the token size.
+    width: max(to-rem($space-5xl), var(--about-picture-w, to-rem($space-5xl)));
+    aspect-ratio: 1 / 1;
 
     @include layout-540() {
-      width: to-rem($space-6xl);
-      height: to-rem($space-6xl);
+      width: max(to-rem($space-6xl), var(--about-picture-w, to-rem($space-6xl)));
     }
 
-    @include layout-768() {
-      // Tablet: picture spans both columns (full width), sits in row 1
-      grid-column: 1 / 3;
-      grid-row: 1;
-      width: to-rem($space-6xl);
-      height: to-rem($space-6xl);
-      // Center the circular pic horizontally within full-width row
-      margin: 0 auto;
-    }
-
-    @include layout-1024() {
-      // On 5-col full grid: picture in col 1
-      grid-column: 1;
-      grid-row: 1;
-      width: 100%;
-      height: auto;
-      aspect-ratio: 1 / 1;
+    // ≥1280: half the media track, pinned to the column's left edge so
+    // the portrait sits flush under the title — the mesh canvas (190%
+    // of the box) breathes into the page gutter on the left while its
+    // right half stays inside the track, clear of the intro text.
+    @include layout-1280() {
+      width: max(50%, var(--about-picture-w, 50%));
       margin: 0;
-    }
-
-    @include layout-1440() {
-      margin: 0;
-    }
-
-    @include layout-2560() {
-      margin: 0;
+      align-self: start;
     }
 
     &-img {
@@ -140,7 +200,23 @@
       object-fit: cover;
       border-radius: var(--radius-full);
       display: block;
+      position: relative; // paints over the wave rings
+      z-index: 1;
       will-change: transform;
+    }
+
+    // Light-field mesh canvas — bleeds ~45% past the box so the outer
+    // lattice and guide spokes clear the photo edge; paints under the img.
+    // With the box pinned to the column edge, the field's left half
+    // breathes into the page gutter while the right half stays inside
+    // the track — the lattice never reaches under the intro text.
+    &-mesh {
+      position: absolute;
+      inset: -45%;
+      width: 190%;
+      height: 190%;
+      pointer-events: none;
+      z-index: 0;
     }
 
     // TV-glitch overlay canvas — mounted by about/glitch.ts on pointer
@@ -153,7 +229,7 @@
       height: 100%;
       border-radius: var(--radius-full);
       pointer-events: none;
-      z-index: 1;
+      z-index: 2;
     }
 
     // Skeleton shimmer while loading
@@ -178,59 +254,105 @@
     }
   }
 
-  &-profile-text {
-    flex: 1;
-    // Mobile: single column, no gap — paragraphs provide their own padding-bottom
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0;
+  // ── Location HUD — coordinate readouts orbiting the portrait ────────────
+  // Two tiny clusters float just outside the wave ring (name/detail left,
+  // latitude/longitude right) and cycle through the about node's
+  // `locations` array — a "places & locations" instrument display.
+  // Desktop-only: the mobile layout keeps the rings but drops the labels.
+  &-profile-hud {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    display: none;
+    transition: opacity 0.45s ease;
 
     @include layout-768() {
-      // Tablet: text wrapper spans both columns in row 2
-      grid-column: 1 / 3;
-      grid-row: 2;
-      grid-template-columns: repeat(2, 1fr);
-      gap: to-rem($space-2xl);
-    }
-
-    @include layout-1024() {
-      // On full 5-col grid: profile-text uses display:contents so its
-      // two children become direct grid items in cols 3 and 5.
-      display: contents;
-    }
-
-    @include layout-2560() {
-      gap: to-rem($space-3xl);
-    }
-
-    &-col {
-      display: flex;
-      flex-direction: column;
-      overflow-wrap: break-word;
-      word-break: normal;
-      hyphens: none;
-
-      @include layout-1024() {
-        // First text col → grid column 3 (the <details> side-info wrapper
-        // takes column 5 — see &-side-info below).
-        &:first-child {
-          grid-column: 3;
-        }
-      }
+      display: block;
     }
   }
 
-  // ── Side info (extended bio) ────────────────────────────────────────────
-  // The second text column reads as secondary info: far-right grid slot on
-  // ≥1024px, secondary ink alone carries the hierarchy on narrow viewports
-  // (no separator — a hairline above the mentions read as a stray divider).
-  &-side-info {
-    .about-item-text {
-      color: var(--text-secondary);
-    }
+  &-profile-hud-out {
+    opacity: 0;
+  }
 
-    @include layout-1024() {
-      grid-column: 5;
+  &-profile-hud-name,
+  &-profile-hud-coords {
+    @extend .txt-xs;
+
+    font-family: var(--font-primary);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: to-rem($space-2xs);
+    position: absolute;
+    white-space: nowrap;
+  }
+
+  // Clusters straddle the ring edges (~9 o'clock name, ~1-2 o'clock
+  // coords) like the reference's instrument readouts — mostly outside
+  // the box, just kissing the ring.
+  &-profile-hud-name {
+    left: -8%;
+    top: 36%;
+    transform: translateY(-50%);
+  }
+
+  &-profile-hud-coords {
+    right: -8%;
+    top: 9%;
+    transform: translateY(-50%);
+    text-align: right;
+  }
+
+  &-profile-hud-line {
+    display: block;
+  }
+
+  // Author name under the portrait — non-localized brand name (BASE_TITLE).
+  // The element rides .sr-only in the markup: clipped from paint, still in
+  // the a11y tree — the styles stay for when the clip is lifted.
+  &-profile-name {
+    @extend .ttl-xs;
+
+    font-family: var(--font-primary);
+    text-transform: uppercase;
+    letter-spacing: to-rem($space-2xs);
+    color: var(--text-secondary);
+    text-align: center;
+  }
+
+  // Hero statement — the `frame` node (or col1's lead paragraph) set in
+  // the sm display ramp; shares .about-item-text but overrides the type.
+  // The `p` compound raises specificity so the ramp's font-size beats
+  // the later-emitting txt-md rule the shared class also lands in.
+  p#{&}-intro {
+    @extend .ttl-sm;
+
+    font-weight: calc(300 + var(--fw-lift));
+    letter-spacing: to-rem($space-2xs);
+    line-height: 1.3;
+
+    @include layout-1280() {
+      align-self: center;
+    }
+  }
+
+  // ── Bio column ──────────────────────────────────────────────────────────
+  // The right column of the ≥1280 split: every remaining col1/col2
+  // paragraph flows top-down, vertically centred against the left
+  // column's full height so the bio block balances the portrait/title
+  // stack instead of hugging the section's top edge.
+  &-profile-text {
+    display: flex;
+    flex-direction: column;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
+    min-width: 0; // lets the column shrink inside the grid track
+
+    @include layout-1280() {
+      grid-column: 2;
+      align-self: center;
     }
   }
 
@@ -247,16 +369,16 @@
       word-break: normal;
       overflow-wrap: break-word;
       hyphens: none;
-      padding-bottom: to-rem($space-md);
+      padding-bottom: to-rem($space-lg);
 
       @include layout-768() {
-        padding-bottom: to-rem($space-lg);
-      }
-      @include layout-1280() {
         padding-bottom: to-rem($space-xl);
       }
-      @include layout-1680() {
+      @include layout-1280() {
         padding-bottom: to-rem($space-2xl);
+      }
+      @include layout-1680() {
+        padding-bottom: to-rem($space-3xl);
       }
 
       a {
@@ -293,6 +415,7 @@
     width: 70%;
     height: 1.4em;
     border-radius: var(--radius-2xs);
+    margin-bottom: 0.6em;
   }
 
   .skeleton-about-p4 {
@@ -307,90 +430,7 @@
     height: 1.4em;
     border-radius: var(--radius-2xs);
   }
-
-  &-container {
-    margin: 0;
-    padding: 0;
-    padding-bottom: to-rem($space-4xl);
-
-    @include layout-1440() {
-      padding-bottom: to-rem($space-5xl);
-    }
-    @include layout-2560() {
-      padding-bottom: to-rem($space-6xl);
-    }
-  }
-
-  // ── Awards grid ─────────────────────────────────────────────────────────
-  .awards {
-    display: grid;
-    grid-gap: to-rem($space-2xl);
-
-    @include layout-540() {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    @include layout-768() {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    @include layout-1024() {
-      grid-template-columns: repeat(4, 1fr);
-    }
-    @include layout-1920() {
-      grid-template-columns: repeat(5, 1fr);
-    }
-    @include layout-3840() {
-      grid-template-columns: repeat(8, 1fr);
-    }
-
-    &-item {
-      border-radius: to-rem($space-sm);
-      background: var(--grey-2);
-      box-shadow: to-rem($space-2xs) to-rem($space-2xs) to-rem($space-sm) 0 rgba($color-black, 0.15);
-      overflow: hidden;
-
-      &-link {
-        display: grid;
-        grid-template-columns: to-rem($space-4xl) auto;
-        min-height: 100%;
-        align-items: center;
-        text-decoration: none;
-        color: inherit;
-
-        @include layout-2560() {
-          grid-template-columns: to-rem($space-5xl) auto;
-        }
-
-        &-media {
-          width: 100%;
-          height: auto;
-          text-align: center;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: var(--grey-2);
-          font-size: to-rem($space-2xl);
-          line-height: to-rem($space-4xl);
-          min-height: 100%;
-
-          @include layout-2560() {
-            font-size: to-rem($space-3xl);
-            line-height: to-rem($space-5xl);
-          }
-        }
-
-        &-text {
-          @extend .txt-xs;
-          padding: 0 to-rem($space-lg);
-
-          @include layout-1440() {
-            padding: 0 to-rem($space-xl);
-          }
-        }
-      }
-    }
-  }
 }
 
-// (The previous about-glitch clip-slice keyframes were removed — the TV
-// glitch now runs as a real raster corruption on a 2D canvas overlay; see
-// website/components/home/about/glitch.ts.)
+// Reduced motion — handled in about/mesh.ts (one static frame, no rAF) and
+// about/hud.ts (no cycle) against the store pref; nothing to disable here.

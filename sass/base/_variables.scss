@@ -39,10 +39,35 @@ $cms-text-muted: #c5c6c7;
 $cms-text-subtle: #8892b0;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
 $cms-accent: #66fcf1;
+
+// Nav icon neon palette — search prompt (teal/green) and preferences brush (violet/magenta/orange).
+$neon-teal: #66fcf1;
+$neon-green: #5dff8a;
+$neon-violet: #a86bff;
+$neon-magenta: #ff4fd8;
+$neon-orange: #ff9a4d;
+$neon-chrome: #d5dde8;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
 $cms-accent-hover: #45a29e;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
 $cms-accent-contrast: #0f8a84;
+
+// Light-theme re-cut of the neon palette — same hue families deepened so
+// every glyph ink clears the 3:1 non-text floor (WCAG SC 1.4.11) on the
+// light chip disc (--border-color). Published at :root by _tokens.scss;
+// html.dark-mode re-pins the bright set above.
+/// Light theme — deep teal glyph ink; shares the light control accent (3.25:1 on the disc).
+$neon-teal-light: $cms-accent-contrast;
+/// Light theme — deep green glyph ink (3.87:1 on the disc).
+$neon-green-light: #15803d;
+/// Light theme — deep violet glyph ink (5.05:1 on the disc).
+$neon-violet-light: #7a28e0;
+/// Light theme — deep magenta glyph ink (3.97:1 on the disc).
+$neon-magenta-light: #d0008f;
+/// Light theme — burnt-orange glyph ink (3.33:1 on the disc).
+$neon-orange-light: #cc5500;
+/// Light theme — steel-slate ferrule ink (3.67:1 on the disc).
+$neon-chrome-light: #64748b;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
 $cms-badge-warn: #f39c12;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
@@ -348,6 +373,8 @@ $space-8xl: 610;
 $space-9xl: 987;
 /// Fib(17) — 1597px, ultra-wide layout slots
 $space-10xl: 1597;
+/// Desktop card-deck lift — the fan rides 160px above its grid row.
+$space-deck-lift: 160;
 // The scale intentionally ends at 10xl — 1597px already exceeds the widest
 // content max-area, so fib(18)+ steps carried no consumers and were removed.
 
@@ -481,11 +508,37 @@ $z-nav: 1100;
 /// Top-level elements (dialogs)
 $z-top: 9999;
 
-// System monospace font stack — no external download required
-/// Monospace stack — system fonts only, so no webfont download blocks paint.
+/// Primary sans stack — Poiret One (Google Fonts, hand-rolled @font-face +
+/// preloads in index.html), with system sans fallbacks so text paints
+/// before or without the webfont.
+$font-sans:
+  'Poiret One',
+  system-ui,
+  -apple-system,
+  sans-serif;
+
+/// Monospace stack — Fira Code (Google Fonts, stylesheet link in
+/// index.html) leading the system mono ladder, which stays as the
+/// fallback on surfaces that never load the webfont (experiment dev
+/// entries ship no font links).
 $font-mono:
-  'ui-monospace', 'SF Mono', 'SFMono-Regular', 'Cascadia Mono', 'Segoe UI Mono', 'Ubuntu Mono',
-  'Roboto Mono', monospace;
+  'Fira Code', 'ui-monospace', 'SF Mono', 'SFMono-Regular', 'Cascadia Mono', 'Segoe UI Mono',
+  'Ubuntu Mono', 'Roboto Mono', monospace;
+
+/// Editorial serif stack — Zilla Slab (Google Fonts, stylesheet link in
+/// index.html), with system serif fallbacks so text paints before or
+/// without the webfont.
+$font-serif: 'Zilla Slab', Georgia, 'Times New Roman', Times, serif;
+
+/// Interface-label stack — Oswald (Google Fonts, stylesheet link in
+/// index.html): the condensed sans for deck chrome — counters, nav,
+/// hints and index captions. Same --font-primary tail.
+$font-ui: 'Oswald', var(--font-primary);
+
+/// Body-copy stack — Jost (Google Fonts, stylesheet link in index.html):
+/// the geometric sans for card descriptions, mention copy, CTAs,
+/// preference descriptions and footer chrome. Same --font-primary tail.
+$font-desc: 'Jost', var(--font-primary);
 
 /// Damped-spring easing for hover morphs (mosaic tiles, related strips)
 /// — a physical spring response (ζ=0.6, ~1.3 cycles) sampled at 4%
@@ -529,6 +582,9 @@ $ease-spring: linear(
 /// bouncy (nav chip reveals, gear spin). Browsers without
 /// linear() keep the cubic-bezier fallback declared alongside
 /// it at each callsite.
+/// Fluid ease-in-out for nav chip reveals — gentle start, long even glide, soft landing (no punch).
+$ease-fluid: cubic-bezier(0.45, 0, 0.2, 1);
+
 $ease-water: linear(
   0,
   0.042,

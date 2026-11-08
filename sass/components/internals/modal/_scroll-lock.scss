@@ -25,8 +25,11 @@ dialog.modal-above,
   padding: 0;
   margin: 0;
   z-index: 9999;
+  // Horizontal scroll is allowed: the modal never reduces media below
+  // its natural pixels, so a file wider than the viewport pans instead
+  // of being clipped — the same no-squash contract as the vertical axis.
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   // Transparent by design — the glass surface lives on

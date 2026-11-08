@@ -53,8 +53,4 @@ export const CAROUSEL_CLASSES = Object.freeze({
   CAROUSEL_RATIO_21_9: `${_B_CAROUSEL}--ratio-21-9`,
   CAROUSEL_RATIO_32_9: `${_B_CAROUSEL}--ratio-32-9`,
   CAROUSEL_MIXED: `${_B_CAROUSEL}--mixed`,
-  CAROUSEL_SLIDE_MIXED_LANDSCAPE: `${_B_CAROUSEL_SLIDE}--mixed-landscape`,
-  CAROUSEL_SLIDE_PATTERN: `${_B_CAROUSEL_SLIDE}-pattern`,
-  CAROUSEL_PATTERN_TOP: `${_B_CAROUSEL_SLIDE}-pattern--top`,
-  CAROUSEL_PATTERN_BOTTOM: `${_B_CAROUSEL_SLIDE}-pattern--bottom`,
 })

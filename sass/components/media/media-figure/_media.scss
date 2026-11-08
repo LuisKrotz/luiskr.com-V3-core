@@ -60,15 +60,15 @@ video.render-media {
   }
 }
 
-// ── Natural-size contract — carousel slides ──────────────────────────────────
-// In .internal-extra-item context the media may never paint larger than
-// the file's intrinsic pixels. The contract is enforced on the BOX, not
-// object-fit: the placeholder (the slide's sizing driver) clamps its
-// height/width caps at --mf-natural-h/--mf-natural-w, so the slide box
-// can be smaller than the strip but never larger than the source — and
-// cover inside a ≤natural box can never upscale. The 320px min-width
-// floor is the one place a box could still exceed a very narrow file, so
-// it is capped at the natural width too.
+// ── Strip-fill contract — carousel slides ────────────────────────────────────
+// Inside <custom-carousel> the placeholder box is the shared --mf-h strip
+// height × the file's own ratio (the width/natural caps and the 320px
+// floor are lifted by the slide/fallback :host-context rules), so cover
+// fills every box exactly — same height, no crop, no distortion. Outside
+// a carousel the contract is enforced on the BOX, not object-fit: the
+// placeholder clamps at --mf-natural-h/--mf-natural-w so a figure can be
+// smaller than the strip but never larger than the source — and cover
+// inside a ≤natural box can never upscale.
 
 // ── Expand modal trigger buttons ──────────────────────────────────────────────
 // exp-md-open-1: styled in modal.scss with animated corner borders

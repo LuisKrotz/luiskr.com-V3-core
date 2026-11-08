@@ -32,4 +32,8 @@ export const ROUTE_STRINGS = Object.freeze({
   LICENSE: _K_LICENSE,
   ABOUT: _B_ABOUT,
   CONTACT: _B_CONTACT,
+  /** Legacy pt-BR search slug — canonical moved to `pesquisar`; kept as a
+   *  resolving alias so old `/br/busca` links still reach the route and
+   *  canonicalize onto the current slug. */
+  SEARCH_BUSCA: 'busca',
 })

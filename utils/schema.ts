@@ -17,9 +17,18 @@ import { ROUTE_NAMES } from '@core/tokens/routes/names.js'
 import { DB_PATHS, ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
 import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
+import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
+import {
+  creditLicenseUrlFor,
+  creditTextFor,
+  mediaProvenanceFields,
+} from '@core/tokens/media/credits.js'
+import { SEARCH_THEMES_KEY } from '@core/tokens/data/search-themes.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
+import { LANG_SLUGS } from '@core/locale/lang-slugs.js'
+import { EP_ABOUT } from '@core/tokens/playground/about.js'
 import { mediaSlugSeq, stripHtml, toMetaDescription } from './string.js'
 import { buildMediaUrls } from './media.js'
 import { CDN_URLS, SOCIAL_URLS } from '@core/tokens/media/urls.js'
@@ -54,8 +63,20 @@ interface RouteSchemaOptions {
   lang?: string
   /** primaryImageOfPage URL; defaults to the global share image. */
   image?: string
+  /** Registry credit of `image` when it is a third-party asset (star-body
+   *  dossiers) — switches the ImageObject provenance to the source's
+   *  terms instead of the site's license. */
+  imageCredit?: string
   /** Ordered crumbs ending at this page — emits BreadcrumbList when ≥2. */
   breadcrumb?: BreadcrumbItem[]
+  /** WebPage @type override — 'ProfilePage' on the about route. */
+  pageType?: string
+  /** Localized comma-joined search themes — WebPage.keywords. */
+  keywords?: string
+  /** Schema ref the page is about — `{'@id': '#person'}` on the profile page; playgrounds pass the shared Wikidata anchor list. */
+  about?: Record<string, unknown> | Record<string, unknown>[]
+  /** mainEntity ref — project pages point at `#article`, watch pages at their media node. */
+  mainEntity?: Record<string, unknown>
 }
 
 /** Media descriptor inside project `sections` (and the project cover). */
@@ -70,12 +91,90 @@ interface ProjectMediaNode {
 interface ProjectSchemaSource {
   title?: string
   folder?: string
-  cover?: { src?: string; isVideo?: boolean; label?: string }
+  cover?: { src?: string; isVideo?: boolean; label?: string; size?: Array<number | string> }
   sections?: unknown
+  /** Content-derived localized query vocabulary for Article/WebPage keywords. */
+  [SEARCH_THEMES_KEY]?: string[]
+}
+
+/** Cross-reference to the site's Person entity — author/publisher/uploader/creator all resolve to the single `#person` node so Google's entity graph consolidates on one stable identity. */
+const PERSON_REF: Record<string, unknown> = { '@id': `${NET_STRINGS.SITE_URL}#person` }
+
+/**
+ * Absolute license-page URL for a locale — ImageObject.license /
+ * acquireLicensePage targets and the sitemap <image:license> all resolve
+ * to the locale's own legal page so Google Images can flag the asset as
+ * licensable and land the click on text the visitor reads.
+ */
+export const licenseUrlFor = (lang?: string): string => {
+  const loc = lang || LOCALES.EN
+
+  const slug = LANG_SLUGS[loc]?.license || LANG_SLUGS[LOCALES.EN]?.license || ''
+
+  return `${NET_STRINGS.SITE_URL}${loc === LOCALES.EN ? '' : `/${loc}`}/${slug}`
 }
 
 /**
- * Generates WebSite and Organization schema for the homepage.
+ * Provenance field bag for one media entity — site-owned assets point
+ * `license`/`acquireLicensePage` at the locale's legal page under the
+ * owner copyright notice; credited third-party assets (star-field
+ * dossier media) point at the SOURCE's terms page with the raw credit
+ * as the notice instead, so the site's MPL grant never covers NASA/ESA
+ * imagery. `ownedCreditText` lets project media keep their project
+ * title as the credit line while still carrying the owner notice.
+ * @param lang Locale code — resolves the owned-asset license URL.
+ * @param credit Registry credit string; present ⇒ third-party asset.
+ * @param subject Display name embedded in the expanded creditText.
+ * @param ownedCreditText Credit line for owned assets (default BASE_TITLE).
+ * @returns Field bag to spread into the entity literal.
+ */
+const mediaProvenanceFor = (
+  lang: string | undefined,
+  credit?: string,
+  subject?: string,
+  ownedCreditText: string = BASE_TITLE
+): Record<string, unknown> => {
+  if (credit) {
+    return mediaProvenanceFields({
+      licenseUrl: creditLicenseUrlFor(credit),
+      copyrightNotice: credit,
+      creditText: creditTextFor(credit, subject || ATTR_VALUES.EMPTY),
+    })
+  }
+
+  return mediaProvenanceFields({
+    licenseUrl: licenseUrlFor(lang),
+    copyrightNotice: `${CHAR_STRINGS.COPYRIGHT} ${BASE_TITLE}`,
+    creditText: ownedCreditText,
+  })
+}
+
+/**
+ * Person entity — the site's sole author. Every page's graph carries it
+ * so Google consolidates `author`/`publisher`/`creator`/`uploader`
+ * references (all `{'@id': '#person'}`) onto one stable identity; the
+ * sameAs fan-out mirrors the Organization's and feeds entity
+ * reconciliation for a possible knowledge panel.
+ * @returns Person JSON-LD entity
+ */
+export const generatePersonSchema = (): Record<string, unknown> => ({
+  '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+  '@type': 'Person',
+  '@id': `${NET_STRINGS.SITE_URL}#person`,
+  name: BASE_TITLE,
+  alternateName: SCHEMA_STRINGS.SCHEMA_PERSON_ALT_NAME,
+  url: NET_STRINGS.SITE_URL,
+  image: `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_SHARE_IMAGE}`,
+  jobTitle: SCHEMA_STRINGS.SCHEMA_PERSON_JOB_TITLE,
+  description: SCHEMA_STRINGS.SCHEMA_SITE_DESCRIPTION,
+  knowsAbout: SCHEMA_STRINGS.SCHEMA_PERSON_KNOWS_ABOUT.split(', '),
+  nationality: { '@type': 'Country', name: SCHEMA_STRINGS.SCHEMA_PERSON_NATIONALITY },
+  worksFor: { '@id': `${NET_STRINGS.SITE_URL}#organization` },
+  sameAs: [SOCIAL_URLS.WHATSAPP, SOCIAL_URLS.GITHUB, SOCIAL_URLS.LINKEDIN, SOCIAL_URLS.INSTAGRAM],
+})
+
+/**
+ * Generates WebSite, Person and Organization schema for the homepage.
  * @returns JSON-LD entities
  */
 export const generateWebsiteSchema = (): Record<string, unknown>[] => {
@@ -84,7 +183,7 @@ export const generateWebsiteSchema = (): Record<string, unknown>[] => {
       '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
       '@type': 'Organization',
       '@id': `${NET_STRINGS.SITE_URL}#organization`,
-      legalName: 'Jacson Luis Krötz',
+      legalName: SCHEMA_STRINGS.SCHEMA_PERSON_ALT_NAME,
       name: 'Luis Krötz',
       url: NET_STRINGS.SITE_URL,
       logo: `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_ORG_LOGO}`,
@@ -96,6 +195,7 @@ export const generateWebsiteSchema = (): Record<string, unknown>[] => {
         SOCIAL_URLS.INSTAGRAM,
       ],
     },
+    generatePersonSchema(),
     {
       '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
       '@type': 'WebSite',
@@ -106,6 +206,15 @@ export const generateWebsiteSchema = (): Record<string, unknown>[] => {
       image: `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_SHARE_IMAGE}`,
       publisher: {
         '@id': `${NET_STRINGS.SITE_URL}#organization`,
+      },
+      // Google Sitelinks Searchbox — /search?q={query} is the deep link.
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${NET_STRINGS.SITE_URL}search?q={search_term_string}`,
+        },
+        'query-input': 'required name=search_term_string',
       },
     },
   ]
@@ -196,15 +305,19 @@ const firstSectionText = (node: unknown): string => {
 }
 
 /**
- * VideoObject entity for one media descriptor — contentUrl/embedUrl
- * point at the CDN mp4 and thumbnailUrl at its jpg poster, the two
- * URLs Google's video crawler needs to index the asset.
+ * VideoObject entity for one media descriptor — contentUrl points at
+ * the CDN mp4 and thumbnailUrl at its jpg poster, the two
+ * URLs Google's video crawler needs to index the asset. The eligibility
+ * flags (isFamilyFriendly / requiresSubscription / isAccessibleForFree)
+ * and the inLanguage/uploader fields feed the video rich-result
+ * classifiers so the clip stays indexable on every locale surface.
  */
 const videoObjectFor = (
   media: ProjectMediaNode,
   folder: string,
   title: string,
-  description: string
+  description: string,
+  lang: string = LOCALES.EN
 ): Record<string, unknown> => {
   const { source, thumb } = buildMediaUrls(CDN_URLS.CDN_BASE, folder, media)
 
@@ -214,10 +327,15 @@ const videoObjectFor = (
     name: media.label || `${title} Video`,
     description: description || `Showcase video for ${title}`,
     thumbnailUrl: [thumb],
-    uploadDate: SCHEMA_STRINGS.SCHEMA_PUBLISHED_DATE,
-    duration: SCHEMA_STRINGS.SCHEMA_VIDEO_DURATION,
     contentUrl: source,
-    embedUrl: source,
+    inLanguage: LOCALE_TAGS[lang]?.bcp || lang,
+    isFamilyFriendly: true,
+    requiresSubscription: false,
+    isAccessibleForFree: true,
+    uploader: PERSON_REF,
+    // Project clips are site-owned — licensable badge fields matching
+    // the watch-page ImageObject's provenance bag.
+    ...mediaProvenanceFor(lang, undefined, undefined, title),
   }
 }
 
@@ -258,6 +376,12 @@ export const generateProjectArticleSchema = (
     toMetaDescription(firstSectionText(project.sections)) ||
     `Case study for ${title} built by Software Engineer Luis Krötz.`
 
+  // The project's own query vocabulary — Google reads Article.keywords
+  // the way it reads WebPage.keywords, and Bing/Yandex still weight it.
+  const rawThemes = project[SEARCH_THEMES_KEY]
+
+  const themes = Array.isArray(rawThemes) ? rawThemes : []
+
   const article: Record<string, unknown> = {
     '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
     '@type': 'Article',
@@ -272,27 +396,20 @@ export const generateProjectArticleSchema = (
     headline: title,
     inLanguage: LOCALE_TAGS[locale]?.bcp || locale,
     mainEntityOfPage: canonicalUrl,
-    datePublished: SCHEMA_STRINGS.SCHEMA_PUBLISHED_DATE,
-    dateModified: SCHEMA_STRINGS.SCHEMA_PUBLISHED_DATE,
-    author: {
-      '@type': 'Person',
-      name: BASE_TITLE,
-      url: NET_STRINGS.SITE_URL,
-    },
-    publisher: {
-      '@type': 'Person',
-      name: BASE_TITLE,
-      url: NET_STRINGS.SITE_URL,
-    },
+    articleSection: SCHEMA_STRINGS.SCHEMA_ARTICLE_SECTION,
+    isAccessibleForFree: true,
+    author: PERSON_REF,
+    publisher: PERSON_REF,
     image: images,
     description,
+    ...(themes.length ? { keywords: themes.join(', ') } : {}),
   }
 
   const entities: Record<string, unknown>[] = [article]
 
   // Add VideoObject schema if project has a cover video or section videos
   if (!omitCoverVideo && project.cover?.isVideo && project.cover.src) {
-    entities.push(videoObjectFor(project.cover, folder, title, description))
+    entities.push(videoObjectFor(project.cover, folder, title, description, locale))
   }
 
   return entities
@@ -335,19 +452,37 @@ export const generateBreadcrumbSchema = (
  * @returns JSON-LD entities for updateJsonLd().
  */
 export const generateRouteSchema = (options: RouteSchemaOptions): Record<string, unknown>[] => {
-  const { url, name, description, lang, image, breadcrumb } = options
+  const {
+    url,
+    name,
+    description,
+    lang,
+    image,
+    imageCredit,
+    breadcrumb,
+    pageType,
+    keywords,
+    about,
+    mainEntity,
+  } = options
 
   const bcp = (lang && LOCALE_TAGS[lang]?.bcp) || lang || LOCALES.EN
 
-  const [org, website] = generateWebsiteSchema()
+  const [org, person, website] = generateWebsiteSchema()
 
   website.inLanguage = bcp
 
   const crumbs = generateBreadcrumbSchema(breadcrumb, `${url}#breadcrumbs`)
 
+  // The credit only describes `image` — the SHARE_IMAGE fallback is always
+  // site-owned, so an unpaired imageCredit must never leak onto it.
+  const pageImage = image || `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_SHARE_IMAGE}`
+
+  const pageImageCredit = image ? imageCredit : undefined
+
   const webPage: Record<string, unknown> = {
     '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
-    '@type': 'WebPage',
+    '@type': pageType || 'WebPage',
     '@id': `${url}#webpage`,
     url,
     name,
@@ -357,12 +492,20 @@ export const generateRouteSchema = (options: RouteSchemaOptions): Record<string,
     publisher: { '@id': `${NET_STRINGS.SITE_URL}#organization` },
     primaryImageOfPage: {
       '@type': 'ImageObject',
-      url: image || `${NET_STRINGS.SITE_URL}${SCHEMA_STRINGS.SCHEMA_SHARE_IMAGE}`,
+      url: pageImage,
+      // Full provenance bag — licensable badge fields on every page's
+      // representative image; third-party dossier covers carry the
+      // source's terms, never the site's license.
+      ...mediaProvenanceFor(lang, pageImageCredit, name),
+      ...(pageImageCredit ? {} : { creator: PERSON_REF }),
     },
     ...(crumbs ? { breadcrumb: { '@id': `${url}#breadcrumbs` } } : {}),
+    ...(keywords ? { keywords } : {}),
+    ...(about ? { about } : {}),
+    ...(mainEntity ? { mainEntity } : {}),
   }
 
-  return crumbs ? [org, website, webPage, crumbs] : [org, website, webPage]
+  return crumbs ? [org, person, website, webPage, crumbs] : [org, person, website, webPage]
 }
 
 /** Inputs for the Earth Playground graph — route base + WebApplication declaring the canvas-rendered control surface. */
@@ -377,6 +520,10 @@ interface EarthPlaygroundSchemaOptions {
   lang?: string
   /** Localized labels of every control group, row and action — WebApplication.featureList. */
   features: string[]
+  /** Localized comma-joined search themes — WebPage.keywords (searchThemes when the page node carries it). */
+  keywords?: string
+  /** Absolute share-capture URL — the app's live screenshot (rotation pick when one is bound). */
+  screenshot?: string
 }
 
 /**
@@ -392,12 +539,19 @@ interface EarthPlaygroundSchemaOptions {
 export const generateEarthPlaygroundSchema = (
   options: EarthPlaygroundSchemaOptions
 ): Record<string, unknown>[] => {
-  const { url, name, description, lang, features } = options
+  const { url, name, description, lang, features, keywords, screenshot } = options
 
   const bcp = (lang && LOCALE_TAGS[lang]?.bcp) || lang || LOCALES.EN
 
   return [
-    ...generateRouteSchema({ url, name, description, lang }),
+    ...generateRouteSchema({
+      url,
+      name,
+      description,
+      lang,
+      ...(keywords ? { keywords } : {}),
+      about: [...EP_ABOUT],
+    }),
     {
       '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
       '@type': 'WebApplication',
@@ -405,12 +559,33 @@ export const generateEarthPlaygroundSchema = (
       name,
       url,
       applicationCategory: 'MultimediaApplication',
+      applicationSubCategory: 'Earth simulation',
       operatingSystem: 'Web browser',
       browserRequirements: 'Requires WebGL; WebGPU preferred',
       inLanguage: bcp,
       isAccessibleForFree: true,
+      // Free-web-app Offer — the form Google's software-app rich result
+      // requires when no aggregateRating exists (static-emit parity).
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+        availability: `${SCHEMA_STRINGS.SCHEMA_CONTEXT}/InStock`,
+      },
+      ...(screenshot
+        ? {
+            screenshot: {
+              '@type': 'ImageObject',
+              url: screenshot,
+              // Share captures are site-owned — same provenance bag as
+              // the gallery items so the app screenshot is licensable.
+              ...mediaProvenanceFor(lang),
+              creator: PERSON_REF,
+            },
+          }
+        : {}),
       isPartOf: { '@id': `${url}#webpage` },
-      author: { '@type': 'Person', name: BASE_TITLE, url: NET_STRINGS.SITE_URL },
+      author: PERSON_REF,
       featureList: features,
     },
   ]
@@ -497,6 +672,8 @@ export const generateStarIndexSchema = (
         ...(d.description ? { description: d.description } : {}),
         ...(d.credit ? { creditText: d.credit } : {}),
         isAccessibleForFree: true,
+        license: licenseUrlFor(lang),
+        creator: PERSON_REF,
         distribution: d.distributions.map((dist) => ({
           '@type': 'DataDownload',
           encodingFormat: dist.format,
@@ -523,25 +700,95 @@ interface StarBodySchemaOptions {
   tagline?: string
   /** Technical dossier facts — emitted as PropertyValue pairs on the object. */
   facts?: Array<{ label?: string; value?: string }>
+  /** Dossier gallery media — only source-backed assets enter the graph. */
+  media?: StarBodyMedia
   /** Locale code — resolved to BCP-47 via LOCALE_TAGS. */
   lang?: string
+}
+
+/** One credited image or video asset attached to a star-body dossier. */
+interface StarBodyMediaAsset {
+  /** Public URL of the image, video, or optional video poster. */
+  src?: string
+  /** Visible caption reused as the structured-data name. */
+  caption?: string
+  /** Source credit shown with the dossier's media. */
+  credit?: string
+  /** Absolute poster URL for a video, when one is supplied. */
+  poster?: string
+}
+
+/** Image and video collections rendered on one star-body dossier page. */
+interface StarBodyMedia {
+  /** Dossier images, ordered as shown in the page gallery. */
+  images?: StarBodyMediaAsset[]
+  /** Dossier videos, ordered as shown in the page gallery. */
+  videos?: StarBodyMediaAsset[]
 }
 
 /**
  * Star-field body JSON-LD graph — the route base (with a Home →
  * Star Field → body crumb) plus an Article whose `about` Thing carries
- * the dossier's technical facts as PropertyValue pairs. Mirrors the
- * build-time body entity so hydrated dossier deep links keep the same
- * structured data the static dossier pages serve.
- * @param options Body/index URLs, names, tagline, facts, locale.
+ * the dossier's technical facts as PropertyValue pairs. The credited
+ * image/video gallery is emitted as media entities and the first image
+ * anchors the WebPage and Article. Mirrors the build-time body entity so
+ * hydrated dossier deep links keep the same graph the static page serves.
+ * @param options Body/index URLs, names, tagline, facts, media, locale.
  * @returns JSON-LD entities for updateJsonLd().
  */
 export const generateStarBodySchema = (
   options: StarBodySchemaOptions
 ): Record<string, unknown>[] => {
-  const { url, indexUrl, indexName, name, tagline, facts, lang } = options
+  const { url, indexUrl, indexName, name, tagline, facts, media, lang } = options
 
   const bcp = (lang && LOCALE_TAGS[lang]?.bcp) || lang || LOCALES.EN
+
+  const images = (media?.images || []).filter(
+    (image): image is StarBodyMediaAsset & { src: string } => Boolean(image?.src)
+  )
+
+  const primaryImage = images[0]?.src
+
+  const imageEntities = images.map((image, index) => ({
+    '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+    '@type': 'ImageObject',
+    '@id': `${url}#image-${index + 1}`,
+    url: image.src,
+    contentUrl: image.src,
+    name: image.caption || name,
+    inLanguage: bcp,
+    // Credited dossier media resolves to the SOURCE's licence page;
+    // uncredited assets fall back to the site-owned provenance bag.
+    ...mediaProvenanceFor(lang, image.credit, name),
+    isPartOf: { '@id': `${url}#webpage` },
+    representativeOfPage: index === 0,
+  }))
+
+  const videoEntities: Record<string, unknown>[] = []
+
+  for (const [index, video] of (media?.videos || []).entries()) {
+    if (!video?.src) continue
+
+    const poster = video.poster && /^https?:/.test(video.poster) ? video.poster : primaryImage
+
+    if (!poster) continue
+
+    videoEntities.push({
+      '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
+      '@type': 'VideoObject',
+      '@id': `${url}#video-${index + 1}`,
+      name: video.caption || `${name} video`,
+      description: `${name} — ${video.caption || tagline || name}`,
+      thumbnailUrl: [poster],
+      contentUrl: video.src,
+      inLanguage: bcp,
+      isFamilyFriendly: true,
+      isAccessibleForFree: true,
+      requiresSubscription: false,
+      ...mediaProvenanceFor(lang, video.credit, name),
+      isPartOf: { '@id': `${url}#webpage` },
+    })
+  }
 
   return [
     ...generateRouteSchema({
@@ -549,6 +796,12 @@ export const generateStarBodySchema = (
       name,
       description: tagline,
       lang,
+      image: primaryImage,
+      // The dossier's first gallery asset doubles as the page image —
+      // when it carries a registry credit the WebPage's ImageObject
+      // provenance resolves to the source's terms, not the site's.
+      imageCredit: images[0]?.credit,
+      mainEntity: { '@id': `${url}#article` },
       breadcrumb: [
         { name: BASE_TITLE, url: `${NET_STRINGS.SITE_URL}${ROUTE_PATHS.ROOT}` },
         { name: indexName, url: indexUrl },
@@ -566,6 +819,7 @@ export const generateStarBodySchema = (
         '@id': `${url}#object`,
         name,
         description: tagline || ATTR_VALUES.EMPTY,
+        ...(primaryImage ? { image: primaryImage } : {}),
         additionalProperty: (facts || []).map((f) => ({
           '@type': 'PropertyValue',
           name: f.label,
@@ -575,9 +829,44 @@ export const generateStarBodySchema = (
       inLanguage: bcp,
       mainEntityOfPage: url,
       isPartOf: { '@id': `${indexUrl}#webpage` },
-      author: { '@type': 'Person', name: BASE_TITLE, url: NET_STRINGS.SITE_URL },
+      author: PERSON_REF,
+      ...(images.length ? { image: images.map((image) => image.src) } : {}),
     },
+    ...imageEntities,
+    ...videoEntities,
   ]
+}
+
+/**
+ * Resolves a media deep-link slug to its sections descriptor plus the
+ * resolved CDN URLs — the same document-order slugging
+ * generateProjectSchema and the emitted /<p>/<media> pages use, so the
+ * runtime head sync can answer "which asset does this URL name" without
+ * duplicating the slug walk.
+ * @param project Localized project translation node.
+ * @param mediaSlug Deep-link segment from the route params.
+ * @returns The matched media node + URLs, or null when unresolvable.
+ */
+export const resolveProjectMedia = (
+  project: ProjectSchemaSource | null,
+  mediaSlug?: string
+): { media: ProjectMediaNode; urls: ReturnType<typeof buildMediaUrls> } | null => {
+  if (!project || !mediaSlug) return null
+
+  const media = [...walkMedia(project.sections)]
+
+  const slugSeen = new Map<string, number>()
+
+  const index = media.findIndex(
+    (m) => (m.label ? mediaSlugSeq(slugSeen, m.label) : ATTR_VALUES.EMPTY) === mediaSlug
+  )
+
+  if (index < 0) return null
+
+  return {
+    media: media[index],
+    urls: buildMediaUrls(CDN_URLS.CDN_BASE, project.folder || ATTR_VALUES.EMPTY, media[index]),
+  }
 }
 
 /**
@@ -591,8 +880,8 @@ export const generateStarBodySchema = (
  * level appears, and a dedicated ImageObject/VideoObject leads the
  * graph — matching the static media pages the generator emits.
  * @param project Localized project translation node.
- * @param slug    Canonical project slug.
- * @param locale  Page locale (defaults to LOCALES.EN).
+ * @param slug Canonical project slug.
+ * @param locale Page locale (defaults to LOCALES.EN).
  * @param mediaSlug Active media deep-link segment (params.slug).
  * @returns JSON-LD entities for updateJsonLd().
  */
@@ -680,7 +969,13 @@ export const generateProjectSchema = (
   // unambiguous to Google's watch-page classifier.
   const sectionVideos = activeMedia
     ? []
-    : media.filter((m) => m.isVideo).map((m) => videoObjectFor(m, folder, title, description))
+    : media
+        .filter((m) => m.isVideo)
+        .map((m) => videoObjectFor(m, folder, title, description, locale))
+
+  const rawThemes = project[SEARCH_THEMES_KEY]
+
+  const pageKeywords = Array.isArray(rawThemes) ? rawThemes.join(', ') : ''
 
   const routeGraph = generateRouteSchema({
     url: pageUrl,
@@ -688,6 +983,15 @@ export const generateProjectSchema = (
     description,
     lang: locale,
     image: pageImage,
+    ...(pageKeywords ? { keywords: pageKeywords } : {}),
+    // The WebPage names its payload entity — the project Article, or the
+    // watch page's own media node — so crawlers bind the rich result to
+    // this URL instead of the parent.
+    mainEntity: {
+      '@id': activeMedia
+        ? `${pageUrl}${activeUrls?.isVideo ? '#video' : '#image'}`
+        : `${canonicalUrl}#article`,
+    },
     breadcrumb: [
       { name: BASE_TITLE, url: `${NET_STRINGS.SITE_URL}${ROUTE_PATHS.ROOT}` },
       { name: title, url: canonicalUrl },
@@ -695,10 +999,21 @@ export const generateProjectSchema = (
     ],
   })
 
+  // Intrinsic dims ride along when the descriptor carries a size — a
+  // declared box lets image search qualify the asset's resolution
+  // without fetching it.
+  const mediaDims =
+    activeMedia && Array.isArray(activeMedia.size) && activeMedia.size.length >= 2
+      ? { width: activeMedia.size[0], height: activeMedia.size[1] }
+      : null
+
   const mediaEntity =
     activeMedia && activeUrls
       ? activeUrls.isVideo
-        ? videoObjectFor(activeMedia, folder, title, description)
+        ? {
+            ...videoObjectFor(activeMedia, folder, title, description, locale),
+            '@id': `${pageUrl}#video`,
+          }
         : {
             '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
             '@type': 'ImageObject',
@@ -706,6 +1021,12 @@ export const generateProjectSchema = (
             url: activeUrls.source,
             contentUrl: activeUrls.source,
             name: pageName,
+            // Licensable badge — Google Images marks the asset and
+            // deep-links the locale's license page; the project title
+            // stays the credit line under the owner notice.
+            ...mediaProvenanceFor(locale, undefined, undefined, title),
+            creator: PERSON_REF,
+            ...(mediaDims ? mediaDims : {}),
           }
       : null
 
@@ -783,9 +1104,7 @@ export const generateDocsSchema = (
     description: isFile
       ? `${String(node?.name)} — published as part of the luiskr.com documentation portal.`
       : DOCS_STRINGS.SCHEMA_DESCRIPTION,
-    ...(isFile && node?.mtime
-      ? { dateModified: node.mtime, datePublished: SCHEMA_STRINGS.SCHEMA_PUBLISHED_DATE }
-      : {}),
+    ...(isFile && node?.mtime ? { dateModified: node.mtime } : {}),
   }
 
   return [breadcrumb, page]

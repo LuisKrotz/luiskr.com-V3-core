@@ -72,6 +72,8 @@ describe('schema generators', () => {
     const entities = generateProjectArticleSchema(project, TEST_PROJECTS.CICB)
 
     expect(entities[0]['@type']).toBe('Article')
+    expect(entities[0].datePublished).toBeUndefined()
+    expect(entities[0].dateModified).toBeUndefined()
     // A video cover resolves the Article image to the real poster asset —
     // the hypothetical -16x9/-4x3/-1x1 variants never existed on the CDN.
     expect(entities[0].image).toEqual([
@@ -79,6 +81,9 @@ describe('schema generators', () => {
     ])
     expect(entities[1]['@type']).toBe('VideoObject')
     expect(entities[1].contentUrl).toBe(`${CDN_URLS.CDN_BASE}${TEST_PROJECTS.CICB}/cover.mp4`)
+    expect(entities[1].uploadDate).toBeUndefined()
+    expect(entities[1].duration).toBeUndefined()
+    expect(entities[1].embedUrl).toBeUndefined()
   })
 
   test('generateProjectArticleSchema uses the uncompressed mozjpg for image covers', () => {
@@ -178,13 +183,14 @@ describe('schema generators', () => {
 
     const types = graph.map((e) => e['@type'])
 
-    expect(types).toEqual(['Organization', 'WebSite', 'WebPage', 'BreadcrumbList'])
+    expect(types).toEqual(['Organization', 'Person', 'WebSite', 'WebPage', 'BreadcrumbList'])
 
     const webPage = graph.find((e) => e['@type'] === 'WebPage')
 
     expect(webPage['@id']).toBe(`${pageUrl}#webpage`)
     expect(webPage.inLanguage).toBe('pt-BR')
     expect(webPage.description).toBe(TEST_TEXT.BODY)
+    expect(webPage.dateModified).toBeUndefined()
     expect(webPage.breadcrumb['@id']).toBe(`${pageUrl}#breadcrumbs`)
     expect(graph.find((e) => e['@type'] === 'WebSite').inLanguage).toBe('pt-BR')
   })
@@ -192,7 +198,7 @@ describe('schema generators', () => {
   test('generateRouteSchema falls back to share image + site description without crumbs', () => {
     const graph = generateRouteSchema({ url: `${NET_STRINGS.SITE_URL}/`, name: 'Luis Krötz' })
 
-    expect(graph).toHaveLength(3)
+    expect(graph).toHaveLength(4)
 
     const webPage = graph.find((e) => e['@type'] === 'WebPage')
 

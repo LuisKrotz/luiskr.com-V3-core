@@ -31,11 +31,22 @@ export const CHAR_STRINGS = Object.freeze({
   COPYRIGHT: '©',
   /** Keycap glyph rows for shortcut documentation (arrows + Escape). */
   ARROW_KEYS: '← → ↑ ↓',
+  /** Leading back-nav glyph — "← Previous"-style controls. */
+  ARROW_LEFT: '←',
+  /** Trailing CTA glyphs — rightwards for same-channel actions (mailto),
+   *  north-east for outbound external links. */
+  ARROW_RIGHT: '→',
+  ARROW_NE: '↗',
+  /** Vertical conveyor glyphs — related-list prev/next step buttons. */
+  ARROW_UP_CHAR: '↑',
+  ARROW_DOWN_CHAR: '↓',
   ESC_KEYCAP: 'Esc',
   /** Zoom/expand control glyph (diagonal arrows to corners). */
   EXPAND_GLYPH: '⤢',
   /** Dismiss/close control glyph (multiplication cross). */
   CLOSE_GLYPH: '✕',
+  /** Expand/Add control glyph (plus sign). */
+  PLUS_GLYPH: '+',
   /** Playback toggle glyphs for ambient-media controls (triangle / pause bars). */
   PLAY_GLYPH: '▶',
   PAUSE_GLYPH: '❚❚',
@@ -45,6 +56,7 @@ export const CHAR_STRINGS = Object.freeze({
   ONE: '1',
   MINUS_ONE: '-1',
   DELAY_8: '8',
+  DELAY_15: '15',
   DELAY_30: '30',
   PERCENT_100: '100%',
   ONE_EM: '1em',

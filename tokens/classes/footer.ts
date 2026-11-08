@@ -18,6 +18,8 @@ export const FOOTER_CLASSES = Object.freeze({
   FOOTER_DOCS: `${_B_FOOTER_SOURCE}-docs`,
   FOOTER_DOCS_LINK: `${_B_FOOTER_SOURCE}-docs-link`,
   FOOTER_DOCS_DESC: `${_B_FOOTER_SOURCE}-docs-desc`,
+  /** The '→' glyph span inside the docs link. */
+  FOOTER_DOCS_ARROW: `${_B_FOOTER_SOURCE}-docs-arrow`,
   /** Self-made credit + copyright block below the source row. */
   FOOTER_DIVIDER: `${_B_FOOTER_SOURCE}-divider`,
   /** WebGPU overlay canvas for the divider sheen (`divider-sheen` widget). */

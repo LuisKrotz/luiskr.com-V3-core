@@ -10,9 +10,11 @@
 
 export * from './selectors/skeleton.js'
 export * from './selectors/mosaic.js'
+export * from './selectors/card-stack.js'
 export * from './selectors/carousel.js'
 export * from './selectors/draw-text.js'
 export * from './selectors/loader.js'
 export * from './selectors/nav.js'
 export * from './selectors/cookies.js'
 export * from './selectors/common.js'
+export * from './selectors/mentions-deck.js'

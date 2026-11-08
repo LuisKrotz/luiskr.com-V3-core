@@ -17,6 +17,10 @@ export const NET_STRINGS = Object.freeze({
   GRAVATAR_HOSTNAME_SUFFIX: '.gravatar.com',
   HTTP_LOCALHOST: 'http://localhost',
   BLOB_COLON: 'blob:',
+  /** URI scheme prefixes on contact-channel hrefs — the mail block is the
+   *  row whose link carries the mailto scheme. */
+  SCHEME_MAILTO: 'mailto:',
+  SCHEME_TEL: 'tel:',
   IMAGE_PNG: 'image/png',
   METHOD_POST: 'POST',
   METHOD_PUT: 'PUT',
@@ -25,6 +29,8 @@ export const NET_STRINGS = Object.freeze({
   HEADER_CONTENT_TYPE: 'content-type',
   MIME_OCTET_STREAM: 'application/octet-stream',
   MIME_JSON: 'application/json',
+  /** RSS 2.0 media type — `type` hint on links to the locale feed. */
+  MIME_RSS: 'application/rss+xml',
   JOB_RUNNING: 'running',
   JOB_UPLOADING: 'uploading',
   /** Network Information API effectiveType values (connection quality tiers). */

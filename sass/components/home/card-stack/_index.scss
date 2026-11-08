@@ -1,0 +1,234 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  card-stack/_index.scss — the all-projects index: a horizontal thumbnail
+//  card rail on desktop (matching the reference bottom strip) and a bottom
+//  sheet with numbered horizontal rows on mobile. Opens via the view-all
+//  toggle; selecting an item brings it to the front plane.
+//  Imported by card-stack.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+.#{$_B_CARD_STACK} {
+  &-index {
+    // Out-of-flow overlay bottom-anchored to the section's padding box —
+    // the same spot grid rows 2–4 + align-self:end placed it, but with
+    // zero track contribution: as a spanning grid child it inflated the
+    // deck and foot rows even while opacity:0, starving the pile's
+    // stage budget and shoving the controls off their row.
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    box-sizing: border-box;
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--bg-dark) 94%, var(--color-white-raw) 4%);
+    backdrop-filter: blur(var(--space-lg));
+    border: var(--space-hairline) solid var(--border-color-on-dark);
+    box-shadow: var(--shadow-card-featured);
+    z-index: 30;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(var(--space-md));
+    transition:
+      opacity 0.28s ease,
+      transform 0.28s ease;
+
+    .#{$_B_CARD_STACK}--index-open & {
+      opacity: 1;
+      pointer-events: auto;
+      transform: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  &-index-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &-index-title {
+    @extend %TTL_XS;
+
+    font-family: var(--font-ui);
+    font-weight: calc(500 + var(--fw-lift));
+    font-size: calc(var(--space-md) + var(--space-xs));
+    text-transform: uppercase;
+    letter-spacing: var(--space-2xs);
+    color: var(--text-muted-on-dark);
+    margin: 0;
+  }
+
+  &-index-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  &-index-prev,
+  &-index-next,
+  &-index-close {
+    @extend %RESETBTN;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-2xl);
+    height: var(--space-2xl);
+    border-radius: var(--radius-round);
+    color: var(--text-muted-on-dark);
+    font-size: var(--space-lg);
+    cursor: pointer;
+    transition: color 0.25s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-white-raw);
+    }
+  }
+
+  // Desktop: horizontal card rail; Mobile (≤768px): vertical sheet list.
+  &-index-list {
+    display: flex;
+    gap: var(--space-md);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 0;
+      max-height: var(--space-6xl);
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+  }
+
+  // Desktop tile: thumbnail on top (row 1), number/subtitle on row 2,
+  // bold project name on row 3 — matching Reference Image 2 Desktop.
+  // Mobile row: number in col 1, name+subtitle in col 2, thumb in col 3
+  // — matching Reference Image 2 Mobile.
+  &-index-item {
+    flex: 0 0 auto;
+
+    a {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto auto auto;
+      row-gap: var(--space-xs);
+      // Fib(12)+Fib(9) — a step wider than the raw 5xl tile so the covers
+      // carry their aspect on desktop; the mobile sheet keeps 100%.
+      width: calc(var(--space-5xl) + var(--space-2xl));
+      padding: var(--space-md);
+      box-sizing: border-box;
+      border-radius: var(--radius-md);
+      background: color-mix(in srgb, var(--color-white-raw) 5%, var(--bg-dark));
+      border: var(--space-hairline) solid var(--border-color-on-dark);
+      text-decoration: none;
+      transition:
+        border-color 0.25s ease,
+        background-color 0.25s ease;
+
+      &:hover,
+      &:focus-visible {
+        border-color: var(--color-accent);
+        background: color-mix(in srgb, var(--color-white-raw) 9%, var(--bg-dark));
+      }
+
+      @media (max-width: 768px) {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-rows: auto;
+        column-gap: var(--space-lg);
+        align-items: center;
+        width: 100%;
+        padding: var(--space-md) var(--space-xs);
+        border-radius: 0;
+        background: transparent;
+        border: none;
+        border-bottom: var(--space-hairline) solid var(--border-color-on-dark);
+      }
+    }
+  }
+
+  &-index-thumb {
+    grid-row: 1;
+    width: 100%;
+    height: calc(var(--space-3xl) + var(--space-xl));
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2xs);
+
+    @media (max-width: 768px) {
+      grid-column: 3;
+      grid-row: 1 / 3;
+      align-self: center;
+      width: var(--space-3xl);
+      height: var(--space-2xl);
+      margin-bottom: 0;
+    }
+  }
+
+  &-index-num {
+    grid-row: 2;
+    font-family: var(--font-ui);
+    font-weight: calc(500 + var(--fw-lift));
+    font-size: var(--space-md);
+    letter-spacing: var(--space-3xs);
+    color: var(--text-muted-on-dark);
+    text-transform: uppercase;
+
+    @media (max-width: 768px) {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: center;
+      font-size: var(--space-lg);
+    }
+  }
+
+  &-index-sub {
+    grid-row: 2;
+    font-family: var(--font-ui);
+    font-weight: calc(300 + var(--fw-lift));
+    font-size: var(--space-md);
+    color: var(--text-muted-on-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @media (max-width: 768px) {
+      grid-column: 2;
+      grid-row: 2;
+      font-size: calc(var(--space-md) + var(--space-xs));
+    }
+  }
+
+  &-index-name {
+    grid-row: 3;
+    font-family: var(--font-desc);
+    font-weight: calc(600 + var(--fw-lift));
+    font-size: calc(var(--space-md) + var(--space-xs));
+    letter-spacing: var(--space-3xs);
+    text-transform: uppercase;
+    color: var(--color-white-raw);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @media (max-width: 768px) {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: center;
+      font-size: var(--space-lg);
+    }
+  }
+}

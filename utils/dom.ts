@@ -233,11 +233,41 @@ export const viewportWidth = (): number => {
 }
 
 /**
- * Test/invalidate hook — clears the memoized width. Test suites call it
- * between cases since jsdom/happy-dom innerWidth is mutable mid-test.
+ * Cached `window.innerHeight` — same single-task memoization as
+ * cachedVW: innerHeight is equally layout-forcing after style writes,
+ * and a viewport's height can only change on resize, which never lands
+ * mid-task.
+ */
+let cachedVH = -1
+
+/**
+ * Returns `window.innerHeight`, memoized within the current task. The
+ * first call takes the (layout-forcing) hit; every subsequent caller in
+ * the same task reuses the number.
+ * @returns viewport height in px, or 0 without a window (SSR/tests).
+ */
+export const viewportHeight = (): number => {
+  if (cachedVH >= 0) return cachedVH
+
+  if (typeof window === TYPE_STRINGS.UNDEFINED) return 0
+
+  cachedVH = window.innerHeight
+
+  queueMicrotask(() => {
+    cachedVH = -1
+  })
+
+  return cachedVH
+}
+
+/**
+ * Test/invalidate hook — clears the memoized viewport readings. Test
+ * suites call it between cases since jsdom/happy-dom innerWidth and
+ * innerHeight are mutable mid-test.
  */
 export const resetViewportCache = (): void => {
   cachedVW = -1
+  cachedVH = -1
 }
 
 /** Set while flushLayout runs — the reflow test allowlists this window. */
@@ -245,6 +275,25 @@ let inIntentionalFlush = false
 
 /** True only inside flushLayout() — used by the forced-reflow governance test. */
 export const isIntentionalFlush = (): boolean => inIntentionalFlush
+
+/**
+ * Deliberate layout measurement inside the sanctioned flush window —
+ * the general form of flushLayout for reads that MUST see post-write
+ * layout (measure-then-mutate). One wrapped read still forces layout,
+ * but the reflow gate recognizes it as deliberate rather than
+ * accidental thrash.
+ * @param read The layout read to run inside the flush window.
+ * @returns whatever `read` returns.
+ */
+export const measureLayout = <T>(read: () => T): T => {
+  inIntentionalFlush = true
+
+  try {
+    return read()
+  } finally {
+    inIntentionalFlush = false
+  }
+}
 
 /**
  * Deliberate synchronous layout flush — the ONE sanctioned forced reflow.
@@ -255,12 +304,4 @@ export const isIntentionalFlush = (): boolean => inIntentionalFlush
  * @param el Element whose layout is flushed.
  * @returns the element's offsetHeight (the flushing read).
  */
-export const flushLayout = (el: HTMLElement): number => {
-  inIntentionalFlush = true
-
-  try {
-    return el.offsetHeight
-  } finally {
-    inIntentionalFlush = false
-  }
-}
+export const flushLayout = (el: HTMLElement): number => measureLayout(() => el.offsetHeight)

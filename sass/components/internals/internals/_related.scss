@@ -1,78 +1,101 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  internals/_related.scss — the related-projects mosaic strip at the
-//  bottom of the project page: packed tile layout, the border-sheen
-//  hover keyframes, and reduced-motion + :host-context fallbacks.
+//  internals/_related.scss — the related-projects conveyor at the bottom
+//  of the project page: a vertical list of cards (media + title +
+//  description) that keeps three items unfolded while the rest sit in
+//  collapsed grid slots. Each manual step folds the top card
+//  (grid-template-rows 1fr → 0fr) and unfolds the next — the accordion
+//  motion that makes the infinite wrap read as a continuous bellows.
 //  Imported by internals.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
-// ── Mosaic Layout for Related Projects (Zero Empty Gaps) ──────────────────────
-$_B_RELATED: 'related-mosaic';
+// ── Accordion list for related projects ──────────────────────────────────────
+$_B_RELATED: 'related-list';
 
-// Related-projects strip at the bottom of the project page.
+// Related-projects conveyor at the bottom of the project page.
 .#{$_B_RELATED} {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-md);
+  flex-direction: column;
   width: 100%;
   box-sizing: border-box;
   margin-bottom: var(--space-3xl);
   position: relative; // anchor for the WebGPU ring-sheen overlay canvas
 
-  @include layout-768() {
-    gap: var(--space-lg);
-  }
-
+  // The <a> row IS the animated slot: a 1fr↔0fr grid track the card
+  // inside clips through. Collapsed items hold no layout, so the visible
+  // window is always exactly the unfolded cards — no fixed heights.
   &-item {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    overflow: hidden;
-    border-radius: var(--space-lg);
-    flex: 1 1 100%;
-    width: 100%;
-    max-width: 100%;
-    min-height: to-rem(160);
-    aspect-ratio: 16 / 10;
+    display: grid;
+    grid-template-rows: 1fr;
+    opacity: 1;
     text-decoration: none;
-    color: var(--color-white-raw);
-    background: var(--bg-secondary);
-    box-shadow: 0 var(--space-2xs) var(--space-lg) rgba($color-black, 0.15);
+    color: var(--text-primary);
     transition:
-      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-      box-shadow 0.4s ease;
-    // Spring upgrade where linear() parses — the ~10% overshoot turns the
-    // hover lift into an elastic settle; older engines drop the whole
-    // declaration and keep the cubic-bezier above.
+      grid-template-rows 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    // Spring upgrade where linear() parses — the fold breathes out then
+    // settles, same elastic contract the tile hover-lift carries. The
+    // opacity fade rides the same easing + duration so height and fade
+    // land together as one cohesive bellows motion.
     transition:
-      transform 0.55s $ease-spring,
-      box-shadow 0.4s ease;
+      grid-template-rows 0.6s $ease-spring,
+      opacity 0.6s $ease-spring;
 
-    // Mobile: always full-width (base styles: flex: 1 1 100%; width: 100%; max-width: 100%)
-
-    // Tablet: enforce exactly 2 columns — 50% minus half the row gap
-    @include layout-768() {
-      flex: 0 0 calc(50% - var(--space-lg) / 2);
-      max-width: calc(50% - var(--space-lg) / 2);
-      min-height: to-rem(190);
-    }
-
-    // Desktop: standard mosaic width
-    @include layout-1024() {
-      flex: 1 1 to-rem(260);
-      max-width: to-rem(360);
-      min-height: to-rem(200);
+    &--closed {
+      grid-template-rows: 0fr;
+      opacity: 0;
     }
 
     &.router-link-active {
       display: none;
     }
 
-    // Living tile edge — same hairline sheen as the home mosaic: a
-    // gradient ring clipped to border-width via mask-composite. The ring
-    // is split into two masked layers frozen at opposite gradient stops
-    // while ::before cross-fades its opacity — the drift survives, the
-    // per-frame repaint on every tile doesn't (compositor-thread only).
+    &:hover,
+    &:focus {
+      .#{$_B_RELATED}-inner {
+        transform: translateY(#{to-rem(-$space-xs)});
+        box-shadow: var(--shadow-card-hover);
+      }
+
+      .#{$_B_RELATED}-img {
+        transform: scale(1.06);
+      }
+
+      .#{$_B_RELATED}-title {
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  // The visible card clipped by the item's grid track — min-height:0 is
+  // what lets the 0fr row fold to nothing (grid children default to
+  // min-height:auto). Its margin-bottom doubles as the row gap: the
+  // margin lives INSIDE the clipped track so collapsed slots carry no
+  // residual spacing the way a container `gap` would.
+  &-inner {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    min-height: 0;
+    overflow: hidden;
+    margin-bottom: var(--space-md);
+    border-radius: var(--space-lg);
+    background: var(--bg-secondary);
+    box-shadow: 0 var(--space-2xs) var(--space-lg) rgba($color-black, 0.15);
+    transition:
+      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.4s ease;
+    transition:
+      transform 0.55s $ease-spring,
+      box-shadow 0.4s ease;
+
+    @include layout-768() {
+      margin-bottom: var(--space-lg);
+    }
+
+    // Living card edge — same hairline sheen the mosaic tiles carried:
+    // a gradient ring clipped to border-width via mask-composite, split
+    // into two masked layers frozen at opposite stops while ::before
+    // cross-fades its opacity (compositor-thread only).
     &::after,
     &::before {
       content: '';
@@ -97,6 +120,7 @@ $_B_RELATED: 'related-mosaic';
         linear-gradient(var(--color-white-raw) 0 0) content-box,
         linear-gradient(var(--color-white-raw) 0 0);
       mask-composite: exclude;
+      pointer-events: none;
     }
 
     &::after {
@@ -106,39 +130,46 @@ $_B_RELATED: 'related-mosaic';
     &::before {
       background-position: 100% 100%;
       animation: related-border-sheen 9s ease-in-out infinite alternate;
-      pointer-events: none;
     }
 
-    // Featured items are wider ONLY on desktop (1024px+); ignored on mobile and tablet
-    &--featured {
+    // Skeleton row — only skeleton inners render empty (real rows always
+    // carry media + info), so :empty reserves the shimmer box without a
+    // skeleton-class selector that every .skeleton--* variant would
+    // inherit through @extend. The min-height mirrors the loaded row's
+    // media-column height.
+    &:empty {
+      min-height: to-rem(140);
+
+      @include layout-768() {
+        min-height: to-rem(163);
+      }
+
       @include layout-1024() {
-        flex: 2 1 to-rem(560);
-        max-width: 100%;
-        aspect-ratio: 16 / 9;
-      }
-    }
-
-    &:hover,
-    &:focus {
-      transform: translateY(#{to-rem(-$space-xs)}) scale(1.01);
-      box-shadow: var(--shadow-card-hover);
-
-      .#{$_B_RELATED}-img {
-        transform: scale(1.06);
-      }
-
-      .#{$_B_RELATED}-title {
-        transform: translateY(-2px);
+        min-height: to-rem(200);
       }
     }
   }
 
+  // Media column — fixed-basis thumbnail filling the card's left edge.
   &-media {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    position: relative;
+    flex: 0 0 to-rem(140);
+    aspect-ratio: 1 / 1;
     overflow: hidden;
+
+    // Right-edge bleed — the cover dissolves into the info column
+    // instead of ending in a hard seam against the text.
+    -webkit-mask-image: linear-gradient(90deg, var(--color-white-raw) 70%, transparent 100%);
+    mask-image: linear-gradient(90deg, var(--color-white-raw) 70%, transparent 100%);
+
+    @include layout-768() {
+      flex-basis: to-rem(260);
+      aspect-ratio: 16 / 10;
+    }
+
+    @include layout-1024() {
+      flex-basis: to-rem(320);
+    }
   }
 
   &-img {
@@ -180,44 +211,29 @@ $_B_RELATED: 'related-mosaic';
         transform 0.7s $ease-spring,
         opacity 0.7s $ease-spring;
 
-      &.related-mosaic-img--loaded {
+      &.related-list-img--loaded {
         opacity: 1;
       }
     }
   }
 
-  &-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.88) 0%,
-      rgba(0, 0, 0, 0.35) 50%,
-      rgba(0, 0, 0, 0.05) 100%
-    );
-    pointer-events: none;
-  }
-
+  // Text column — title + always-visible description on the card surface.
   &-info {
     position: relative;
     z-index: 2;
-    padding: var(--space-md) var(--space-lg) var(--space-lg);
+    flex: 1 1 auto;
+    min-width: 0; // let the title/desc shrink inside the flex row
     display: flex;
     flex-direction: column;
-    gap: 0;
+    justify-content: center;
+    gap: var(--space-2xs);
+    padding: var(--space-md) var(--space-lg) var(--space-md) var(--space-md);
     text-align: left;
     pointer-events: none;
 
     @include layout-768() {
-      padding: var(--space-lg) var(--space-xl);
-    }
-
-    .#{$_B_RELATED}-item--featured & {
-      padding: var(--space-lg) var(--space-lg) var(--space-xl);
-
-      @include layout-768() {
-        padding: var(--space-xl) var(--space-2xl);
-      }
+      padding: var(--space-lg) var(--space-xl) var(--space-lg) var(--space-lg);
+      gap: var(--space-xs);
     }
   }
 
@@ -225,62 +241,85 @@ $_B_RELATED: 'related-mosaic';
     @extend %TTL_BASE;
     @extend %TTL_SM;
 
-    // Now an <h3> inside the card link — kill the UA heading margins so
-    // the tile reads exactly like the former span did.
+    // An <h3> inside the card link — kill the UA heading margins so the
+    // row reads exactly like the former span did.
     margin: 0;
-    font-family: var(--font-primary);
+    font-family: var(--font-desc);
     font-weight: calc(200 + var(--fw-lift));
     text-transform: uppercase;
     letter-spacing: to-rem(0.8);
-    color: var(--color-white-raw);
-    text-shadow: 0 var(--space-2xs) var(--space-md) rgba($color-black, 0.6);
+    color: var(--text-primary);
     transition: transform 0.45s ease;
     transition: transform 0.45s $ease-spring;
-
-    .#{$_B_RELATED}-item--featured & {
-      font-size: var(--space-lg);
-
-      @include layout-768() {
-        font-size: var(--space-xl);
-      }
-      @include layout-1024() {
-        font-size: var(--space-2xl);
-      }
-    }
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &-desc {
     @extend %TXT_BASE;
-    @extend %TXT_XS;
+    @extend %TXT_SM;
 
+    font-family: var(--font-desc);
     font-weight: calc(200 + var(--fw-lift));
-    color: var(--color-white-raw);
-    text-shadow: 0 var(--space-hairline) var(--space-sm) var(--bg-dark);
-    max-height: 0;
+    color: var(--text-secondary);
+    // Two-line clamp keeps every row uniform so the 3-card window folds
+    // and unfolds without height jitter between items.
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    margin-top: 0;
-    opacity: 0;
-    transition:
-      max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-      margin-top 0.45s ease,
-      opacity 0.3s ease;
-    // Spring upgrade — the reveal overshoots slightly then settles, so the
-    // info block feels like it breathes open rather than sliding dryly.
-    transition:
-      max-height 0.5s $ease-spring,
-      margin-top 0.45s $ease-spring,
-      opacity 0.3s ease;
+  }
 
-    .#{$_B_RELATED}-item:hover &,
-    .#{$_B_RELATED}-item:focus-within & {
-      max-height: var(--space-5xl);
-      margin-top: var(--space-2xs);
-      opacity: 1;
+  // Prev/next step buttons — straddling the container's TOP BORDER at
+  // the right end: translateY(-50%) centers them on the edge line, half
+  // in / half out like a legend on the seam (the list is already
+  // position:relative; absolute keeps them out of the grid tracks).
+  &-controls {
+    position: absolute;
+    top: 0;
+    right: var(--space-md);
+    z-index: 2;
+    display: flex;
+    gap: var(--space-xs);
+    transform: translateY(-50%);
+  }
+
+  &-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: to-rem($space-3xl);
+    height: to-rem($space-3xl);
+    padding: 0;
+    border: var(--space-hairline) solid var(--border-item-hover);
+    border-radius: var(--radius-round);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: to-rem($space-lg);
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      color 0.3s ease,
+      border-color 0.3s ease,
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    // Spring upgrade — the hover lift breathes like the card rows do.
+    transition:
+      color 0.3s ease,
+      border-color 0.3s ease,
+      transform 0.45s $ease-spring;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-accent-contrast);
+      border-color: var(--color-accent-contrast);
+      transform: translateY(#{to-rem(-$space-hairline)});
     }
   }
 
   // WebGPU ring-sheen overlay — the rust/ring-sheen canvas fills the
-  // strip; instanced SDF rings replace every tile's two pseudo layers.
+  // strip; instanced SDF rings replace every card's two pseudo layers.
   &-ring-canvas {
     position: absolute;
     inset: 0;
@@ -289,10 +328,10 @@ $_B_RELATED: 'related-mosaic';
     pointer-events: none;
   }
 
-  // Live GPU sheen — the tile pseudo rings drop out; the canvas draws
-  // them (grid-wide, one draw call).
-  &:has(> .#{$_B_RELATED}-ring-canvas:not(.is-fallback)) .#{$_B_RELATED}-item::before,
-  &:has(> .#{$_B_RELATED}-ring-canvas:not(.is-fallback)) .#{$_B_RELATED}-item::after {
+  // Live GPU sheen — the card pseudo rings drop out; the canvas draws
+  // them (list-wide, one draw call).
+  &:has(> .#{$_B_RELATED}-ring-canvas:not(.is-fallback)) .#{$_B_RELATED}-inner::before,
+  &:has(> .#{$_B_RELATED}-ring-canvas:not(.is-fallback)) .#{$_B_RELATED}-inner::after {
     content: none;
   }
 }
@@ -308,12 +347,24 @@ $_B_RELATED: 'related-mosaic';
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .#{$_B_RELATED}-item::before {
+  .#{$_B_RELATED}-inner::before {
     animation: none;
+  }
+
+  // Reduced motion renders the whole list statically open — the fold
+  // never runs, so the transition is stripped rather than instant.
+  .#{$_B_RELATED}-item {
+    transition: none;
   }
 }
 
 // Shadow DOM: mirror the store-driven html.reduced-motion flag.
-:host-context(html.reduced-motion) .#{$_B_RELATED}-item::before {
-  animation: none;
+:host-context(html.reduced-motion) {
+  .#{$_B_RELATED}-inner::before {
+    animation: none;
+  }
+
+  .#{$_B_RELATED}-item {
+    transition: none;
+  }
 }

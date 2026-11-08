@@ -1,0 +1,29 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  card-stack.scss — MANIFEST for the home featured-projects coverflow.
+//  Split by surface into card-stack/ partials (imported below):
+//    _section  :host + section wrapper + header title/toggle + the
+//              responsive grid (stacked mobile/portrait ↔ side-by-side
+//              landscape/desktop ↔ centred max-width on ultrawide)
+//    _deck     the 3D stage (JS-owned perspective) + landscape card shell
+//    _info     the active-project text column (burn title, Jost
+//              description, "Check out" link)
+//    _controls foot hint (hand gesture), nav prev/next + dots
+//    _index    all-projects index rail (desktop) / bottom sheet (mobile)
+//  ALL coverflow geometry (card position/depth/rotation, the perspective
+//  camera) is computed in JS by cardstack/deck.ts and written inline —
+//  these partials own only the visual chrome and the grid.
+// ════════════════════════════════════════════════════════════════════════════
+
+@import '../../base/variables';
+@import '../../base/mixins';
+@import '../../base/fonts';
+@import '../../base/placeholders';
+@import '../../base/structure';
+
+$_B_CARD_STACK: 'card-stack';
+
+@import 'card-stack/section';
+@import 'card-stack/deck';
+@import 'card-stack/info';
+@import 'card-stack/controls';
+@import 'card-stack/index';

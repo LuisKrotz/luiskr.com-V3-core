@@ -1,0 +1,207 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  search-modal.scss — <search-modal> scoped styles: fullscreen click-away
+//  backdrop + centered dialog panel hosting the route-search surface.
+//  Sits above the nav menu overlay (same layer family as the prefs dialog).
+// ════════════════════════════════════════════════════════════════════════════
+
+@import '../../base/variables';
+@import '../../base/mixins';
+@import '../../base/placeholders';
+
+$_B_SM: 'search-modal';
+
+.#{$_B_SM} {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  // Top-anchored — the panel rides high so the results list gets the
+  // maximum visible area. Side insets ARE the grid gutter (same stepped
+  // table %MAXAREA iterates), so the panel's lateral edges always land
+  // on the logo→menu line the nav draws.
+  padding: to-rem($space-2xl) to-rem($gap-272) to-rem($space-lg);
+
+  @include grid-steps() using ($step, $gap, $cols) {
+    padding-inline: to-rem($gap);
+  }
+
+  &-backdrop {
+    position: absolute;
+    inset: 0;
+
+    background: var(--backdrop);
+
+    transition: opacity 0.55s ease;
+
+    // Genie: the panel zooms from / to the control that opened it.
+    // transform-origin is set inline (--genie-x/--genie-y, panel-local).
+    &--enter,
+    &--leave {
+      opacity: 0;
+    }
+
+    // The panel is a sibling here (unlike pref-dialog, which nests inside
+    // its backdrop), so the collapsed state reaches it via `~`.
+    &--enter ~ .#{$_B_SM}-panel,
+    &--leave ~ .#{$_B_SM}-panel {
+      transform: scale(0.04) translateY(to-rem($space-xl));
+      opacity: 0;
+      filter: blur(to-rem($space-xs));
+    }
+
+    &--leave,
+    &--leave ~ .#{$_B_SM}-panel {
+      pointer-events: none;
+    }
+  }
+
+  &-panel {
+    position: relative;
+
+    // Border-box is mandatory with width:100% — content-box would add the
+    // panel's own 2×xl padding on top of the container's gutter and push
+    // the card edge-to-edge on mobile.
+    box-sizing: border-box;
+    width: 100%;
+    max-width: to-rem($space-9xl);
+
+    display: flex;
+    flex-direction: column;
+
+    padding: to-rem($space-xl) to-rem($space-xl) to-rem($space-lg);
+
+    border: var(--space-hairline) solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--bg-primary);
+    box-shadow: var(--shadow-card);
+
+    // Genie-zoom surface — the JS helper sets --genie-x/--genie-y to the
+    // trigger's panel-local point; the 50% fallback is a plain center zoom.
+    transform-origin: var(--genie-x, 50%) var(--genie-y, 50%);
+    will-change: transform, opacity;
+    transition:
+      transform 0.72s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.48s cubic-bezier(0.32, 0.72, 0, 1),
+      filter 0.6s ease;
+  }
+
+  // sr-only landmark heading for AT.
+  &-title {
+    position: absolute;
+    width: var(--space-2xs);
+    height: var(--space-2xs);
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  // Circular close button — the project-standard WebGL liquid-×: the
+  // canvas fills the whole circle; the button is just the hit target.
+  // The CSS pseudo-X is the same fallback contract as pref-close — it
+  // shows while the canvas is unpainted or marked .is-fallback.
+  &-close-btn {
+    @extend %RESETBTN;
+
+    position: absolute;
+    top: to-rem($space-xl);
+    right: to-rem($space-xl);
+    overflow: hidden;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: to-rem($space-2xl);
+    height: to-rem($space-2xl);
+
+    border-radius: var(--radius-round);
+    color: var(--text-secondary);
+    background: var(--border-color);
+    cursor: pointer;
+
+    transition:
+      background 0.2s ease,
+      transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+
+    // CSS-drawn X via pseudo-elements: canvas absent or WebGL unavailable.
+    &:not(:has(.#{$_B_SM}-close-canvas)),
+    &:has(.#{$_B_SM}-close-canvas.is-fallback) {
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        width: to-rem($space-xl);
+        height: to-rem($space-hairline + 1);
+        background: var(--text-secondary);
+        border-radius: var(--radius-round);
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      &::before {
+        transform: rotate(45deg);
+      }
+
+      &::after {
+        transform: rotate(-45deg);
+      }
+
+      // HC: the disc (--border-color) sits at the page-ink pole and
+      // --text-secondary collapses to that same pole — the X strokes
+      // re-pin to the opposite pole so they never paint ink-on-ink.
+      :host-context(html.high-contrast) &::before,
+      :host-context(html.high-contrast) &::after {
+        background: var(--white);
+      }
+
+      &:hover,
+      &:focus {
+        background: var(--border-color-hover, var(--border-color));
+
+        &::before {
+          transform: rotate(135deg);
+        }
+
+        &::after {
+          transform: rotate(45deg);
+        }
+      }
+    }
+  }
+
+  &-close-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-round);
+    display: block;
+    pointer-events: none;
+
+    &.is-fallback {
+      display: none;
+    }
+  }
+
+  &-body {
+    display: block;
+    width: 100%;
+
+    // The modal's list gets a taller cap — the panel sits at the top of
+    // the viewport so most of the page height is usable.
+    --rs-list-max: min(70dvh, #{to-rem($space-9xl)});
+  }
+}
+
+// Reduced motion — the genie helper already skips the fly-in/out; kill the
+// transitions too so a same-frame class flip can't flash mid-states.
+@media (prefers-reduced-motion: reduce) {
+  .#{$_B_SM},
+  .#{$_B_SM}-backdrop,
+  .#{$_B_SM}-panel {
+    transition: none;
+  }
+}

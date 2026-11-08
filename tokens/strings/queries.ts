@@ -11,6 +11,8 @@
  */
 export const QUERY_STRINGS = Object.freeze({
   SELECTOR_LINKS: 'a[href^="/"], [data-route]',
+  /** `?q=` — the search query parameter (deep links, SearchAction target). */
+  SEARCH_QUERY: 'q',
   LINK_CANONICAL: 'link[rel="canonical"]',
   META_ROBOTS: 'meta[name="robots"]',
   /** Head-sync selectors — the meta tags syncDocumentHead/setMetaDescription rewrite per route. */
@@ -31,8 +33,11 @@ export const QUERY_STRINGS = Object.freeze({
   META_ITEMPROP_IMAGE: 'meta[itemprop="image"]',
   META_OG_URL: 'meta[property="og:url"]',
   META_TW_URL: 'meta[name="twitter:url"]',
+  /** og:type — rewritten per route class (website/article/profile/video.other). */
+  META_OG_TYPE: 'meta[property="og:type"]',
+  /** twitter:image alt text — mirrors og:image:alt in setMetaDescription. */
+  META_TW_IMAGE_ALT: 'meta[name="twitter:image:alt"]',
   ROOT_MARGIN_600: '600px 0px',
-  ROOT_MARGIN_200: '200px 0px',
   ROOT_MARGIN_100: '100px 0px',
   ROOT_MARGIN_50: '50px 0px',
   DARK_SCHEME_QUERY: '(prefers-color-scheme: dark)',

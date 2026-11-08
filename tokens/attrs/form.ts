@@ -32,4 +32,8 @@ export const FORM_ATTRS = Object.freeze({
   VALUE: 'value',
   /** `label` — label field/attribute name. */
   LABEL: 'label',
+  /** `placeholder` — empty-field hint attribute. */
+  PLACEHOLDER: 'placeholder',
+  /** `autocomplete` — the browser autofill hint attribute. */
+  AUTOCOMPLETE: 'autocomplete',
 })

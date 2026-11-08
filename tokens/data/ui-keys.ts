@@ -32,6 +32,13 @@ export const SECTION_UI_KEYS = Object.freeze({
   NOT_FOUND: 'notFound',
   EARTH_PLAYGROUND: _K_EARTH_PLAYGROUND,
   LOADING: 'loading',
+  /** `search` — the search page's appText title key. */
+  SEARCH: 'search',
+  /** `rssFeed` — localized label of the footer's RSS feed link. */
+  RSS_FEED: 'rssFeed',
+  /** `sitemap` — localized label of the footer's sitemap link + the
+   *  sitemap page's appText title key. */
+  SITEMAP: 'sitemap',
 })
 
 /**
@@ -42,6 +49,7 @@ export const SECTION_UI_KEYS = Object.freeze({
 export const NAV_UI_KEYS = Object.freeze({
   SELECTED_WORK: 'featured',
   PREFERENCES: 'preferences',
+  SET_LANGUAGE: 'setLanguage',
   LANGUAGE: 'language',
   MENU: 'menu',
   CLOSE: _K_CLOSE,

@@ -8,6 +8,7 @@
  * timing, and responsive breakpoints.
  */
 import {
+  GRID_GAP,
   LEGACY_MOSAIC_COLS,
   LAYOUT_MATH,
   MOSAIC_COLS,
@@ -261,6 +262,18 @@ export function calcMosaicGap(vw: number): number {
  */
 export function calcResponsivePadding(vw: number): number {
   return _resolveBreakpoint(RESPONSIVE_PADDING_STEPS, vw, RESPONSIVE_PADDING_STEPS[0])
+}
+
+/**
+ * Content-grid gutter per viewport breakpoint — the GRID_GAP step table
+ * ($gap-* / %MAXAREA contract) resolved by the same floor lookup. JS
+ * layout math that must match the CSS grid (mosaic wall estimates) uses
+ * this instead of the smaller RESPONSIVE_PADDING ladder.
+ * @param vw Viewport width in px.
+ * @returns Gutter px on each side of the content column.
+ */
+export function calcGridGutter(vw: number): number {
+  return _resolveBreakpoint(GRID_GAP, vw, GRID_GAP[272])
 }
 
 /**

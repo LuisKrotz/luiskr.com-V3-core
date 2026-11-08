@@ -10,16 +10,57 @@
 import { LANG_SLUGS } from '@core/i18n.js'
 import type { LangSlugMap } from '@core/i18n.js'
 import { LOCALES } from '@core/tokens/locales.js'
+import { CMS_KEYS } from '@core/tokens/data/cms-keys.js'
 import { ROUTE_PATHS } from '@core/tokens/routes/paths.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { ROUTE_STRINGS } from '@core/tokens/strings/routes.js'
 import { componentText } from '@core/locale/ui-text.js'
 import { LEGAL_COMPONENT_KEYS } from '@core/tokens/data/component-keys.js'
+import store from '@core/store.js'
 
 /** A legal footer entry: localized path + human label. */
 export interface LegalLink {
   link: string
   page: string
+}
+
+/** A CMS-stored link row — both fields optional at the data boundary. */
+export interface LegalLinkRow {
+  link?: string
+  page?: string
+}
+
+/**
+ * Bare locale-root matcher ('/', '/en/', '/pt/') — the CMS stores the home
+ * link in the same list, but the footer nav must only show real legal pages.
+ */
+const HAS_LINK = /^\/[a-z]{0,3}\/?$/
+
+/**
+ * Type guard verifying that a link row has both a destination and a page
+ * label, and is not a bare locale-root home entry.
+ * @param l Candidate link entry.
+ * @returns True when `l` is a valid non-root legal page link.
+ */
+const isLegalPageLink = (l: LegalLinkRow): l is LegalLink =>
+  Boolean(l.link && l.page && !l.link.match(HAS_LINK))
+
+/**
+ * Legal-page links for the footer nav — CMS `legal-footer` list preferred,
+ * bundled per-locale fallback when empty. Both lists are filtered through
+ * HAS_LINK so a bare locale-root row (the stored home link) never renders —
+ * the unified footer's right column already carries the home link.
+ * @returns Validated {link, page} rows.
+ */
+export function legalLinks(): LegalLink[] {
+  const components = store.getters.getlang()?.components as
+    Record<string, { links?: LegalLinkRow[] }> | undefined
+
+  const filtered = (components?.[CMS_KEYS.LEGAL_FOOTER]?.links || []).filter(isLegalPageLink)
+
+  if (filtered.length) return filtered
+
+  return getFallbackLegalLinks(store.getters.getLang()).filter(isLegalPageLink)
 }
 
 /**

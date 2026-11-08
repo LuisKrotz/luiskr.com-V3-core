@@ -22,6 +22,9 @@ export const ARIA_ATTRS = Object.freeze({
   ARIA_LIVE: 'aria-live',
   ARIA_PRESSED: 'aria-pressed',
   ARIA_CHECKED: 'aria-checked',
+  ARIA_ACTIVEDESCENDANT: 'aria-activedescendant',
+  ARIA_AUTOCOMPLETE: 'aria-autocomplete',
+  ARIA_HASPOPUP: 'aria-haspopup',
   POLITE: 'polite',
   ROLE: 'role',
   ROLE_DIALOG: _K_DIALOG,
@@ -39,5 +42,11 @@ export const ARIA_ATTRS = Object.freeze({
   ROLE_IMG: 'img',
   /** `application` — the only widget role ARIA permits on <video>. */
   ROLE_APPLICATION: 'application',
+  /** Combobox autocomplete pattern — input + popup listbox + options. */
+  ROLE_COMBOBOX: 'combobox',
+  ROLE_LISTBOX: 'listbox',
+  ROLE_OPTION: 'option',
+  /** `list` — aria-autocomplete value: a popup lists suggestions. */
+  AUTOCOMPLETE_LIST: 'list',
   TABINDEX: 'tabindex',
 })

@@ -1,13 +1,14 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  about.scss — MANIFEST for the About section on the home page
-//  (shadow-scoped via ?inline). Split by surface into about/ partials
+//  (shadow-scoped via ?inline). Layout lives in the about/ partial
 //  (imported below):
-//    _section        About chrome: hairline edge, profile grid, bio text
-//                    columns, mentions, awards grid, glitch keyframes
-//    _awards-footer  dark awards-footer band + legal links row
+//    _section        About chrome: hairline top edge, the two-track
+//                    split (.about-main: title + subtitle + portrait/intro
+//                    row | full-height bio column), light-field mesh,
+//                    skeletons, glitch canvas slot
 //  Layout: %MAXAREA column, metallic hairline top edge + filament-glow
-//  background accent, draw-text paragraphs staggered left, profile card
-//  right.
+//  background accent, bio column running the section's full initial
+//  height, portrait/intro row inside the left main column.
 // ════════════════════════════════════════════════════════════════════════════
 
 @import '../../base/variables';
@@ -17,4 +18,3 @@
 @import '../../base/structure';
 
 @import 'about/section';
-@import 'about/awards-footer';

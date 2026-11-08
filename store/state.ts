@@ -133,6 +133,7 @@ export interface StoreState {
   preferencesOpen: boolean
   langDialogOpen: boolean
   navMenuOpen: boolean
+  searchModalOpen: boolean
   modalOrigin: { x: number; y: number } | null
   portfoliolist: unknown[]
 }
@@ -168,6 +169,7 @@ export interface StoreGetters {
   getPreferencesOpen: () => boolean
   getLangDialogOpen: () => boolean
   getNavMenuOpen: () => boolean
+  getSearchModalOpen: () => boolean
   getOverlayOpen: () => boolean
   getModalOrigin: () => { x: number; y: number } | null
   getReducedMotion: () => boolean
@@ -310,6 +312,9 @@ export const createInitialState = (): StoreState => {
     // media videos pause page-wide (the overlay's WebGL field owns the
     // frame; ambient playback underneath is invisible wasted work).
     navMenuOpen: false,
+    // Hamburger-menu search surface — <search-modal> hosts the
+    // route-search component inside the nav overlay.
+    searchModalOpen: false,
     // Pixel coords of the button that opened a dialog — the genie
     // zoom-out animates the dialog scaling up from exactly there.
     modalOrigin: null,

@@ -9,6 +9,7 @@
 .home-mosaic-btn {
   @extend %RESETBTN;
   @extend %TTL_XS;
+  font-family: var(--font-desc);
   position: relative;
   display: inline-block;
   text-align: center;

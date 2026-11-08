@@ -4,7 +4,6 @@
  */
 import { generateDocsSchema } from '@core/utils/schema.js'
 import { NET_STRINGS } from '@core/tokens/strings/net.js'
-import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
 
 const DOC_PAGE = { name: 'guide.md', type: 'file', mtime: '2026-01-02T03:04:05.000Z' }
 const DIR_PAGE = { name: 'architecture', type: 'dir' }
@@ -34,12 +33,12 @@ describe('generateDocsSchema', () => {
     expect(page.url).toBe(`${NET_STRINGS.SITE_URL}/docs/docs/architecture`)
   })
 
-  test('file page emits TechArticle with mtime-derived dates', () => {
+  test('file page emits TechArticle with its mtime-derived modification date', () => {
     const [, page] = generateDocsSchema('docs/build.md', DOC_PAGE)
 
     expect(page['@type']).toBe('TechArticle')
     expect(page.name).toBe('guide.md')
-    expect(page.datePublished).toBe(SCHEMA_STRINGS.SCHEMA_PUBLISHED_DATE)
+    expect(page.datePublished).toBeUndefined()
     expect(page.dateModified).toBe(DOC_PAGE.mtime)
     expect(page.description).toContain('guide.md')
   })

@@ -1,8 +1,9 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  awards-footer.scss — the footer band shared by Home/About/Legal:
-//  awards/mentions auto-carousel (with the progress ring) + legal links row.
-//  Layout: %MAXAREA content column inside a --bg-secondary full-bleed
-//  band (light surface in light mode, dark in dark mode).
+//  awards-footer.scss — the legal footer band on Home: the top row
+//  (legal links nav left + project source-code pill right), the docs
+//  portal entry, the sheen divider and the italic authorship + copyright
+//  lines. Layout: %MAXAREA content column inside a --bg-secondary
+//  full-bleed band (light surface in light mode, dark in dark mode).
 // ════════════════════════════════════════════════════════════════════════════
 
 @import '../../base/variables';
@@ -19,8 +20,8 @@
 }
 
 // ── Awards footer ─────────────────────────────────────────────────────────────
-// Shared across Home, About, and Legal pages.
-// --bg-secondary surface (same as .contact), centred layout.
+// The legal band under the contact section — --bg-secondary surface
+// (same as .contact), %MAXAREA column.
 .awards-footer {
   @extend %MAXAREA;
 
@@ -28,76 +29,78 @@
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   padding-top: to-rem($space-2xl);
   padding-bottom: to-rem($space-3xl);
 
   @include layout-768() {
-    padding-top: to-rem($space-2xl);
-    padding-bottom: to-rem($space-3xl);
-  }
-  @include layout-2560() {
     padding-top: to-rem($space-3xl);
     padding-bottom: to-rem($space-4xl);
   }
 
-  &-title {
-    @extend .ttl-sm;
+  // Top row — legal nav left, source-code pill right on desktop;
+  // display: contents on mobile so .awards-footer-links (order 1) and
+  // .footer-source (order 3) interleave around .footer-source-docs (order 2).
+  &-top {
+    display: contents;
 
-    font-weight: calc(100 + var(--fw-lift));
-    text-transform: uppercase;
-    color: var(--text-primary);
-    text-align: center;
-    padding: to-rem($space-md) 0 to-rem($space-lg);
-    opacity: 0.85;
+    @include layout-768() {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: to-rem($space-xl);
+      width: 100%;
+      padding-bottom: to-rem($space-3xl);
+    }
   }
 
-  // Limit carousel width — centred max width so it feels compact
-  .aw-c--awards {
-    max-width: to-rem($space-8xl);
-    width: 100%;
-  }
-
-  &-skel {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: to-rem($space-xl) 0;
-    min-height: to-rem($space-5xl);
-  }
-
-  // Legal links — divider + footer links, constrained to grid
+  // Legal links — flex row with '·' separators; centred with a subtle
+  // bottom rule on mobile, left-aligned inline row on desktop.
   &-links {
-    @extend .ttl-xs;
+    @extend %TTL_BASE;
 
+    order: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    color: var(--text-primary);
     width: 100%;
-    padding: to-rem($space-lg) 0 0;
-    border-top: to-rem($space-hairline) solid var(--border-color);
-    margin: to-rem($space-xl) auto 0;
+    padding-bottom: to-rem($space-xl);
+    margin-bottom: to-rem($space-2xl);
+    border-bottom: to-rem($space-hairline) solid var(--border-color);
+    color: var(--text-primary);
+
+    @include layout-768() {
+      order: 0;
+      width: auto;
+      padding-bottom: 0;
+      margin-bottom: 0;
+      border-bottom: none;
+      justify-content: flex-start;
+    }
 
     &-item {
-      @extend .ttl-xs;
+      @extend %TTL_BASE;
       @extend %LK_LINK;
 
       color: var(--text-primary);
       text-decoration: none;
+      font-size: to-rem($space-lg);
+      font-weight: calc(300 + var(--fw-lift));
       // Home-footer legal links (Privacy, LGPD, Terms) rest without an
       // underline; the LK_LINK pseudo-element still sweeps in on hover.
       border-bottom-color: transparent;
-      // The %LK_LINK underline is a border-bottom — keep the line box tight
-      // so it hugs the baseline like a real underline, and carry the row
-      // spacing on margins instead of an inflated line-height.
-      margin-block: to-rem($space-md);
+      margin-block: to-rem($space-xs);
       line-height: to-rem($space-xl);
-      opacity: 0.85;
+      opacity: 0.9;
       transition:
         opacity 0.2s,
         border-bottom-color 0.3s ease;
+
+      @include layout-1024() {
+        font-size: to-rem($space-xl);
+      }
 
       &:hover,
       &:focus {
@@ -112,75 +115,85 @@
 
     &-sep {
       padding: 0 to-rem($space-md);
+      font-size: to-rem($space-lg);
       font-weight: calc(200 + var(--fw-lift));
       opacity: 0.6;
       color: var(--text-primary);
+
+      @include layout-1024() {
+        font-size: to-rem($space-xl);
+      }
+    }
+
+    // RSS item — the locale feed link rendered as the last legal-nav
+    // entry (inline inside the links flow). The glyph paints in
+    // currentColor (inherits the link ink, so it meets the same
+    // contrast as the label in every theme).
+    &-feed {
+      display: inline-flex;
+      align-items: center;
+      gap: to-rem($space-xs);
+
+      // Broadcast pulse — on hover/focus the two arcs (the glyph's
+      // only <path>s) fade outward in a staggered wave. Opacity only,
+      // so it stays on the compositor.
+      &:hover path,
+      &:focus-visible path {
+        animation: awards-footer-feed-wave 1.4s ease-in-out infinite;
+      }
+
+      &:hover path:last-child,
+      &:focus-visible path:last-child {
+        animation-delay: 0.2s;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        &:hover path,
+        &:focus-visible path {
+          animation: none;
+        }
+      }
+
+      // Shadow DOM: mirror the store-driven reduced-motion flag.
+      :host-context(html.reduced-motion) &:hover path,
+      :host-context(html.reduced-motion) &:focus-visible path {
+        animation: none;
+      }
+
+      &-icon {
+        flex: none;
+        width: to-rem($space-md);
+        height: to-rem($space-md);
+        fill: currentColor;
+        stroke: currentColor;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+      }
+
+      // Arcs are stroked outlines only — the dot keeps the fill.
+      &-wave {
+        fill: none;
+      }
     }
   }
 }
 
-// ── Awards header + time-based progress bar ───────────────────────────────────
-// The .aw-ft-header wrapper is display:inline-flex so the progress
-// track is naturally capped to the width of the "SOME MENTIONS" h2 text.
-// Progress is driven by a CSS @keyframes animation (0→100% over the carousel
-// duration) restarted on each slidechange — no JS width calculation needed.
-
-$_B_AFH: 'awards-footer-header';
-$_B_AFP: 'awards-footer-progress';
-$_B_FS: 'footer-source';
-
-@keyframes awards-progress-fill {
-  from {
-    transform: scaleX(0);
+@keyframes awards-footer-feed-wave {
+  0%,
+  100% {
+    opacity: 1;
   }
-  to {
-    transform: scaleX(1);
-  }
-}
 
-// Awards footer header row.
-.#{$_B_AFH} {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-bottom: to-rem($space-xl);
-}
-
-// Circular progress ring for the auto-advance.
-.#{$_B_AFP} {
-  width: 100%;
-  height: to-rem($space-3xs);
-  background: var(--border-color);
-  border-radius: var(--radius-round);
-  overflow: hidden;
-  margin-top: to-rem($space-2xs);
-  opacity: 0.75;
-  transition: opacity 0.4s ease;
-
-  &--hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-}
-
-// The animated progress ring fill (SVG stroke-dashoffset).
-.#{$_B_AFP}-fill {
-  height: 100%;
-  width: 100%;
-  transform: scaleX(0);
-  transform-origin: left;
-  background: var(--color-accent);
-  border-radius: var(--radius-round);
-  will-change: transform;
-
-  // Driven by JS: class is removed + re-added after a forced reflow to restart
-  &--running {
-    animation: awards-progress-fill var(--progress-duration, 10s) linear forwards;
+  50% {
+    opacity: 0.3;
   }
 }
 
 // ── Source code row ──────────────────────────────────────────────────────────
-// Centered mini-line at the very bottom of every footer that bears it.
+// The "PROJECT SOURCE CODE: GIT" pill on the top row + docs entry + the
+// sheen divider + authorship block.
+
+$_B_FS: 'footer-source';
 
 // Divider sheen — mirrors internal-footer-divider-sheen; defined per
 // stylesheet because shadow roots scope keyframes. The band is an ::after
@@ -196,63 +209,98 @@ $_B_FS: 'footer-source';
   }
 }
 
-// Credits/source line.
+// Source-code link — underlined centered line on mobile (order 3, below
+// docs); outline capsule pill on the top-right row on desktop.
 .#{$_B_FS} {
   @extend .ttl-xs;
 
-  text-transform: uppercase;
-  display: flex;
+  font-family: var(--font-desc);
+  order: 3;
+  align-self: center;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: to-rem($space-2xs);
-  width: 100%;
-  text-align: center;
-  margin-top: to-rem($space-lg);
+  margin: 0;
+  padding: 0 0 to-rem($space-2xs);
+  text-transform: uppercase;
+  letter-spacing: to-rem($space-3xs);
   color: var(--text-primary);
-  // 0.7 keeps the muted look while staying above the 4.5:1 contrast floor
-  // on --bg-dark in both themes
-  opacity: 0.7;
   font-weight: calc(400 + var(--fw-lift));
-  font-size: to-rem($space-lg);
+  border: none;
+  border-bottom: to-rem($space-hairline) solid var(--text-primary);
+  border-radius: var(--radius-none);
+  flex-shrink: 0;
+
+  @include layout-768() {
+    order: 0;
+    align-self: auto;
+    padding: to-rem($space-md) to-rem($space-xl);
+    border: to-rem($space-hairline) solid var(--border-color);
+    border-radius: var(--radius-round);
+  }
 
   &-link {
     @extend .ttl-xs;
     @extend %LK_LINK;
 
+    font-family: var(--font-desc);
     color: var(--text-primary);
     text-decoration: none;
     cursor: pointer;
+    text-transform: uppercase;
     font-weight: calc(400 + var(--fw-lift));
-    font-size: to-rem($space-lg);
-    border-bottom-color: currentColor;
+    border-bottom-color: transparent;
 
-    &::after {
-      transform: scaleX(1);
+    @include layout-768() {
+      border-bottom-color: currentColor;
+
+      &::after {
+        transform: scaleX(1);
+      }
     }
   }
 
-  // Docs-portal entry — sits above the source credit: English link title
-  // + localized "Available only in English" note, centered mini-line.
+  // Docs-portal entry — stacked centered two-line heading + subtitle on
+  // mobile (order 2); large inline heading + underlined arrow + muted
+  // subtitle on desktop.
   &-docs {
+    order: 2;
     display: flex;
-    align-items: baseline;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: to-rem($space-2xs);
+    gap: to-rem($space-md);
     width: 100%;
     text-align: center;
-    margin: to-rem($space-2xl) 0 0;
+    margin: 0;
+    padding-bottom: to-rem($space-2xl);
     color: var(--text-primary);
-    font-weight: calc(400 + var(--fw-lift));
-    font-size: to-rem($space-lg);
+
+    @include layout-768() {
+      order: 0;
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: to-rem($space-md);
+      text-align: left;
+      padding-bottom: to-rem($space-lg);
+    }
 
     &-link {
+      @extend %TTL_BASE;
       @extend %LK_LINK;
 
+      display: inline-block;
+      max-width: to-rem($space-6xl);
+      font-size: to-rem($space-2xl);
+      line-height: 1.15;
+      font-weight: calc(300 + var(--fw-lift));
       color: var(--text-primary);
       text-decoration: none;
       cursor: pointer;
-      opacity: 0.85;
+      padding-bottom: to-rem($space-xs);
       border-bottom-color: currentColor;
       transition:
         opacity 0.2s ease,
@@ -262,33 +310,70 @@ $_B_FS: 'footer-source';
         transform: scaleX(1);
       }
 
-      &:hover,
-      &:focus {
-        opacity: 1;
+      @include layout-768() {
+        display: inline-flex;
+        align-items: baseline;
+        gap: to-rem($space-md);
+        max-width: none;
+        padding-bottom: 0;
+        border-bottom-color: transparent;
+
+        &::after {
+          transform: scaleX(0);
+        }
+
+        &:hover::after,
+        &:focus-visible::after {
+          transform: scaleX(1);
+        }
+      }
+
+      @include layout-1024() {
+        font-size: to-rem($space-3xl);
+      }
+    }
+
+    &-arrow {
+      display: none;
+      font-weight: calc(300 + var(--fw-lift));
+
+      @include layout-768() {
+        display: inline-block;
+        line-height: 1;
+        padding-bottom: to-rem($space-2xs);
+        border-bottom: to-rem($space-hairline) solid currentColor;
       }
     }
 
     &-desc {
-      // Muted while staying above the 4.5:1 contrast floor on --bg-dark.
-      opacity: 0.7;
+      @extend %TTL_BASE;
+
+      font-size: to-rem($space-lg);
+      font-weight: calc(300 + var(--fw-lift));
+      color: var(--text-muted);
+
+      @include layout-1024() {
+        font-size: to-rem($space-xl);
+      }
     }
   }
 
-  // Animated hairline between the source row and the authorship block —
+  // Animated hairline between the docs row and the authorship block —
   // same sheen pattern as .internal-footer-items-divider: a soft accent
-  // streak travels the line on a slow loop.
+  // streak travels the line on a slow loop, with a soft upward horizon glow.
   &-divider {
+    order: 4;
     display: block;
     position: relative;
     overflow: hidden;
     width: 100%;
     height: to-rem($space-3xs);
-    // Generous air above (≈120px requested → closest Fibonacci step is
-    // $space-5xl/144px) and a tight 21px gap under the authorship lines.
-    margin: to-rem($space-5xl) auto to-rem($space-xl);
+    margin: to-rem($space-3xl) auto to-rem($space-xl);
     padding: 0;
     border: none;
     border-radius: var(--radius-round);
+    box-shadow: 0 calc(-1 * to-rem($space-lg)) to-rem($space-2xl) to-rem($space-xs)
+      color-mix(in srgb, var(--text-primary) 12%, transparent);
     // Static hairline — the traveling accent band lives on ::after so the
     // sweep is a composited transform, not a per-frame background repaint.
     background: linear-gradient(
@@ -298,6 +383,11 @@ $_B_FS: 'footer-source';
       var(--border-color) 88%,
       transparent
     );
+
+    @include layout-768() {
+      order: 0;
+      margin: to-rem($space-4xl) auto to-rem($space-2xl);
+    }
 
     &::after {
       content: '';
@@ -319,7 +409,7 @@ $_B_FS: 'footer-source';
 
     // WebGPU sheen live — the rust/divider-sheen canvas draws the whole
     // divider (hairline + traveling band); the <hr>'s own paint hides
-    // but keeps its box so the overlay overlay stays measurable.
+    // but keeps its box so the overlay stays measurable.
     &:has(+ .#{$_B_FS}-divider-canvas:not(.is-fallback)) {
       visibility: hidden;
     }
@@ -333,28 +423,52 @@ $_B_FS: 'footer-source';
     pointer-events: none;
   }
 
-  // Authorship lines — centered mini copy under the divider. Both lines
-  // keep the .footer-source muted treatment (0.7 stays above the 4.5:1
-  // floor on --bg-dark); the credit wraps, the rights line stays short.
-  &-credit,
-  &-rights {
-    @extend .ttl-xxs;
+  // Authorship colophon — large editorial italic serif quote centered
+  // under the horizon-glow divider, followed by the small-caps copyright.
+  &-credit {
+    order: 5;
+    width: 100%;
+    max-width: to-rem($space-7xl);
+    margin: 0 auto to-rem($space-2xl);
+    text-align: center;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: calc(400 + var(--fw-lift));
+    font-size: calc(#{to-rem($space-lg)} + #{to-rem($space-xs)});
+    line-height: 1.45;
+    text-transform: none;
+    color: var(--text-secondary);
 
+    @include layout-768() {
+      order: 0;
+      max-width: to-rem($space-9xl);
+      font-size: calc(#{to-rem($space-xl)} + #{to-rem($space-sm)});
+      line-height: 1.38;
+      margin-bottom: to-rem($space-3xl);
+    }
+
+    @include layout-1024() {
+      font-size: to-rem($space-2xl);
+      line-height: 1.35;
+    }
+  }
+
+  &-rights {
+    @extend %TTL_BASE;
+
+    order: 6;
     width: 100%;
     margin: 0 auto;
     text-align: center;
-    color: var(--text-primary);
-    opacity: 0.7;
-    font-weight: calc(300 + var(--fw-lift));
+    font-size: to-rem($space-lg);
     line-height: to-rem($space-xl);
-    // The authorship lines read as a quiet colophon, not small caps —
-    // drop %TTL_XXS's uppercase and set the copy in italic instead.
-    text-transform: none;
-    font-style: italic;
-  }
+    font-weight: calc(300 + var(--fw-lift));
+    text-transform: uppercase;
+    letter-spacing: to-rem($space-2xs);
+    color: var(--text-muted);
 
-  &-credit {
-    max-width: to-rem($space-9xl);
-    margin-bottom: to-rem($space-md);
+    @include layout-768() {
+      order: 0;
+    }
   }
 }

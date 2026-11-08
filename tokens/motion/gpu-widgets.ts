@@ -56,6 +56,8 @@ export const GPU_WIDGET_KINDS = Object.freeze({
   SCENE3D: 15,
   /** Expand-modal genie — composited-sheet mesh-warp transition. */
   GENIE: 16,
+  /** Route-search go buttons — instanced conic ring fill on hover. */
+  RING_FILL: 17,
 })
 
 /**
@@ -166,6 +168,12 @@ export const GPU_WIDGET_ARTIFACTS: Readonly<
     cls: 'Genie',
     eager: false,
   }),
+  /** ring-fill — route-search go-button conic ring fill. */
+  [GPU_WIDGET_KINDS.RING_FILL]: Object.freeze({
+    url: `${ASSET_PATHS.WASM_WIDGETS_PREFIX}ring-fill/luiskr_ring_fill.js`,
+    cls: 'RingFill',
+    eager: false,
+  }),
 })
 
 /**
@@ -200,6 +208,8 @@ export const GPU_WIDGET_UNIFORM_F32S = Object.freeze({
   [GPU_WIDGET_KINDS.CORNER_BRACKETS]: 16,
   /** genie: res(2), time, progress, from(4), to(4), reserved(2), dpr, flags, tint(4), uv(4). */
   [GPU_WIDGET_KINDS.GENIE]: 24,
+  /** ring-fill: res(2), time, hair, track(4), fill(4), head(4). */
+  [GPU_WIDGET_KINDS.RING_FILL]: 16,
 })
 
 /**

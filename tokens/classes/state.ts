@@ -14,7 +14,6 @@ import { _K_ACTIVE } from '../base.js'
 export const STATE_CLASSES = Object.freeze({
   ACTIVE: _K_ACTIVE,
   IS_OPEN: 'is-open',
-  IS_TRUNCATED: 'is-truncated',
   IS_FALLBACK: 'is-fallback',
   HAS_FALLBACK: 'has-fallback',
   IS_SAFARI: 'is-safari',

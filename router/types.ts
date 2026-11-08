@@ -21,6 +21,8 @@ export interface RouteMeta {
   legalRoute?: boolean
   /** English-only docs portal — suppresses the language switcher. */
   docsRoute?: boolean
+  /** og:type for the resolved route class — SCHEMA_OG_* tokens ('article', 'profile', …). */
+  ogType?: string
 }
 
 /** A resolved route — everything the nav pipeline and views need. */

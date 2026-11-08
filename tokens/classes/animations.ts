@@ -17,6 +17,10 @@ export const ANIMATIONS_CLASSES = Object.freeze({
   ANIMATIONS: _K_ANIMATIONS,
   ANIMATIONS_LIST: `${_K_ANIMATIONS}-list`,
   ANIMATIONS_RECORD: `${_K_ANIMATIONS}-record`,
+  /** Text column inside a record (term + description, demo sits beside). */
+  ANIMATIONS_TEXT: `${_K_ANIMATIONS}-text`,
   ANIMATIONS_TERM: `${_K_ANIMATIONS}-term`,
   ANIMATIONS_DESC: `${_K_ANIMATIONS}-desc`,
+  /** Per-record deep link into the docs portal. */
+  ANIMATIONS_DOCS: `${_K_ANIMATIONS}-docs`,
 })

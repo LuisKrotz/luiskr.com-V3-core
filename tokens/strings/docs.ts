@@ -17,6 +17,10 @@ export const DOCS_STRINGS = Object.freeze({
   TITLE: 'In-depth project docs',
   /** English fallback for the CMS-provided description + toast copy. */
   DESC_FALLBACK: 'Available only in English',
+  /** Route-search group header for docs hits — English-only by product
+   *  spec: the docs corpus exists only in English, so the label names
+   *  that explicitly in every locale (never localized, never CMS-fed). */
+  SEARCH_GROUP_LABEL: 'In depth docs (available only in English)',
   COPY_TOAST_FALLBACK:
     "This page doesn't allow copy, please refer to github to download the sourcecode or contact the page admin.",
   /** database.json component node: translations/<locale>/components/<key>. */

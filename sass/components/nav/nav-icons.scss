@@ -1,0 +1,170 @@
+/**
+ * @file nav-icons.scss
+ * @description Styles for the <nav-search-icon> and <nav-brush-icon>
+ * neon glyphs. Lives inside each icon's own shadow root: glyph sizing,
+ * the neon glow (drop-shadow in the neon tokens), and the idle motion
+ * loops — speed streaks and echo chevron for the prompt, the looping
+ * paint swoosh, twinkling sparks and droplets for the brush. Reduced
+ * motion freezes every loop.
+ */
+
+@import '../../base/variables';
+@import '../../base/mixins';
+@import '../../base/placeholders';
+
+/** The nav block — same prefix as nav-shell.scss. */
+$_B_NAV: 'nav';
+
+:host {
+  display: inline-flex;
+  width: var(--space-xl);
+  height: var(--space-xl);
+}
+
+// Glyph host — the svg and the wasm canvas share it; the canvas is three
+// glyph-widths square so streaks and sparks can travel past the icon.
+.#{$_B_NAV}-glyph-host {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.#{$_B_NAV}-glyph-canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.#{$_B_NAV}-search-svg,
+.#{$_B_NAV}-brush-svg,
+.#{$_B_NAV}-globe-svg,
+.#{$_B_NAV}-grid-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.#{$_B_NAV}-search-svg,
+.#{$_B_NAV}-globe-svg,
+.#{$_B_NAV}-grid-svg {
+  filter: drop-shadow(0 0 var(--space-xs) var(--nav-neon-teal));
+}
+
+.#{$_B_NAV}-brush-svg {
+  filter: drop-shadow(0 0 var(--space-xs) var(--nav-neon-violet));
+}
+
+.#{$_B_NAV}-icon-streak {
+  animation: #{$_B_NAV}-icon-streak 1.2s ease-in-out infinite;
+
+  &:nth-child(2) {
+    animation-delay: -0.4s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: -0.8s;
+  }
+}
+
+.#{$_B_NAV}-icon-ghost {
+  opacity: 0.3;
+}
+
+.#{$_B_NAV}-icon-prompt {
+  animation: #{$_B_NAV}-icon-pulse 2.4s ease-in-out infinite;
+}
+
+.#{$_B_NAV}-icon-spark,
+.#{$_B_NAV}-icon-drop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: #{$_B_NAV}-icon-twinkle 1.6s ease-in-out infinite;
+
+  &:nth-child(3n + 2) {
+    animation-delay: -0.5s;
+  }
+
+  &:nth-child(3n) {
+    animation-delay: -1s;
+  }
+}
+
+.#{$_B_NAV}-icon-swoosh {
+  stroke-dasharray: 40 128;
+  animation: #{$_B_NAV}-icon-draw 2.4s linear infinite;
+}
+
+.#{$_B_NAV}-icon-swoosh-alt {
+  stroke-dasharray: 24 80;
+  opacity: 0.6;
+  animation: #{$_B_NAV}-icon-draw 3.2s linear infinite reverse;
+}
+
+@keyframes #{$_B_NAV}-icon-streak {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.25;
+  }
+
+  50% {
+    transform: translateX(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes #{$_B_NAV}-icon-pulse {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes #{$_B_NAV}-icon-twinkle {
+  0%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.35;
+  }
+
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes #{$_B_NAV}-icon-draw {
+  to {
+    stroke-dashoffset: -168;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{$_B_NAV}-icon-streak,
+  .#{$_B_NAV}-icon-prompt,
+  .#{$_B_NAV}-icon-spark,
+  .#{$_B_NAV}-icon-drop,
+  .#{$_B_NAV}-icon-swoosh,
+  .#{$_B_NAV}-icon-swoosh-alt {
+    animation: none;
+  }
+}
+
+:host-context(html.reduced-motion) .#{$_B_NAV}-icon-streak,
+:host-context(html.reduced-motion) .#{$_B_NAV}-icon-prompt,
+:host-context(html.reduced-motion) .#{$_B_NAV}-icon-spark,
+:host-context(html.reduced-motion) .#{$_B_NAV}-icon-drop,
+:host-context(html.reduced-motion) .#{$_B_NAV}-icon-swoosh,
+:host-context(html.reduced-motion) .#{$_B_NAV}-icon-swoosh-alt {
+  animation: none;
+}

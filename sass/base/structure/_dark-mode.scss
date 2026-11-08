@@ -1,9 +1,18 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  structure/_dark-mode.scss — html.dark-mode overrides — flips --bg-*/--text-*/--menu-*/--skel-* tokens when the dark theme class is on <html>.
 //  Imported by _structure.scss (manifest) — not compiled standalone.
+//  The declarations live in `dark-mode-tokens` so classless surfaces can
+//  re-emit the identical set under a media query — the CSS-styled RSS XML
+//  document (feed.css) has no JS to flip html.dark-mode, so it applies the
+//  mixin on its root under @media (prefers-color-scheme: dark).
 // ════════════════════════════════════════════════════════════════════════════
 
-html.dark-mode {
+/// Emits the full dark-theme token override set — --bg-*/--text-*/--menu-*/
+/// --skel-*/*-neon-*/burn/shadow palette plus `color-scheme: dark` and the
+/// zeroed light-mode font-weight lift. Applied under `html.dark-mode` for
+/// the app and under `prefers-color-scheme` by surfaces that cannot carry
+/// the class.
+@mixin dark-mode-tokens {
   color-scheme: dark;
 
   // Dark mode keeps authored weights — zeroes the light-mode lift so
@@ -23,6 +32,15 @@ html.dark-mode {
   --color-accent-contrast: #{$cms-accent};
   --btn-accent-fill: rgba(255, 255, 255, 0.08);
   --glass-bg: rgba(11, 12, 16, 0.92);
+
+  // Nav icon neon palette — the bright set authored for dark surfaces;
+  // :root carries the deepened light-theme re-cut.
+  --nav-neon-teal: #{$neon-teal};
+  --nav-neon-green: #{$neon-green};
+  --nav-neon-violet: #{$neon-violet};
+  --nav-neon-magenta: #{$neon-magenta};
+  --nav-neon-orange: #{$neon-orange};
+  --nav-neon-chrome: #{$neon-chrome};
 
   // Mosaic title burn palette — dark theme: a blue-white plasma fire on
   // the accent ramp (near-white core → signature cyan → deep teal edge)
@@ -106,4 +124,9 @@ html.dark-mode {
   --cov-syn-lit: #{$cov-syn-lit-dark};
   --cov-syn-pun: #{$cov-syn-pun-dark};
   --cov-syn-fun: #{$cov-syn-fun-dark};
+}
+
+// App surface — the stored theme preference lands as a class on <html>.
+html.dark-mode {
+  @include dark-mode-tokens;
 }
