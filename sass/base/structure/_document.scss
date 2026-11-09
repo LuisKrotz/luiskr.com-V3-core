@@ -66,9 +66,12 @@ body {
   // no repaints. The -25% inset oversizes each layer so the drift never
   // exposes an edge (the sweeps translate ±5-6% of a 150% layer ≈ ±9%
   // of the viewport — well inside the 25% margin). ::before carries the
-  // emerald curtain ribbon on a 16s wander; ::after carries the violet
-  // fringe band on a 21s counter-drift, so the layers visibly parallax
-  // like polar light. Inert values (--bg-glow*: none in HC) paint
+  // emerald-family lobe field on a 16s wander; ::after carries the
+  // violet-fringe lobe field on a 21s counter-drift, so the colour
+  // zones visibly parallax like polar light. Every painted element is
+  // a wide eased radial lobe — band geometry (ribbons, shafts, conic
+  // fans) is what used to read as thin lines across the field. Inert
+  // values (--bg-glow*: none in HC) paint
   // nothing while the idle animation stays compositor-cheap.
   &::before,
   &::after {
@@ -93,55 +96,59 @@ body {
 // Drift path — three poses on alternate so the loop reads as an endless
 // wander rather than a ping-pong between two corners. The ±9% travel
 // on the 150% layer moves lobe centres ~14% of the viewport — the
-// curtain visibly drifts instead of reading as a static tint (the -25%
-// inset still leaves ~11% overscan at the widest pose).
+// colour zones visibly drift instead of reading as a static tint (the -25%
+// inset still leaves ~11% overscan at the widest pose). TRANSLATE ONLY,
+// no scale/rotate: scaled or rotated fixed layers force per-frame
+// re-rasterization in 256px tiles whose seams read as faint lines
+// across the field (rotated seams read as diagonal streaks); pure
+// translation slides one static raster on the compositor, which can
+// paint no seams at all.
 @keyframes body-glow-drift {
   0% {
-    transform: translate3d(0, 0, 0) scale(1.02);
+    transform: translate3d(0, 0, 0);
   }
 
   50% {
-    transform: translate3d(-9%, 6%, 0) scale(1.12);
+    transform: translate3d(-9%, 6%, 0);
   }
 
   100% {
-    transform: translate3d(7%, -6%, 0) scale(1.07);
+    transform: translate3d(7%, -6%, 0);
   }
 }
 
 // Counter-drift — the mirrored wander of the fringe layer; its
-// different period (21s vs 16s) makes the violet band slide against the
-// emerald curtain so the aurora parallax never visibly repeats.
+// different period (21s vs 16s) makes the violet zone slide against the
+// emerald family so the aurora parallax never visibly repeats.
 @keyframes body-glow-drift-alt {
   0% {
-    transform: translate3d(0, 0, 0) scale(1.07);
+    transform: translate3d(0, 0, 0);
   }
 
   50% {
-    transform: translate3d(7%, -6.5%, 0) scale(1.03);
+    transform: translate3d(7%, -6.5%, 0);
   }
 
   100% {
-    transform: translate3d(-7.5%, 6%, 0) scale(1.11);
+    transform: translate3d(-7.5%, 6%, 0);
   }
 }
 
-// Third counter-drift — the rotating ray fan: a ±7° pivot layered on
-// the wander so the conic curtain's sectors visibly swing like real
-// aurora rays. The 27s period stays coprime with 16s/21s so the three
-// wash layers never phase-lock into a repeating pattern; at 7° the
-// 150% layer still covers the viewport with ~8% margin.
+// Third counter-drift — the veil layer wanders on a 27s period coprime
+// with 16s/21s so the three wash layers never phase-lock into a
+// repeating pattern. Same translate-only rule: the former ±7° sway
+// rotated the raster and painted diagonal seam lines.
 @keyframes app-glow-sweep {
   0% {
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(1.02);
+    transform: translate3d(0, 0, 0);
   }
 
   50% {
-    transform: translate3d(-6%, 4.5%, 0) rotate(-7deg) scale(1.1);
+    transform: translate3d(-6%, 4.5%, 0);
   }
 
   100% {
-    transform: translate3d(6%, -4.5%, 0) rotate(7.5deg) scale(1.06);
+    transform: translate3d(6%, -4.5%, 0);
   }
 }
 
@@ -153,9 +160,9 @@ body {
   width: 100%;
   min-height: 100vh;
 
-  // Third aurora layer — the rotating ray fan (--bg-glow-3). body's two
-  // pseudo-elements are already spent on the wash layers, so the fan
-  // rides here: #app's z-index:1 stacking context pins the -1 pseudo
+  // Third aurora layer — the counter-drifting colour veil (--bg-glow-3).
+  // body's two pseudo-elements are already spent on the wash layers, so
+  // the veil rides here: #app's z-index:1 stacking context pins the -1 pseudo
   // above the body's glow layers but below every routed child.
   // Transform-only animation → pure compositor; `none` in HC paints
   // nothing while the idle sweep stays cheap.

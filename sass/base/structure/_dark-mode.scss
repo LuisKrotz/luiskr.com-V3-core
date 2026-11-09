@@ -67,77 +67,83 @@
   --filament-glow: radial-gradient(
     circle at 50% 30%,
     rgba(95, 218, 255, 0.05) 0%,
-    rgba(40, 244, 255, 0.015) 50%,
-    transparent 80%
+    rgba(95, 218, 255, 0.031) 18%,
+    rgba(40, 244, 255, 0.016) 35%,
+    rgba(40, 244, 255, 0.008) 48%,
+    rgba(40, 244, 255, 0.004) 58%,
+    rgba(40, 244, 255, 0.002) 66%,
+    transparent 72%
   );
 
   // Dark variant of the animated page backdrop — deep-water glows matching
   // the filament palette, kept just above --bg-primary so the field shifts
-  // without lighting the canvas.
+  // without lighting the canvas. Same quadratic-taper lobes as the light
+  // theme: many alpha stops easing to zero so no lobe draws an outline.
   --bg-glow:
     radial-gradient(
-      ellipse 55% 45% at 18% 22%,
+      ellipse 85% 70% at 18% 22%,
       rgba(95, 218, 255, 0.04) 0%,
-      rgba(95, 218, 255, 0.02) 34%,
-      rgba(95, 218, 255, 0.008) 56%,
-      rgba(95, 218, 255, 0.003) 70%,
-      transparent 78%
+      rgba(95, 218, 255, 0.025) 17%,
+      rgba(95, 218, 255, 0.013) 34%,
+      rgba(95, 218, 255, 0.006) 47%,
+      rgba(95, 218, 255, 0.003) 56%,
+      rgba(95, 218, 255, 0.001) 64%,
+      transparent 72%
     ),
     radial-gradient(
-      ellipse 50% 40% at 82% 78%,
+      ellipse 78% 62% at 82% 78%,
       rgba(40, 244, 255, 0.025) 0%,
-      rgba(40, 244, 255, 0.012) 34%,
-      rgba(40, 244, 255, 0.005) 56%,
-      rgba(40, 244, 255, 0.002) 70%,
-      transparent 78%
+      rgba(40, 244, 255, 0.015) 17%,
+      rgba(40, 244, 255, 0.008) 34%,
+      rgba(40, 244, 255, 0.004) 47%,
+      rgba(40, 244, 255, 0.002) 56%,
+      rgba(40, 244, 255, 0.001) 64%,
+      transparent 72%
     );
   // Second counter-drift layer (body::after) — a faint violet curtain so
   // the dark field keeps the same two-layer parallax structure.
-  --bg-glow-2:
-    radial-gradient(
-      ellipse 44% 34% at 64% 30%,
-      rgba(140, 120, 255, 0.035) 0%,
-      rgba(140, 120, 255, 0.017) 34%,
-      rgba(140, 120, 255, 0.007) 56%,
-      rgba(140, 120, 255, 0.003) 70%,
-      transparent 78%
-    ),
-    linear-gradient(115deg, transparent 38%, rgba(95, 218, 255, 0.02) 52%, transparent 68%);
-  // Third layer (#app::before ray fan) — the same conic sweep structure
-  // as the light theme at ember alpha: teal ray arcs plus a faint
-  // violet sector, kept just above --bg-primary like the other washes.
+  --bg-glow-2: radial-gradient(
+    ellipse 68% 53% at 64% 30%,
+    rgba(140, 120, 255, 0.035) 0%,
+    rgba(140, 120, 255, 0.021) 17%,
+    rgba(140, 120, 255, 0.011) 34%,
+    rgba(140, 120, 255, 0.006) 47%,
+    rgba(140, 120, 255, 0.003) 56%,
+    rgba(140, 120, 255, 0.001) 64%,
+    transparent 72%
+  );
+  // Third layer (#app::before counter-veil) — wide ember lobes only,
+  // kept just above --bg-primary like the other washes.
   --bg-glow-3:
     radial-gradient(
-      ellipse 50% 36% at 70% 56%,
+      ellipse 78% 56% at 70% 56%,
       rgba(64, 220, 190, 0.03) 0%,
-      rgba(64, 220, 190, 0.015) 34%,
-      rgba(64, 220, 190, 0.006) 56%,
-      rgba(64, 220, 190, 0.002) 70%,
-      transparent 78%
+      rgba(64, 220, 190, 0.018) 17%,
+      rgba(64, 220, 190, 0.01) 34%,
+      rgba(64, 220, 190, 0.005) 47%,
+      rgba(64, 220, 190, 0.002) 56%,
+      rgba(64, 220, 190, 0.001) 64%,
+      transparent 72%
     ),
-    linear-gradient(
-      99deg,
-      transparent 20%,
-      rgba(95, 218, 255, 0.012) 24%,
-      rgba(95, 218, 255, 0.028) 27%,
-      rgba(95, 218, 255, 0.012) 30%,
-      transparent 33%
+    radial-gradient(
+      ellipse 68% 53% at 26% 74%,
+      rgba(95, 218, 255, 0.024) 0%,
+      rgba(95, 218, 255, 0.015) 17%,
+      rgba(95, 218, 255, 0.008) 34%,
+      rgba(95, 218, 255, 0.004) 47%,
+      rgba(95, 218, 255, 0.002) 56%,
+      rgba(95, 218, 255, 0.001) 64%,
+      transparent 72%
     ),
-    linear-gradient(
-      96deg,
-      transparent 52%,
-      rgba(140, 120, 255, 0.01) 55%,
-      rgba(140, 120, 255, 0.022) 58%,
-      rgba(140, 120, 255, 0.01) 61%,
-      transparent 64%
-    ),
-    linear-gradient(
-      102deg,
-      transparent 78%,
-      rgba(64, 220, 190, 0.011) 81%,
-      rgba(64, 220, 190, 0.026) 84%,
-      rgba(64, 220, 190, 0.011) 87%,
-      transparent 90%
+    radial-gradient(
+      ellipse 62% 50% at 58% 18%,
+      rgba(140, 120, 255, 0.02) 0%,
+      rgba(140, 120, 255, 0.012) 17%,
+      rgba(140, 120, 255, 0.006) 34%,
+      rgba(140, 120, 255, 0.003) 47%,
+      rgba(140, 120, 255, 0.002) 56%,
+      rgba(140, 120, 255, 0.001) 64%,
+      transparent 72%
     );
   --metallic-hairline: linear-gradient(
     90deg,
