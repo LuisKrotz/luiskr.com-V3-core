@@ -9,6 +9,7 @@
 import { BaseComponent } from '@core/Component.js'
 import { getDevLog, clearDevLog } from '@core/devlog.js'
 import { LOG_LEVELS } from '@core/tokens/data/log.js'
+import { WIDTH_CLASS_GATES } from '@core/tokens/layout/css-classes.js'
 import { TEST_TEXT } from '@tests/fixtures/test-constants.js'
 
 /** Fixture sheets — base/mobile/desktop tiers exercise the tier-merge arms. */
@@ -297,6 +298,64 @@ describe('Component ?tiers adoption tails', () => {
     await flush()
 
     expect(el._tierSheet).toBeTruthy()
+
+    el.remove()
+  })
+
+  test('the shared grow watcher re-adopts a wider tier on an upward cross', async () => {
+    const listeners = []
+    const realMM = window.matchMedia
+    let grew = false
+
+    window.matchMedia = (query) => ({
+      media: query,
+      get matches() {
+        return grew && query === WIDTH_CLASS_GATES.desktop
+      },
+      addEventListener: (_type, fn) => listeners.push(fn),
+      removeEventListener: () => {},
+    })
+
+    try {
+      const el = document.createElement(HOST_TAG)
+
+      document.body.appendChild(el)
+      await flush()
+
+      expect(el._tierKey).toBe('mobile')
+
+      grew = true
+      listeners.forEach((fn) => fn())
+      await flush()
+
+      expect(el._tierKey).toBe('desktop')
+
+      el.remove()
+    } finally {
+      window.matchMedia = realMM
+    }
+  })
+
+  test('a rejected stale tier load leaves the newer pending key intact', async () => {
+    clearDevLog()
+
+    const stale = tiered({
+      desktop: () => Promise.reject(new Error(TEST_TEXT.STALE)),
+      wide: () => Promise.resolve('@media (min-width: 2559px) { .tier-w { margin: 0; } }'),
+    })
+    const el = document.createElement(TAG)
+
+    el._componentStyles = stale
+    document.body.appendChild(el)
+
+    // desktop's loader rejects after pending already moved to wide — the
+    // catch-arm that must NOT clear a key it no longer owns.
+    el._adoptWidthTier('desktop', stale)
+    el._adoptWidthTier('wide', stale)
+    await flush()
+
+    expect(el._tierKey).toBe('wide')
+    expect(getDevLog().some((e) => e.level === LOG_LEVELS.WARN)).toBe(true)
 
     el.remove()
   })

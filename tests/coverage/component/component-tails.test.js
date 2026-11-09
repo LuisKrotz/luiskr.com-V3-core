@@ -118,4 +118,40 @@ describe('Component tails', () => {
     expect(BaseComponent.prototype.$$.call(bare, 'div')).toEqual([])
     expect(BaseComponent.prototype.$.call(bare, 'div')).toBeNull()
   })
+
+  test('addScopedListener disposers run on disconnect', async () => {
+    const el = document.createElement(COMPONENT_TAGS.COOKIE_BANNER)
+
+    document.body.appendChild(el)
+    await flush()
+
+    const handler = () => {}
+
+    expect(el instanceof BaseComponent).toBe(true)
+
+    el.addScopedListener(document, 'test-evt', handler)
+
+    expect(el._eventDisposers.length).toBe(1)
+
+    el.remove()
+
+    expect(el._eventDisposers).toEqual([])
+  })
+
+  test('_renderInitial falls back to a <style> node without constructable sheets', async () => {
+    const saved = globalThis.CSSStyleSheet
+
+    globalThis.CSSStyleSheet = undefined
+
+    const el = document.createElement(COMPONENT_TAGS.COOKIE_BANNER)
+
+    document.body.appendChild(el)
+    await flush()
+
+    expect(el._styleNode).toBeTruthy()
+
+    el.remove()
+
+    globalThis.CSSStyleSheet = saved
+  })
 })
