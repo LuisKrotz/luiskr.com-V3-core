@@ -39,6 +39,14 @@
       justify-items: stretch;
       margin-top: var(--space-lg);
     }
+
+    // Desktop scroll parallax — the controls row rises counter to the
+    // deck so it pulls clear of the about section instead of being
+    // dragged over the boundary (see :host seed +
+    // views/home/parallax.ts).
+    @include layout-1280() {
+      transform: translate3d(0, var(--foot-parallax-y), 0);
+    }
   }
 
   // "DRAG OR SWIPE CARDS TO EXPLORE" — the hand icon + copy, parked at
@@ -209,6 +217,23 @@
     // transform only.
     @include control-arrow('.#{$_B_CARD_STACK}-arrow');
 
+    // Narrowest tier — "← PREVIOUS" outgrows its 1fr nav track where
+    // "NEXT →" still fits, so inline wrapping left prev's arrow alone
+    // on line one while next stayed whole. Column-stacking gives BOTH
+    // controls the same break — arrow above label — and order:-1 pulls
+    // next's trailing arrow before its text node so the pair matches.
+    @media (max-width: 767px) {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-3xs);
+
+      .#{$_B_CARD_STACK}-arrow {
+        order: -1;
+      }
+    }
+
     &:hover,
     &:focus-visible {
       color: var(--text-primary);
@@ -261,7 +286,7 @@
     &:hover,
     &:focus-visible {
       color: var(--text-primary);
-      border-color: var(--color-accent);
+      border-color: var(--color-accent-contrast);
     }
 
     // The glyphs are CSS shapes — no assets: the play triangle is a
@@ -329,9 +354,10 @@
     background: conic-gradient(
       from 0deg,
       transparent 0%,
-      var(--color-accent) 6%,
-      var(--color-accent) max(calc(var(--card-stack-timer-p) - 4%), 0%),
-      color-mix(in srgb, var(--color-accent) 45%, var(--color-white-raw)) var(--card-stack-timer-p),
+      var(--color-accent-contrast) 6%,
+      var(--color-accent-contrast) max(calc(var(--card-stack-timer-p) - 4%), 0%),
+      color-mix(in srgb, var(--color-accent-contrast) 45%, var(--color-white-raw))
+        var(--card-stack-timer-p),
       transparent calc(var(--card-stack-timer-p) + 2%)
     );
     -webkit-mask:

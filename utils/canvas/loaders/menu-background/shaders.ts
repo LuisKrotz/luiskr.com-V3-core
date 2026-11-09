@@ -48,38 +48,38 @@ export const MENU_BG_FS_BODY = `
           // Centered, aspect-corrected coords: p spans ~[-0.5,0.5] on the
           // short axis so contours stay circular on any viewport shape.
           vec2 p=(gl_FragCoord.xy-0.5*u_res)/min(u_res.x,u_res.y);
-          float t=u_time*0.018;
+          float t=u_time*0.03;
 
           // Domain-warped field: q warps p, r warps q's output, f warps by
           // r — double warping produces the flowing, fabric-like shapes
-          // (IQ's classic fbm-warp technique). t*0.018 ≈ 35s per cycle —
-          // the drift is deliberately glacial so the field feels alive
-          // rather than animated.
+          // (IQ's classic fbm-warp technique). t*0.03 ≈ 21s per cycle —
+          // the drift stays slow enough to feel like fabric but fast
+          // enough that the isolines visibly travel.
           vec2 q=vec2(fbm(p*1.6+t),fbm(p*1.6-t*0.7+3.1));
           vec2 r=vec2(fbm(p*1.6+2.2*q+vec2(1.7,9.2)+t*0.6),fbm(p*1.6+2.2*q+vec2(8.3,2.8)-t*0.4));
           float f=fbm(p*1.6+2.0*r);
 
-          // Isolines: quantize the field into 14 level bands — a sparse
+          // Isolines: quantize the field into 16 level bands — a sparse
           // set so the field reads as delicate fabric folds rather than a
           // dense screen-wide texture. fract() measures distance to the
           // nearest contour boundary.
           // With derivatives available, convert band-space distance to
           // *pixel* distance (d / |∇q|) so every contour is a consistent
-          // ~1px hairline with a proper AA falloff — no crawling or
+          // ~1.5px thread with a proper AA falloff — no crawling or
           // width pumping as the field drifts. Without them, fall back to
           // the fixed-width smoothstep band (softened by supersampling).
-          float levels=14.;
+          float levels=16.;
           float band=f*levels;
           float v=fract(band);
           float d=min(v,1.-v);
           #ifdef HAS_DERIV
           float grad=max(fwidth(band),1e-4);
           float dpx=d/grad;
-          float line=1.-smoothstep(0.45,1.05,dpx);
-          float majorLine=1.-smoothstep(0.7,1.5,dpx);
+          float line=1.-smoothstep(0.5,1.5,dpx);
+          float majorLine=1.-smoothstep(0.8,2.0,dpx);
           #else
-          float line=1.-smoothstep(0.,0.028,d);
-          float majorLine=1.-smoothstep(0.,0.045,d);
+          float line=1.-smoothstep(0.,0.036,d);
+          float majorLine=1.-smoothstep(0.,0.058,d);
           #endif
           float major=step(mod(floor(band),6.),0.5);
           line=mix(line,max(line,majorLine*0.9),major);
@@ -87,12 +87,12 @@ export const MENU_BG_FS_BODY = `
           // Reveal: vign fades lines toward the edges and rev multiplies
           // alpha for a soft global fade — the field itself stays stable;
           // no radial window, so open/close never reads as a zoom.
-          // The vignette reaches in further (0.15→0.7 of the half-frame)
+          // The vignette reaches in further (0.12→0.82 of the half-frame)
           // than a generic edge fade so contours concentrate around the
-          // link column like pleated fabric instead of covering the
-          // viewport uniformly.
+          // link column like pleated fabric while still fading out to a
+          // clean edge.
           float len=length(p);
-          float vign=1.-smoothstep(0.15,0.7,len);
+          float vign=1.-smoothstep(0.12,0.82,len);
           float rev=smoothstep(0.,1.,u_reveal);
           float a=line*vign*rev*u_alpha;
 

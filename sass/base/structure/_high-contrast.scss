@@ -27,6 +27,9 @@
   // Surfaces stay white-family but borders and inks go opaque pitch black.
   --bg-primary: #ffffff;
   --bg-secondary: #ffffff;
+  // Translucent secondary surfaces collapse to the same opaque pole —
+  // HC forbids see-through bands (edges must stay unambiguous).
+  --bg-secondary-glass: var(--bg-secondary);
   --bg-dark: #000000;
   --bg-dark-alpha: #000000;
   --bg-darker: #000000;
@@ -37,6 +40,8 @@
   --text-muted: #000000;
   --text-muted-on-dark: #ffffff;
   --border-color: #000000;
+  // No mid-tone hover step in HC — the disc keeps the field pole shade.
+  --border-color-hover: var(--border-color);
   --border-color-on-dark: var(--color-white-raw);
   --border-item: var(--color-white-raw);
   --border-item-hover: var(--color-white-raw);
@@ -62,9 +67,13 @@
   --menu-bg: #ffffff;
   --menu-ink: #000000;
   --menu-ink-2: #000000;
+  // The light theme's aurora wash must not paint in HC — flat field.
+  --menu-glow: none;
 
   // No ambient wash in HC — a plain field keeps edges unambiguous.
   --bg-glow: none;
+  --bg-glow-2: none;
+  --bg-glow-3: none;
   --filament-glow: none;
   --metallic-hairline: linear-gradient(
     90deg,
@@ -109,6 +118,9 @@
 @mixin high-contrast-dark-tokens {
   --bg-primary: #000000;
   --bg-secondary: #000000;
+  // Translucent secondary surfaces collapse to the same opaque pole —
+  // HC forbids see-through bands (edges must stay unambiguous).
+  --bg-secondary-glass: var(--bg-secondary);
   --bg-dark: #000000;
   --bg-dark-alpha: #000000;
   --bg-darker: #000000;
@@ -118,6 +130,8 @@
   --text-muted: #ffffff;
   --text-muted-on-dark: #ffffff;
   --border-color: var(--color-white-raw);
+  // No mid-tone hover step in HC — the disc keeps the field pole shade.
+  --border-color-hover: var(--border-color);
   --border-color-on-dark: var(--color-white-raw);
   --border-item: var(--color-white-raw);
   --border-item-hover: var(--color-white-raw);
@@ -142,8 +156,11 @@
   --menu-bg: #000000;
   --menu-ink: var(--color-white-raw);
   --menu-ink-2: var(--color-white-raw);
+  --menu-glow: none;
 
   --bg-glow: none;
+  --bg-glow-2: none;
+  --bg-glow-3: none;
   --filament-glow: none;
   --metallic-hairline: linear-gradient(
     90deg,

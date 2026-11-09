@@ -40,10 +40,8 @@ export const ANIMATION_IDS = Object.freeze({
   INTRO_LOADER: 'intro-loader',
   /** Notification toast — slide/fade entrance + exit (CSS). */
   SITE_TOAST: 'site-toast',
-  /** Mosaic title letter combustion → rebuild (Rust/WASM particles + 2D raster). */
+  /** Card-stack project-name letter combustion → rebuild (Rust/WASM particles + 2D raster). */
   MOSAIC_BURN: 'mosaic-burn',
-  /** Mosaic tile — spring displacement + traveling border sheen (JS spring + canvas). */
-  MOSAIC_TILE: 'mosaic-tile',
   /** Media figure — low→high-quality morph on progressive load (canvas + WASM decode + CSS). */
   MEDIA_PROGRESSIVE: 'media-progressive',
   /** About portrait — VHS glitch corruption passes (WebGL/canvas). */
@@ -70,8 +68,6 @@ export const ANIMATION_IDS = Object.freeze({
   BODY_GLOW: 'body-glow',
   /** Route progress bar — scaleX crawl to ~70% while a navigation is in flight, then sweep-to-100 + fade (CSS transitions). */
   PROGRESS_BAR: 'progress-bar',
-  /** Disclaimer note dots — pulsing <i> markers inside footer/disclaimer notes (CSS). */
-  NOTE_DOT: 'note-dot',
   /** Home project deck — deal-through card fan: drag/flick physics, inward
    *  rotateY faces, GL quadratic bend, hero scale boost (JS poses + three.js). */
   CARD_STACK: 'card-stack',
@@ -134,8 +130,7 @@ export const ANIMATION_DOCS: Readonly<Record<string, string>> = Object.freeze({
   [ANIMATION_IDS.SKELETON]: 'docs/api/core/utils/canvas/loaders/skeleton-webgl.md',
   [ANIMATION_IDS.INTRO_LOADER]: 'docs/api/core/utils/canvas/loaders/intro-loader.md',
   [ANIMATION_IDS.SITE_TOAST]: 'docs/api/website/components/feedback/SiteToast.md',
-  [ANIMATION_IDS.MOSAIC_BURN]: 'docs/api/website/components/home/mosaic/burn.md',
-  [ANIMATION_IDS.MOSAIC_TILE]: 'docs/api/website/components/home/HomeMosaic.md',
+  [ANIMATION_IDS.MOSAIC_BURN]: 'website/components/home/cardstack/info.ts',
   [ANIMATION_IDS.MEDIA_PROGRESSIVE]: 'docs/api/website/components/media/MediaFigure.md',
   [ANIMATION_IDS.GLITCH_PORTRAIT]: 'docs/api/website/components/home/about/glitch/session.md',
   [ANIMATION_IDS.DIVIDER_SHEEN]: 'docs/api/core/utils/gpu/divider-sheen.md',
@@ -149,7 +144,6 @@ export const ANIMATION_DOCS: Readonly<Record<string, string>> = Object.freeze({
   [ANIMATION_IDS.RELATED_TILE]: 'docs/api/website/components/portfolio/Related.md',
   [ANIMATION_IDS.BODY_GLOW]: 'core/sass/base/structure/_document.scss',
   [ANIMATION_IDS.PROGRESS_BAR]: 'core/sass/components/shell/app/_progress-bar.scss',
-  [ANIMATION_IDS.NOTE_DOT]: 'docs/api/website/components/portfolio/Related.md',
   [ANIMATION_IDS.CARD_STACK]: 'website/components/home/cardstack/deck.ts',
   [ANIMATION_IDS.ABOUT_MESH]: 'website/components/home/about/mesh.ts',
   [ANIMATION_IDS.NAV_ICON_AURA]: 'docs/api/website/components/nav/icon-aura.md',

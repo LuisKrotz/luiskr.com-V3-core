@@ -80,7 +80,7 @@ $_B_RS: 'route-search';
         height: to-rem($space-xs);
 
         border-radius: var(--radius-round);
-        background: var(--color-accent);
+        background: var(--color-accent-contrast);
 
         animation: rs-found-dot 1.1s ease-in-out infinite;
 
@@ -173,7 +173,7 @@ $_B_RS: 'route-search';
       z-index: -1;
 
       border-radius: var(--radius-round);
-      background: conic-gradient(from -90deg, var(--color-accent) 60%, transparent 60%);
+      background: conic-gradient(from -90deg, var(--color-accent-contrast) 60%, transparent 60%);
 
       mask:
         linear-gradient(currentColor 0 0) padding-box,
@@ -190,10 +190,10 @@ $_B_RS: 'route-search';
 
     &:focus-within,
     &:hover {
-      border-color: var(--color-accent);
+      border-color: var(--color-accent-contrast);
       box-shadow:
-        0 0 0 var(--space-hairline) var(--color-accent),
-        0 0 #{to-rem($space-lg)} 0 var(--color-accent);
+        0 0 0 var(--space-hairline) var(--color-accent-contrast),
+        0 0 #{to-rem($space-lg)} 0 var(--color-accent-contrast);
 
       &::after {
         opacity: 1;
@@ -256,8 +256,8 @@ $_B_RS: 'route-search';
 
     &:hover,
     &:focus-visible {
-      border-color: var(--color-accent);
-      color: var(--color-accent);
+      border-color: var(--color-accent-contrast);
+      color: var(--color-accent-contrast);
     }
   }
 
@@ -400,8 +400,8 @@ $_B_RS: 'route-search';
 
       &:hover,
       &:focus-visible {
-        border-color: var(--color-accent);
-        color: var(--color-accent);
+        border-color: var(--color-accent-contrast);
+        color: var(--color-accent-contrast);
       }
 
       &:disabled {
@@ -424,13 +424,13 @@ $_B_RS: 'route-search';
 
       // The numbered pill lights up on the active row — the img2 accent.
       .#{$_B_RS}-index {
-        border-color: var(--color-accent);
-        color: var(--color-accent);
-        box-shadow: 0 0 #{to-rem($space-sm)} 0 var(--color-accent);
+        border-color: var(--color-accent-contrast);
+        color: var(--color-accent-contrast);
+        box-shadow: 0 0 #{to-rem($space-sm)} 0 var(--color-accent-contrast);
       }
 
       .#{$_B_RS}-arrow {
-        color: var(--color-accent);
+        color: var(--color-accent-contrast);
         transform: translateX(#{to-rem($space-2xs)});
       }
     }

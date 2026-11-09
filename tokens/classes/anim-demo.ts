@@ -3,9 +3,9 @@
  * @description Animations-demo stage class tokens — grouped subset of
  * CLASSES for the `<anim-demo>` component mounted per record on the
  * /animations route: the stage chrome plus every staged-DOM demo's
- * element/state classes (menu items, loader rings, toast pill, burn card,
- * tiles, divider, bracketed button, carousel strip, glow, progress bar,
- * genie backdrop/dialog).
+ * element/state classes (menu items, loader rings, toast pill, title-burn
+ * card, tiles, divider, bracketed button, carousel strip, glow, progress
+ * bar, genie backdrop/dialog).
  */
 
 import { _B_ANIM_DEMO } from '../base.js'
@@ -84,15 +84,13 @@ export const ANIM_DEMO_CLASSES = Object.freeze({
   /** Details container the rewrite slot prepends into. */
   DETAILS: `${_B_ANIM_DEMO}-details`,
 
-  /* ── Tile demos (ring-sheen / related / mosaic) ── */
+  /* ── Tile demos (ring-sheen / related) ── */
   /** Tile row container the ring-sheen canvas overlays. */
   TILES: `${_B_ANIM_DEMO}-tiles`,
   /** One demo tile. */
   TILE: `${_B_ANIM_DEMO}-tile`,
   /** Hover-state modifier driving the lift/zoom spring. */
   TILE_HOVER: `${_B_ANIM_DEMO}-tile--hover`,
-  /** Taller variant carrying the spring displacement demo. */
-  TILE_SPRING: `${_B_ANIM_DEMO}-tile--spring`,
 
   /* ── Divider sheen demo ── */
   /** The <hr> the sheen travels. */
@@ -168,12 +166,6 @@ export const ANIM_DEMO_CLASSES = Object.freeze({
   /** The <media-figure> sizing wrapper. */
   FIGURE: `${_B_ANIM_DEMO}-figure`,
 
-  /* ── Note dot demo ── */
-  /** The disclaimer-note line the dots pulse inside. */
-  NOTES: `${_B_ANIM_DEMO}-notes`,
-  /** One pulsing note-dot marker. */
-  DOT: `${_B_ANIM_DEMO}-dot`,
-
   /* ── Card-stack demo ── */
   /** Perspective scene the fanned cards deal through. */
   FAN: `${_B_ANIM_DEMO}-fan`,
@@ -201,6 +193,8 @@ export const ANIM_DEMO_CLASSES = Object.freeze({
   SEARCH: `${_B_ANIM_DEMO}-search`,
   /** The submit glyph — spins while loading. */
   SEARCH_ICON: `${_B_ANIM_DEMO}-search-icon`,
+  /** The typed-query text bar inside the field. */
+  SEARCH_TEXT: `${_B_ANIM_DEMO}-search-text`,
   /** Found-dots row — bounces while loading. */
   SEARCH_DOTS: `${_B_ANIM_DEMO}-search-dots`,
   /** One found dot. */
@@ -231,19 +225,14 @@ export const ANIM_DEMO_CLASSES = Object.freeze({
   MODAL_READY: `${_B_ANIM_DEMO}-modal--ready`,
 
   /* ── Footer feed-wave demo ── */
-  /** The feed link row the wave ripples across. */
+  /** The staged feed anchor — carries the real feedGlyph the driver
+      prepends; the wave arcs pulse in CSS. */
   FEED: `${_B_ANIM_DEMO}-feed`,
-  /** One feed link — nth-child delay staggers the wave. */
-  FEED_ITEM: `${_B_ANIM_DEMO}-feed-item`,
-})
 
-/**
- * Frozen anim-demo CSS custom-property names — the mosaic-tile spring
- * displacement writes `--anim-demo-lift` (px length), read by the tile's
- * transform. Sole declaration site — consumers import the token, never
- * retype the literal (zero-hardcoding rule).
- */
-export const ANIM_DEMO_CSS_PROPS = Object.freeze({
-  /** Spring displacement length on the mosaic-tile demo (px). */
-  LIFT: '--anim-demo-lift',
+  /* ── Real-element demos ── */
+  /** Host class on a mounted production element (card-stack,
+   *  mentions-deck, awards-carousel, custom-carousel, about-section) —
+   *  the element owns its internals; the class only frames the host
+   *  box inside the stage. */
+  ELEMENT: `${_B_ANIM_DEMO}-element`,
 })

@@ -29,12 +29,21 @@
   box-sizing: border-box;
   // Gutter = the step's $gap — ($un-$step − $grid-max-area-$step) / 2
   // resolves to exactly the gap token, so padding IS the gutter.
-  padding: 0 to-rem($gap-272) 0;
+  // The gutter itself rides a custom property: `padding` fires exactly
+  // once, here in the base sheet, and every grid-steps rung re-declares
+  // ONLY --grid-gutter. The ?tiers split moves pure-media rungs into
+  // tier sheets adopted AFTER base — a rung that re-emitted the padding
+  // shorthand there would re-zero top/bottom and column indents on every
+  // extender carrying its own padding (the clipped internal title and
+  // full-width description regressions). A var update carries the gutter
+  // without ever re-touching component padding.
+  --grid-gutter: #{to-rem($gap-272)};
+  padding: 0 var(--grid-gutter) 0;
 
   // One media query per $grid-steps entry — the overlay reads the same map
   // via `grid-steps`, so content gutters and the debug grid never drift.
   @include grid-steps() using ($step, $gap, $cols) {
-    padding: 0 to-rem($gap) 0;
+    --grid-gutter: #{to-rem($gap)};
   }
 }
 

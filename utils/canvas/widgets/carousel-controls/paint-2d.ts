@@ -9,7 +9,9 @@
 import { ARROW_TYPES } from '@core/tokens/theme/arrows.js'
 import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { THEME_CSS_PROPS as CSS_PROPS } from '@core/tokens/css/theme.js'
+import { CANVAS_STRINGS } from '@core/tokens/strings/canvas.js'
 import { CANVAS_PAINT_CSS } from '@core/tokens/canvas/paint.js'
+import { parseCssColor } from '../../css-color.js'
 
 /** Theme inks the painter needs — resolved CSS values, safe as canvas colors. */
 interface ArrowPalette {
@@ -17,6 +19,10 @@ interface ArrowPalette {
   disc: string
   /** Arrow glyph ink — `--text-primary` (dark on light disc, white on dark). */
   ink: string
+  /** Ring/glow accent — `--color-accent-contrast` (deep teal on light discs, the neon signature on dark). */
+  accent: string
+  /** Accent as a precomposed `r,g,b` channel string for rgba() alpha variants. */
+  accentRgb: string
 }
 
 /** Cached palette keyed to the theme flag it was sampled under. */
@@ -26,9 +32,11 @@ let _palKey: boolean | null = null
 let _pal: ArrowPalette | null = null
 
 /**
- * Samples `--bg-primary`/`--text-primary` once per theme so the disc + arrow
- * flip with the site palette (light mode paints the light-glass/dark-ink
- * variant instead of the always-dark obsidian). Re-samples on a theme flip.
+ * Samples `--bg-primary`/`--text-primary`/`--color-accent-contrast` once per
+ * theme so the disc, arrow and progress ring flip with the site palette —
+ * light mode paints the deep-teal accent (the neon signature is unreadable
+ * on light glass), dark mode keeps the neon (the contrast token re-pins it).
+ * Re-samples on a theme flip.
  * @returns The resolved disc + glyph inks.
  */
 const arrowPalette = (): ArrowPalette => {
@@ -38,9 +46,15 @@ const arrowPalette = (): ArrowPalette => {
 
   const cs = getComputedStyle(document.documentElement)
 
+  const accent = cs.getPropertyValue(CSS_PROPS.COLOR_ACCENT_CONTRAST).trim()
+
+  const tri = parseCssColor(accent) || parseCssColor(CANVAS_PAINT_CSS.NEON_TEAL) || [0, 0, 0]
+
   _pal = {
     disc: cs.getPropertyValue(CSS_PROPS.BG_PRIMARY).trim(),
     ink: cs.getPropertyValue(CSS_PROPS.TEXT_PRIMARY).trim(),
+    accent: accent || CANVAS_PAINT_CSS.NEON_TEAL,
+    accentRgb: tri.map((n) => Math.round(n * 255)).join(','),
   }
 
   _palKey = dark
@@ -123,7 +137,7 @@ export function paintCarouselArrow2D(
 
     ctx.arc(cx, cy, ringR, 0, Math.PI * 2)
 
-    ctx.strokeStyle = 'rgba(102, 252, 241, 0.14)'
+    ctx.strokeStyle = `rgba(${pal.accentRgb}, 0.14)`
 
     ctx.lineWidth = 1.8
 
@@ -142,13 +156,13 @@ export function paintCarouselArrow2D(
 
     ctx.arc(cx, cy, ringR, startAngle, endAngle)
 
-    ctx.strokeStyle = CANVAS_PAINT_CSS.NEON_TEAL
+    ctx.strokeStyle = pal.accent
 
     ctx.lineWidth = 2.4
 
     ctx.lineCap = 'round'
 
-    ctx.shadowColor = 'rgba(102, 252, 241, 0.95)'
+    ctx.shadowColor = `rgba(${pal.accentRgb}, 0.95)`
 
     ctx.shadowBlur = 8
 
@@ -163,9 +177,9 @@ export function paintCarouselArrow2D(
 
     ctx.arc(px, py, 2.2, 0, Math.PI * 2)
 
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = CANVAS_STRINGS.INK_WHITE
 
-    ctx.shadowColor = CANVAS_PAINT_CSS.NEON_TEAL
+    ctx.shadowColor = pal.accent
 
     ctx.shadowBlur = 10
 
@@ -188,7 +202,7 @@ export function paintCarouselArrow2D(
 
     ctx.arc(cx, cy, shockR, 0, Math.PI * 2)
 
-    ctx.strokeStyle = `rgba(102, 252, 241, ${shockAlpha.toFixed(3)})`
+    ctx.strokeStyle = `rgba(${pal.accentRgb}, ${shockAlpha.toFixed(3)})`
 
     ctx.lineWidth = 1.8
 
@@ -227,7 +241,7 @@ export function paintCarouselArrow2D(
 
     ctx.lineJoin = 'round'
 
-    ctx.shadowColor = 'rgba(102, 252, 241, 0.4)'
+    ctx.shadowColor = `rgba(${pal.accentRgb}, 0.4)`
 
     ctx.shadowBlur = 4
 
@@ -269,7 +283,7 @@ export function paintCarouselArrow2D(
 
     ctx.arc(touchOriginX, 0, rippleR1, 0, Math.PI * 2)
 
-    ctx.strokeStyle = `rgba(102, 252, 241, ${rippleA1.toFixed(3)})`
+    ctx.strokeStyle = `rgba(${pal.accentRgb}, ${rippleA1.toFixed(3)})`
 
     ctx.lineWidth = 1.2
 
@@ -283,16 +297,16 @@ export function paintCarouselArrow2D(
 
     ctx.arc(touchOriginX, 0, rippleR2, 0, Math.PI * 2)
 
-    ctx.strokeStyle = `rgba(102, 252, 241, ${rippleA2.toFixed(3)})`
+    ctx.strokeStyle = `rgba(${pal.accentRgb}, ${rippleA2.toFixed(3)})`
 
     ctx.lineWidth = 1.0
 
     ctx.stroke()
 
     // Stylized Touch Glove: wrist cuff, palm curve, and pointing index finger
-    ctx.strokeStyle = CANVAS_PAINT_CSS.NEON_TEAL
+    ctx.strokeStyle = pal.accent
 
-    ctx.fillStyle = 'rgba(102, 252, 241, 0.15)'
+    ctx.fillStyle = `rgba(${pal.accentRgb}, 0.15)`
 
     ctx.lineWidth = 1.8
 
@@ -300,7 +314,7 @@ export function paintCarouselArrow2D(
 
     ctx.lineJoin = 'round'
 
-    ctx.shadowColor = 'rgba(102, 252, 241, 0.85)'
+    ctx.shadowColor = `rgba(${pal.accentRgb}, 0.85)`
 
     ctx.shadowBlur = 6
 
@@ -337,7 +351,7 @@ export function paintCarouselArrow2D(
 
     ctx.save()
 
-    ctx.strokeStyle = `rgba(102, 252, 241, ${streamAlpha.toFixed(3)})`
+    ctx.strokeStyle = `rgba(${pal.accentRgb}, ${streamAlpha.toFixed(3)})`
 
     ctx.lineWidth = 2.0
 

@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  structure/_document.scss — document base — html/body resets, the body-glow-drift backdrop keyframes, #app mount, element resets, app-root, modal scroll-lock.
+//  structure/_document.scss — document base — html/body resets, the body-glow-drift + app-glow-sweep backdrop keyframes, #app mount, element resets, app-root, modal scroll-lock.
 //  Imported by _structure.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -59,34 +59,89 @@ body {
   overflow-wrap: normal; // never split a word across lines — wrap entire words only
   hyphens: none; // no automatic hyphenation
 
-  // The animated degradê backdrop: a fixed, oversized wash layer behind all
-  // content (z-index -1 keeps it above the body's own background but below
-  // every child). Transform-only animation → pure compositor, no repaints.
-  // The -25% inset oversizes the layer so the drift never exposes an edge.
-  &::before {
+  // The animated aurora backdrop: two of the three fixed, oversized wash
+  // layers behind all content (z-index -1 keeps them above the body's
+  // own background but below every child; the third rides on
+  // #app::before below). Transform-only animations → pure compositor,
+  // no repaints. The -25% inset oversizes each layer so the drift never
+  // exposes an edge (the sweeps translate ±5-6% of a 150% layer ≈ ±9%
+  // of the viewport — well inside the 25% margin). ::before carries the
+  // emerald curtain ribbon on a 30s wander; ::after carries the violet
+  // fringe band on a 38s counter-drift, so the layers visibly parallax
+  // like polar light. Inert values (--bg-glow*: none in HC) paint
+  // nothing while the idle animation stays compositor-cheap.
+  &::before,
+  &::after {
     content: '';
     position: fixed;
     inset: -25%;
     z-index: -1;
-    background: var(--bg-glow);
-    animation: body-glow-drift 46s ease-in-out infinite alternate;
     pointer-events: none;
+  }
+
+  &::before {
+    background: var(--bg-glow);
+    animation: body-glow-drift 32s cubic-bezier(0.37, 0, 0.3, 1) infinite alternate;
+  }
+
+  &::after {
+    background: var(--bg-glow-2);
+    animation: body-glow-drift-alt 40s cubic-bezier(0.37, 0, 0.3, 1) infinite alternate;
   }
 }
 
-// Slow drift path — three poses on alternate so the loop reads as an
-// endless wander rather than a ping-pong between two corners.
+// Drift path — three poses on alternate so the loop reads as an endless
+// wander rather than a ping-pong between two corners. The ±9% travel
+// on the 150% layer moves lobe centres ~14% of the viewport — the
+// curtain visibly drifts instead of reading as a static tint (the -25%
+// inset still leaves ~11% overscan at the widest pose).
 @keyframes body-glow-drift {
   0% {
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1.02);
   }
 
   50% {
-    transform: translate3d(2.5%, -2%, 0) scale(1.06);
+    transform: translate3d(-9%, 6%, 0) scale(1.12);
   }
 
   100% {
-    transform: translate3d(-2%, 2.5%, 0) scale(1.03);
+    transform: translate3d(7%, -6%, 0) scale(1.07);
+  }
+}
+
+// Counter-drift — the mirrored wander of the fringe layer; its
+// different period (38s vs 30s) makes the violet band slide against the
+// emerald curtain so the aurora parallax never visibly repeats.
+@keyframes body-glow-drift-alt {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.07);
+  }
+
+  50% {
+    transform: translate3d(7%, -6.5%, 0) scale(1.03);
+  }
+
+  100% {
+    transform: translate3d(-7.5%, 6%, 0) scale(1.11);
+  }
+}
+
+// Third counter-drift — the rotating ray fan: a ±7° pivot layered on
+// the wander so the conic curtain's sectors visibly swing like real
+// aurora rays. The 46s period stays coprime with 30s/38s so the three
+// wash layers never phase-lock into a repeating pattern; at 7° the
+// 150% layer still covers the viewport with ~8% margin.
+@keyframes app-glow-sweep {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1.02);
+  }
+
+  50% {
+    transform: translate3d(-6%, 4.5%, 0) rotate(-7deg) scale(1.1);
+  }
+
+  100% {
+    transform: translate3d(6%, -4.5%, 0) rotate(7.5deg) scale(1.06);
   }
 }
 
@@ -97,6 +152,22 @@ body {
   background: transparent;
   width: 100%;
   min-height: 100vh;
+
+  // Third aurora layer — the rotating ray fan (--bg-glow-3). body's two
+  // pseudo-elements are already spent on the wash layers, so the fan
+  // rides here: #app's z-index:1 stacking context pins the -1 pseudo
+  // above the body's glow layers but below every routed child.
+  // Transform-only animation → pure compositor; `none` in HC paints
+  // nothing while the idle sweep stays cheap.
+  &::before {
+    content: '';
+    position: fixed;
+    inset: -25%;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--bg-glow-3);
+    animation: app-glow-sweep 48s cubic-bezier(0.37, 0, 0.3, 1) infinite alternate;
+  }
 }
 
 q,

@@ -49,6 +49,12 @@
       margin-inline: -10%;
     }
 
+    // Desktop scroll parallax — the whole stage recedes against the
+    // static chrome (see :host seed + views/home/parallax.ts).
+    @include layout-1280() {
+      transform: translate3d(0, var(--deck-parallax-y), 0);
+    }
+
     &--dragging {
       cursor: grabbing;
 
@@ -302,8 +308,8 @@
 
   // Cover image — the card's top band on stacked layouts (edge to edge,
   // the project sheet's hero); the padded frame fill on fan tiers. The
-  // bottom scrim keeps the overlapping project title legible when the
-  // cover's own lower edge runs bright behind the glyphs.
+  // copy column sits fully below the cover (the title no longer
+  // straddles the seam), so no bottom scrim is needed.
   &-card-media {
     position: relative;
     flex: 0 0 auto;
@@ -311,28 +317,11 @@
     overflow: hidden;
 
     // 768–1023 landscape — left column of the wide card; stretches to
-    // the card's height so the cover fills its half edge to edge. The
-    // bottom scrim stays off — it only exists to keep the straddling
-    // title legible on the portrait stack's cover seam, and the wide
-    // card's title sits in the right column instead.
+    // the card's height so the cover fills its half edge to edge.
     @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
       flex: 0 0 46%;
       align-self: stretch;
       aspect-ratio: auto;
-
-      &::after {
-        content: none;
-      }
-    }
-
-    &::after {
-      content: '';
-      position: absolute;
-      inset-inline: 0;
-      bottom: 0;
-      height: 45%;
-      background: linear-gradient(transparent, color-mix(in srgb, var(--bg-dark) 85%, transparent));
-      pointer-events: none;
     }
 
     @media (min-width: 1024px) and (orientation: landscape) {
@@ -340,10 +329,6 @@
       inset: 0;
       aspect-ratio: auto;
       border-radius: var(--radius-md);
-
-      &::after {
-        content: none;
-      }
     }
 
     img {
@@ -359,8 +344,7 @@
   // the cover: title, Jost description and the link affordance (the
   // card's own <a> is the anchor — this span is styled copy). Hidden on
   // fan tiers, where the text column carries the active project instead.
-  // No top padding — the title's negative margin straddles the cover's
-  // bottom seam.
+  // No top padding — the title's own margin supplies the cover-seam gap.
   &-card-info {
     flex: 1 1 auto;
     min-height: 0;
@@ -397,28 +381,31 @@
     }
   }
 
-  // The card's own project name — small uppercase display cut straddling
-  // the cover's bottom edge (the negative margin drops it onto the
-  // scrim); the paper-burn knits/consumes its ink on front changes.
+  // The card's own project name — small uppercase display cut placed
+  // fully below the cover's bottom edge on the card's dark fill (the
+  // old negative-margin straddle dropped dark ink onto the cover's
+  // scrim, where it read as mud); the paper-burn knits/consumes its
+  // ink on front changes. White ink: the card surface is always-dark
+  // in both themes, same contract as the mosaic cards.
   &-card-info-title {
     font-family: var(--font-ui);
     font-weight: calc(500 + var(--fw-lift));
     text-transform: uppercase;
     letter-spacing: var(--space-2xs);
     line-height: 1.12;
-    color: var(--text-primary);
-    margin: calc(-1 * var(--space-xl)) 0 0;
+    color: var(--color-white-raw);
+    margin: var(--space-md) 0 0;
     font-size: calc(var(--space-xl) + var(--space-sm));
-    // Breakpoint geometry eases instead of snapping — the negative
-    // seam-straddle margin and the font rung both flip at 768
-    // landscape, and a hard snap there reads as the title "breaking".
+    // Breakpoint geometry eases instead of snapping — the top margin
+    // and the font rung both flip at 768 landscape, and a hard snap
+    // there reads as the title "breaking".
     transition:
       margin-top 0.3s ease,
       font-size 0.3s ease;
 
-    // 768–1023 landscape — the cover is the card's left column, so there
-    // is no bottom seam to straddle; the title sits flush in the right
-    // copy column instead, one rung smaller to fit the short viewport.
+    // 768–1023 landscape — the cover is the card's left column, so the
+    // title sits flush in the right copy column instead, one rung
+    // smaller to fit the short viewport.
     @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
       margin-top: 0;
       font-size: var(--space-xl);
@@ -448,8 +435,11 @@
   // element only renders there (fan tiers hide -card-info entirely).
   &-card-info-desc {
     font-family: var(--font-desc);
-    // One weight rung + a 25% lift toward --text-primary — the 300/muted
-    // cut read faint against the card's dark-gray fill on small screens.
+    // One weight rung + a 25% lift toward the surface's primary ink —
+    // the 300/muted cut read faint against the card's dark fill on
+    // small screens. The lift target is white-raw, not --text-primary:
+    // the card is always-dark, so the light theme's dark primary ink
+    // would dim the mix instead of lifting it.
     font-weight: calc(400 + var(--fw-lift));
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -473,11 +463,12 @@
     @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
       font-size: var(--space-lg);
     }
-    color: color-mix(in srgb, var(--text-muted-on-dark) 75%, var(--text-primary));
+    color: color-mix(in srgb, var(--text-muted-on-dark) 75%, var(--color-white-raw));
     margin: 0;
   }
 
   // The card's own "Check out →" affordance — pinned to the body bottom.
+  // White ink on the always-dark card fill (mosaic-card contract).
   &-card-info-cta {
     @extend %LK_LINK;
 
@@ -487,7 +478,7 @@
     font-size: calc(var(--space-lg) + var(--space-2xs));
     letter-spacing: var(--space-2xs);
     text-transform: uppercase;
-    color: var(--text-primary);
+    color: var(--color-white-raw);
   }
 
   &-card-img {

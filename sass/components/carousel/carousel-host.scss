@@ -113,7 +113,13 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
   position: relative;
   border-radius: to-rem($space-md);
   color: var(--text-muted);
-  display: inline-block;
+  // Column-flex centers a slide whose box is shorter than the published
+  // strip: the item stretches to the track height (min-height: 100%) and
+  // the figure centers inside it — short sources keep their honest
+  // aspect box instead of pinning top with dead space below.
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   width: min-content;
   padding: to-rem($space-xs) to-rem($space-lg);
   min-height: 100%;
@@ -218,28 +224,20 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
     }
   }
 
-  // landscape variant: --mf-w carries the vw cap (consumed as the
-  // placeholder's max-width) so wide media uses most of the viewport;
-  // --mf-max-w mirrors it for any max-width consumer.
+  // landscape variant: --mf-w carries the column cap (consumed as the
+  // placeholder's max-width) — it tracks %MAXAREA's gutter math
+  // (100vw − 2·$gap) and is floored by the step's fixed max-area, so
+  // wide media can fill the content column but never exceed it; the
+  // bare 100vw − space-Nxl rungs let landscape slides overrun the
+  // column under 1920 and kept growing past it at ultrawide.
+  // --mf-max-w carries the step's fixed max-area for max-width
+  // consumers that need a resolved ceiling.
   &.landscape media-figure {
-    @include layout-1024() {
-      --mf-w: calc(100vw - var(--space-3xl));
-      --mf-max-w: calc(100vw - var(--space-3xl));
-    }
-
-    @include layout-1280() {
-      --mf-w: calc(100vw - var(--space-4xl));
-      --mf-max-w: calc(100vw - var(--space-4xl));
-    }
-
-    @include layout-1440() {
-      --mf-w: calc(100vw - var(--space-7xl));
-      --mf-max-w: calc(100vw - var(--space-7xl));
-    }
-
-    @include layout-1920() {
-      --mf-w: calc(100vw - var(--space-6xl));
-      --mf-max-w: calc(100vw - var(--space-6xl));
+    @include grid-steps() using ($step, $gap, $cols) {
+      @if $step >= 1024 {
+        --mf-w: min(calc(100vw - #{to-rem($gap * 2)}), #{to-rem($step - $gap * 2)});
+        --mf-max-w: #{to-rem($step - $gap * 2)};
+      }
     }
 
     // 1024 sits inside the peek band too — the relaxed landscape cap

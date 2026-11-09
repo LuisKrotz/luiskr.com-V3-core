@@ -137,6 +137,11 @@ $_MF-CHROME: to-rem($space-md * ($space-sm + $space-3xs));
 // shared --mf-h strip height × the file's own ratio, so the media layers
 // fill it with zero crop and zero distortion (cover on a ratio-matched
 // box is a no-op) — a carousel never mixes heights and never distorts.
+// The published --mf-h is anchored on the SMALLEST item's honest fit
+// (sizing.ts), so siblings shrink to it — never upscale — except the
+// single floor correction that lifts the strip just enough for the
+// narrowest slide to reach the 280px min-width. Sources past
+// TALL_ITEM_H keep their own sliver/floor contract out of that driver.
 // Width IS capped here at the same ceiling inline figures get — an
 // uncapped wide source painted past the max-area on tablet/mobile.
 // The cap only lands when the ratio-driven width would overflow; cover
@@ -198,12 +203,11 @@ $_MF-CHROME: to-rem($space-md * ($space-sm + $space-3xs));
 // Mobile + tablet slides never render WIDER than half the source's own
 // pixels — the vw caps used to force media to ~100% of the strip
 // (the "forced to 100%" bug) and consumed the whole host, which is how
-// tablet strips lost their neighbour peeks. Heights stay uniform —
-// the strip contract (max-height: --mf-h) is preserved here; the
-// sizing.ts publisher instead bounds --mf-h itself at the biggest
-// item's HALF-fit (calcMediaBox on halved dims), so the shared height
-// is honest and every item keeps its own aspect width — "biggest el
-// sets the height, widths proportional", never upscaled past half.
+// tablet strips lost their neighbour peeks. The strip contract
+// (max-height: --mf-h) is preserved here; the sizing.ts publisher
+// bounds --mf-h at the SMALLEST item's HALF-fit (calcMediaBox on halved
+// dims), so the shared height is honest and every item keeps its own
+// aspect width — "smallest el sets the height, widths proportional".
 // The 280px floor halves alongside so it can never exceed the cap
 // (min-width would otherwise win and force the box past half-natural).
 // Declared last: equal specificity, latest source order wins over every

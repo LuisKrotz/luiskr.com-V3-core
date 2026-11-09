@@ -136,4 +136,7 @@ export const CANVAS_PAINT_GLSL = Object.freeze({
 export const CANVAS_PAINT_CSS = Object.freeze({
   /** `$neon-teal`/`$cms-accent` — the site accent (TURQUOISE_TOP's hex). */
   NEON_TEAL: '#66fcf1',
+  /** About-mesh dot lattice — quiet neutral used only when the themed
+   * `--text-muted` ink cannot resolve (its pre-theme value). */
+  MESH_GREY: '#bebebe',
 })

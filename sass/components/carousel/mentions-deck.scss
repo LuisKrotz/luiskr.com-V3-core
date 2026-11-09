@@ -147,9 +147,9 @@ $_B_MENTIONS_DECK: 'mentions-deck';
   }
 
   // Stretched-link pattern — the anchor fills the card. The grid pins
-  // the ordinal top-left, the corner icon top-right, the mention copy
-  // bottom-left and the badge image on the right column, mirroring the
-  // reference card anatomy.
+  // the corner icon top-right, the mention copy bottom-left and the
+  // badge image on the right column, mirroring the reference card
+  // anatomy.
   &-card-link {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -170,21 +170,6 @@ $_B_MENTIONS_DECK: 'mentions-deck';
     }
   }
 
-  // Zero-padded ordinal in the top-left corner ('01') — quiet caption,
-  // card-width-scaled (cqw) like the copy below.
-  &-card-num {
-    @extend .ttl-xxs;
-
-    font-family: var(--font-ui);
-    grid-column: 1;
-    grid-row: 1;
-    font-weight: calc(400 + var(--fw-lift));
-    letter-spacing: to-rem($space-3xs);
-    opacity: 0.65;
-    font-size: var(--space-lg); // fallback: Safari < 16 / iOS < 16
-    font-size: clamp(var(--space-md), 4cqw, var(--space-lg));
-  }
-
   // Small corner mark — the row's glyph when the CMS ships one ('🏆').
   &-card-icon {
     grid-column: 2;
@@ -195,12 +180,14 @@ $_B_MENTIONS_DECK: 'mentions-deck';
     opacity: 0.7;
   }
 
-  // Mention copy — the CMS description markup stacked under the ordinal
-  // in the lead column (spanning both columns when no image is present).
+  // Mention copy — the CMS description markup vertically centered in
+  // the lead column (spanning both columns when no image is present),
+  // matching the badge image's centering so title and media share one
+  // axis across the deck.
   &-card-text {
     grid-column: 1 / -1;
     grid-row: 2;
-    align-self: start;
+    align-self: center;
     font-family: var(--font-desc);
     padding-top: to-rem($space-sm);
     text-transform: uppercase;
@@ -282,12 +269,15 @@ $_B_MENTIONS_DECK: 'mentions-deck';
 
   // Minimalist pagination dots — subtle muted discs that morph into a
   // compact white pill when active, while preserving ≥24px tap targets.
+  // Wraps onto multiple centered rows when the item count outgrows the
+  // viewport width instead of overflowing the foot strip.
   &-dots {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: to-rem($space-2xs);
-    flex-shrink: 0;
+    max-width: 100%;
   }
 
   &-dot {

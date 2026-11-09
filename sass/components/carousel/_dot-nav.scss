@@ -53,10 +53,11 @@
     // overshoot makes the switch read organic rather than a dead ease.
     transition: min-width 0.5s $ease-spring;
 
-    // Visible dot — surface-glass disc with a turquoise rim + halo, the
+    // Visible dot — surface-glass disc with an accent rim + halo, the
     // same light-physics language as the prev/next canvas buttons
     // (--bg-primary glass flips white→black dots per theme, dark index
-    // ink on the light disc via --text-primary, --color-accent arc). The
+    // ink on the light disc via --text-primary, --color-accent-contrast
+    // arc — the neon --color-accent would vanish on light fields). The
     // rim is an inset shadow, not a border, so the 16px geometry stays
     // exact through the pill morph; the number renders on top.
     &::after {
@@ -67,8 +68,9 @@
       border-radius: var(--radius-round);
       background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
       box-shadow:
-        inset 0 0 0 to-rem($space-3xs) color-mix(in srgb, var(--color-accent) 28%, transparent),
-        0 0 to-rem($space-xs) color-mix(in srgb, var(--color-accent) 16%, transparent);
+        inset 0 0 0 to-rem($space-3xs)
+          color-mix(in srgb, var(--color-accent-contrast) 28%, transparent),
+        0 0 to-rem($space-xs) color-mix(in srgb, var(--color-accent-contrast) 16%, transparent);
       transition:
         width 0.5s $ease-spring,
         background 0.25s ease,
@@ -84,13 +86,14 @@
         // The lit state mirrors the buttons' glowing progress arc —
         // full-strength accent rim plus a wider halo.
         box-shadow:
-          inset 0 0 0 to-rem($space-3xs) var(--color-accent),
-          0 0 to-rem($space-sm) color-mix(in srgb, var(--color-accent) 55%, transparent);
+          inset 0 0 0 to-rem($space-3xs) var(--color-accent-contrast),
+          0 0 to-rem($space-sm) color-mix(in srgb, var(--color-accent-contrast) 55%, transparent);
       }
 
-      // Active index takes the accent ink — the pill reads "lit".
+      // Active index takes the surface-safe accent ink — the pill reads
+      // "lit" without painting the neon signature cyan on light fields.
       .#{$B}-dot-num {
-        color: var(--color-accent);
+        color: var(--color-accent-contrast);
       }
     }
 
@@ -101,8 +104,9 @@
         // accent-fade the canvas buttons run on hover.
         background: color-mix(in srgb, var(--bg-primary) 82%, var(--text-primary) 8%);
         box-shadow:
-          inset 0 0 0 to-rem($space-3xs) color-mix(in srgb, var(--color-accent) 60%, transparent),
-          0 0 to-rem($space-sm) color-mix(in srgb, var(--color-accent) 35%, transparent);
+          inset 0 0 0 to-rem($space-3xs)
+            color-mix(in srgb, var(--color-accent-contrast) 60%, transparent),
+          0 0 to-rem($space-sm) color-mix(in srgb, var(--color-accent-contrast) 35%, transparent);
       }
     }
 

@@ -468,11 +468,9 @@
     &-figure {
       position: relative;
       display: block;
-      // Preserve the stamped media box — the item caps at the dialog
-      // width, so the figure's fit-content wrap tracks the capped box;
-      // vertical oversize keeps overflowing into the dialog's scroll
-      // (every pixel reachable) instead of cropping through this
-      // figure's overflow:hidden.
+      // Preserve intrinsic media width: narrow screenshots stay
+      // pixel-sharp instead of being stretched to the modal's full
+      // content width — but nothing renders wider than the column.
       width: fit-content;
       max-width: 100%;
       margin: 0 auto;
@@ -482,12 +480,20 @@
       background-color: var(--bg-dark);
 
       &--video {
-        // Same no-reduction contract as images: no 100ch/100dvh caps —
-        // the figure wraps the stamped natural box and oversized players
-        // overflow into the dialog's scroll instead of shrinking.
+        // Video figure is contained: never wider than the readable
+        // column minus its gutters, never taller than the viewport
+        // minus the modal chrome (content padding + close-bottom
+        // block) — a taller-than-viewport video downscales
+        // proportionally so the close button stays below without
+        // scrolling.
+        max-width: min(100%, calc(100ch - #{to-rem($space-4xl)}));
+        max-height: calc(100vh - #{to-rem($space-6xl)});
+        max-height: calc(100dvh - #{to-rem($space-6xl)});
         display: flex;
         align-items: center;
         justify-content: center;
+        flex: 1;
+        width: 100%;
         margin: 0 auto;
         box-shadow: none;
         background-color: transparent;
@@ -533,48 +539,38 @@
       display: block;
       position: relative;
       z-index: 1;
-      max-width: 100%;
       width: auto;
       height: auto;
-      // The mount path stamps the declared natural width + aspect-ratio —
-      // max-width caps the box at the dialog width so an oversized file
-      // never outspans the modal sideways; aspect-ratio (not a stamped
-      // px height) keeps the box proportional when the cap binds, and
-      // vertical oversize still overflows into the dialog's own scroll.
+      max-width: 100%;
+      // No max-height on images — the mount path stamps the declared
+      // natural width + aspect-ratio, so a "huge length" capture keeps
+      // its full fitted width and overflows vertically into the
+      // dialog's own scroll instead of being squashed to the viewport.
       // scale-down stays as the intrinsic-dims safety: `none` when the
-      // stamped box is larger than the file, `contain` when declared
-      // metadata overstates it — declared metadata larger than the real
-      // bitmap can never force an upscale. Centered so a mismatch
-      // letterboxes symmetrically instead of top-anchoring.
+      // stamped box matches the file, `contain` when declared metadata
+      // overstates it — declared metadata larger than the real bitmap
+      // can never force an upscale. Centered so a mismatch letterboxes
+      // symmetrically instead of top-anchoring.
       object-fit: scale-down;
       object-position: center;
 
       @include layout-1024() {
         border-radius: to-rem($space-lg);
-        // Proportional viewport cap — the mount stamps aspect-ratio on
-        // the box, so binding height pulls width down through the ratio:
-        // a media item taller than the modal's usable area (dialog
-        // padding ×2 + the close bar) fits the visible area instead of
-        // overflowing into scroll at 1024.
-        max-height: calc(100dvh - #{to-rem($space-5xl * 2)} - #{to-rem($space-4xl)});
       }
 
       &--video {
-        // Same width cap as images — the stamped natural box stands
-        // under it; a too-wide player fits the dialog instead of
-        // bleeding off the edge.
+        // Videos are the one capped media: a taller-than-viewport file
+        // downscales proportionally (aspect-ratio on the stamped box
+        // keeps the player letterboxed to its own ratio) so the modal
+        // chrome stays reachable. Images never take this cap — a long
+        // capture pans the dialog scroll at natural height.
         max-width: 100%;
+        max-height: calc(100vh - #{to-rem($space-6xl)});
+        max-height: calc(100dvh - #{to-rem($space-6xl)});
         width: auto;
         height: auto;
         border-radius: to-rem($space-md);
         box-shadow: var(--shadow-card);
-
-        @include layout-1024() {
-          // Same proportional cap, priced against the video content's
-          // own chrome (padding-top 4xl + padding-bottom xl + the
-          // close-bottom bar's margin/height ≈ 3xl).
-          max-height: calc(100dvh - #{to-rem($space-4xl)} - #{to-rem($space-3xl)});
-        }
       }
     }
 

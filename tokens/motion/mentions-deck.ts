@@ -74,9 +74,7 @@ export const MENTIONS_DECK_LAYOUT = Object.freeze({
   FLICK_VEL: 0.35,
   /** px tolerance for "offset ≈ front" — class/ARIA front detection. */
   FRONT_EPS: 0.5,
-  /** Zero-pad width for the card ordinals ('01', '08'). */
-  PAD: 2,
-  /** Autoplay dwell per front card (ms) — 10s matches the retired footer
-   *  carousel's ambient pace; gated on ≥50% visibility + reduced-motion. */
-  AUTOPLAY_MS: 10000,
+  /** Autoplay dwell per front card (ms) — 2s keeps the strip in motion;
+   *  gated on ≥50% visibility + reduced-motion, frozen by hover/drag. */
+  AUTOPLAY_MS: 2000,
 })

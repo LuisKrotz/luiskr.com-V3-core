@@ -5,8 +5,8 @@
 //    menu         nav item stagger (open modifier)
 //    loader       counter-rotating rings + percent + progress fill sweep
 //    toast        slide/fade in-out pill (mirrors site-toast choreography)
-//    card         mini burn surface (overlay/title/details + burn canvas)
-//    tiles        ring-sheen row + related-tile stagger + spring lift
+//    card         title-burn surface (overlay/title/details + burn canvas)
+//    tiles        ring-sheen row + related-tile stagger
 //    divider      <hr> sheen band + traveling highlight sweep
 //    button       corner-brackets action button (::before/::after Ls)
 //    strip        carousel viewport + translating track + progress rail
@@ -58,7 +58,7 @@ $_BAR-H: $space-md * ($space-md + $space-3xs); // 72
 $_RAIL-W: $space-5xl - $space-2xs * 2; // 140
 $_BURN-MIN-H: $space-md * ($space-lg + $space-2xs); // 120
 $_TILE-BOX: $space-4xl - $space-3xs; // 88
-$_TILE-H: $space-md * ($space-lg + $space-2xs); // 120
+$_FIG-W: $space-md * ($space-2xl + $space-3xs); // 280
 $_FAN-H: $space-sm * ($space-2xl + $space-2xs * 2); // 190
 $_FAN-PERSP: $space-8xl + $space-3xl * 2; // 720
 $_FAN-W: $space-md * ($space-md + $space-3xs); // 72
@@ -79,6 +79,34 @@ $_STRIP-W: $space-md * ($space-lg - $space-3xs); // 96
 $_STRIP-H: $space-md * $space-md; // 64
 $_MODAL-W: $space-6xl + $space-sm + $space-2xs; // 240
 $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
+
+// Mini-card face chrome shared by the staged card replicas — a media
+// block up top and a title bar at the bottom so the surface reads as a
+// content card instead of a blank rectangle. Pseudo-elements keep the
+// stage DOM minimal (one element per card).
+@mixin _demo-card-face {
+  &::before {
+    content: '';
+    position: absolute;
+    top: to-rem($space-2xs);
+    left: to-rem($space-2xs);
+    right: to-rem($space-2xs);
+    bottom: to-rem($space-sm + $space-2xs * 2);
+    border-radius: var(--radius-2xs);
+    background: linear-gradient(160deg, var(--grey-2) 0%, var(--grey) 100%);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: to-rem($space-2xs);
+    right: 30%;
+    bottom: to-rem($space-2xs);
+    height: to-rem($space-2xs);
+    border-radius: var(--radius-full);
+    background: var(--text-muted);
+  }
+}
 
 // ── Stage chrome ────────────────────────────────────────────────────────────
 :host {
@@ -383,7 +411,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     visibility: hidden;
   }
 
-  // ── Tile demos (ring sheen / related stagger / spring) ───────────────────
+  // ── Tile demos (ring sheen / related stagger) ────────────────────────────
   &-tiles {
     position: relative;
     display: flex;
@@ -408,12 +436,6 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
       transform: translateY(-#{to-rem($space-sm)}) scale(1.04);
       box-shadow: var(--shadow-card-hover);
     }
-
-    // The spring variant reads the same modifier — the overshoot ease
-    // above is the mosaic tile's lift contract.
-    &--spring {
-      height: to-rem($_TILE-H);
-    }
   }
 
   &-tile-inner {
@@ -421,6 +443,18 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     inset: to-rem($space-2xs);
     border-radius: var(--radius-sm);
     background: linear-gradient(160deg, var(--grey-2) 0%, var(--grey) 100%);
+
+    // The title bar — the tile reads as a project card, not a blank slab.
+    &::after {
+      content: '';
+      position: absolute;
+      left: to-rem($space-sm);
+      right: 30%;
+      bottom: to-rem($space-sm);
+      height: to-rem($space-2xs);
+      border-radius: var(--radius-full);
+      background: var(--text-muted);
+    }
   }
 
   // ── Divider sheen demo ───────────────────────────────────────────────────
@@ -529,11 +563,15 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   }
 
   &-slide {
+    position: relative;
     flex: 0 0 auto;
     width: to-rem($_STRIP-W);
     height: to-rem($_STRIP-H);
     border-radius: var(--radius-sm);
     background: linear-gradient(150deg, var(--menu-ink-2) 0%, var(--menu-ink) 100%);
+    overflow: hidden;
+
+    @include _demo-card-face;
   }
 
   &-progress {
@@ -694,42 +732,25 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   }
 
   // ── Media progressive demo ───────────────────────────────────────────────
+  // Fixed width keeps the figure's aspect inside the uniform stage
+  // lane — a fluid width ballooned the record taller than its siblings.
   &-figure {
-    width: 72%;
+    width: to-rem($_FIG-W);
+    max-width: 82%;
     border-radius: var(--radius-md);
     overflow: hidden;
     display: block;
   }
 
-  // ── Note dot demo ────────────────────────────────────────────────────────
-  // The disclaimer-note line — the pulsing <i> markers that ride inline
-  // with the footer note copy on the real surfaces.
-  &-notes {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: to-rem($space-sm);
-    margin: 0;
-  }
-
-  // One note-dot — a small accent disc on an infinite opacity/scale
-  // pulse; siblings are offset by nth-child delays so the row reads as
-  // a wave rather than a single blink.
-  &-dot {
-    display: inline-block;
-    width: to-rem($space-sm);
-    height: to-rem($space-sm);
-    border-radius: var(--radius-full);
-    background: var(--color-accent);
-    animation: #{$_B}-pulse 1.8s ease-in-out infinite;
-
-    &:nth-child(2) {
-      animation-delay: 0.3s;
-    }
-
-    &:nth-child(3) {
-      animation-delay: 0.6s;
-    }
+  // ── Real-element demos ────────────────────────────────────────────
+  // A mounted production element fills the stage box — its own sheet
+  // owns the internals; the class only frames the host. Overflow stays
+  // clipped so perspective/carousel overhangs don't bleed the lane.
+  &-element {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
 
   // ── Card-stack fan — five mini cards dealing through the front slot.
@@ -753,9 +774,12 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     border: var(--border-item-hover);
     background: var(--bg-darker);
     box-shadow: var(--shadow-card);
+    overflow: hidden;
     transition:
       transform 0.55s cubic-bezier(0.22, 0.9, 0.3, 1),
       opacity 0.55s ease;
+
+    @include _demo-card-face;
 
     // The slot ladder — front card centered + hero-scaled, side cards
     // fanned with INWARD rotateY (right side negative, left positive),
@@ -849,7 +873,37 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     border: var(--border-item-hover);
     background: var(--bg-darker);
     opacity: 1;
+    overflow: hidden;
     transition: opacity 0.35s ease;
+
+    // Fake page chrome — a title pill plus a text-lines block so the
+    // cross-fade reads as page content, not bare rectangles.
+    &::before {
+      content: '';
+      position: absolute;
+      top: to-rem($space-sm);
+      left: to-rem($space-sm);
+      width: 34%;
+      height: to-rem($space-xs);
+      border-radius: var(--radius-full);
+      background: var(--text-muted);
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: to-rem($space-xl);
+      left: to-rem($space-sm);
+      right: to-rem($space-sm);
+      bottom: to-rem($space-sm);
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--border-color) 0,
+        var(--border-color) to-rem($space-2xs),
+        transparent to-rem($space-2xs),
+        transparent to-rem($space-sm)
+      );
+    }
 
     &:nth-child(2) {
       background: color-mix(in srgb, var(--color-accent) 14%, var(--bg-darker));
@@ -875,11 +929,22 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   }
 
   &-search-icon {
+    flex: 0 0 auto;
     width: to-rem($space-lg);
     height: to-rem($space-lg);
     border-radius: var(--radius-full);
     border: to-rem($space-2xs) solid var(--text-muted);
     border-top-color: var(--color-accent);
+  }
+
+  // The typed-query bar between the glyph and the found dots — reads
+  // like an entered route filter instead of an empty field.
+  &-search-text {
+    flex: 1;
+    height: to-rem($space-2xs);
+    margin: 0 to-rem($space-md);
+    border-radius: var(--radius-full);
+    background: var(--border-color);
   }
 
   &-search--loading &-search-icon {
@@ -941,9 +1006,12 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     border: var(--border-item-hover);
     background: var(--bg-darker);
     box-shadow: var(--shadow-card);
+    overflow: hidden;
     transition:
       transform 0.45s cubic-bezier(0.2, 0.8, 0.25, 1),
       opacity 0.45s ease;
+
+    @include _demo-card-face;
 
     &[data-index='0'] {
       transform: translate(-50%, -50%);
@@ -1009,25 +1077,38 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     animation: #{$_B}-sheen 1.6s ease-in-out infinite;
   }
 
-  // ── Footer feed-wave — a row of link pills; nth-child delays ripple
-  //    the opacity wave down the row (mirrors awards-footer-feed-wave).
+  // ── Footer feed-wave — the real feed link: localized label + the
+  //    real feedGlyph (circle + two stroke arcs) the driver prepends.
+  //    The arcs run the production pulse continuously (in prod the
+  //    same keyframes play on hover); the second arc keeps the real
+  //    0.2s stagger.
   &-feed {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: to-rem($space-md);
-  }
+    gap: to-rem($space-xs);
+    color: var(--text-primary);
+    text-decoration: none;
 
-  &-feed-item {
-    width: to-rem($space-2xl);
-    height: to-rem($space-sm);
-    border-radius: var(--radius-full);
-    background: var(--text-muted);
-    animation: #{$_B}-feed-wave 2.4s ease-in-out infinite;
+    .awards-footer-links-feed-icon {
+      flex: none;
+      width: to-rem($space-md);
+      height: to-rem($space-md);
+      fill: currentColor;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+    }
 
-    @for $i from 2 through 6 {
-      &:nth-child(#{$i}) {
-        animation-delay: #{($i - 1) * 0.18}s;
-      }
+    .awards-footer-links-feed-wave {
+      fill: none;
+    }
+
+    path {
+      animation: #{$_B}-feed-wave 1.4s ease-in-out infinite;
+    }
+
+    path:last-child {
+      animation-delay: 0.2s;
     }
   }
 }
@@ -1119,19 +1200,6 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
   }
   to {
     transform: scaleX(1);
-  }
-}
-
-// Note dot — the soft scale+fade pulse the disclaimer markers loop.
-@keyframes #{$_B}-pulse {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(0.7);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
   }
 }
 

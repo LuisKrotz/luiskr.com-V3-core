@@ -24,8 +24,6 @@ export const MENTIONS_DECK_CLASSES = Object.freeze({
   /** Front-card modifier — the light surface + enabled link state. */
   MENTIONS_DECK_CARD_ACTIVE: `${_B_MENTIONS_DECK}-card--active`,
   MENTIONS_DECK_CARD_LINK: `${_B_MENTIONS_DECK}-card-link`,
-  /** Zero-padded ordinal in the card's top corner ('01'). */
-  MENTIONS_DECK_CARD_NUM: `${_B_MENTIONS_DECK}-card-num`,
   MENTIONS_DECK_CARD_MEDIA: `${_B_MENTIONS_DECK}-card-media`,
   MENTIONS_DECK_CARD_IMG: `${_B_MENTIONS_DECK}-card-img`,
   MENTIONS_DECK_CARD_ICON: `${_B_MENTIONS_DECK}-card-icon`,

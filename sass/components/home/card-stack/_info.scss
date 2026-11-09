@@ -86,14 +86,15 @@
   // wraps and the section grows if it must). The 75% bound keeps a
   // quarter-column gutter between the text's right edge and the deck's
   // side cards at every landscape width — full-width copy reads flush
-  // against the fan at 1920+.
+  // against the fan at 1920+. The column sits on the page field, so the
+  // muted surface ink applies — the in-card copy is the on-dark one.
   &-info-desc {
     font-family: var(--font-desc);
     font-weight: calc(300 + var(--fw-lift));
     font-size: calc(var(--space-lg) + var(--space-xs));
     line-height: 1.55;
     max-width: 75%;
-    color: var(--text-muted-on-dark);
+    color: var(--text-muted);
     margin: 0;
 
     @media (min-width: 1920px) and (orientation: landscape) {

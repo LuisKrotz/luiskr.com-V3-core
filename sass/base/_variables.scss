@@ -52,22 +52,54 @@ $cms-accent-hover: #45a29e;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
 $cms-accent-contrast: #0f8a84;
 
-// Light-theme re-cut of the neon palette — same hue families deepened so
-// every glyph ink clears the 3:1 non-text floor (WCAG SC 1.4.11) on the
-// light chip disc (--border-color). Published at :root by _tokens.scss;
-// html.dark-mode re-pins the bright set above.
-/// Light theme — deep teal glyph ink; shares the light control accent (3.25:1 on the disc).
-$neon-teal-light: $cms-accent-contrast;
-/// Light theme — deep green glyph ink (3.87:1 on the disc).
-$neon-green-light: #15803d;
-/// Light theme — deep violet glyph ink (5.05:1 on the disc).
-$neon-violet-light: #7a28e0;
-/// Light theme — deep magenta glyph ink (3.97:1 on the disc).
-$neon-magenta-light: #d0008f;
-/// Light theme — burnt-orange glyph ink (3.33:1 on the disc).
-$neon-orange-light: #cc5500;
-/// Light theme — steel-slate ferrule ink (3.67:1 on the disc).
-$neon-chrome-light: #64748b;
+// Light-theme re-cut of the neon palette — same hue families deepened to
+// jewel tones so every glyph ink clears the 3:1 non-text floor (WCAG SC
+// 1.4.11) on the aurora chip disc (--border-color #949fc0). Published at
+// :root by _tokens.scss; html.dark-mode re-pins the bright set above.
+/// Light theme — abyssal teal glyph ink (3.84:1 on the disc).
+$neon-teal-light: #084a46;
+/// Light theme — boreal forest-green glyph ink (3.63:1 on the disc).
+$neon-green-light: #0d5028;
+/// Light theme — deep aurora-violet glyph ink (3.99:1 on the disc).
+$neon-violet-light: #5017a4;
+/// Light theme — deep magenta glyph ink (3.82:1 on the disc).
+$neon-magenta-light: #7f0065;
+/// Light theme — burnt-sienna glyph ink (3.81:1 on the disc).
+$neon-orange-light: #712e00;
+/// Light theme — slate-indigo ferrule ink (3.74:1 on the disc).
+$neon-chrome-light: #404064;
+
+// Aurora-boreal light theme — the signature hue ramp behind the re-cut
+// light surfaces. The full curtain spectrum kept as soft pastel-jewel
+// tones over the pale sky field: emerald greens lead (the classic 557nm
+// aurora line), an azure sky note supports, violet and magenta fringe
+// the edges,
+// indigo is the deep sky behind. Published at :root by _tokens.scss as
+// --aurora-*; the three page-glow wash layers compose them at partial
+// alpha, --burn-edge shares the deep violet, and shadows/fills tint them
+// via color-mix.
+/// Aurora hue — emerald curtain, the dominant band (upper-left glow lobe).
+$aurora-green: #4ad98a;
+/// Aurora hue — deep emerald note, the blue-green curtain edge (low washes).
+$aurora-teal: #2ab98a;
+/// Aurora hue — azure sky note, the blue band under a strong curtain
+/// (upper-right glow lobe, plasma accents).
+$aurora-cyan: #6b9fd8;
+/// Aurora hue — violet curtain wash (lower-right lobe, burn-edge family).
+$aurora-violet: #8a72e0;
+/// Aurora hue — deep violet for the dim washes and the burn edge.
+$aurora-violet-deep: #6b4fd4;
+/// Aurora hue — magenta-pink fringe (the rare lower border of a strong band).
+$aurora-magenta: #b058d4;
+/// Aurora hue — deep indigo, the night sky behind the curtains.
+$aurora-indigo: #5a60c0;
+/// Aurora ink — near-black indigo; the light theme's darkest text pole
+/// and the tint source for shadows/fills via color-mix.
+$aurora-ink: #12122c;
+/// Aurora accent — deep teal-green control ink (focus ring, link accents);
+/// 8.71:1 on --bg-primary, 7.43:1 on --bg-secondary — readable for text
+/// and ≥3:1 UI marks alike. html.dark-mode re-pins $cms-accent instead.
+$aurora-accent: #04443e;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
 $cms-badge-warn: #f39c12;
 /// CMS admin-chrome token — compile-time only (dark panel theme)

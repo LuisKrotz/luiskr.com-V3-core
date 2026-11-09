@@ -44,17 +44,13 @@
         padding-bottom: var(--space-3xl);
       }
 
-      // %MAXAREA's `padding: 0 <gap> 0` shorthand rungs lose source-order
-      // to &-title's own padding shorthand above (its ≥1024 rung sets
-      // lateral padding to 0, which is what let the ticker bleed past
-      // the max-area). Re-declare the same gutters as padding-inline —
-      // a longhand the shorthand can't override — emitted inside this
-      // block so they win at every step.
-      padding-inline: to-rem($gap-272);
-
-      @include grid-steps() using ($step, $gap, $cols) {
-        padding-inline: to-rem($gap);
-      }
+      // %MAXAREA's shorthand loses to &-title's own padding shorthand
+      // above (its ≥1024 rung zeroes lateral padding — what let the
+      // ticker bleed past the max-area). padding-inline is the longhand
+      // a shorthand can't re-touch, and it reads --grid-gutter straight
+      // off the placeholder's stepped rungs — one declaration serves
+      // every breakpoint regardless of which sheet each rung lands in.
+      padding-inline: var(--grid-gutter);
 
       overflow: hidden;
       overflow-clip-margin: content-box;
@@ -252,7 +248,7 @@
 
     margin: 0 auto;
     padding-top: var(--space-2xl);
-    padding-bottom: var(--space-xl);
+    padding-bottom: var(--space-2xl);
     // Text blocks size to their copy — never to the carousel strip
     // height: --carousel-item-height on the shared <section> used to
     // pin paragraphs into a ~70dvh box of dead air.
@@ -268,7 +264,7 @@
     @include layout-768() {
       // 1 col indent per side on 8-col grid (1/8 = 12.5%)
       padding-top: var(--space-4xl);
-      padding-bottom: var(--space-2xl);
+      padding-bottom: var(--space-3xl);
       padding-left: 12.5%;
       padding-right: 12.5%;
     }
@@ -276,19 +272,19 @@
     @include layout-1024() {
       // 3 cols indent per side on 12-col grid (3/12 = 25%) → content in cols 4–9
       padding-top: var(--space-4xl);
-      padding-bottom: var(--space-2xl);
+      padding-bottom: var(--space-3xl);
       padding-left: 25%;
       padding-right: 25%;
     }
 
     @include layout-1920() {
       padding-top: var(--space-5xl);
-      padding-bottom: var(--space-3xl);
+      padding-bottom: var(--space-4xl);
     }
 
     @include layout-2560() {
       padding-top: var(--space-6xl);
-      padding-bottom: var(--space-4xl);
+      padding-bottom: var(--space-5xl);
     }
 
     // 4K keeps the 1920-era top air — the 2560 rung's 233px reads as a
@@ -568,28 +564,20 @@
         }
       }
 
-      // landscape variant: the vw cap travels in --mf-w (consumed as the
-      // placeholder's max-width) so wide media can use most of the viewport;
-      // --mf-max-w mirrors it for the light-DOM figure skeleton contract.
+      // landscape variant: the column cap travels in --mf-w (consumed as
+      // the placeholder's max-width) — it tracks %MAXAREA's gutter math
+      // (100vw − 2·$gap) and is floored by the step's fixed max-area, so
+      // wide media can fill the content column but never exceed it; the
+      // bare 100vw − space-Nxl rungs let landscape slides overrun the
+      // column under 1920 and kept growing past it at ultrawide.
+      // --mf-max-w carries the step's fixed max-area for the light-DOM
+      // figure skeleton contract.
       &.landscape media-figure {
-        @include layout-1024() {
-          --mf-w: calc(100vw - var(--space-3xl));
-          --mf-max-w: calc(100vw - var(--space-3xl));
-        }
-
-        @include layout-1280() {
-          --mf-w: calc(100vw - var(--space-4xl));
-          --mf-max-w: calc(100vw - var(--space-4xl));
-        }
-
-        @include layout-1440() {
-          --mf-w: calc(100vw - var(--space-7xl));
-          --mf-max-w: calc(100vw - var(--space-7xl));
-        }
-
-        @include layout-1920() {
-          --mf-w: calc(100vw - var(--space-6xl));
-          --mf-max-w: calc(100vw - var(--space-6xl));
+        @include grid-steps() using ($step, $gap, $cols) {
+          @if $step >= 1024 {
+            --mf-w: min(calc(100vw - #{to-rem($gap * 2)}), #{to-rem($step - $gap * 2)});
+            --mf-max-w: #{to-rem($step - $gap * 2)};
+          }
         }
       }
 
@@ -900,7 +888,12 @@
           bottom: 0;
           left: 0;
           width: 25%;
-          background: linear-gradient(90deg, transparent, var(--color-accent) 50%, transparent);
+          background: linear-gradient(
+            90deg,
+            transparent,
+            var(--color-accent-contrast) 50%,
+            transparent
+          );
           transform: translateX(-110%);
           animation: internal-footer-divider-sheen 7s ease-in-out infinite;
         }
@@ -985,7 +978,7 @@
 
         &.router-link-active {
           opacity: 1;
-          border-bottom-color: var(--color-accent);
+          border-bottom-color: var(--color-accent-contrast);
           cursor: pointer;
         }
       }
@@ -1032,6 +1025,7 @@
         @extend %TTL_BASE;
 
         max-width: var(--space-9xl);
+        padding-block: var(--space-xl);
         margin-bottom: var(--space-xl);
         font-family: var(--font-serif);
         font-style: italic;

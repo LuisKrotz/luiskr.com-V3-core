@@ -16,7 +16,9 @@
   // without referencing $cms-* SCSS variables (which are _structure.scss-only).
   --color-accent: #{$cms-accent};
   --color-accent-hover: #{$cms-accent-hover};
-  --color-accent-contrast: #{$cms-accent-contrast};
+  // Light theme pins the aurora accent (deep teal-cyan, ≥3:1 on the dusky
+  // field); html.dark-mode re-pins the signature bright cyan.
+  --color-accent-contrast: #{$aurora-accent};
   // Nav icon neon palette — consumed by the search/preferences glyphs.
   // Light theme publishes the deepened re-cut (≥3:1 on the light chip
   // disc); html.dark-mode re-pins the bright set in _dark-mode.scss.
@@ -27,8 +29,8 @@
   --nav-neon-orange: #{$neon-orange-light};
   --nav-neon-chrome: #{$neon-chrome-light};
   // Keyboard focus ring ink — tracks the theme-aware control accent
-  // (deep teal in light mode, signature cyan in dark via the override
-  // below), so Tab affordance matches the project palette in both themes.
+  // (deep aurora teal in light mode, signature cyan in dark via the
+  // override below), so Tab affordance matches the palette in both themes.
   --focus-ring: var(--color-accent-contrast);
   // Extra band emitted around the outline by the HC boost in _focus.scss —
   // paints in the surface colour so the ring stays visible when the ring
@@ -36,84 +38,222 @@
   --focus-ring-halo: none;
   --bg-darkest: #{$cms-bg-darkest};
 
-  // Mosaic title burn palette — light theme: an airy paper-fire (pale
-  // core → warm mid → soft edge) with a gentler scorch so the char band
-  // doesn't read as pitch on the light card surface.
-  --burn-core: #ffe9b8;
-  --burn-mid: #ffb36b;
-  --burn-edge: #e07f3e;
-  --burn-scorch: rgba(72, 52, 34, 0.55);
-  // Paper-ash smoke — warm mid-grey that stays readable over the light
-  // card surface without reading as soot.
-  --burn-smoke: rgba(96, 88, 80, 0.5);
+  // Aurora-boreal palette — the signature hues of the light theme,
+  // published so component sheets can tint aurora details (glow washes,
+  // plasma accents, shadow/fill tints via color-mix) without re-declaring
+  // the hexes. Emerald greens lead like the real curtains; violet/magenta
+  // fringe the edges; indigo is the deep sky behind.
+  --aurora-green: #{$aurora-green};
+  --aurora-teal: #{$aurora-teal};
+  --aurora-cyan: #{$aurora-cyan};
+  --aurora-violet: #{$aurora-violet};
+  --aurora-violet-deep: #{$aurora-violet-deep};
+  --aurora-magenta: #{$aurora-magenta};
+  --aurora-indigo: #{$aurora-indigo};
+  --aurora-ink: #{$aurora-ink};
 
-  // Light theme default tokens
-  --bg-primary: #ffffff;
-  --bg-secondary: #f7f7f7;
-  --bg-dark: #262626; // Current dark areas in light mode
-  --bg-darker: #161616; // Deep black blocks in light mode
-  --text-primary: #262626; // Main text
-  --text-secondary: #515151; // Muted text
-  --text-muted: #545454; // 7:1 on white AND --bg-secondary (WCAG AAA)
+  // Mosaic title burn palette — light theme: a polar plasma-fire (ice
+  // core → aurora emerald → violet edge) with an indigo char band, so
+  // the combustion reads as the same aurora the page field carries
+  // instead of a warm paper-fire on a cool field.
+  --burn-core: #dcf3ff;
+  --burn-mid: #27996a;
+  --burn-edge: #{$aurora-violet-deep};
+  --burn-scorch: rgba(22, 18, 60, 0.6);
+  // Ion haze — cool violet-grey that stays readable over the periwinkle
+  // card surface without reading as soot.
+  --burn-smoke: rgba(86, 84, 128, 0.5);
+
+  // Light theme default tokens — a twilight aurora field: the surfaces
+  // sit just under white in a pale steel-sky band (light enough that the
+  // saturated emerald/violet curtains read as glowing bands rather than
+  // tinting the page), and the inks collapse to the near-black indigo
+  // pole so every audited pair keeps WCAG AAA.
+  --bg-primary: #dde5f1;
+  --bg-secondary: #ccd6e8;
+  // Translucent secondary surface — full-bleed secondary bands let the
+  // animated aurora backdrop bleed through at 82% surface weight while
+  // text keeps the near-solid composite. --bg-secondary itself stays
+  // solid for the contrast audit; high-contrast re-pins this to solid.
+  --bg-secondary-glass: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
+  --bg-dark: #211a3a; // Always-dark areas in light mode (mosaic cards, contact band)
+  --bg-darker: #130e28; // Deepest indigo blocks in light mode
+  --text-primary: #{$aurora-ink}; // Main text — the aurora ink pole
+  --text-secondary: #20204a; // Muted text
+  --text-muted: #232348; // 10.03:1 on --bg-secondary — the binding pair (WCAG AAA)
   // Muted ink for always-dark surfaces (contact band, modals, photo
-  // overlays, loaders): 7.6:1 on --bg-dark in both themes.
-  --text-muted-on-dark: #b8b8b8;
+  // overlays, loaders): 9.60:1 on --bg-dark in the light theme.
+  --text-muted-on-dark: #c2c4dc;
   // Hairline surface tone for controls pinned on always-dark surfaces
   // (nav burger disc over playground canvases, contact band): mirrors
   // the dark-theme --border-color so --on-dark variants match across
   // themes.
   --border-color-on-dark: color-mix(in srgb, var(--color-white-raw) 14%, transparent);
-  --border-color: #e2e2e2;
+  --border-color: #9dabce;
+  // Chip hover step — discs deepen one visible shade on hover/focus;
+  // components read var(--border-color-hover, var(--border-color)).
+  --border-color-hover: #8490b8;
   --border-item: transparent;
   --border-item-hover: rgba(255, 255, 255, 0.22);
   --border-item-featured: rgba(255, 255, 255, 0.16);
-  --btn-accent-fill: rgba(0, 0, 0, 0.05);
-  --glass-bg: rgba(255, 255, 255, 0.94);
+  --btn-accent-fill: color-mix(in srgb, var(--aurora-ink) 9%, transparent);
+  --glass-bg: rgba(221, 229, 241, 0.8);
 
-  // Fullscreen menu — light mode reads as water: pale foam surface with
-  // deep→light blue inks feeding the contour-field shader and items.
-  --menu-bg: #eaf4f9;
-  --menu-ink: #0f5270; // 7.6:1 on --menu-bg — AAA for the small menu labels too
-  --menu-ink-2: #5cb9d8;
-
-  // Animated page backdrop (light theme) — two oversized soft washes echoing
-  // the menu's water palette; body::before drifts them on a slow loop so the
-  // bright field reads as a living degradê rather than flat white. Kept far
-  // below text contrast (AAA audit measures --bg-primary, this never paints
-  // over text surfaces directly — body content stays on the flat field).
-  --bg-glow:
+  // Fullscreen menu — light mode reads as the aurora sky: a pale
+  // steel-blue twilight field with deep indigo inks feeding the
+  // contour-field shader and items (the second ink is the dimmer
+  // contour band).
+  --menu-bg: #d0d9ea;
+  --menu-ink: #161440; // 12.22:1 on --menu-bg — AAA for the small menu labels too
+  --menu-ink-2: #362d8e; // 7.48:1 — group title + second shader contour band
+  // Static aurora wash layered OVER --menu-bg on the menu surface (the
+  // shader reads --menu-bg as a flat field colour, so the wash must be a
+  // separate background layer, not a gradient in --menu-bg itself).
+  // The lobes stay corner-parked and moderate so the contour field's
+  // hairlines keep a readable field — green-family holds ≥7.3:1 under
+  // --menu-ink, azure and violet-family lobes ≥6.3:1 at their centres. Dark
+  // mode and high-contrast pin the layer to `none`.
+  --menu-glow:
     radial-gradient(
-      ellipse 55% 45% at 18% 22%,
-      color-mix(in srgb, var(--menu-bg) 70%, transparent) 0%,
-      transparent 70%
+      ellipse 68% 46% at 14% 8%,
+      color-mix(in srgb, var(--aurora-green) 36%, transparent) 0%,
+      transparent 68%
     ),
     radial-gradient(
-      ellipse 50% 40% at 82% 78%,
-      color-mix(in srgb, var(--menu-ink-2) 14%, transparent) 0%,
-      transparent 70%
+      ellipse 54% 40% at 86% 12%,
+      color-mix(in srgb, var(--aurora-cyan) 28%, transparent) 0%,
+      transparent 72%
     ),
     radial-gradient(
-      ellipse 40% 55% at 55% 45%,
-      color-mix(in srgb, var(--bg-secondary) 85%, transparent) 0%,
+      ellipse 60% 50% at 84% 90%,
+      color-mix(in srgb, var(--aurora-magenta) 24%, transparent) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 46% 54% at 16% 88%,
+      color-mix(in srgb, var(--aurora-violet) 22%, transparent) 0%,
       transparent 70%
     );
 
-  // Card shadow tokens — light theme: elevated shadows show card lift clearly
-  // with a subtle hairline shadow border
-  --shadow-card: 0 0 0 0.0625rem rgba(0, 0, 0, 0.06), 0 0.125rem 0.75rem rgba(0, 0, 0, 0.1);
-  --shadow-card-featured: 0 0 0 0.0625rem rgba(0, 0, 0, 0.1), 0 0.5rem 1.75rem rgba(0, 0, 0, 0.22);
-  --shadow-card-hover: 0 0 0 0.0625rem rgba(0, 0, 0, 0.12), 0 1.25rem 3.125rem rgba(0, 0, 0, 0.22);
+  // Animated page backdrop (light theme) — three counter-drifting layers
+  // composed like a real aurora display rather than a colour wash:
+  // body::before carries the emerald curtain — a saturated diagonal
+  // ribbon with a spring-green core (the 557nm band) plus emerald lobes
+  // and an azure sky lobe; body::after carries the violet/magenta fringe
+  // — the purple lower border that trails a strong curtain, offset one
+  // band-width below the ribbon so the two parallax apart on their
+  // counter-drifts; #app::before sweeps the rotating ray fan (green rays
+  // with a violet arc) on a third period. Alphas stay low — the bands
+  // read as soft light over the pale sky, with plenty of sky visible
+  // between them — and every painted point keeps ≥~8:1 under
+  // --text-primary.
+  --bg-glow:
+    linear-gradient(
+      118deg,
+      transparent 10%,
+      color-mix(in srgb, var(--aurora-green) 18%, transparent) 32%,
+      color-mix(in srgb, var(--aurora-green) 38%, transparent) 44%,
+      color-mix(in srgb, var(--aurora-teal) 28%, transparent) 52%,
+      color-mix(in srgb, var(--aurora-cyan) 14%, transparent) 62%,
+      transparent 78%
+    ),
+    radial-gradient(
+      ellipse 52% 40% at 16% 10%,
+      color-mix(in srgb, var(--aurora-green) 34%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 44% 36% at 86% 12%,
+      color-mix(in srgb, var(--aurora-cyan) 24%, transparent) 0%,
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 46% 40% at 8% 84%,
+      color-mix(in srgb, var(--aurora-teal) 26%, transparent) 0%,
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 40% 32% at 88% 82%,
+      color-mix(in srgb, var(--aurora-violet) 22%, transparent) 0%,
+      transparent 74%
+    );
+  --bg-glow-2:
+    linear-gradient(
+      118deg,
+      transparent 42%,
+      color-mix(in srgb, var(--aurora-violet) 16%, transparent) 56%,
+      color-mix(in srgb, var(--aurora-magenta) 24%, transparent) 66%,
+      color-mix(in srgb, var(--aurora-violet-deep) 20%, transparent) 76%,
+      transparent 90%
+    ),
+    radial-gradient(
+      ellipse 38% 28% at 68% 16%,
+      color-mix(in srgb, var(--aurora-magenta) 20%, transparent) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 32% 38% at 6% 52%,
+      color-mix(in srgb, var(--aurora-violet-deep) 18%, transparent) 0%,
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 34% 30% at 90% 56%,
+      color-mix(in srgb, var(--aurora-indigo) 18%, transparent) 0%,
+      transparent 74%
+    ),
+    radial-gradient(
+      ellipse 42% 30% at 44% 62%,
+      color-mix(in srgb, var(--aurora-green) 24%, transparent) 0%,
+      transparent 76%
+    );
+  // Third layer (the ray fan) — mostly green-family conic curtain: the
+  // rays pivot overhead like real aurora shafts, with one low-alpha
+  // violet arc for the ionized fringe. The pivot sits ABOVE the viewport
+  // (30% -35%) so only the rays descend into frame — the convergence
+  // point stays off-screen and never reads as a light source. It drifts
+  // OVER both wash layers, so alphas stay low and no second violet core
+  // is added.
+  --bg-glow-3:
+    radial-gradient(
+      ellipse 56% 40% at 72% 58%,
+      color-mix(in srgb, var(--aurora-green) 18%, transparent) 0%,
+      transparent 74%
+    ),
+    conic-gradient(
+      from 0deg at 30% -35%,
+      transparent 0deg,
+      color-mix(in srgb, var(--aurora-green) 20%, transparent) 46deg,
+      color-mix(in srgb, var(--aurora-teal) 22%, transparent) 88deg,
+      color-mix(in srgb, var(--aurora-cyan) 18%, transparent) 128deg,
+      transparent 168deg,
+      color-mix(in srgb, var(--aurora-violet) 14%, transparent) 206deg,
+      color-mix(in srgb, var(--aurora-green) 18%, transparent) 244deg,
+      color-mix(in srgb, var(--aurora-teal) 20%, transparent) 286deg,
+      transparent 334deg
+    );
+
+  // Card shadow tokens — light theme: indigo-tinted elevation shadows
+  // (color-mix off the aurora ink pole) with a subtle hairline ring.
+  --shadow-card:
+    0 0 0 0.0625rem color-mix(in srgb, var(--aurora-ink) 9%, transparent),
+    0 0.125rem 0.75rem color-mix(in srgb, var(--aurora-ink) 13%, transparent);
+  --shadow-card-featured:
+    0 0 0 0.0625rem color-mix(in srgb, var(--aurora-ink) 15%, transparent),
+    0 0.5rem 1.75rem color-mix(in srgb, var(--aurora-ink) 26%, transparent);
+  --shadow-card-hover:
+    0 0 0 0.0625rem color-mix(in srgb, var(--aurora-ink) 18%, transparent),
+    0 1.25rem 3.125rem color-mix(in srgb, var(--aurora-ink) 30%, transparent);
 
   // Light-mode font-weight lift — every numeric font-weight is authored
   // as calc(N + var(--fw-lift)) so light mode renders one step heavier
-  // (+100) for readability on the bright field; dark mode re-pins to 0.
+  // (+100) for readability on the dusky field; dark mode re-pins to 0.
   --fw-lift: 100;
 
   --white: #ffffff;
-  --black: #262626;
-  --grey: #a79e9e;
-  --grey-2: #f0f0f0;
-  --grey-3: #515151;
+  --black: #{$aurora-ink};
+  --grey: #8289a3;
+  --grey-2: #d6dbea;
+  --grey-3: #403a66;
   --blue: #{$color-blue};
 
   // Skeleton shades sit close to real surfaces; dark containers redeclare
