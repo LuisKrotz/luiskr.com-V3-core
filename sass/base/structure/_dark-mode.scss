@@ -115,13 +115,29 @@
       rgba(64, 220, 190, 0.002) 70%,
       transparent 78%
     ),
-    conic-gradient(
-      from 0deg at 30% 12%,
-      transparent 10deg,
-      rgba(95, 218, 255, 0.028) 80deg,
-      rgba(140, 120, 255, 0.022) 170deg,
-      rgba(64, 220, 190, 0.026) 250deg,
-      transparent 320deg
+    linear-gradient(
+      99deg,
+      transparent 20%,
+      rgba(95, 218, 255, 0.012) 24%,
+      rgba(95, 218, 255, 0.028) 27%,
+      rgba(95, 218, 255, 0.012) 30%,
+      transparent 33%
+    ),
+    linear-gradient(
+      96deg,
+      transparent 52%,
+      rgba(140, 120, 255, 0.01) 55%,
+      rgba(140, 120, 255, 0.022) 58%,
+      rgba(140, 120, 255, 0.01) 61%,
+      transparent 64%
+    ),
+    linear-gradient(
+      102deg,
+      transparent 78%,
+      rgba(64, 220, 190, 0.011) 81%,
+      rgba(64, 220, 190, 0.026) 84%,
+      rgba(64, 220, 190, 0.011) 87%,
+      transparent 90%
     );
   --metallic-hairline: linear-gradient(
     90deg,
