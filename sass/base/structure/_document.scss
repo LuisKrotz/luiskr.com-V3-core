@@ -66,8 +66,8 @@ body {
   // no repaints. The -25% inset oversizes each layer so the drift never
   // exposes an edge (the sweeps translate ±5-6% of a 150% layer ≈ ±9%
   // of the viewport — well inside the 25% margin). ::before carries the
-  // emerald curtain ribbon on a 30s wander; ::after carries the violet
-  // fringe band on a 38s counter-drift, so the layers visibly parallax
+  // emerald curtain ribbon on a 16s wander; ::after carries the violet
+  // fringe band on a 21s counter-drift, so the layers visibly parallax
   // like polar light. Inert values (--bg-glow*: none in HC) paint
   // nothing while the idle animation stays compositor-cheap.
   &::before,
@@ -81,12 +81,12 @@ body {
 
   &::before {
     background: var(--bg-glow);
-    animation: body-glow-drift 32s cubic-bezier(0.37, 0, 0.3, 1) infinite alternate;
+    animation: body-glow-drift 16s cubic-bezier(0.37, 0, 0.3, 1) infinite alternate;
   }
 
   &::after {
     background: var(--bg-glow-2);
-    animation: body-glow-drift-alt 40s cubic-bezier(0.37, 0, 0.3, 1) infinite alternate;
+    animation: body-glow-drift-alt 21s cubic-bezier(0.37, 0, 0.3, 1) infinite alternate;
   }
 }
 
@@ -110,7 +110,7 @@ body {
 }
 
 // Counter-drift — the mirrored wander of the fringe layer; its
-// different period (38s vs 30s) makes the violet band slide against the
+// different period (21s vs 16s) makes the violet band slide against the
 // emerald curtain so the aurora parallax never visibly repeats.
 @keyframes body-glow-drift-alt {
   0% {
@@ -128,7 +128,7 @@ body {
 
 // Third counter-drift — the rotating ray fan: a ±7° pivot layered on
 // the wander so the conic curtain's sectors visibly swing like real
-// aurora rays. The 46s period stays coprime with 30s/38s so the three
+// aurora rays. The 27s period stays coprime with 16s/21s so the three
 // wash layers never phase-lock into a repeating pattern; at 7° the
 // 150% layer still covers the viewport with ~8% margin.
 @keyframes app-glow-sweep {
@@ -166,7 +166,24 @@ body {
     z-index: -1;
     pointer-events: none;
     background: var(--bg-glow-3);
-    animation: app-glow-sweep 48s cubic-bezier(0.37, 0, 0.3, 1) infinite alternate;
+    animation: app-glow-sweep 27s cubic-bezier(0.37, 0, 0.3, 1) infinite alternate;
+  }
+
+  // Film-grain dither — the topmost backdrop stratum: a static monochrome
+  // noise tile riding above the three glow layers (::after paints after
+  // ::before at equal z-index). Its ±6%-alpha luminance speckle breaks
+  // the quantization steps the large soft washes band into — the thin
+  // stripes between gradient stops — for zero repaint cost: the layer
+  // never animates, it just recomposites over the drifting layers. No
+  // overscan needed (nothing transforms). HC pins --bg-grain: none so
+  // the tile paints nothing there.
+  &::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--bg-grain, none);
   }
 }
 

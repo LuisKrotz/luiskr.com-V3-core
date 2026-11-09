@@ -117,22 +117,34 @@
     radial-gradient(
       ellipse 68% 46% at 14% 8%,
       color-mix(in srgb, var(--aurora-green) 36%, transparent) 0%,
-      transparent 68%
+      color-mix(in srgb, var(--aurora-green) 18%, transparent) 30%,
+      color-mix(in srgb, var(--aurora-green) 8%, transparent) 50%,
+      color-mix(in srgb, var(--aurora-green) 3%, transparent) 62%,
+      transparent 74%
     ),
     radial-gradient(
       ellipse 54% 40% at 86% 12%,
       color-mix(in srgb, var(--aurora-cyan) 28%, transparent) 0%,
-      transparent 72%
+      color-mix(in srgb, var(--aurora-cyan) 14%, transparent) 30%,
+      color-mix(in srgb, var(--aurora-cyan) 6%, transparent) 52%,
+      color-mix(in srgb, var(--aurora-cyan) 2%, transparent) 66%,
+      transparent 76%
     ),
     radial-gradient(
       ellipse 60% 50% at 84% 90%,
       color-mix(in srgb, var(--aurora-magenta) 24%, transparent) 0%,
-      transparent 72%
+      color-mix(in srgb, var(--aurora-magenta) 12%, transparent) 30%,
+      color-mix(in srgb, var(--aurora-magenta) 5%, transparent) 52%,
+      color-mix(in srgb, var(--aurora-magenta) 2%, transparent) 66%,
+      transparent 76%
     ),
     radial-gradient(
       ellipse 46% 54% at 16% 88%,
       color-mix(in srgb, var(--aurora-violet) 22%, transparent) 0%,
-      transparent 70%
+      color-mix(in srgb, var(--aurora-violet) 11%, transparent) 30%,
+      color-mix(in srgb, var(--aurora-violet) 5%, transparent) 50%,
+      color-mix(in srgb, var(--aurora-violet) 2%, transparent) 64%,
+      transparent 74%
     );
 
   // Animated page backdrop (light theme) — three counter-drifting layers
@@ -147,64 +159,102 @@
   // read as soft light over the pale sky, with plenty of sky visible
   // between them — and every painted point keeps ≥~8:1 under
   // --text-primary.
+  // Mid-stops interpolate every ramp — linear ribbons AND radial lobes.
+  // A bare `colour → transparent` pair ends with the alpha slope
+  // dropping to zero in one step, which creases a visible ellipse
+  // outline at the boundary (Mach bands); the 34/56/70% falloff stops
+  // taper the derivative to zero so no lobe draws its own edge.
   --bg-glow:
     linear-gradient(
       118deg,
       transparent 10%,
-      color-mix(in srgb, var(--aurora-green) 18%, transparent) 32%,
-      color-mix(in srgb, var(--aurora-green) 38%, transparent) 44%,
-      color-mix(in srgb, var(--aurora-teal) 28%, transparent) 52%,
-      color-mix(in srgb, var(--aurora-cyan) 14%, transparent) 62%,
+      color-mix(in srgb, var(--aurora-green) 9%, transparent) 26%,
+      color-mix(in srgb, var(--aurora-green) 18%, transparent) 34%,
+      color-mix(in srgb, var(--aurora-green) 30%, transparent) 40%,
+      color-mix(in srgb, var(--aurora-green) 38%, transparent) 45%,
+      color-mix(in srgb, var(--aurora-teal) 33%, transparent) 49%,
+      color-mix(in srgb, var(--aurora-teal) 28%, transparent) 53%,
+      color-mix(in srgb, var(--aurora-cyan) 21%, transparent) 58%,
+      color-mix(in srgb, var(--aurora-cyan) 14%, transparent) 63%,
+      color-mix(in srgb, var(--aurora-cyan) 7%, transparent) 70%,
       transparent 78%
     ),
     radial-gradient(
       ellipse 52% 40% at 16% 10%,
       color-mix(in srgb, var(--aurora-green) 34%, transparent) 0%,
-      transparent 70%
+      color-mix(in srgb, var(--aurora-green) 17%, transparent) 34%,
+      color-mix(in srgb, var(--aurora-green) 8%, transparent) 56%,
+      color-mix(in srgb, var(--aurora-green) 3%, transparent) 70%,
+      transparent 78%
     ),
     radial-gradient(
       ellipse 44% 36% at 86% 12%,
       color-mix(in srgb, var(--aurora-cyan) 24%, transparent) 0%,
-      transparent 74%
+      color-mix(in srgb, var(--aurora-cyan) 12%, transparent) 34%,
+      color-mix(in srgb, var(--aurora-cyan) 5%, transparent) 56%,
+      color-mix(in srgb, var(--aurora-cyan) 2%, transparent) 70%,
+      transparent 78%
     ),
     radial-gradient(
       ellipse 46% 40% at 8% 84%,
       color-mix(in srgb, var(--aurora-teal) 26%, transparent) 0%,
-      transparent 74%
+      color-mix(in srgb, var(--aurora-teal) 13%, transparent) 34%,
+      color-mix(in srgb, var(--aurora-teal) 6%, transparent) 56%,
+      color-mix(in srgb, var(--aurora-teal) 2%, transparent) 70%,
+      transparent 78%
     ),
     radial-gradient(
       ellipse 40% 32% at 88% 82%,
       color-mix(in srgb, var(--aurora-violet) 22%, transparent) 0%,
-      transparent 74%
+      color-mix(in srgb, var(--aurora-violet) 11%, transparent) 34%,
+      color-mix(in srgb, var(--aurora-violet) 5%, transparent) 56%,
+      color-mix(in srgb, var(--aurora-violet) 2%, transparent) 70%,
+      transparent 78%
     );
   --bg-glow-2:
     linear-gradient(
       118deg,
       transparent 42%,
-      color-mix(in srgb, var(--aurora-violet) 16%, transparent) 56%,
-      color-mix(in srgb, var(--aurora-magenta) 24%, transparent) 66%,
-      color-mix(in srgb, var(--aurora-violet-deep) 20%, transparent) 76%,
+      color-mix(in srgb, var(--aurora-violet) 8%, transparent) 52%,
+      color-mix(in srgb, var(--aurora-violet) 16%, transparent) 58%,
+      color-mix(in srgb, var(--aurora-magenta) 21%, transparent) 63%,
+      color-mix(in srgb, var(--aurora-magenta) 24%, transparent) 67%,
+      color-mix(in srgb, var(--aurora-violet-deep) 22%, transparent) 72%,
+      color-mix(in srgb, var(--aurora-violet-deep) 20%, transparent) 77%,
+      color-mix(in srgb, var(--aurora-violet-deep) 10%, transparent) 84%,
       transparent 90%
     ),
     radial-gradient(
       ellipse 38% 28% at 68% 16%,
       color-mix(in srgb, var(--aurora-magenta) 20%, transparent) 0%,
-      transparent 72%
+      color-mix(in srgb, var(--aurora-magenta) 10%, transparent) 34%,
+      color-mix(in srgb, var(--aurora-magenta) 4%, transparent) 56%,
+      color-mix(in srgb, var(--aurora-magenta) 1%, transparent) 70%,
+      transparent 78%
     ),
     radial-gradient(
       ellipse 32% 38% at 6% 52%,
       color-mix(in srgb, var(--aurora-violet-deep) 18%, transparent) 0%,
-      transparent 74%
+      color-mix(in srgb, var(--aurora-violet-deep) 9%, transparent) 34%,
+      color-mix(in srgb, var(--aurora-violet-deep) 4%, transparent) 56%,
+      color-mix(in srgb, var(--aurora-violet-deep) 1%, transparent) 70%,
+      transparent 78%
     ),
     radial-gradient(
       ellipse 34% 30% at 90% 56%,
       color-mix(in srgb, var(--aurora-indigo) 18%, transparent) 0%,
-      transparent 74%
+      color-mix(in srgb, var(--aurora-indigo) 9%, transparent) 34%,
+      color-mix(in srgb, var(--aurora-indigo) 4%, transparent) 56%,
+      color-mix(in srgb, var(--aurora-indigo) 1%, transparent) 70%,
+      transparent 78%
     ),
     radial-gradient(
       ellipse 42% 30% at 44% 62%,
       color-mix(in srgb, var(--aurora-green) 24%, transparent) 0%,
-      transparent 76%
+      color-mix(in srgb, var(--aurora-green) 12%, transparent) 34%,
+      color-mix(in srgb, var(--aurora-green) 5%, transparent) 56%,
+      color-mix(in srgb, var(--aurora-green) 2%, transparent) 70%,
+      transparent 78%
     );
   // Third layer (the ray fan) — mostly green-family conic curtain: the
   // rays pivot overhead like real aurora shafts, with one low-alpha
@@ -217,7 +267,10 @@
     radial-gradient(
       ellipse 56% 40% at 72% 58%,
       color-mix(in srgb, var(--aurora-green) 18%, transparent) 0%,
-      transparent 74%
+      color-mix(in srgb, var(--aurora-green) 9%, transparent) 34%,
+      color-mix(in srgb, var(--aurora-green) 4%, transparent) 56%,
+      color-mix(in srgb, var(--aurora-green) 1%, transparent) 70%,
+      transparent 78%
     ),
     conic-gradient(
       from 0deg at 30% -35%,
@@ -231,6 +284,15 @@
       color-mix(in srgb, var(--aurora-teal) 20%, transparent) 286deg,
       transparent 334deg
     );
+
+  // Film-grain dither tile — a seamless monochrome feTurbulence tile
+  // (grayscaled, alpha scaled to ≤10%) painted by #app::after above the
+  // three glow layers. The luminance speckle breaks the quantization
+  // steps large soft washes band into — the thin stripes visible at
+  // gradient colour transitions — at zero repaint cost: the layer is
+  // static, only compositing changes under the drifting layers beneath.
+  // stitchTiles keeps the repeat seam invisible; HC pins it to none.
+  --bg-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 
   // Card shadow tokens — light theme: indigo-tinted elevation shadows
   // (color-mix off the aurora ink pole) with a subtle hairline ring.

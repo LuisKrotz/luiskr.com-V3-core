@@ -106,6 +106,10 @@ describe('wasm-layout', () => {
     expect(mod.calcMediaBox(400, 300, 800, 600)).toEqual({ width: 400, height: 300 })
     expect(mod.calcMediaScale(0, 0, 100, 100)).toBe(0)
     expect(mod.calcMediaScale(-1, 100, 50, 50)).toBe(0)
+    expect(mod.calcGridGutter(100)).toBe(13)
+    expect(mod.calcGridGutter(400)).toBe(21)
+    expect(mod.calcGridGutter(1024)).toBe(89)
+    expect(mod.calcGridGutter(7680)).toBe(610)
 
     globalThis.fetch = origFetch
   })

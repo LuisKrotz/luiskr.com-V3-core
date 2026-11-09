@@ -77,6 +77,28 @@ video.render-media {
 // smaller than the strip but never larger than the source — and cover
 // inside a ≤natural box can never upscale.
 
+// ── Letterbox media — capped slide boxes ─────────────────────────────────────
+// When a width cap (--mf-w/--mf-max-w/90vw) or the 280px floor reshapes
+// the slide box past the file's own ratio — landscape media on mobile/
+// tablet strips ends up in a portrait box — cover would side-crop the
+// source into the box's shape ("landscape → portrait" distortion).
+// scale-down letterboxes the sharp layer instead: it behaves like
+// contain when the source is larger than the box (fits, centred,
+// natural aspect, same strip height as every sibling) but like none
+// when the source is smaller — it NEVER upscales past intrinsic
+// resolution, so a small file can't be blown out to fill the strip.
+// The --thumb layer behind stays cover+blur, so the empty bands paint a
+// blurred wash of the same media rather than a flat slide colour. On a
+// ratio-matched box it paints identically to cover — honest-ratio
+// slides are unchanged.
+@supports selector(:host-context(*)) {
+  :host-context(.carousel-slide) .render-media--high,
+  :host-context(.carousel-fallback) .render-media--high {
+    object-fit: scale-down;
+    object-position: center;
+  }
+}
+
 // ── Expand modal trigger buttons ──────────────────────────────────────────────
 // exp-md-open-1: styled in modal.scss with animated corner borders
 // exp-md-open-2: invisible overlay for full-figure click area
