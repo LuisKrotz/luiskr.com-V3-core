@@ -12,6 +12,8 @@ import { _B_COOKIES, _K_VIEW_OUTLET } from '../base.js'
  */
 export const APP_IDS = Object.freeze({
   APP: 'app',
+  /** Fullscreen WebGL aurora canvas parked behind #app (body's first child). */
+  PAGE_BACKDROP: 'page-backdrop',
   MAIN: 'main',
   MAIN_CONTENT: 'main-content',
   VIEW_OUTLET: _K_VIEW_OUTLET,

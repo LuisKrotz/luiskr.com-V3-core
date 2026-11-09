@@ -20,6 +20,9 @@ export const STATE_CLASSES = Object.freeze({
   REDUCED_MOTION: 'reduced-motion',
   HIGH_CONTRAST: 'high-contrast',
   DARK_MODE: 'dark-mode',
+  /** Document-level marker — the WebGL page backdrop is live, so the CSS
+   *  glow/grain layers pin to `none` instead of double-painting under it. */
+  HAS_GL_BACKDROP: 'has-gl-backdrop',
   SHOW_GRID: 'show-grid',
   PAGE_FADE_IN: 'page-fade-in',
   PAGE_FADE_OUT: 'page-fade-out',
