@@ -111,6 +111,11 @@
   body::after,
   #app::before,
   #app::after,
+  // The design-grid debug overlay is screen-only chrome — its column
+  // guides ride html::before/::after (not the body/app wash layers the
+  // rules above cover) and must never reach paper while the pref is on.
+  html.show-grid::before,
+  html.show-grid::after,
   body > header:has(> .skip-link),
   .skip-link {
     display: none;
