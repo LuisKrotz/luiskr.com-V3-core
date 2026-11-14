@@ -116,8 +116,8 @@ $_SW_PAD: $space-xs;
   }
 
   // ON state — the contrast variant: the signature accent reads as a
-  // washed neon blob on the light dialog; the deep teal reads as a
-  // deliberate ON state there and stays the signature cyan in dark.
+  // washed silver blob on the light dialog; the deep gunmetal reads as a
+  // deliberate ON state there and stays the signature silver in dark.
   &--on {
     background: var(--color-accent-contrast);
   }

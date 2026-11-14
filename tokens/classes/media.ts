@@ -26,6 +26,13 @@ export const MEDIA_CLASSES = Object.freeze({
   RENDER_PLACEHOLDER_FIGURE: `${_B_RENDER_PLACEHOLDER}-figure`,
   MEDIA_FIGURE: _B_MEDIA_FIGURE,
   MEDIA_FIGURE_LOADED: `${_B_MEDIA_FIGURE}--loaded`,
+  /**
+   * Figure modifier for sources taller than INTERNAL_MOSAIC.TALL_ITEM_H
+   * (full-page captures): the carousel letterbox rule flips back to a
+   * top-anchored cover crop for them — a 6000px-tall file scale-downed
+   * into a strip box is a sliver, not a preview.
+   */
+  MEDIA_FIGURE_TALL: `${_B_MEDIA_FIGURE}--tall`,
   /** Play/pause toggle chip for ambient (controls-less) videos. */
   MEDIA_FIGURE_TOGGLE: `${_B_MEDIA_FIGURE}__toggle`,
   MEDIA_FIGURE_TOGGLE_PLAY: `${_B_MEDIA_FIGURE}__toggle-play`,

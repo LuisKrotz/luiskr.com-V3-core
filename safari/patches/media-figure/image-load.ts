@@ -53,9 +53,12 @@ export function safariLoadHighRes(el: SafariPatchableEl): void {
 
       highEl.remove()
 
+      // Same letterbox contract as load.ts's retire(): a scale-down
+      // successor leaves bands the blurred thumb still owns — only a
+      // box-filling fit may hide it.
       const thumbEl = el.$(`.${MEDIA_CLASSES.RENDER_MEDIA_THUMB}`)
 
-      if (thumbEl) {
+      if (thumbEl && getComputedStyle(successor).objectFit !== ATTR_VALUES.SCALE_DOWN) {
         thumbEl.style.display = ATTR_VALUES.NONE
       }
     }

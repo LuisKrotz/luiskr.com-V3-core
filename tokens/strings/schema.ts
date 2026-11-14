@@ -38,6 +38,9 @@ export const SCHEMA_STRINGS = Object.freeze({
   SCHEMA_PROFILE_USERNAME: 'LuisKr1906',
   /** Article.articleSection + article:section for every portfolio page. */
   SCHEMA_ARTICLE_SECTION: 'Portfolio',
+  /** JSON-LD @type for portfolio project articles — NewsArticle carries the
+   *  git-derived date set that makes them Google News/Discover-eligible. */
+  SCHEMA_ARTICLE_TYPE: 'NewsArticle',
   /** Open Graph article timestamp metadata keys (used only with verified dates). */
   SCHEMA_ARTICLE_PUBLISHED_TIME: 'article:published_time',
   SCHEMA_ARTICLE_MODIFIED_TIME: 'article:modified_time',

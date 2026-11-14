@@ -49,6 +49,10 @@ export const CAROUSEL_CLASSES = Object.freeze({
   CAROUSEL_SLIDE_CLONE: `${_B_CAROUSEL_SLIDE} ${_B_CAROUSEL_SLIDE_CLONE}`,
   CAROUSEL_SLIDE_CLONE_LAST: `${_B_CAROUSEL_SLIDE} ${_B_CAROUSEL_SLIDE_CLONE} ${_B_CAROUSEL_SLIDE_CLONE}-last`,
   CAROUSEL_SLIDE_CLONE_FIRST: `${_B_CAROUSEL_SLIDE} ${_B_CAROUSEL_SLIDE_CLONE} ${_B_CAROUSEL_SLIDE_CLONE}-first`,
+  /** Bare clone modifier — classList.contains() probe for "is this child
+      a clone" in the wrap detector (the *_CLONE* tokens above are
+      multi-class className strings, not single classes). */
+  CAROUSEL_SLIDE_CLONE_MARK: _B_CAROUSEL_SLIDE_CLONE,
   CAROUSEL_RATIO_16_9: `${_B_CAROUSEL}--ratio-16-9`,
   CAROUSEL_RATIO_21_9: `${_B_CAROUSEL}--ratio-21-9`,
   CAROUSEL_RATIO_32_9: `${_B_CAROUSEL}--ratio-32-9`,

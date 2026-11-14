@@ -11,6 +11,7 @@ import '@website/components/feedback/CookieBanner.js'
 import '@website/components/home/ContactSection.js'
 import '@website/views/not-found/NotFound.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 
 /** Generous flush — scroll-state debounces need real timers. */
@@ -37,17 +38,26 @@ describe('scroll-state tails', () => {
     window.dispatchEvent(new Event(WINDOW_EVENTS.SCROLL))
 
     expect(isScrolling()).toBe(true)
+    expect(document.documentElement.classList.contains(STATE_CLASSES.IS_SCROLLING)).toBe(true)
 
     onScrollStop(bad)
     onScrollStop(cb)
 
     if ('onscrollend' in window) {
       window.dispatchEvent(new Event(WINDOW_EVENTS.SCROLLEND))
-      expect(isScrolling()).toBe(false)
-      // second scrollend — no pending timer arm
+      // scrollend joins the settle debounce — the flag clears when the
+      // timer expires, not synchronously on the event.
+      expect(isScrolling()).toBe(true)
+    }
+
+    await flush(160)
+
+    expect(isScrolling()).toBe(false)
+    expect(document.documentElement.classList.contains(STATE_CLASSES.IS_SCROLLING)).toBe(false)
+
+    if ('onscrollend' in window) {
+      // orphan scrollend while idle — no latch, no settle timer arm
       window.dispatchEvent(new Event(WINDOW_EVENTS.SCROLLEND))
-    } else {
-      await flush(160)
       expect(isScrolling()).toBe(false)
     }
 

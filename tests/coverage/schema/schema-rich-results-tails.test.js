@@ -128,7 +128,7 @@ describe('rich-result schema fields', () => {
     expect(article.isAccessibleForFree).toBe(true)
     expect(article.keywords).toBe(`${TEST_TEXT.HEADING}, ${TEST_TEXT.SECOND}`)
     expect(article.author['@id']).toBe(`${NET_STRINGS.SITE_URL}#person`)
-    expect(article.publisher['@id']).toBe(`${NET_STRINGS.SITE_URL}#person`)
+    expect(article.publisher['@id']).toBe(`${NET_STRINGS.SITE_URL}#organization`)
     expect(article.inLanguage).toBe('pt-BR')
   })
 

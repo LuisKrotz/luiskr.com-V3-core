@@ -65,6 +65,9 @@ export interface ModalMedia {
   width: number
   height: number
   isVideo: boolean
+  /** Extensionless CDN stem (storage+folder+src) the a11y siblings
+   *  (`.vtt` description tracks, `_longdesc.txt`) derive from. */
+  stem?: string
 }
 
 /**

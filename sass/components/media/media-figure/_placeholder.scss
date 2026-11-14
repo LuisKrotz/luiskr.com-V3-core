@@ -231,3 +231,123 @@ $_MF-CHROME: to-rem($space-md * ($space-sm + $space-3xs));
     );
   }
 }
+
+// ── Lone carousel-fallback item — page media, not a track slide ───────────────
+// A single-item carousel renders .carousel-fallback (no track, no
+// published --carousel-media-height — the host sheet REVERTS --mf-h on
+// this item so it keeps its intrinsic aspect). Two track contracts still
+// land on it and both inflate the box:
+//   • `max-height: var(--mf-h)` substitutes a guaranteed-invalid var →
+//     the declaration goes invalid-at-computed-time → none, so a tall
+//     lone source renders vertically unbounded;
+//   • the landscape ratio-width uncap above (max-width:none, meant for
+//     the scrollable filmstrip) frees a lone landscape item to intrinsic
+//     size — a 3840 file paints ~1920px past the content column (the
+//     blown-out landscape fallback bug).
+// The lone item re-asserts the in-page extra-item contract: intrinsic
+// aspect bounded by --mf-w / the viewport and natural-size caps. The
+// measured --side row keeps the strip contract untouched. Source order
+// (this file's last block) beats the equal-specificity arms above; the
+// landscape pairings carry the extra pseudo-class needed to outrank the
+// uncap's own selector list.
+@supports selector(:host-context(*)) {
+  :host-context(.carousel-fallback:not(.carousel-fallback--side)) .render-placeholder {
+    max-height: min(calc(70vh - #{to-rem($space-xl * 2)}), var(--mf-natural-h));
+    max-height: min(calc(70dvh - #{to-rem($space-xl * 2)}), var(--mf-natural-h));
+    max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-xl * 2)})), var(--mf-natural-w));
+
+    @include layout-768() {
+      max-height: min(calc(70vh - #{to-rem($space-2xl * 2)}), var(--mf-natural-h));
+      max-height: min(calc(70dvh - #{to-rem($space-2xl * 2)}), var(--mf-natural-h));
+      max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-2xl * 2)})), var(--mf-natural-w));
+    }
+
+    @include layout-1024() {
+      max-height: min(#{to-rem($space-7xl)}, var(--mf-natural-h));
+      max-width: min(
+        var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{$_MF-CHROME})),
+        var(--mf-natural-w)
+      );
+    }
+
+    @include layout-1440() {
+      max-height: min(#{to-rem($space-8xl)}, var(--mf-natural-h));
+      max-width: min(
+        var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{$_MF-CHROME})),
+        var(--mf-natural-w)
+      );
+    }
+
+    @include layout-2560() {
+      max-height: min(#{to-rem($space-9xl)}, var(--mf-natural-h));
+      max-width: min(
+        var(--mf-max-w, calc(100vw - #{to-rem($space-4xl * 2)} - #{$_MF-CHROME})),
+        var(--mf-natural-w)
+      );
+    }
+
+    // The lone item keeps the same half-natural cap every slide gets on
+    // mobile/tablet — its own declarations arrive later in source order
+    // than the ≤1024 block, so the bound is restated here.
+    @media (max-width: #{$vw-1024}) {
+      max-width: min(
+        var(--mf-w, calc(90vw - #{to-rem($space-2xl * 2)})),
+        calc(var(--mf-natural-w) / 2)
+      );
+    }
+  }
+
+  // The landscape uncap's own selector list, each arm paired with the
+  // lone-fallback context — context wins over the track-only freedom so
+  // the lone item stays column-bounded like every in-page landscape item.
+  :host-context(.carousel-fallback:not(.carousel-fallback--side)):host-context(
+      .internal-extra-item.landscape
+    )
+    .render-placeholder,
+  :host-context(.carousel-fallback:not(.carousel-fallback--side)):host(
+      .internal-extra-item.landscape
+    )
+    .render-placeholder,
+  :host-context(.carousel-fallback:not(.carousel-fallback--side)):host(
+      [classes*='internal-extra-item'][classes*='landscape']
+    )
+    .render-placeholder,
+  :host-context(.carousel-fallback:not(.carousel-fallback--side)):host([classes*='landscape'])
+    .render-placeholder,
+  :host-context(.carousel-fallback:not(.carousel-fallback--side)):host(.landscape)
+    .render-placeholder {
+    max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-xl * 2)})), var(--mf-natural-w));
+
+    @include layout-768() {
+      max-width: min(var(--mf-w, calc(90vw - #{to-rem($space-2xl * 2)})), var(--mf-natural-w));
+    }
+
+    @include layout-1024() {
+      max-width: min(
+        var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{$_MF-CHROME})),
+        var(--mf-natural-w)
+      );
+    }
+
+    @include layout-1440() {
+      max-width: min(
+        var(--mf-max-w, calc(100vw - #{to-rem($space-3xl * 2)} - #{$_MF-CHROME})),
+        var(--mf-natural-w)
+      );
+    }
+
+    @include layout-2560() {
+      max-width: min(
+        var(--mf-max-w, calc(100vw - #{to-rem($space-4xl * 2)} - #{$_MF-CHROME})),
+        var(--mf-natural-w)
+      );
+    }
+
+    @media (max-width: #{$vw-1024}) {
+      max-width: min(
+        var(--mf-w, calc(90vw - #{to-rem($space-2xl * 2)})),
+        calc(var(--mf-natural-w) / 2)
+      );
+    }
+  }
+}

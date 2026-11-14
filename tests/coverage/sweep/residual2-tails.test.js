@@ -2,9 +2,12 @@
  * @file residual2-tails.test.js
  * @description Residual branch arms: schema.ts carousel targetUrl
  * (link/slug/empty + http + bcp arms), project-article cover-video
- * guards, earth-schema optional spreads, nav-glyph guard arms.
+ * guards, earth-schema optional spreads, nav-glyph guard arms,
+ * portfolio-word unknown-locale fallback.
  */
 import { describe, test, expect, jest, afterEach } from '@jest/globals'
+import { PORTFOLIO_WORD, portfolioWord } from '@core/locale/portfolio-word.js'
+import { LOCALES } from '@core/tokens/locales.js'
 import {
   generateCarouselItemListSchema,
   generateProjectArticleSchema,
@@ -15,8 +18,8 @@ import { NAV_CLASSES } from '@core/tokens/classes/nav.js'
 import { NAV_GLYPH } from '@core/tokens/data/nav-glyph.js'
 import { NAV_SEARCH_CSS_PROPS } from '@core/tokens/css/nav.js'
 
-/** Two neon palette vars — enough to cover the multi-color arm. */
-const COLORS = [NAV_SEARCH_CSS_PROPS.NEON_TEAL, NAV_SEARCH_CSS_PROPS.NEON_GREEN]
+/** Two metal palette vars — enough to cover the multi-color arm. */
+const COLORS = [NAV_SEARCH_CSS_PROPS.METAL_SILVER, NAV_SEARCH_CSS_PROPS.METAL_STEEL]
 
 /** Host with a shadow root + canvas whose getContext returns `ctxResult`. */
 const makeHost = (ctxResult) => {
@@ -98,5 +101,12 @@ describe('nav-glyph remaining guard arms', () => {
     })
 
     expect(session).toBeNull()
+  })
+})
+
+describe('portfolioWord residual arm', () => {
+  test('unknown locale codes fall back to the English word', () => {
+    expect(portfolioWord('qq')).toBe(PORTFOLIO_WORD[LOCALES.EN])
+    expect(portfolioWord(LOCALES.BR)).toBe(PORTFOLIO_WORD[LOCALES.BR])
   })
 })

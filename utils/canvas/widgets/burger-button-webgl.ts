@@ -131,6 +131,13 @@ export class BurgerButtonWebGL {
   _onKeyDown: ((e: Event) => void) | null = null
   _onHoverIn: EventListener
   _onHoverOut: EventListener
+  /**
+   * Element the focusin/out hover listeners were bound to — the canvas's
+   * parent (the chip wrap) when one exists, since the canvas itself is
+   * presentational and keyboard focus lands on the real button under it;
+   * the canvas is the fallback for parent-less mounts.
+   */
+  _focusHost: Element | null = null
   _onContextLost: EventListener | null = null
   _onResize: () => void
   _purged = false
@@ -166,8 +173,10 @@ export class BurgerButtonWebGL {
 
       canvas.addEventListener(MOUSE_EVENTS.CLICK, this._onClick)
 
-      // The canvas is the focusable control when WebGL renders (the CSS
-      // fallback <button> is display:none) — Enter/Space must activate it.
+      // Enter/Space activation for consumers that give the canvas a
+      // tabindex — nav renders it presentational (aria-hidden, real
+      // <button> holds keyboard focus) so this stays dormant there, but
+      // the interactive contract stays honest for a standalone canvas.
       this._onKeyDown = (e: Event) => {
         const key = (e as KeyboardEvent).key
 
@@ -192,9 +201,15 @@ export class BurgerButtonWebGL {
 
     canvas.addEventListener(POINTER_EVENTS.POINTERLEAVE, this._onHoverOut, { passive: true })
 
-    canvas.addEventListener(FOCUS_EVENTS.FOCUS, this._onHoverIn)
+    // Keyboard focus lands on the <button> under the canvas (the canvas
+    // is presentational — aria-hidden, no tabindex), so the hover
+    // convergence is driven by focusin/out on the wrap instead of
+    // non-bubbling focus/blur on an element that can never take focus.
+    this._focusHost = canvas.parentElement ?? canvas
 
-    canvas.addEventListener(FOCUS_EVENTS.BLUR, this._onHoverOut)
+    this._focusHost.addEventListener(FOCUS_EVENTS.FOCUSIN, this._onHoverIn)
+
+    this._focusHost.addEventListener(FOCUS_EVENTS.FOCUSOUT, this._onHoverOut)
 
     // A lost context (GPU reset, driver crash) is recoverable UX-wise —
     // the CSS icon takes over. No preventDefault: a prevented loss asks
@@ -596,10 +611,14 @@ export class BurgerButtonWebGL {
       this.canvas.removeEventListener(POINTER_EVENTS.POINTERENTER, this._onHoverIn)
 
       this.canvas.removeEventListener(POINTER_EVENTS.POINTERLEAVE, this._onHoverOut)
+    }
 
-      this.canvas.removeEventListener(FOCUS_EVENTS.FOCUS, this._onHoverIn)
+    if (this._focusHost) {
+      this._focusHost.removeEventListener(FOCUS_EVENTS.FOCUSIN, this._onHoverIn)
 
-      this.canvas.removeEventListener(FOCUS_EVENTS.BLUR, this._onHoverOut)
+      this._focusHost.removeEventListener(FOCUS_EVENTS.FOCUSOUT, this._onHoverOut)
+
+      this._focusHost = null
     }
 
     releaseQuadGL(this.canvas, this, this._onContextLost)

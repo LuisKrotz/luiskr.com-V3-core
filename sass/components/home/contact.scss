@@ -413,3 +413,96 @@ $_B_CONTACT: 'contact';
     }
   }
 }
+
+// ── Print ───────────────────────────────────────────────────────────────────
+// print.ts seats a `.print-qr-link` code beside each footer link (the
+// document sheet can't reach this shadow root) — the mail/phone/social
+// anchors all scan to their destinations on paper.
+@media print {
+  // Colophon treatment — the band flattens to paper with an ink rule
+  // over it (no tinted field, no filament glow); it reads as the
+  // magazine's masthead block instead of a tinted web band.
+  .#{$_B_CONTACT} {
+    background: var(--print-paper);
+    background-image: none;
+    border-image: none;
+    border-top: to-rem($space-hairline) solid var(--print-ink);
+  }
+
+  // Masthead directory — the screen row (mail left, link cloud right)
+  // re-flows into a two-column grid: the mail anchor owns the left
+  // column, its injected scan code the right, and the channel list
+  // spans both columns below so every QR shares one right edge.
+  .#{$_B_CONTACT}-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--space-lg);
+    padding-bottom: 0;
+  }
+
+  .#{$_B_CONTACT}-links {
+    grid-column: 1 / -1;
+    display: block;
+
+    &-item {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-lg);
+      padding: var(--space-xs) 0;
+      border-bottom: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 22%, transparent);
+    }
+  }
+
+  // The mail channel seats in the left column — label over address,
+  // no flex split (the QR is a sibling, not a child). Its cell's rule
+  // continues across the QR cell so the directory reads as one row.
+  .#{$_B_CONTACT}-mail,
+  .#{$_B_CONTACT}-row > .print-qr-link {
+    border-bottom: to-rem($space-hairline) solid
+      color-mix(in srgb, var(--print-ink) 22%, transparent);
+  }
+
+  .#{$_B_CONTACT}-row > .print-qr-link {
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+  }
+
+  .#{$_B_CONTACT}-mail {
+    display: block;
+    padding: var(--space-xs) 0;
+
+    &-label {
+      display: block;
+      font-size: var(--space-lg);
+    }
+
+    &-addr {
+      display: block;
+      font-size: var(--space-md);
+    }
+  }
+
+  // Scan codes seat inside the ruled rows — small, right-edge aligned,
+  // printed in ink.
+  .print-qr-link {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: var(--print-qr-link-size);
+    vertical-align: middle;
+    margin: 0;
+    color: var(--print-ink);
+    break-inside: avoid;
+    page-break-inside: avoid;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
+}

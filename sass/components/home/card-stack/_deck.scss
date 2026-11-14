@@ -62,6 +62,32 @@
         transition: none;
       }
     }
+
+    // Floor pool — the shared contact shadow the lit fan throws onto
+    // the stage (the reference's soft dark pool under the display): a
+    // wide low ellipse hugging the card band's bottom edge, darker
+    // under the centre where the front display floats. z-index:-1
+    // parks it under every posed card (they all carry positive inline
+    // z-index) while the deck's own stacking context keeps it above
+    // the section's keylight layer — the pool reads as stage floor,
+    // not as a card shadow.
+    &::after {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      top: 54%;
+      left: 50%;
+      width: 94%;
+      height: 46%;
+      transform: translate3d(-50%, 0, 0);
+      background: radial-gradient(
+        ellipse 58% 62% at 50% 36%,
+        color-mix(in srgb, var(--field-ink) 32%, transparent) 0%,
+        color-mix(in srgb, var(--field-ink) 15%, transparent) 45%,
+        transparent 74%
+      );
+      pointer-events: none;
+    }
   }
 
   // Card — the cover plane. JS writes width/height/transform
@@ -79,7 +105,10 @@
     border-radius: var(--radius-lg);
     border: var(--space-hairline) solid var(--border-color-on-dark);
     background: color-mix(in srgb, var(--color-white-raw) 6%, var(--bg-dark));
-    box-shadow: var(--shadow-card);
+    // The coverflow's own studio shadow — one rung deeper than the
+    // shared card token so the framed pile floats over the key-lit
+    // stage (ring + ambient sheet + long pooled floor shadow).
+    box-shadow: var(--shadow-card-stack);
     // The shell stays unclipped so the edge light's bloom can spill off
     // the card into the dark — the content clip lives on the link below.
     overflow: visible;
@@ -91,11 +120,12 @@
       box-shadow 0.28s ease;
     will-change: transform;
 
-    // Front card — the lit, face-on plane of the coverflow.
+    // Front card — the lit, face-on plane of the coverflow; the hero
+    // display throws the deepest pooled shadow of the set.
     &--active {
       background: color-mix(in srgb, var(--color-white-raw) 9%, var(--bg-dark));
       border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-white-raw) 25%);
-      box-shadow: var(--shadow-card-featured);
+      box-shadow: var(--shadow-card-stack-featured);
     }
 
     // Draw-pile faces — on the stacked layouts only the ACTIVE card
@@ -181,9 +211,12 @@
     // padded frame around the cover plane (the ≥1280 text column owns
     // the copy on the fan tiers, and the 1024–1279 pile carries no copy
     // at all; every band below keeps the entire-card in-card copy like
-    // mobile).
+    // mobile). The bezel is the reference's display frame — kept at the
+    // xl rung: wide enough to read as a device edge, thin enough not to
+    // swallow the cover plane.
     @media (min-width: 1024px) and (orientation: landscape) {
-      padding: var(--space-md);
+      padding: var(--space-xl);
+      border-radius: var(--radius-xl);
     }
   }
 
@@ -329,6 +362,31 @@
       inset: 0;
       aspect-ratio: auto;
       border-radius: var(--radius-md);
+
+      // Bezel seam — a hairline inner shadow where the display's glass
+      // meets its frame (only the landscape tiers carry the bezel).
+      &::after {
+        box-shadow: inset 0 0 0 var(--space-hairline)
+          color-mix(in srgb, var(--color-black-raw) 55%, transparent);
+      }
+    }
+
+    // Screen sheen — the key light's catch sliding in from the cover's
+    // RIGHT edge, the same side the section's key floods from, so every
+    // fanned card agrees with the stage lighting. Paints above the img
+    // layers as the element's last child; never intercepts input.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(
+        102deg,
+        transparent 58%,
+        color-mix(in srgb, var(--color-white-raw) 4%, transparent) 80%,
+        color-mix(in srgb, var(--color-white-raw) 9%, transparent) 100%
+      );
+      pointer-events: none;
     }
 
     img {
@@ -413,10 +471,22 @@
   }
 
   // While the canvas owns the in-card title's pixels the DOM glyphs
-  // stay mounted for layout/a11y but paint nothing.
+  // stay mounted for layout/a11y but paint nothing. The breakpoint
+  // margin/font eases freeze as well — a mid-burn ease would drift the
+  // DOM box away from the frozen raster and pop at the handoff.
   &-card-info-title--burning {
     color: transparent;
     text-shadow: none;
+    transition: none;
+  }
+
+  // Same freeze on the copy column's padding ease — a rung flip during
+  // a burn would slide the title's box under the frozen raster. The
+  // opacity/visibility fade stays (composited, no layout).
+  &-card--burning &-card-info {
+    transition:
+      opacity 0.3s ease,
+      visibility 0.3s ease;
   }
 
   // In-card combustion canvas — positioned over the title box by JS
@@ -513,6 +583,16 @@
   }
 }
 
+// Scroll-gesture park — the sheen ring is a masked pseudo layer, so its
+// opacity loop re-rasters every frame instead of compositing. While a
+// scroll gesture is live the animation freezes mid-breath (compositor
+// keeps the last raster) and resumes on settle. Dual selectors cover
+// light-DOM and shadow-DOM mounts of this sheet.
+html.is-scrolling .#{$_B_CARD_STACK}-card::before,
+:host-context(html.is-scrolling) .#{$_B_CARD_STACK}-card::before {
+  animation-play-state: paused;
+}
+
 // Keyboard focus — the card's own border carries the focus ring, so the
 // outline sits around the whole card instead of clipping inside it.
 .#{$_B_CARD_STACK}-card:focus-within {
@@ -522,3 +602,7 @@
 // (No @property/@keyframes — shadow-adopted sheets can't register or
 // interpolate custom properties; autoplay.ts writes --card-stack-timer-p
 // per frame instead, which also freezes correctly on pause/hold.)
+
+// The @media print block lives in card-stack/_print.scss — it must
+// compile AFTER _controls/_index/_info so its equal-specificity display
+// overrides (the hidden -foot/-index chrome) actually win on paper.

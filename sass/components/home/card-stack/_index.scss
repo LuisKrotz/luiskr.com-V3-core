@@ -83,6 +83,7 @@
   &-index-close {
     @extend %RESETBTN;
 
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -92,11 +93,54 @@
     color: var(--text-muted-on-dark);
     font-size: var(--space-lg);
     cursor: pointer;
+    overflow: hidden;
     transition: color 0.25s ease;
 
     &:hover,
     &:focus-visible {
       color: var(--color-white-raw);
+    }
+  }
+
+  // Liquid fill — the close button floods from below on hover: a
+  // bottom-anchored fill layer rises to cover the circle while the glyph
+  // inverts onto it. transform-only so the swell stays on the
+  // compositor; the 150% width lets the rise read as a curved meniscus
+  // instead of a flat line.
+  &-index-close {
+    &::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 100%;
+      width: 150%;
+      aspect-ratio: 1;
+      border-radius: var(--radius-round);
+      background: var(--color-accent);
+      transform: translate(-50%, 0);
+      transition: transform 0.45s $ease-out;
+      transition: transform 0.45s $ease-spring;
+    }
+
+    > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    &:hover::before,
+    &:focus-visible::before {
+      transform: translate(-50%, -55%);
+    }
+
+    &:hover,
+    &:focus-visible {
+      color: var(--bg-dark);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &::before {
+        transition: none;
+      }
     }
   }
 
@@ -144,14 +188,22 @@
       background: color-mix(in srgb, var(--color-white-raw) 5%, var(--bg-dark));
       border: var(--space-hairline) solid var(--border-color-on-dark);
       text-decoration: none;
+      // Resting card shadow so the rail tiles float like the deck cards;
+      // hover drops the tile a hair while the shadow tightens — the same
+      // press-into-paper contract the conveyor buttons carry.
+      box-shadow: var(--shadow-card);
       transition:
         border-color 0.25s ease,
-        background-color 0.25s ease;
+        background-color 0.25s ease,
+        box-shadow 0.25s ease,
+        transform 0.25s ease;
 
       &:hover,
       &:focus-visible {
         border-color: var(--color-accent);
         background: color-mix(in srgb, var(--color-white-raw) 9%, var(--bg-dark));
+        box-shadow: none;
+        transform: translateY(var(--space-2xs));
       }
 
       @media (max-width: 768px) {

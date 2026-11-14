@@ -14,6 +14,9 @@ export const QUERY_STRINGS = Object.freeze({
   /** `?q=` — the search query parameter (deep links, SearchAction target). */
   SEARCH_QUERY: 'q',
   LINK_CANONICAL: 'link[rel="canonical"]',
+  /** Print alternate — declares the same URL carries a print-optimized
+   *  form; syncDocumentHead keeps its href on the active canonical. */
+  LINK_PRINT: 'link[rel="alternate"][media="print"]',
   META_ROBOTS: 'meta[name="robots"]',
   /** Head-sync selectors — the meta tags syncDocumentHead/setMetaDescription rewrite per route. */
   META_DESCRIPTION: 'meta[name="description"]',

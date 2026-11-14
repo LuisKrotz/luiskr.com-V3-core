@@ -21,6 +21,7 @@ export const THEME_CSS_PROPS = Object.freeze({
   MENU_BG: '--menu-bg',
   WHITE: '--white',
   BORDER_COLOR: '--border-color',
+  NAV_CHIP_BG: '--nav-chip-bg',
   BORDER_ITEM_HOVER: '--border-item-hover',
   SPACE_HAIRLINE: '--space-hairline',
   COLOR_ACCENT: '--color-accent',
@@ -31,4 +32,8 @@ export const THEME_CSS_PROPS = Object.freeze({
   BURN_EDGE: '--burn-edge',
   BURN_SCORCH: '--burn-scorch',
   BURN_SMOKE: '--burn-smoke',
+  /** Paper stock the print sheet paints under everything. */
+  PRINT_PAPER: '--print-paper',
+  /** Press ink the print sheet sets all body copy in. */
+  PRINT_INK: '--print-ink',
 })

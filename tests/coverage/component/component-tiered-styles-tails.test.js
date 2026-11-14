@@ -6,6 +6,8 @@
  * legacy <style> node), grow-watcher upgrades replacing the narrower
  * sheet in place, and dedup/teardown guards around the lazy loads.
  */
+import { jest } from '@jest/globals'
+
 import { BaseComponent } from '@core/Component.js'
 import { getDevLog, clearDevLog } from '@core/devlog.js'
 import { LOG_LEVELS } from '@core/tokens/data/log.js'
@@ -16,6 +18,7 @@ import { TEST_TEXT } from '@tests/fixtures/test-constants.js'
 const BASE_CSS = '.tier-base { display: block; }'
 const MOBILE_CSS = '@media (min-width: 319px) { .tier-m { margin: 0; } }'
 const DESKTOP_CSS = MOBILE_CSS + '@media (min-width: 1279px) { .tier-d { margin: 0; } }'
+const PRINT_CSS = '@media print { .tier-p { margin: 0; } }'
 
 /** A TieredStyles module whose loaders resolve synchronously-queueable css. */
 const tiered = (tiers = { mobile: () => Promise.resolve(MOBILE_CSS) }) => ({
@@ -375,5 +378,220 @@ describe('Component ?tiers adoption tails', () => {
     el.remove()
 
     expect(el._tierGrowOff).toBeNull()
+  })
+
+  test('the print tier loads on idle and adopts permanently beside the tier sheets', async () => {
+    const el = document.createElement(TAG)
+
+    el._componentStyles = {
+      base: BASE_CSS,
+      tiers: { mobile: () => Promise.resolve(MOBILE_CSS) },
+      print: () => Promise.resolve({ default: PRINT_CSS }),
+    }
+    document.body.appendChild(el)
+    await flush()
+
+    // base + width tier + print — the object-form module resolves .default.
+    expect(el._printText).toBe(PRINT_CSS)
+    expect(el.shadowRoot.adoptedStyleSheets.length).toBe(3)
+
+    el.remove()
+  })
+
+  test('a missing print key never schedules; empty print css adopts nothing', async () => {
+    const bare = document.createElement(TAG)
+
+    bare._componentStyles = { base: BASE_CSS, tiers: {} }
+    document.body.appendChild(bare)
+    await flush()
+
+    expect(bare._printPending).toBe(false)
+    expect(bare._printText).toBe('')
+    bare.remove()
+
+    const el = document.createElement(TAG)
+
+    el._componentStyles = { base: BASE_CSS, tiers: {}, print: () => Promise.resolve('') }
+    document.body.appendChild(el)
+    await flush()
+
+    // '' css resolves but never adopts — the sheet list stays at base.
+    expect(el.shadowRoot.adoptedStyleSheets.length).toBe(1)
+    el.remove()
+  })
+
+  test('a pending print load dedupes; re-mount re-adopts the cached text', async () => {
+    let calls = 0
+    const withPrint = {
+      base: BASE_CSS,
+      tiers: {},
+      print: () => {
+        calls++
+        return Promise.resolve(PRINT_CSS)
+      },
+    }
+    const el = document.createElement(TAG)
+
+    el._componentStyles = withPrint
+    document.body.appendChild(el)
+    el._adoptPrintTier(withPrint) // in-flight dedup — never a second fetch
+    await flush()
+
+    expect(calls).toBe(1)
+    expect(el._printText).toBe(PRINT_CSS)
+
+    el._adoptPrintText(PRINT_CSS) // already-adopted sheet → includes-guard
+    expect(el.shadowRoot.adoptedStyleSheets.length).toBe(2)
+
+    // Re-mount resets adoptedStyleSheets — the stashed text re-adopts
+    // synchronously without touching the loader again.
+    el.remove()
+    document.body.appendChild(el)
+    await flush()
+
+    expect(el.shadowRoot.adoptedStyleSheets.length).toBe(2)
+    expect(calls).toBe(1)
+
+    el.remove()
+  })
+
+  test('a rejected print load warns through devlog and clears the pending flag', async () => {
+    clearDevLog()
+
+    const el = document.createElement(TAG)
+
+    el._componentStyles = {
+      base: BASE_CSS,
+      tiers: {},
+      print: () => Promise.reject(new Error(TEST_TEXT.STALE)),
+    }
+    document.body.appendChild(el)
+    await flush()
+
+    expect(el._printPending).toBe(false)
+    expect(el._printText).toBe('')
+    expect(getDevLog().some((e) => e.level === LOG_LEVELS.WARN)).toBe(true)
+
+    el.remove()
+  })
+
+  test('a print resolution landing while detached stashes text without adopting', async () => {
+    const el = document.createElement(TAG)
+
+    el._componentStyles = {
+      base: BASE_CSS,
+      tiers: {},
+      print: () => Promise.resolve(PRINT_CSS),
+    }
+    document.body.appendChild(el)
+    el.remove()
+    await flush()
+
+    // Unmounted at resolution — the text caches for the next mount.
+    expect(el._printText).toBe(PRINT_CSS)
+  })
+
+  test('legacy <style> path appends print text after the tier text', async () => {
+    const saved = globalThis.CSSStyleSheet
+
+    delete globalThis.CSSStyleSheet
+
+    try {
+      const el = document.createElement(TAG)
+
+      el._componentStyles = {
+        base: BASE_CSS,
+        tiers: { mobile: () => Promise.resolve(MOBILE_CSS) },
+        print: () => Promise.resolve(PRINT_CSS),
+      }
+      document.body.appendChild(el)
+      await flush()
+
+      const styleEl = el.shadowRoot.querySelector('style')
+      const iTier = styleEl.textContent.indexOf(MOBILE_CSS)
+      const iPrint = styleEl.textContent.indexOf(PRINT_CSS)
+
+      expect(iTier).toBeGreaterThan(-1)
+      expect(iPrint).toBeGreaterThan(iTier)
+
+      el.remove()
+    } finally {
+      globalThis.CSSStyleSheet = saved
+    }
+  })
+
+  test('legacy composition keeps the print text when the tier lands after it', async () => {
+    const saved = globalThis.CSSStyleSheet
+
+    delete globalThis.CSSStyleSheet
+
+    try {
+      const el = document.createElement(TAG)
+      let resolveTier
+
+      el._componentStyles = {
+        base: BASE_CSS,
+        tiers: {
+          mobile: () =>
+            new Promise((r) => {
+              resolveTier = r
+            }),
+        },
+        print: () => Promise.resolve(PRINT_CSS),
+      }
+      document.body.appendChild(el)
+      await flush() // print lands first, tier still pending
+
+      resolveTier(MOBILE_CSS)
+      await flush()
+
+      const styleEl = el.shadowRoot.querySelector('style')
+
+      expect(styleEl.textContent).toContain(MOBILE_CSS)
+      expect(styleEl.textContent).toContain(PRINT_CSS)
+
+      el.remove()
+    } finally {
+      globalThis.CSSStyleSheet = saved
+    }
+  })
+
+  test('the print tier still loads when requestIdleCallback is absent (setTimeout fallback)', async () => {
+    const saved = window.requestIdleCallback
+
+    window.requestIdleCallback = undefined
+
+    try {
+      const el = document.createElement(TAG)
+
+      el._componentStyles = {
+        base: BASE_CSS,
+        tiers: {},
+        print: () => Promise.resolve(PRINT_CSS),
+      }
+      document.body.appendChild(el)
+      // The fallback schedules a 120ms setTimeout — outwait it.
+      await new Promise((r) => setTimeout(r, 140))
+
+      expect(el._printText).toBe(PRINT_CSS)
+      expect(el.shadowRoot.adoptedStyleSheets.length).toBe(2)
+
+      el.remove()
+    } finally {
+      window.requestIdleCallback = saved
+    }
+  })
+
+  test('destroying a component that defines onDestroy invokes it on disconnect', () => {
+    const el = document.createElement(TAG)
+
+    document.body.appendChild(el)
+
+    const spy = jest.fn()
+    el.onDestroy = spy
+    el.remove()
+
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(el._isMounted).toBe(false)
   })
 })

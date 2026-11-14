@@ -18,6 +18,7 @@ import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
 import { ROUTE_STRINGS } from '@core/tokens/strings/routes.js'
 import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
+import { MEDIA_QUERIES } from '@core/tokens/primitives.js'
 import { SPACE } from '@core/tokens/layout/space.js'
 import { deepQuerySelector } from '@core/utils/dom.js'
 import { notifyLoadFailed } from '@core/utils/notify.js'
@@ -116,6 +117,22 @@ export function syncDocumentHead(to: RouteDescriptor): void {
   const canonicalUrl = `${NET_STRINGS.SITE_URL}${to.meta.canonical || cleanPath || ROUTE_PATHS.ROOT}`
 
   canonicalEl.setAttribute(LINK_ATTRS.HREF, canonicalUrl)
+
+  // Print alternate — declares the canonical URL itself carries the
+  // print-optimized rendering (lazy rcss print tier + print DOM
+  // adapter), so crawlers discover the print surface on every route.
+  let printEl = document.querySelector(QUERY_STRINGS.LINK_PRINT)
+
+  if (!printEl) {
+    printEl = document.createElement(HTML_TAGS.LINK)
+
+    printEl.setAttribute(DOM_STRINGS.REL, DOM_STRINGS.REL_ALTERNATE)
+    printEl.setAttribute(LINK_ATTRS.MEDIA, MEDIA_QUERIES.PRINT)
+
+    document.head.appendChild(printEl)
+  }
+
+  printEl.setAttribute(LINK_ATTRS.HREF, canonicalUrl)
 
   setMetaContent(QUERY_STRINGS.META_OG_URL, canonicalUrl)
 

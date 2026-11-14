@@ -51,7 +51,8 @@ describe('scroll-state tails', () => {
     expect(isScrolling()).toBe(true)
 
     window.dispatchEvent(new Event(WINDOW_EVENTS.SCROLLEND))
-    await flush(20)
+    // scrollend re-arms the settle debounce — callbacks drain ~120ms out.
+    await flush(160)
 
     expect(throwing).toHaveBeenCalled()
     expect(deferred).toHaveBeenCalled()

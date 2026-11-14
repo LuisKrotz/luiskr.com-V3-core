@@ -79,10 +79,14 @@ export const _FLECK_G = 60
  * zone drifting down gently, then _FLECK_G accelerates the fall.
  */
 export const _DEPOSIT_VY = 18
-/** Particle size bounds in device px. */
-export const _EMBER_SIZE = 2.2
+/**
+ * Particle size bounds — the draw scales them by the session dpr, so
+ * they read as ~1–4 CSS px on any density (pre-dpr-scaling they were
+ * raw device px: ~1 CSS px specks on a dpr-3 phone — invisible).
+ */
+export const _EMBER_SIZE = 3.2
 /** Fleck size bound — char scraps read bigger than ember sparks. */
-export const _FLECK_SIZE = 3.4
+export const _FLECK_SIZE = 4.6
 /** Byte offset of the alpha channel inside a getImageData pixel quad. */
 export const _ALPHA_STRIDE = 3
 /** Alpha floor for "has ink" — anti-aliased feather below ~12% is ignored. */

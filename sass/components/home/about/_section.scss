@@ -28,17 +28,53 @@
 // hairline top edge: the gradient divider marking the handoff from the
 // selected-work deck to the bio. It runs on every breakpoint — contact and
 // home-mosaic carry the same chrome.
-.about {
+.#{$_B_ABOUT} {
   @extend %MAXAREA;
 
   display: flex;
   flex-direction: column;
   gap: to-rem($space-2xl);
-  background-image: var(--filament-glow);
+  // The stage's static wash: the silver filament under the key light's
+  // counter-shade — the same studio deck language as the card-stack
+  // above, so the light floods across the section seam uninterrupted.
+  background-image: var(--filament-glow), var(--deck-shade);
   padding-top: to-rem($space-4xl);
   padding-bottom: to-rem($space-4xl);
+  // Clip only the x-axis: the overscanned ::before must not become a
+  // horizontal scrollbar; the mesh field's vertical bleed stays free.
+  overflow-x: clip;
   border-top: to-rem($space-hairline) solid transparent;
   border-image: var(--metallic-hairline) 1;
+
+  // The KEY LIGHT — the same studio rig as the card-stack stage: a broad
+  // silver lobe parked just off the section's RIGHT edge, drifting on a
+  // slow breathe (transform + opacity only). No z-index: as the first
+  // positioned child it paints below later siblings; HC pins the deck
+  // tokens to none.
+  &::before {
+    content: '';
+    position: absolute;
+    // X-only overscan — a transformed layer's bounds feed the ancestor
+    // scrollable area, so vertical overscan re-arms body's wheel-latch
+    // slack every frame and the document stops scrolling.
+    inset: 0 -8%;
+    background-image: var(--deck-glow);
+    background-repeat: no-repeat;
+    pointer-events: none;
+    // Right-edge anchor — scaleX swells the lobe into the stage from the
+    // same side the key light enters.
+    transform-origin: 100% 50%;
+    animation: #{$_B_ABOUT}-keylight 18s ease-in-out infinite alternate;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  // The GL backdrop carries this light — the empty animated layer dies.
+  :host-context(html.has-gl-backdrop) &::before {
+    content: none;
+  }
 
   // ≥1280: the section itself becomes the two-track split — .about-main
   // (title + subtitle + portrait/intro row) left, the bio column centred
@@ -165,15 +201,17 @@
       grid-template-columns: 3fr 2fr;
       align-items: center;
       column-gap: to-rem($space-3xl);
-      margin-top: to-rem($space-2xl);
+      // The reference opens a wider stage gap under the subtitle line —
+      // one Fibonacci rung up from the old 2xl lead-in.
+      margin-top: to-rem($space-3xl);
 
       // Explicit tracks: the intro <p> is conditional (no `frame`/col1 lead →
       // absent), so auto-placement can't be trusted to hold the media in col 1.
-      .about-profile-media {
+      .#{$_B_ABOUT}-profile-media {
         grid-column: 1;
       }
 
-      .about-intro {
+      .#{$_B_ABOUT}-intro {
         grid-column: 2;
       }
     }
@@ -230,6 +268,10 @@
       display: block;
       position: relative; // paints over the wave rings
       z-index: 1;
+      // The disc floats on the lit field — the deck's hairline ring +
+      // ambient sheet + pooled floor shadow, same depth rung as a
+      // card-stack side display.
+      box-shadow: var(--shadow-card-stack);
       will-change: transform;
     }
 
@@ -365,6 +407,25 @@
     }
   }
 
+  // Editorial lead line — the frame's first <br>-separated line ("Hi,
+  // I'm Luis,"), which AboutSection lifts into a block-level span with
+  // its own draw-text. Set as the section's magazine headline: the lg
+  // display ramp in the Jost geometric-sans stack (loaded 100–900, so
+  // this is a true bold — the Poiret One hierarchy elsewhere is
+  // single-weight). Tight leading + near-zero tracking keep the
+  // display rung reading as a headline block, and the bottom pad marks
+  // the standfirst gap the consumed <br> used to draw.
+  &-intro-lead {
+    @extend .ttl-lg;
+
+    display: block;
+    font-family: var(--font-desc);
+    font-weight: calc(700 + var(--fw-lift));
+    letter-spacing: to-rem($space-3xs);
+    line-height: 1.1;
+    padding-bottom: to-rem($space-md);
+  }
+
   // ── Bio column ──────────────────────────────────────────────────────────
   // The right column of the ≥1280 split: every remaining col1/col2
   // paragraph flows top-down, vertically centred against the left
@@ -476,3 +537,124 @@
 
 // Reduced motion — handled in about/mesh.ts (one static frame, no rAF) and
 // about/hud.ts (no cycle) against the store pref; nothing to disable here.
+
+// ── Print ───────────────────────────────────────────────────────────────────
+// The portrait stack prints flat: the light-field mesh + TV-glitch canvases
+// and the location HUD are decorative paint — only the photograph, title,
+// and bio copy reach paper. Parallax vars self-neutralize (the seeds are
+// zero and the inline overrides are stripped before the snapshot), so the
+// columns land in their natural split — which on paper is the tablet/
+// desktop column map driven by page width.
+@media print {
+  .#{$_B_ABOUT} {
+    // Screen-only stage dressing — the keylight layer is ambient light,
+    // never ink on paper.
+    &::before {
+      content: none;
+    }
+
+    &-profile-picture-mesh,
+    &-profile-picture-glitch,
+    &-profile-hud {
+      display: none;
+    }
+
+    &-profile-picture {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      margin-inline: auto;
+      // The screen box pins a square aspect-ratio — on paper the injected
+      // caption + QR are in-flow children, so a pinned box lets them
+      // overflow onto the intro copy. Auto height lets the figure grow
+      // around its real content.
+      aspect-ratio: auto;
+      height: auto;
+
+      &-img {
+        width: auto;
+        max-width: 100%;
+        height: auto;
+        max-height: var(--print-media-max-h);
+        object-fit: contain;
+        will-change: auto;
+      }
+    }
+
+    &-profile-text {
+      break-inside: auto;
+      // Editorial two-column body — the bio reflows as a magazine
+      // feature column pair, justified, with the three-line keeps. The
+      // screen contract is a flex column, which silently swallows
+      // `columns` — back to block flow or the pair never forms.
+      display: block;
+      columns: 2;
+      column-gap: var(--space-2xl);
+      text-align: justify;
+      orphans: 3;
+      widows: 3;
+    }
+
+    // The printed bio runs off the `.print-fill` spans about/print.ts
+    // seats on `printprepare` — the <draw-text> writers' content lives
+    // in their own shadow, where ::first-letter and column text flow
+    // can't reach it, so the hosts step aside on paper.
+    &-item-text draw-text {
+      display: none;
+    }
+
+    &-item-text .print-fill {
+      display: block;
+      color: var(--text-primary);
+    }
+
+    // Drop cap on the lead bio paragraph — the classic feature-article
+    // opener. ::first-letter picks the first printable glyph of the
+    // injected fill (a real light-DOM letter, unlike the writers'
+    // shadow text), scaled to a three-line cap and kerned off the
+    // column edge.
+    &-profile-text &-item-text:first-of-type .print-fill::first-letter {
+      float: left;
+      font-size: var(--space-4xl);
+      font-weight: 700;
+      line-height: 0.82;
+      padding-right: var(--space-2xs);
+      color: var(--text-primary);
+    }
+  }
+
+  // Source/date/author line print.ts seats after the portrait img — the
+  // document sheet can't reach this shadow root.
+  .print-caption {
+    display: block;
+    max-width: 100%;
+    margin: var(--space-2xs) auto var(--space-md);
+    font-size: var(--print-caption-size);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-align: center;
+    overflow-wrap: break-word;
+    break-inside: avoid;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+}
+
+// Keylight drift — the right-side lobe slides a few percent in and out
+// of the stage's right edge while it breathes (gentle scale + opacity),
+// matching the card-stack rig so both sections read as one lit field.
+// Transform/opacity only — compositor-driven, zero layout and no
+// re-raster; the overscanned layer keeps the drift edges off-stage.
+@keyframes #{$_B_ABOUT}-keylight {
+  0% {
+    transform: translate3d(-4%, 0, 0) scaleX(1);
+    opacity: 0.72;
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scaleX(1.07);
+    opacity: 1;
+  }
+}

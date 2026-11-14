@@ -16,6 +16,17 @@ const SHARE_IMAGE_EXTS = Object.freeze(['.png', '.jpg', '.jpeg', '.webp'])
 const SHARE_VIDEO_EXTS = Object.freeze(['.mp4', '.webm'])
 
 /**
+ * Delivery preference across a capture's encodings — when one screenshot
+ * ships several extensions under a shared stem (`x.png` + a same-resolution
+ * `x.jpg` delivery sibling) the wall/feed/JSON-LD surfaces resolve ONE card
+ * per capture at the smallest bandwidth-friendly encoding, while the `.png`
+ * upload stays the canonical lossless source on the bucket. Order is most
+ * preferred first; `.png` sits last so an un-siblinged capture still mounts
+ * exactly what it always did.
+ */
+const SHARE_DELIVERY_IMAGE_EXTS = Object.freeze(['.jpg', '.jpeg', '.webp', '.png'])
+
+/**
  * Earth Playground share-capture tokens. Sole declaration site — consumers
  * (build generators, runtime share rotation) import members from this
  * frozen map rather than re-declaring the literals (zero-hardcoding rule).
@@ -29,6 +40,8 @@ export const EARTH_SHARE = Object.freeze({
   IMAGE_EXTS: SHARE_IMAGE_EXTS,
   /** Video extensions accepted into the share set. */
   VIDEO_EXTS: SHARE_VIDEO_EXTS,
+  /** Per-stem encoding preference — one card per capture, smallest delivery format first. */
+  DELIVERY_IMAGE_EXTS: SHARE_DELIVERY_IMAGE_EXTS,
 })
 
 /**
@@ -46,4 +59,6 @@ export const STAR_SHARE = Object.freeze({
   IMAGE_EXTS: SHARE_IMAGE_EXTS,
   /** Video extensions accepted into the share set. */
   VIDEO_EXTS: SHARE_VIDEO_EXTS,
+  /** Per-stem encoding preference — one card per capture, smallest delivery format first. */
+  DELIVERY_IMAGE_EXTS: SHARE_DELIVERY_IMAGE_EXTS,
 })

@@ -80,9 +80,14 @@ export function mountBurn(
   speed: number,
   onBurned: (() => void) | null
 ): boolean {
+  // Degenerate-box guard in layout space — offsetWidth is transform-
+  // immune (a dealt card's scale inflates the rect), and the rect falls
+  // back where layout metrics are unavailable.
   const box = titleEl.getBoundingClientRect()
+  const tw = titleEl.offsetWidth || box.width
+  const th = titleEl.offsetHeight || box.height
 
-  if (box.width < 4 || box.height < 4) return false
+  if (tw < 4 || th < 4) return false
 
   const canvas = document.createElement(HTML_TAGS.CANVAS) as HTMLCanvasElement
 
@@ -113,6 +118,7 @@ export function mountBurn(
     paper: document.createElement(HTML_TAGS.CANVAS) as HTMLCanvasElement,
     w: 2,
     h: 2,
+    dpr: 1,
     paperX: 0,
     paperY: 0,
     paperW: 2,
@@ -145,8 +151,17 @@ export function mountBurn(
     lastFont: ATTR_VALUES.EMPTY,
   }
 
-  // First layout + raster — later frames re-anchor POSITION only, so the
-  // cqw font-size drift during expand never shrinks the burning glyphs.
+  // Hide + freeze the DOM title BEFORE the first raster: the burning
+  // class drops its geometry eases (cqw font/margin flips) so the box
+  // the raster captures is the one the ink returns to at teardown.
+  // inkColor was captured above — before --burning turned it transparent.
+  titleEl.classList.add(cls.TITLE_BURNING)
+
+  // Silence the card's border sheen + freeze its copy eases while the
+  // burn owns the hover effect.
+  cardEl.classList.add(cls.ITEM_BURNING)
+
+  // First layout + raster — the canvas anchors once at this box.
   syncPaper(s)
 
   overlay.appendChild(canvas)
@@ -155,19 +170,12 @@ export function mountBurn(
   // shadow root, not inside the transient canvas element.
   applyAnimationDesc(canvas, ANIMATION_IDS.MOSAIC_BURN)
 
-  // Paint the paper BEFORE hiding the DOM ink — the canvas must already
-  // hold the pixel-identical title when the swap happens, or the text
-  // visibly "disappears then an effect starts" instead of the glyphs
-  // themselves combusting.
   ctx.drawImage(s.paper, s.paperX, s.paperY)
-  titleEl.classList.add(cls.TITLE_BURNING)
 
   // The paper canvas is laid out now — the wasm particle layer can
   // mount its stacked canvas over it (2D particles run until it lands).
   tryWasmBurn(s)
 
-  // Silence the card's border sheen while the burn owns the hover effect.
-  cardEl.classList.add(cls.ITEM_BURNING)
   ;(cardEl as BurnCard)._burn = s
 
   s.raf = requestAnimationFrame(() => frame(s))

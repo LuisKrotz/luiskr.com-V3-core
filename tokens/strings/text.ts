@@ -21,6 +21,8 @@ export const NAV_TEXT = Object.freeze({
   LONGITUDE: 'Longitude',
   ALTITUDE: 'Altitude',
   SOME_MENTIONS: 'Some mentions',
+  /** Print contents page masthead. */
+  CONTENTS: 'Contents',
 })
 
 /**

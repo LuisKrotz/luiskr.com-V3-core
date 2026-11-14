@@ -368,7 +368,10 @@
     // without the safe keyword drop this declaration and keep plain
     // center (previous behaviour).
     align-items: safe center;
-    justify-content: flex-start;
+    // Media that fits centers vertically (the "centralized" contract);
+    // `safe` keeps an overflowing natural/2 capture start-aligned so its
+    // leading edge stays inside the dialog's scroll reach.
+    justify-content: safe center;
     transform-origin: center top;
 
     // Liquid-glass veil — a translucent dark + backdrop-blur layer
@@ -448,9 +451,11 @@
     }
   }
 
-  // Video-specific modal layout: max 100ch minus padding, contained vertically so close button sits below without scrolling
+  // Video-specific modal layout: viewport-bounded, contained vertically so close button sits below without scrolling
   &-content--video {
-    justify-content: space-between;
+    // Centered column — the hugging figure + close-bottom pack in the
+    // middle of the viewport instead of spreading top/bottom.
+    justify-content: center;
     height: 100vh;
     height: 100dvh;
     max-height: 100vh;
@@ -467,10 +472,17 @@
   &-media {
     &-figure {
       position: relative;
-      display: block;
-      // Preserve intrinsic media width: narrow screenshots stay
-      // pixel-sharp instead of being stretched to the modal's full
-      // content width — but nothing renders wider than the column.
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      // The card HUGS the media — fit-content both axes means the box is
+      // exactly the item's stamped natural size, FHD-capped and bounded
+      // only by the content column's viewport gutters (plus, for video,
+      // the item's viewport-height cap). A text-column cap has no place
+      // here — the modal is the natural-size surface, not a prose block.
+      // There are never letterbox bands to fill, so the modal carries
+      // no blurred-thumb layer at all: media is centered, aspect-true,
+      // edge-to-edge inside its own card.
       width: fit-content;
       max-width: 100%;
       margin: 0 auto;
@@ -480,21 +492,8 @@
       background-color: var(--bg-dark);
 
       &--video {
-        // Video figure is contained: never wider than the readable
-        // column minus its gutters, never taller than the viewport
-        // minus the modal chrome (content padding + close-bottom
-        // block) — a taller-than-viewport video downscales
-        // proportionally so the close button stays below without
-        // scrolling.
-        max-width: min(100%, calc(100ch - #{to-rem($space-4xl)}));
-        max-height: calc(100vh - #{to-rem($space-6xl)});
-        max-height: calc(100dvh - #{to-rem($space-6xl)});
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex: 1;
-        width: 100%;
-        margin: 0 auto;
+        // Videos keep the frameless look — the player already carries
+        // its own shadow on the media item.
         box-shadow: none;
         background-color: transparent;
       }
@@ -542,15 +541,13 @@
       width: auto;
       height: auto;
       max-width: 100%;
-      // No max-height on images — the mount path stamps the declared
-      // natural width + aspect-ratio, so a "huge length" capture keeps
-      // its full fitted width and overflows vertically into the
-      // dialog's own scroll instead of being squashed to the viewport.
-      // scale-down stays as the intrinsic-dims safety: `none` when the
-      // stamped box matches the file, `contain` when declared metadata
-      // overstates it — declared metadata larger than the real bitmap
-      // can never force an upscale. Centered so a mismatch letterboxes
-      // symmetrically instead of top-anchoring.
+      // The item carries the stamped natural width + aspect-ratio —
+      // max-width keeps it inside the hugging figure on narrow windows
+      // (the ratio keeps the box proportional, so a bound width never
+      // distorts), and scale-down doubles as the intrinsic-dims safety:
+      // `none` when the stamped box matches the file, `contain` when
+      // declared metadata overstates it — declared metadata larger than
+      // the real bitmap can never force an upscale.
       object-fit: scale-down;
       object-position: center;
 
@@ -559,16 +556,14 @@
       }
 
       &--video {
-        // Videos are the one capped media: a taller-than-viewport file
-        // downscales proportionally (aspect-ratio on the stamped box
-        // keeps the player letterboxed to its own ratio) so the modal
-        // chrome stays reachable. Images never take this cap — a long
-        // capture pans the dialog scroll at natural height.
-        max-width: 100%;
-        max-height: calc(100vh - #{to-rem($space-6xl)});
-        max-height: calc(100dvh - #{to-rem($space-6xl)});
         width: auto;
         height: auto;
+        // Video is the one media pinned to the viewport: it must leave
+        // room for the close chrome without scrolling. The cap shrinks
+        // the item box, the hugging figure follows, so there are still
+        // no bands — a short window just gets a smaller player.
+        max-height: calc(100vh - #{to-rem($space-6xl)});
+        max-height: calc(100dvh - #{to-rem($space-6xl)});
         border-radius: to-rem($space-md);
         box-shadow: var(--shadow-card);
       }
@@ -728,5 +723,143 @@
   to {
     opacity: 0;
     transform: scale(0.7) translateY(#{to-rem($space-sm * $space-md)});
+  }
+}
+
+@media print {
+  :host {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    background: transparent;
+  }
+
+  .#{$_B_EXPAND} {
+    &-genie-canvas,
+    &-close-bar,
+    &-close-area,
+    &-close-bottom,
+    &-media-placeholder,
+    &-media-load,
+    &-media-spin,
+    &-content::before,
+    &-media-figure::before {
+      display: none;
+    }
+
+    &-genie-veil .#{$_B_EXPAND}-media-figure {
+      visibility: visible;
+    }
+
+    &-content,
+    &-content--video {
+      position: static;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 0;
+      height: auto;
+      max-height: none;
+      padding: 0;
+      margin: 0;
+      background: transparent;
+      overflow: visible;
+      animation: none;
+      transform: none;
+    }
+
+    &-media {
+      width: 100%;
+      height: auto;
+      margin: 0;
+      padding: 0;
+
+      &-figure,
+      &-figure--video {
+        position: static;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: none;
+        margin: 0 auto;
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+        border-radius: 0;
+        overflow: visible;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      &-item,
+      &-item--video {
+        position: static;
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        // The sheet-derived cap — vh resolves to the SCREEN viewport in
+        // paged media, so a viewport rung would size the modal's media a
+        // different height per machine.
+        max-height: var(--print-media-max-h);
+        margin: 0 auto;
+        object-fit: contain;
+        opacity: 1;
+        visibility: visible;
+        filter: none;
+        transform: none;
+        transition: none;
+        box-shadow: none;
+        border-radius: 0;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      &-figure--video {
+        video.#{$_B_EXPAND}-media-item {
+          display: none;
+        }
+
+        .#{$_B_EXPAND}-media-thumb {
+          display: block;
+          position: static;
+          width: auto;
+          height: auto;
+          max-width: 100%;
+          max-height: var(--print-media-max-h);
+          margin: 0 auto;
+          object-fit: contain;
+          opacity: 1;
+          visibility: visible;
+          filter: none;
+          transform: none;
+        }
+      }
+    }
+  }
+
+  // Source/date/author line print.ts seats after each figure — the
+  // document sheet can't reach this shadow root.
+  .print-caption {
+    display: block;
+    max-width: 100%;
+    margin: var(--space-2xs) auto var(--space-md);
+    font-size: var(--print-caption-size);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-align: center;
+    overflow-wrap: break-word;
+    break-inside: avoid;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
   }
 }

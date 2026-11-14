@@ -11,6 +11,7 @@ import { STATE_CLASSES } from '@core/tokens/classes/state.js'
 import { MEDIA_QUERIES } from '@core/tokens/primitives.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { THEME } from '@core/tokens/theme/theme.js'
+import { isPlaygroundRoute } from '@core/router/playground.js'
 import type { MutationMap } from '../state.js'
 import type { Store } from '../../store.js'
 import { PREF_STORAGE_KEYS } from '@core/tokens/data/storage.js'
@@ -48,7 +49,12 @@ export const themeMutations = (store: Store): MutationMap => ({
   applyTheme: () => {
     let isDark
 
-    if (store.state.theme === THEME.DARK) {
+    if (isPlaygroundRoute()) {
+      // Earth-playground / star-field are dark-only experiment surfaces —
+      // the stored preference is left untouched and resumes on the next
+      // ordinary route (applyTheme re-runs on every navigation).
+      isDark = true
+    } else if (store.state.theme === THEME.DARK) {
       isDark = true
     } else if (store.state.theme === THEME.LIGHT) {
       isDark = false

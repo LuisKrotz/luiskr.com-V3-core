@@ -74,6 +74,14 @@ export const SOURCE_YEAR_TOKEN = '{year}'
 export const A11Y_INDEX_TOKEN = '{index}'
 
 /**
+ * Placeholder inside the `notify.nothingToPrint` toast template — the print
+ * gate swaps it for the localized route name so translators may position
+ * the name freely ('Nothing to print in {route}' vs '{route} tem nada
+ * para imprimir').
+ */
+export const ROUTE_TOKEN = '{route}'
+
+/**
  * Frozen section component key map — sole declaration site for these tokens; consumers read
  * members and never re-declare the strings (zero-hardcoding rules 4–5). Object.freeze makes
  * the token contract immutable at runtime.

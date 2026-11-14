@@ -11,9 +11,10 @@ import {
   rightsParts,
   rightsText,
   routeSlugs,
+  versionStamp,
 } from '@core/locale/ui-text.js'
 
-import { TEST_TEXT } from '@tests/fixtures/test-constants.js'
+import { TEST_TEXT, TEST_VERSION } from '@tests/fixtures/test-constants.js'
 import '@website/components/feedback/CookieBanner.js'
 import '@website/components/home/ContactSection.js'
 import '@website/views/not-found/NotFound.js'
@@ -85,5 +86,33 @@ describe('ui-text tails', () => {
 
     // Restore the bundled dictionaries for downstream suites.
     store.commit(LANG_MUTATIONS.SET_COMPONENT_LANG, {})
+  })
+
+  test('versionStamp joins the baked version and build id only when both exist', () => {
+    const prevEnv = globalThis.__VITE_ENV__
+
+    // Fully baked env — the footer line renders 'v{app} / build {id}'.
+    globalThis.__VITE_ENV__ = {
+      VITE_APP_VERSION: TEST_VERSION.APP,
+      VITE_BUILD_ID: TEST_VERSION.BUILD,
+    }
+
+    expect(versionStamp()).toBe(`v${TEST_VERSION.APP} / build ${TEST_VERSION.BUILD}`)
+
+    // Half-baked arms — a lone var never becomes a malformed stamp.
+    globalThis.__VITE_ENV__ = { VITE_APP_VERSION: TEST_VERSION.APP }
+
+    expect(versionStamp()).toBe(CHAR_STRINGS.EMPTY)
+
+    globalThis.__VITE_ENV__ = { VITE_BUILD_ID: TEST_VERSION.BUILD }
+
+    expect(versionStamp()).toBe(CHAR_STRINGS.EMPTY)
+
+    // Unset env — import.meta.env itself is absent under Jest.
+    globalThis.__VITE_ENV__ = undefined
+
+    expect(versionStamp()).toBe(CHAR_STRINGS.EMPTY)
+
+    globalThis.__VITE_ENV__ = prevEnv
   })
 })

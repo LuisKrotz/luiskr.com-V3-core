@@ -131,6 +131,12 @@ export const GRAVATAR_SIZES = Object.freeze({
   GRAVATAR_SIZE_1X: 200,
   GRAVATAR_SIZE_2X: 300,
   GRAVATAR_SIZE_3X: 400,
+  /**
+   * Cover-star rung — the printed issue's portrait plate re-requests the
+   * about photo at Gravatar's service ceiling (2048px) so the full-width
+   * plate holds print density on an A4 sheet.
+   */
+  GRAVATAR_COVER: 2048,
 })
 
 /**

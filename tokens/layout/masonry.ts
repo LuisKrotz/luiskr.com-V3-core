@@ -90,4 +90,22 @@ export const INTERNAL_MOSAIC = Object.freeze({
    *  max-area is too tight for a natural-size wall, so it runs the
    *  same scrolling strip as mobile. */
   CAROUSEL_MAX_W: 1024,
+  /**
+   * Void-fill width floor (px) — uncovered slabs narrower than this are
+   * gutter texture, not dead pockets (~1.5× GAP keeps ordinary
+   * inter-tile spacing out of the fill pass).
+   */
+  FILL_MIN_W: 24,
+  /**
+   * Void-fill depth floor (px) — pockets shallower than this read as the
+   * wall's natural ragged texture; deeper ones paint the dead-black
+   * margin canyons (≈4× GAP).
+   */
+  FILL_MIN_H: 64,
+  /**
+   * Max linear grow factor for the void fill — the grown tile box must
+   * stay under the natural source: ÷3 × 1.5 ≈ ÷2, always denser than
+   * the DIVISOR_SMALL rung the ladder already paints.
+   */
+  FILL_GROW_MAX: 1.5,
 })

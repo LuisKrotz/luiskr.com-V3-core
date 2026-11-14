@@ -32,10 +32,22 @@
     flex: 1 0 auto;
     width: 100%;
     min-width: 0;
+    // border-box: the 50% inline run-out padding below must live INSIDE
+    // the 100% width, not widen the track to 200% under the shell's clip.
+    box-sizing: border-box;
     display: flex;
     align-items: stretch;
     overflow-x: scroll;
-    padding: to-rem($space-2xl) 0 to-rem($space-md);
+    // 50% inline run-out: the infinite loop centres the edge CLONES
+    // before teleporting, which needs scrollLeft positions past the
+    // content's own extent on both ends. Half a track on each side lets
+    // any slide — first, last or clone — park dead-centre regardless of
+    // how narrow the half-natural slides are (the old full-size slides
+    // overflowed enough to hide this; with ~370px slides the clone
+    // target clamped at max-scroll and the wrap stalled on the last
+    // real slide). Mandatory centre snap keeps the run-out unreachable
+    // as a rest position.
+    padding: to-rem($space-2xl) 50% to-rem($space-md);
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
@@ -53,23 +65,23 @@
     } // Chrome/Safari
 
     @include layout-768() {
-      padding: to-rem($space-5xl) 0 to-rem($space-lg);
+      padding: to-rem($space-5xl) 50% to-rem($space-lg);
     }
 
     @include layout-1024() {
-      padding: to-rem($space-3xl) 0 to-rem($space-lg);
+      padding: to-rem($space-3xl) 50% to-rem($space-lg);
     }
 
     @include layout-1440() {
-      padding: to-rem($space-4xl) 0 to-rem($space-lg);
+      padding: to-rem($space-4xl) 50% to-rem($space-lg);
     }
 
     @include layout-1920() {
-      padding: to-rem($space-5xl) 0 to-rem($space-lg);
+      padding: to-rem($space-5xl) 50% to-rem($space-lg);
     }
 
     @include layout-2560() {
-      padding: to-rem($space-5xl) 0 to-rem($space-xl);
+      padding: to-rem($space-5xl) 50% to-rem($space-xl);
     }
   }
 

@@ -12,7 +12,7 @@ import { _B_COOKIES, _K_VIEW_OUTLET } from '../base.js'
  */
 export const APP_IDS = Object.freeze({
   APP: 'app',
-  /** Fullscreen WebGL aurora canvas parked behind #app (body's first child). */
+  /** Fullscreen WebGL field canvas parked behind #app (body's first child). */
   PAGE_BACKDROP: 'page-backdrop',
   MAIN: 'main',
   MAIN_CONTENT: 'main-content',
@@ -71,7 +71,7 @@ export const NAV_SEARCH_IDS = Object.freeze({
   RIM: 'nav-search-rim',
   /** Linear handle ramp — the machined grip's edge shading. */
   HANDLE: 'nav-search-handle',
-  /** Prompt chevron neon gradient (search glyph). */
+  /** Prompt chevron silver gradient (search glyph). */
   CHEV: 'nav-search-chev',
   /** Motion streak gradient (search glyph). */
   STREAK: 'nav-search-streak',

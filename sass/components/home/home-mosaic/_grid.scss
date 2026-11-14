@@ -48,3 +48,146 @@
     content: none;
   }
 }
+
+// ── Print ───────────────────────────────────────────────────────────────────
+// The JS-packed wall flattens into a static mosaic: tile geometry lived
+// inline (print.ts strips style attributes), so tiles reflow in DOM order.
+// Paper-size rungs reuse the breakpoint map — print media queries resolve
+// against the page box (A5≈463px, A4≈698px, A3≈1027px), so 540/960 map
+// A5→one column, A4→two, A3 and larger→three.
+@media print {
+  .home-mosaic {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+    align-items: start;
+    height: auto;
+    min-height: 0;
+    transition: none;
+
+    @include layout-540() {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @include layout-960() {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    &-ring-canvas {
+      display: none;
+    }
+  }
+
+  .home-mosaic-item {
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none;
+    transition: none;
+    transform: none;
+    opacity: 1;
+    filter: none;
+    background: transparent;
+    border: var(--space-hairline) solid var(--border-color);
+    color: var(--text-primary);
+
+    &::before,
+    &::after {
+      content: none;
+    }
+  }
+
+  // The media well's height was inline — the surviving img layer goes
+  // in-flow and carries the well itself (absolute layers over a
+  // heightless box collapse to nothing on paper).
+  .home-mosaic-media {
+    height: auto;
+    transition: none;
+  }
+
+  // The svg placeholder only boxes the on-screen ratio — the surviving
+  // layer carries the tile's height; the gray box never prints.
+  .home-mosaic-img--placeholder {
+    display: none;
+  }
+
+  // The --loaded opacity gate never ran for print: every surviving layer
+  // (print.ts promotes the uncompressed src, tags replaced rungs
+  // .print-src) paints at full strength.
+  .home-mosaic-img {
+    position: static;
+    inset: auto;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: var(--print-media-max-h);
+    margin: 0 auto;
+    object-fit: contain;
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+
+  // Retired stack layers — print.ts tags the rungs an uncompressed layer
+  // replaces `.print-src`; the document sheet can't reach this shadow.
+  .print-src {
+    display: none;
+  }
+
+  // Source/date/author line print.ts seats after each surviving layer —
+  // the document sheet can't reach this shadow root.
+  .print-caption {
+    display: block;
+    max-width: 100%;
+    margin: var(--space-2xs) auto var(--space-md);
+    font-size: var(--print-caption-size);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-align: center;
+    overflow-wrap: break-word;
+    break-inside: avoid;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+
+  // Title scrim drops to flat caption text — gradients don't print.
+  .home-mosaic-title-overlay {
+    position: static;
+    display: block;
+    padding: var(--space-sm) var(--space-lg) 0;
+    background: none;
+  }
+
+  .home-mosaic-title {
+    color: var(--text-primary);
+  }
+
+  // The expanding panel re-flows open; the CTA button is interactive
+  // chrome — paper keeps the copy, drops the button.
+  .home-mosaic-bottom {
+    height: auto;
+    background: transparent;
+    border-top: none;
+    transition: none;
+  }
+
+  .home-mosaic-desc {
+    color: var(--text-primary);
+    text-shadow: none;
+
+    .draw-text__char {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
+  .home-mosaic-btn {
+    display: none;
+  }
+}

@@ -168,3 +168,13 @@
 :host-context(html.reduced-motion) .home-mosaic-item::before {
   animation: none;
 }
+
+// Scroll-gesture park — the sheen ring is a masked pseudo layer, so its
+// opacity loop re-rasters every frame instead of compositing. While a
+// scroll gesture is live the animation freezes mid-breath (compositor
+// keeps the last raster) and resumes on settle. Dual selectors cover
+// light-DOM and shadow-DOM mounts of this sheet.
+html.is-scrolling .home-mosaic-item::before,
+:host-context(html.is-scrolling) .home-mosaic-item::before {
+  animation-play-state: paused;
+}

@@ -312,20 +312,27 @@ $_MEDIA-H-LG: to-rem($space-md * ($space-xl + $space-2xs * 2));
     font-size: to-rem($space-lg);
     line-height: 1;
     cursor: pointer;
+    // Resting lift — straddling the seam the buttons read as floating
+    // chrome; the shadow collapses on hover so the press flattens into
+    // the border like the card shadows do.
+    box-shadow: var(--shadow-card);
     transition:
       color 0.3s ease,
       border-color 0.3s ease,
+      box-shadow 0.3s ease,
       transform 0.45s $ease-out;
     // Spring upgrade — the hover lift breathes like the card rows do.
     transition:
       color 0.3s ease,
       border-color 0.3s ease,
+      box-shadow 0.3s ease,
       transform 0.45s $ease-spring;
 
     &:hover,
     &:focus-visible {
       color: var(--color-accent-contrast);
       border-color: var(--color-accent-contrast);
+      box-shadow: none;
       transform: translateY(#{to-rem(-$space-hairline)});
     }
   }
@@ -380,3 +387,16 @@ $_MEDIA-H-LG: to-rem($space-md * ($space-xl + $space-2xs * 2));
     transition: none;
   }
 }
+
+// Scroll-gesture park — the sheen ring is a masked pseudo layer, so its
+// opacity loop re-rasters every frame instead of compositing. While a
+// scroll gesture is live the animation freezes mid-breath (compositor
+// keeps the last raster) and resumes on settle. Dual selectors cover
+// light-DOM and shadow-DOM mounts of this sheet.
+html.is-scrolling .#{$_B_RELATED}-inner::before,
+:host-context(html.is-scrolling) .#{$_B_RELATED}-inner::before {
+  animation-play-state: paused;
+}
+
+// The strip never prints — _internal.scss’s print block hides the
+// portfolio-related host outright, so no in-shadow rules are needed.

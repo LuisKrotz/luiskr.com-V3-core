@@ -25,11 +25,15 @@ export type TierLoader = () => Promise<{ default: string } | string>
 /**
  * The `?tiers` module shape: embedded base text plus cumulative tier
  * loaders keyed by the highest class they cover (sparse — the runtime
- * resolves the viewport class to the highest defined tier ≤ it).
+ * resolves the viewport class to the highest defined tier ≤ it). `print`
+ * carries the sheet's `@media print`/`@page` blocks behind the same lazy
+ * loader contract — adopted onto the shadow root during idle, inert on
+ * screen, live for paper output only.
  */
 export interface TieredStyles {
   base: string
   tiers: Partial<Record<WidthClass, TierLoader>>
+  print?: TierLoader
 }
 
 /** Type guard for the `?tiers` module shape vs a plain `?inline` string. */
@@ -157,26 +161,23 @@ export const watchWidthClassGrow = (cb: (_cls: WidthClass) => void): (() => void
 /**
  * Merges several `?tiers` imports into one TieredStyles — the multi-sheet
  * equivalent of the old `` `${a}\n${b}` `` concat (MediaFigure). Bases are
- * joined in order; tier loaders resolve all declared sheets for the key
- * and join their cumulative css, preserving per-sheet order.
+ * joined in order; each merged tier resolves PER SHEET to the highest
+ * defined tier at or below the class — the splitter omits a class whose
+ * cumulative content equals the previous tier's ("the runtime falls back
+ * to the highest defined lower tier"), so a sheet with only mobile/tablet
+ * content must still contribute at desktop. Keying merged loaders by the
+ * exact class alone orphaned those sheets — their narrower cumulative
+ * rules would never be adopted once a wider tier existed on any sibling.
  */
 export const mergeTiered = (...parts: Array<string | TieredStyles>): TieredStyles => {
   const base: string[] = []
-  const loaders = new Map<WidthClass, TierLoader[]>()
+  const tiered: TieredStyles[] = []
 
   for (const p of parts) {
     if (isTieredStyles(p)) {
       base.push(p.base)
 
-      for (const name of WIDTH_CLASS_NAMES) {
-        const loader = p.tiers[name]
-
-        if (!loader) continue
-
-        const list = loaders.get(name) ?? []
-        list.push(loader)
-        loaders.set(name, list)
-      }
+      tiered.push(p)
     } else {
       base.push(p)
     }
@@ -184,9 +185,33 @@ export const mergeTiered = (...parts: Array<string | TieredStyles>): TieredStyle
 
   const tiers: TieredStyles['tiers'] = {}
 
-  for (const [name, list] of loaders) {
+  // Same dedup the splitter applies: when every sheet resolves to the
+  // same tier keys it resolved at the previous class, the merged text
+  // would be byte-identical — omit the class so the runtime falls back
+  // instead of fetching a duplicate sheet.
+  let prevSig: string | undefined
+
+  for (const name of WIDTH_CLASS_NAMES) {
+    const loads: TierLoader[] = []
+
+    let sig = ''
+
+    for (const p of tiered) {
+      const key = resolveTierKey(p.tiers, name)
+
+      if (key) {
+        loads.push(p.tiers[key] as TierLoader)
+
+        sig += `${tiered.indexOf(p)}:${key}|`
+      }
+    }
+
+    if (!loads.length || sig === prevSig) continue
+
+    prevSig = sig
+
     tiers[name] = async () => {
-      const mods = await Promise.all(list.map((load) => load()))
+      const mods = await Promise.all(loads.map((load) => load()))
 
       return mods
         .map((m) =>
@@ -196,5 +221,24 @@ export const mergeTiered = (...parts: Array<string | TieredStyles>): TieredStyle
     }
   }
 
-  return { base: base.join('\n'), tiers }
+  // Print loaders merge the same way — every part's paper rules resolve
+  // and join in source order; parts without a print bucket contribute
+  // nothing.
+  const prints = tiered
+    .map((p) => p.print)
+    .filter((l): l is TierLoader => typeof l === TYPE_STRINGS.FUNCTION)
+
+  const print = prints.length
+    ? async () => {
+        const mods = await Promise.all(prints.map((load) => load()))
+
+        return mods
+          .map((m) =>
+            typeof m === TYPE_STRINGS.STRING ? (m as string) : (m as { default: string }).default
+          )
+          .join('\n')
+      }
+    : undefined
+
+  return print ? { base: base.join('\n'), tiers, print } : { base: base.join('\n'), tiers }
 }

@@ -11,26 +11,230 @@
 //  drops html.dark-mode for the duration of the print job.
 // ════════════════════════════════════════════════════════════════════════════
 
-// Injected print stand-ins never render on screen — the live surface shows.
-@media screen {
-  .print-copy {
-    display: none;
+// Injected print stand-ins, captions, QR links and cover sheets carry the
+// `hidden` attribute — the screen-hide contract lives on the node itself
+// now that this whole file ships on its own media="print" link.
+
+// Half-inch-equivalent page margin — the one physical unit print needs.
+// The folio (page number) sits in the bottom margin's centre like a
+// magazine's running foot; margin boxes only paint inside the margin
+// area, so the margin-zero cover/plate sheets stay clean automatically.
+@page {
+  // `size: auto` — the page box follows the paper the user picks in the
+  // dialog (A0–A6, US Letter/Legal/Tabloid, …). The sheet rungs below
+  // then snap to that sheet via page-box media queries: vh/vw resolve
+  // against the screen viewport in paged media (never the sheet), so
+  // sheet-relative plates sized in viewport units land a different box
+  // per machine — and a fixed A4 sheet would white-band or overflow
+  // every other format.
+  size: auto;
+  margin: var(--print-page-margin);
+
+  @bottom-center {
+    content: counter(page);
+    font-family: var(--font-serif);
+    font-size: var(--print-caption-size);
+    color: var(--print-ink);
   }
 }
 
+// Full-bleed cover pages — margin zero makes the page area the whole
+// sheet, so the cover's sheet-tall ink box reaches the paper edge
+// instead of leaving a white frame inside the page margin. The
+// sheet-level background paints the whole page box too, so a cover
+// element that comes up a hairline short never leaves a white sliver
+// at the trim.
+@page print-cover {
+  margin: 0;
+  background: var(--print-ink);
+}
+
 @media print {
-  // The veil exists only until mount — never on paper. The retired
-  // modifier is what a finished veil keeps as its whole class list.
+  // Sheet-size detection — `width`/`height` media features evaluate the
+  // page box on paper, so the chosen paper's dims drive the two sheet
+  // tokens every plate, cover and bleed inset measures from. The ladder
+  // floor-snaps each axis to the largest standard dim it clears (ISO
+  // A0–A6 + B4/B5, US Letter/Legal/Executive/Tabloid-Ledger): an
+  // unlisted size under-covers by its remainder — which reads as a
+  // slightly wider trim margin — rather than over-covering, which would
+  // fragment the sheet-sized box onto a second page. Orientation needs
+  // no extra rungs: a turned sheet just swaps the axes. Below the
+  // smallest rung (< A6, labels/receipts) the A6 floor keeps the layout
+  // deterministic — that floor is pinned on the :root rung below.
+
+  html,
+  body,
+  #app {
+    background: var(--print-paper);
+    color: var(--print-ink);
+    // The UA's `body { margin: 8px }` survives the cascade into paged
+    // media — on the margin-zero cover sheets it insets the ink box by
+    // 8px a side (a white trim frame) and pushes the cover past the
+    // page area, spilling a blank continuation sheet after every
+    // cover. Zeroing margin+padding here is what lets the covers paint
+    // edge-to-edge and stay one page.
+    margin: 0;
+    padding: 0;
+    min-height: 0;
+    height: auto;
+    overflow: visible;
+  }
+
+  // Sheet-true heights — the one geometry the media-query ladder cannot
+  // supply: on the real print path Chromium evaluates width/height
+  // media features against a shrunken eval box (~30mm under the paper
+  // vertically on some engines), so rung-snapped sheet tokens under-
+  // cover every margin-zero page and leave the white trim band. The
+  // vb/vi viewport units instead resolve against the fragmentainer
+  // itself — page box on the margin-zero named pages, page area inside
+  // margins — identical on every engine, every paper, every capture,
+  // and immune to containing-block height resolution (an in-flow 100%
+  // resolves against the paginated root flow and strands empty sheets).
+  // html/body still pin a % chain for any nested percentage consumer.
+  html,
+  body {
+    height: 100%;
+  }
+
+  // The veil, decorative field wash layers, and skip-link chrome never print.
+  // `html.has-gl-backdrop` qualifies the backdrop hide — the screen rule
+  // `html.has-gl-backdrop #page-backdrop { display:block }` out-specificities
+  // a bare id, and its dark GL frame would paint over the first page.
+  // `.print-veil` is the gated entry's screen-side wait cover — it drops at
+  // commit, but an emulated-print mid-gate could otherwise paint it.
   .intro-loader,
-  .intro-loader--retired {
+  .intro-loader--retired,
+  .print-veil,
+  #page-backdrop,
+  html.has-gl-backdrop #page-backdrop,
+  body::before,
+  body::after,
+  #app::before,
+  #app::after,
+  body > header:has(> .skip-link),
+  .skip-link {
     display: none;
   }
 
-  // When the reader mirror exists it IS the print document; the live app
-  // (shadow chrome, nav, canvases) leaves the flow. The > gate means the
-  // article has been hoisted to body level — before that (pre-mount print)
-  // the app stays and prints as-is.
-  html.js body:has(> .reader-content) #app {
+  // Fixed/sticky chrome hosts — a fixed element repeats on every printed
+  // page (toasts, dev HUD, dialogs, nav shell), so they are off outright.
+  // Document rules reach the host element even though the internals sit
+  // inside shadow roots. The `[open]`/`.is-open` arms match the screen
+  // rules' attribute-qualified specificity — an open dialog must not win
+  // the hide back on paper.
+  site-toast,
+  cookie-banner,
+  stats-hud,
+  search-modal,
+  preferences-modal,
+  preferences-modal[open],
+  preferences-modal.is-open,
+  lang-dialog,
+  lang-dialog[open],
+  lang-dialog.is-open,
+  expand-modal,
+  media-expanded,
+  app-nav {
+    display: none;
+  }
+
+  // Interactive chrome never prints — real form fields (the /search
+  // input, any routed control) are gesture surfaces, not document
+  // content. The search/404 routes are print-gated upstream, so this
+  // catches stray fields on content routes.
+  input,
+  textarea,
+  select,
+  route-search {
+    display: none;
+  }
+
+  // Press voice — serif end to end. Re-pinning the family tokens flips
+  // every var() consumer (headings, body, captions, TOC, footers) to
+  // the editorial face without a selector fight: code keeps
+  // --font-mono (untouched), icon faces keep their own families, and
+  // mermaid's svg text carries its baked sans.
+  :root {
+    // Sheet-box floor — the smallest standard dim the size ladder below
+    // snaps up from (A6's short edge); any larger paper overrides both
+    // axes through the min-width/min-height gates. Height floors at the
+    // same rung so a turned A6 sheet does not over-cover vertically.
+    --print-sheet-w: 105mm;
+    --print-sheet-h: 105mm;
+
+    --font-primary: var(--font-serif);
+    --font-ui: var(--font-serif);
+    --font-desc: var(--font-serif);
+
+    // CMYK paper pass: every themed surface consuming --bg-primary (the
+    // var pierces shadow boundaries) flattens to raw paper white — a
+    // tinted page flood would burn toner for zero information.
+    --bg-primary: var(--print-paper);
+    --text-primary: var(--print-ink);
+
+    // "Background graphics" OFF in the print dialog would drop every
+    // painted surface — covers, plate mats, scrims. exact adjustment
+    // declares the grounds content-bearing, so the press output keeps
+    // them at either dialog setting.
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  // View shells that reserve a full viewport height on screen — the page
+  // box paginates content, and the reservation would continue past the
+  // last block as trailing blank sheets. `#main` is the internals
+  // wrapper (`.project`) — its 100vh lands a full-height white box on
+  // the default page ahead of the hero's named-page spread.
+  view-home,
+  view-project,
+  view-legal,
+  view-not-found,
+  view-space-playground,
+  view-star-field,
+  view-docs,
+  view-animations,
+  view-search,
+  view-sitemap,
+  #main,
+  .project {
+    min-height: 0;
+    height: auto;
+  }
+
+  // A route-prepared reader mirror (Docs.tsx clones the selected page's
+  // rendered diagrams/markdown into article.reader-content and marks it
+  // data-print-doc) IS the print document — the adapter stamps
+  // html.print-doc, #app steps aside, and the mirror unparks. Without the
+  // class (and whenever the expand modal is open) the parked offscreen
+  // mirror stays hidden and #app prints the live view.
+  html.js.print-doc:not(.modal-open) #app {
+    display: none;
+  }
+
+  // Cover-only routes (search, 404) emit exactly one injected sheet —
+  // the black cover with the site scan code + home link. The app host
+  // leaves the page entirely: its view chrome is interactive furniture,
+  // not document content, and the parked reader mirror lives inside it.
+  html.js.print-cover-only #app {
+    display: none;
+  }
+
+  // Scene-plate routes (Earth/star-field): the captured still is the
+  // job's only printable app content — the view's chrome carries no
+  // paper content, and any empty default-flow box would strand a sheet
+  // between the named cover and plate pages. #app dissolves to a
+  // contents pass-through and every non-plate child drops, leaving the
+  // plate the only box in the default region.
+  html.js.print-plate-doc #app {
+    display: contents;
+  }
+
+  html.js.print-plate-doc #app > :not(.print-plate) {
+    display: none;
+  }
+
+  html.js .reader-content,
+  html.modal-open .print-copy {
     display: none;
   }
 
@@ -39,28 +243,140 @@
     display: none;
   }
 
-  // The injected still — full-measure, paginated, kept with its page.
+  // A canvas that yielded no capture paints an empty box on paper —
+  // decorative or not, it never prints. Captured frames swapped to
+  // .print-copy imgs already carry the frame's pixels.
+  canvas {
+    display: none;
+  }
+
+  // The figure host's below-fold skip (content-visibility + a 60vh
+  // intrinsic estimate) survives into paged media as blank reserved
+  // bands — every figure renders for the snapshot instead.
+  media-figure {
+    content-visibility: visible;
+    contain-intrinsic-size: none;
+  }
+
+  // The injected still — full-measure, paginated, kept with its page;
+  // the same sheet-height cap as figure media keeps a tall canvas
+  // capture from overflowing the page box. The padding ring + tint +
+  // hairline mount the still as an editorial plate instead of a bare
+  // paste (bleed spreads opt back out in their own block).
   .print-copy {
     display: block;
+    box-sizing: border-box;
     max-width: 100%;
+    max-height: var(--print-media-max-h);
     height: auto;
     margin: var(--space-md) auto;
+    padding: var(--space-xs);
+    background: color-mix(in srgb, var(--print-ink) 4%, var(--print-paper));
+    border: var(--space-hairline) solid color-mix(in srgb, var(--print-ink) 28%, transparent);
+    object-fit: contain;
     break-inside: avoid;
   }
 
+  // Source/date/author line under every printed media surface — small
+  // serif text justified under its image, URLs wrapped so long CDN paths
+  // never overflow the measure. Centered credit lines read as web
+  // chrome on paper — the press convention is an aligned measure.
+  .print-caption {
+    display: block;
+    max-width: 100%;
+    margin: var(--space-2xs) auto var(--space-md);
+    font-size: var(--print-caption-size);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-align: justify;
+    text-align-last: left;
+    overflow-wrap: break-word;
+    break-inside: avoid;
+    break-before: avoid;
+    page-break-before: avoid;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+
+  // Small scan code under each footer link — the svg fills the fixed
+  // edge so paper output stays scannable at any density.
+  .print-qr-link {
+    display: block;
+    width: var(--print-qr-link-size);
+    margin: var(--space-2xs) auto var(--space-sm);
+    color: var(--text-primary);
+    break-inside: avoid;
+    page-break-inside: avoid;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  // The readable destination under a directory row's title — small
+  // muted type, wrapped character-free so long deep links never push
+  // the measure past the page edge; the href carries the link so a
+  // digital reader can still tap it.
+  .print-link-url {
+    display: block;
+    max-width: 100%;
+    margin: var(--space-2xs) 0;
+    font-size: var(--print-caption-size);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    break-inside: avoid;
+    break-before: avoid;
+    page-break-before: avoid;
+  }
+
+  // Landscape sheets are wider than they are tall — the media cap
+  // plus the title/caption rungs would overflow the shorter page box
+  // and strand a near-empty sheet before the figure. The 60% rung of
+  // the landscape content height keeps title + media + caption on one
+  // sheet at every size class.
+  @media (orientation: landscape) {
+    :root {
+      --print-media-max-h: calc(
+        (var(--print-sheet-w) - var(--print-margin-top) - var(--print-margin-bottom)) * 0.6
+      );
+    }
+  }
+
+  // Mirror images print centred at their own measure — never wider than
+  // the page, never taller than one sheet. Same editorial mat as the
+  // .print-copy stills — a padding ring + ink-tinted ground + hairline
+  // rule mounts the capture instead of pasting it.
+  .reader-content img {
+    display: block;
+    box-sizing: border-box;
+    max-width: 100%;
+    max-height: var(--print-media-max-h);
+    height: auto;
+    margin: var(--space-md) auto;
+    padding: var(--space-xs);
+    background: color-mix(in srgb, var(--print-ink) 4%, var(--print-paper));
+    border: var(--space-hairline) solid color-mix(in srgb, var(--print-ink) 28%, transparent);
+    object-fit: contain;
+  }
+
   // Undo every parking trick (offscreen shift, fixed pin, clip, skipped
-  // content) so the mirror re-flows as the readable document. Equal
-  // specificity to html.js .reader-content--painted but emitted later —
-  // import order decides.
-  html.js .reader-content {
+  // content) so an armed mirror re-flows as the readable document. The
+  // 75ch measure + padding from the parked baseline STAY — they are the
+  // article's margins and reading column, not part of the parking.
+  html.js.print-doc:not(.modal-open) .reader-content {
+    display: block;
     position: static;
     inset: auto;
     z-index: auto;
     width: auto;
     height: auto;
-    max-width: none;
-    margin: 0;
-    padding: 0;
     overflow: visible;
     pointer-events: auto;
     content-visibility: visible;
@@ -70,7 +386,18 @@
 
   // Pagination hygiene for the mirror: figures and code blocks never split
   // across pages; headings stay with what follows them.
+  //
+  // ── Docs mirror — the magazine's reference spread ────────────────────
+  // The reader article IS the printed document on docs routes. Same
+  // editorial grammar as the rest of the issue: a ruled masthead on the
+  // page head, hairlines between sections, justified press-measure body,
+  // a drop cap opening the document, ruled tables, and code panels kept
+  // in mono with a hairline mat instead of a screen-dark surface.
   .reader-content {
+    // Numbered-section folio counter — the h2 heads carry the same
+    // decimal-leading-zero runs the legal clauses do.
+    counter-reset: reader-sec;
+
     figure,
     pre,
     blockquote {
@@ -83,5 +410,1119 @@
     h4 {
       break-after: avoid-page;
     }
+
+    h1 {
+      margin: 0 0 var(--space-md);
+      padding: var(--space-2xs) 0 var(--space-sm);
+      border-bottom: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 30%, transparent);
+      font-size: var(--space-3xl);
+      line-height: 1.1;
+      letter-spacing: 0.04em;
+      color: var(--print-ink);
+      overflow-wrap: break-word;
+    }
+
+    h2 {
+      margin: var(--space-xl) 0 var(--space-sm);
+      padding-top: var(--space-sm);
+      border-top: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 28%, transparent);
+      font-size: var(--space-xl);
+      line-height: 1.25;
+      color: var(--print-ink);
+
+      &::before {
+        counter-increment: reader-sec;
+        content: counter(reader-sec, decimal-leading-zero);
+        margin-right: var(--space-sm);
+        font-size: var(--print-caption-size);
+        letter-spacing: 0.2em;
+        color: color-mix(in srgb, var(--print-ink) 55%, transparent);
+      }
+    }
+
+    h3,
+    h4 {
+      margin: var(--space-lg) 0 var(--space-2xs);
+      font-size: var(--space-lg);
+      line-height: 1.3;
+      color: var(--print-ink);
+    }
+
+    p,
+    li {
+      font-size: var(--print-body-size);
+      line-height: 1.5;
+      color: var(--print-ink);
+    }
+
+    p {
+      margin: 0 0 var(--space-sm);
+      text-align: justify;
+      hyphens: auto;
+    }
+
+    // The document's first real paragraph opens the spread — drop cap,
+    // the feature-opener move the mirror's plain markup supports.
+    .docs-md > p:first-of-type::first-letter,
+    > div > article > p:first-of-type::first-letter {
+      float: left;
+      font-size: var(--space-4xl);
+      line-height: 0.85;
+      padding-right: var(--space-2xs);
+    }
+
+    ul,
+    ol {
+      margin: 0 0 var(--space-sm);
+      padding-left: var(--space-xl);
+    }
+
+    a {
+      color: var(--print-ink);
+    }
+
+    // Code panels print as a hairline-mat plate in mono — the screen's
+    // dark surface would burn toner for nothing.
+    pre {
+      margin: var(--space-sm) 0 var(--space-md);
+      padding: var(--space-xs) var(--space-sm);
+      border: to-rem($space-hairline) solid color-mix(in srgb, var(--print-ink) 28%, transparent);
+      background: color-mix(in srgb, var(--print-ink) 4%, var(--print-paper));
+      font-size: var(--print-caption-size);
+      line-height: 1.45;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    code {
+      font-size: 0.92em;
+    }
+
+    // Ruled tables — header off the baseline, hairline rows like the
+    // TOC/footer directories elsewhere in the issue.
+    table {
+      width: 100%;
+      margin: var(--space-sm) 0 var(--space-md);
+      border-collapse: collapse;
+      font-size: var(--print-caption-size);
+    }
+
+    th,
+    td {
+      padding: var(--space-2xs) var(--space-xs);
+      border-bottom: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 22%, transparent);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    thead th {
+      border-bottom-width: to-rem($space-hairline * 2);
+    }
+
+    blockquote {
+      margin: var(--space-md) 0;
+      padding: 0 0 0 var(--space-md);
+      border-left: to-rem($space-hairline * 2) solid
+        color-mix(in srgb, var(--print-ink) 40%, transparent);
+      font-style: italic;
+      color: var(--text-secondary);
+    }
+
+    // Docs diagrams — paper-themed SVGs re-rendered at prepare time.
+    // Upright blocks centre at natural size capped to the column; the
+    // `data-print-rotate` arm claims a whole page and quarter-turns the
+    // diagram to fill it (the "turn the magazine" spread, applied to a
+    // vector drawing instead of shrinking it to illegibility).
+    .docs-mermaid {
+      margin: var(--space-md) 0;
+      break-inside: avoid;
+      text-align: center;
+
+      svg {
+        display: block;
+        max-width: 100%;
+        max-height: var(--print-media-max-h);
+        height: auto;
+        margin: 0 auto;
+      }
+    }
+
+    // Quarter-turn fires only on portrait sheets — landscape paper's
+    // content box is already wide enough for the diagram to print big
+    // unrotated (same gate the landscape plates use).
+    @media (orientation: portrait) {
+      .docs-mermaid[data-print-rotate] {
+        // The slot is the full content area — `break-inside: avoid` gives
+        // the block its own sheet, and the size container makes 100cqh /
+        // 100cqw the swapped pair the rotated svg needs (the same swap
+        // the landscape plates run).
+        height: var(--print-content-h);
+        margin: 0;
+        position: relative;
+        container-type: size;
+
+        > svg {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          max-width: none;
+          max-height: none;
+          width: 100cqh;
+          height: 100cqw;
+          margin: 0;
+          transform: translate(-50%, -50%) rotate(90deg);
+        }
+      }
+    }
+  }
+
+  // Editorial pagination contract — three-line keeps kill the one-line
+  // widows/orphans that stranded lone lines on near-empty sheets, and no
+  // heading separates from the copy it titles.
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+  }
+
+  // ── Contents page ─────────────────────────────────────────────────────────
+  // The injected .print-toc sheet — the magazine's table of contents,
+  // seated between the face page and the first content page. Numbered
+  // section heads with hairline rules; card titles indent as unnumbered
+  // sub-entries under their section.
+  .print-toc {
+    display: block;
+    padding-top: var(--space-2xl);
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .print-toc-head {
+    display: block;
+    margin: 0 0 var(--space-xl);
+    font-size: var(--space-2xl);
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--print-ink);
+  }
+
+  .print-toc-item,
+  .print-toc-item--sub {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+    padding: var(--space-sm) 0;
+    border-bottom: to-rem($space-hairline) solid
+      color-mix(in srgb, var(--print-ink) 22%, transparent);
+    font-size: var(--space-xl);
+    line-height: 1.3;
+    color: var(--print-ink);
+    break-inside: avoid;
+  }
+
+  .print-toc-item--sub {
+    margin-left: var(--space-2xl);
+    font-size: var(--space-lg);
+    font-weight: 300;
+  }
+
+  .print-toc-num {
+    flex: 0 0 var(--space-xl);
+    font-size: var(--print-caption-size);
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+  }
+
+  // ── Cover sheets ───────────────────────────────────────────────────────────
+  // The job opens with a black title cover (gold masthead + localized
+  // "Portfolio") and a face page echoing the intro loader without its
+  // percent counter; it closes on a black back cover — centred site scan
+  // code, copyright pinned to the sheet foot. Each sheet is exactly one
+  // page area — one hairline under the sheet keeps the box strictly
+  // inside the fragmentainer (an exact-fit box is Chromium's fragment
+  // edge case), while the page-level ink background covers the gap.
+  // `page: print-cover` selects the margin-zero page defined above —
+  // that is what lets the ink bleed to the paper edge on every sheet.
+  .print-cover,
+  .print-face,
+  .print-back {
+    page: print-cover;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    // 100vb is the fragmentainer's block size — the page box on this
+    // margin-zero named page — so the ink reaches the trim on whatever
+    // paper the dialog picked, and it never consults a containing
+    // block (an in-flow 100% resolves against the paginated root flow
+    // in Chromium and fragments empty sheets). One hairline under
+    // keeps the box strictly inside the page edge (an exact-fit box is
+    // Chromium's fragment edge case); the named page's ink background
+    // covers the sliver.
+    height: calc(100vb - var(--space-hairline));
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    // The ink flood is content, not decoration — exact color adjustment
+    // keeps it when the print dialog's background-graphics toggle is off.
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    background: var(--print-ink);
+    color: var(--print-paper);
+    text-align: center;
+  }
+
+  // Rich-black press rung, gated on real device-cmyk() support: var()
+  // indirection means an unsupported value would invalidate the whole
+  // declaration at computed-value time and clobber the plain-ink
+  // fallback, so supports-testing the literal is the only safe guard.
+  @supports (background: device-cmyk(60% 40% 40% 100%)) {
+    .print-cover,
+    .print-face,
+    .print-back {
+      background: var(--print-ink-press);
+    }
+  }
+
+  // Scene plate — a captured canvas still (Earth/star-field scenes)
+  // seated full-bleed on its own sheet. It claims the same margin-zero
+  // named page as the covers: the sheet rungs fill the page area
+  // edge-to-edge with no negative-margin pulls (negative margins on a
+  // leading box drag a painted fragment onto the previous sheet — the
+  // face-page sliver this replaces). The --landscape arm quarter-turns
+  // the still inside the portrait sheet — a `size: landscape`
+  // named-page swap strands empty transition sheets in Chromium and
+  // crops content to portrait, so the page never changes size: the
+  // plate rotates instead (the "turn the magazine" spread the internal
+  // bleeds already use).
+  .print-plate {
+    page: print-cover;
+
+    position: relative;
+    // Box dims come from the fragmentainer, not the sheet ladder or a
+    // containing block: width auto-fills the margin-zero named page's
+    // area (the paper edge) and 100vb takes its block size — sheet-true
+    // on every engine, and stable for plates seated mid-flow inside the
+    // app root (a 100% there resolves against the paginated flow and
+    // fragments empty sheets). The size container makes 100cqh/100cqw
+    // the swapped pair the rotated landscape copy needs (pre-rotation
+    // box = page-h × page-w).
+    height: calc(100vb - var(--space-hairline));
+    margin: 0;
+    overflow: hidden;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    container-type: size;
+
+    .print-copy,
+    img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      margin: 0;
+      // A plate owns its edges — the editorial mat opts out here.
+      padding: 0;
+      background: none;
+      border: 0;
+      object-fit: cover;
+    }
+
+    .print-caption,
+    .print-qr-link {
+      position: absolute;
+      z-index: 1;
+      // Mirrored off the paper edge by the document's own margin
+      // rhythm — the sheet has no @page margins to borrow.
+      bottom: var(--print-margin-bottom);
+      margin: 0;
+    }
+
+    .print-caption {
+      left: var(--print-margin-h);
+      max-width: 60%;
+      padding: var(--space-2xs) var(--space-xs);
+      color: var(--print-paper);
+      background: color-mix(in srgb, var(--print-ink) 55%, transparent);
+      text-align: left;
+    }
+
+    .print-qr-link {
+      right: var(--print-margin-h);
+      padding: var(--space-2xs);
+      color: var(--print-ink);
+      background: var(--print-paper);
+    }
+
+    // Internal heroes re-seat their article title inside the plate — the
+    // same ink-scrim caption treatment, anchored to the top margin like
+    // a spread's running head instead of the credit line's bottom edge.
+    .print-bleed-head {
+      position: absolute;
+      z-index: 1;
+      top: var(--print-margin-top);
+      left: var(--print-margin-h);
+      right: var(--print-margin-h);
+      margin: 0;
+      padding: var(--space-2xs) var(--space-xs);
+      font-size: var(--space-3xl);
+      line-height: 1.1;
+      text-align: left;
+      letter-spacing: normal;
+      color: var(--print-paper);
+      background: color-mix(in srgb, var(--print-ink) 55%, transparent);
+      border-bottom: 0;
+
+      // The hoisted h1 leaves `.internal`'s scope behind, so the marquee
+      // collapse repeats here: the translating strip re-blocks, its
+      // animation freezes at translateX(0), and the duplicated
+      // copy/units + separator pipes drop — one static title prints.
+      .internal-title-marquee {
+        display: block;
+        width: auto;
+        animation: none;
+        transform: none;
+        white-space: normal;
+        will-change: auto;
+      }
+
+      .internal-title-copy + .internal-title-copy,
+      .internal-title-unit + .internal-title-unit,
+      .internal-title-sep {
+        display: none;
+      }
+    }
+  }
+
+  // Landscape media quarter-turns only on PORTRAIT sheets — the "turn
+  // the magazine" spread. On landscape paper the frame and the sheet
+  // already share orientation; rotating there would make the reader
+  // turn a landscape page sideways to read a landscape image.
+  @media (orientation: portrait) {
+    .print-plate--landscape .print-copy,
+    .print-plate--landscape img {
+      top: 50%;
+      left: 50%;
+      right: auto;
+      bottom: auto;
+      // Swapped sheet pair from the plate's own size container —
+      // pre-rotation the box is page-h × page-w so the quarter-turn
+      // lands exactly on the page box, never a ladder rung.
+      width: 100cqh;
+      height: 100cqw;
+      transform: translate(-50%, -50%) rotate(90deg);
+    }
+  }
+
+  // Internal hero plates hoist to <body> level after the covers. The
+  // margin-0 named page is what lets the media reach the trim — on a
+  // margined page Chromium clips paint at the fragmentainer edge, so
+  // negative-inset pulls and transformed boxes lose their margins.
+  .print-plate--internal {
+    media-figure,
+    > .print-copy {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      margin: 0;
+      padding: 0;
+      background: none;
+      border: 0;
+      object-fit: cover;
+    }
+  }
+
+  // Landscape heroes quarter-turn inside the portrait sheet — the "turn
+  // the magazine" spread the scene plates already use. The actual plate
+  // painter is a light-DOM .print-copy the adapter injects (its src is
+  // the figure's surviving layer): the transformed host's shadow content
+  // rasters clipped even on the margin-0 page, while a transformed
+  // light-DOM img — the scene-plate contract — paints edge-to-edge.
+  // The host stays beneath as the no-decode fallback.
+  @media (orientation: portrait) {
+    .print-plate--internal.print-plate--landscape {
+      media-figure,
+      > .print-copy {
+        top: 50%;
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        width: 100cqh;
+        height: 100cqw;
+        transform: translate(-50%, -50%) rotate(90deg);
+      }
+    }
+  }
+
+  // ── Dossier plates ─────────────────────────────────────────────────
+  // A scene route's information spread — one sheet per body (star
+  // field) or per scene (Earth playground), injected by the component's
+  // printprepare listener. Same margin-zero named page as the media
+  // plates, but the sheet is paper-backed editorial content: masthead,
+  // standfirst, fact table, prose and gallery — the padding stands in
+  // for the @page margins the named page doesn't have.
+  .print-plate--dossier {
+    display: block; // unparks the injected `hidden`
+    // The base plate's size container exists for the rotated copy's
+    // cqh/cqw swap — a dossier has no swapped children, and `size`
+    // would collapse this auto-height box's content sizing.
+    container-type: normal;
+    height: auto;
+    // border-box so the page-tall floor INCLUDES the padding — a
+    // content-box min-height plus the margin token padding overflows
+    // every plate by ~34mm and strands the abs-anchored QR alone on
+    // the overflow fragment.
+    box-sizing: border-box;
+    min-height: calc(100vb - var(--space-hairline));
+    overflow: visible;
+    // Every dossier opens its own sheet — without the break a short
+    // predecessor's flow would share the page.
+    break-before: page;
+    page-break-before: always;
+    break-inside: auto;
+    page-break-inside: auto;
+    // Each fragment keeps the page padding when a long dossier
+    // continues onto the next sheet.
+    box-decoration-break: clone;
+    padding: var(--print-margin-top) var(--print-margin-h) var(--print-margin-bottom);
+    background: var(--print-paper);
+    color: var(--print-ink);
+
+    header {
+      padding-bottom: var(--space-sm);
+      border-bottom: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 30%, transparent);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: var(--space-3xl);
+      line-height: 1.1;
+      letter-spacing: 0.04em;
+      font-weight: 400;
+      color: var(--print-ink);
+    }
+
+    .sf-panel-tag {
+      display: inline-block;
+      margin-top: var(--space-2xs);
+      font-size: var(--print-caption-size);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--print-ink) 55%, transparent);
+    }
+
+    // Tagline as standfirst — larger serif lead under the masthead.
+    .sf-panel-tagline {
+      margin: var(--space-md) 0;
+      font-size: var(--space-lg);
+      line-height: 1.4;
+      color: var(--print-ink);
+    }
+
+    // Facts as a ruled two-column directory.
+    .sf-facts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--space-xl);
+      margin: 0 0 var(--space-md);
+      padding-top: var(--space-2xs);
+      border-top: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 40%, transparent);
+    }
+
+    .sf-fact {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      padding: var(--space-2xs) 0;
+      border-bottom: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 22%, transparent);
+      font-size: var(--print-caption-size);
+      break-inside: avoid;
+    }
+
+    .sf-fact-key {
+      color: color-mix(in srgb, var(--print-ink) 55%, transparent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .sf-fact-val {
+      text-align: right;
+      color: var(--print-ink);
+    }
+
+    .sf-panel-history,
+    .sf-panel-sec-body {
+      font-size: var(--print-body-size);
+      line-height: 1.5;
+      color: var(--print-ink);
+      text-align: justify;
+      hyphens: auto;
+    }
+
+    .sf-panel-sec-title {
+      margin: var(--space-md) 0 var(--space-2xs);
+      padding-top: var(--space-2xs);
+      border-top: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 28%, transparent);
+      font-size: var(--print-body-size);
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--print-ink);
+    }
+
+    // In-flow gallery — the base plate rule's abs-fill is for frame
+    // stills; dossier figures mount as editorial mats capped to the
+    // sheet height.
+    figure {
+      margin: var(--space-md) auto;
+      break-inside: avoid;
+      text-align: center;
+    }
+
+    img {
+      position: static;
+      inset: auto;
+      display: block;
+      max-width: 100%;
+      max-height: var(--print-media-max-h);
+      width: auto;
+      height: auto;
+      margin: 0 auto;
+      padding: var(--space-xs);
+      background: color-mix(in srgb, var(--print-ink) 4%, var(--print-paper));
+      border: var(--space-hairline) solid color-mix(in srgb, var(--print-ink) 28%, transparent);
+      object-fit: contain;
+    }
+
+    .sf-media-cap {
+      margin-top: var(--space-2xs);
+      font-size: var(--print-caption-size);
+      font-style: italic;
+      color: color-mix(in srgb, var(--print-ink) 55%, transparent);
+    }
+
+    // Provenance furniture — pinned into the plate's bottom padding
+    // band like the QR instead of sitting in flow: a dossier running
+    // even a hair over one sheet used to strand this two-line block
+    // (and the abs QR, which anchors to the last fragment) alone on an
+    // otherwise empty continuation page. Anchored at the foot it seats
+    // on the final fragment every time, and the freed column pulls the
+    // borderline dossiers back onto a single page.
+    footer {
+      position: absolute;
+      left: var(--print-margin-h);
+      right: var(--print-margin-h);
+      bottom: var(--space-md);
+      margin-top: 0;
+      padding-top: var(--space-2xs);
+      border-top: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 28%, transparent);
+      font-size: var(--print-caption-size);
+      color: color-mix(in srgb, var(--print-ink) 55%, transparent);
+    }
+  }
+
+  // MOOD-style cover — the shared flex frame gives way to an abs-laid
+  // composition: the silver masthead spans the sheet's head, the
+  // portrait plate covers its lower half so the name reads behind the
+  // cover star, and the Portfolio word + issue date anchor the bottom
+  // band like the magazine word / barcode pair on a physical cover.
+  .print-cover {
+    display: block;
+    position: relative;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  // Face page — the intro loader's own stack, minus the percent counter:
+  // the blue radial glow, the blueprint grid, and the two orbital rings
+  // static around the brand line.
+  .print-face {
+    position: relative;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .print-back {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  // Foil-silver masthead — large serif caps at the sheet's head, wide
+  // tracking pushing the name toward the trim edges; the portrait plate
+  // appended after it covers the letters' lower half so the masthead
+  // reads behind the cover star.
+  .print-cover-title {
+    position: absolute;
+    top: var(--space-xl);
+    left: 0;
+    right: 0;
+    display: block;
+    font-size: var(--space-4xl);
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--print-silver);
+    margin: 0;
+  }
+
+  // The cover star — a near-full-bleed portrait plate covering the
+  // masthead's lower half and running down to the word band. cover-fit
+  // trims the square Gravatar into the portrait slot, biased toward the
+  // face at the top of the frame.
+  .print-cover-photo {
+    position: absolute;
+    top: var(--print-cover-photo-top);
+    left: 0;
+    width: 100%;
+    height: var(--print-cover-photo-h);
+    object-fit: cover;
+    object-position: center 30%;
+    box-sizing: border-box;
+    margin: 0;
+    // The editorial mat — a tint ring + hairline keeps a near-black
+    // frame (space scenes) reading as a plate on the ink-dark cover
+    // instead of vanishing into it.
+    padding: var(--space-xs);
+    background: color-mix(in srgb, var(--print-silver) 12%, transparent);
+    border: var(--space-hairline) solid color-mix(in srgb, var(--print-silver) 45%, transparent);
+    max-width: none;
+    max-height: none;
+  }
+
+  // The magazine word — the localized "Portfolio" anchors the bottom
+  // band at masthead scale, like "MAGAZINE" on the reference cover.
+  .print-cover-sub {
+    position: absolute;
+    left: var(--space-2xl);
+    bottom: var(--space-2xl);
+    display: block;
+    font-size: var(--space-4xl);
+    line-height: 1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--print-silver);
+  }
+
+  // Issue furniture — the print date stamps the barcode slot at the
+  // bottom-right corner.
+  .print-cover-issue {
+    position: absolute;
+    right: var(--space-2xl);
+    bottom: var(--space-2xl);
+    display: block;
+    font-size: var(--print-caption-size);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--print-silver);
+  }
+
+  // The loader's blue halo sinking into the ink — the same radial wash
+  // intro-loader-glow paints on screen (token colors, print alphas).
+  .print-face-glow {
+    position: absolute;
+    inset: 0;
+    display: block;
+    background: radial-gradient(
+      circle at center,
+      rgba($color-blue, 0.35) 0%,
+      rgba($color-black, 0.9) 60%,
+      rgba($color-black, 1) 100%
+    );
+    pointer-events: none;
+  }
+
+  // Faint orthogonal blueprint lines fading out under a radial mask —
+  // mirrors intro-loader-grid.
+  .print-face-grid {
+    position: absolute;
+    inset: 0;
+    display: block;
+    background-image:
+      linear-gradient(
+        to right,
+        rgba($color-white, 0.03) to-rem($space-hairline),
+        transparent to-rem($space-hairline)
+      ),
+      linear-gradient(
+        to bottom,
+        rgba($color-white, 0.03) to-rem($space-hairline),
+        transparent to-rem($space-hairline)
+      );
+    background-size: to-rem($space-4xl) to-rem($space-4xl);
+    -webkit-mask-image: radial-gradient(
+      ellipse 60% 60% at 50% 50%,
+      var(--bg-dark) 70%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, var(--bg-dark) 70%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .print-face-spinner,
+  .print-face-spinner-inner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    display: block;
+    border-radius: var(--radius-round);
+    border: var(--space-hairline) solid transparent;
+    pointer-events: none;
+  }
+
+  .print-face-spinner {
+    width: var(--space-8xl);
+    height: var(--space-8xl);
+    border-color: rgba($color-white, 0.1);
+    border-top-color: rgba($color-white, 0.8);
+    border-right-color: rgba($color-white, 0.3);
+  }
+
+  .print-face-spinner-inner {
+    width: var(--space-9xl);
+    height: var(--space-9xl);
+    border-color: rgba($color-white, 0.05);
+    border-bottom-color: rgba($color-white, 0.4);
+  }
+
+  .print-face-title {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    display: block;
+    font-size: var(--space-lg);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--print-paper);
+  }
+
+  // ── Section covers ────────────────────────────────────────────────
+  // Part-openers inside a component-built book (star-field's per-group
+  // dossier run) — the face page's ink sheet + orbital rings carry the
+  // part number, the localized group title, and the seated-record
+  // count. The modifier rides on `.print-face`'s own sheet contract
+  // (margin-zero named page, centered flex column); `break-before`
+  // opens the divider on a fresh sheet after any preceding flow — the
+  // dossier plates' own break-before only guards their direction.
+  .print-section {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  // In-flow children stack at the flex column's centre over the rings —
+  // no abs pinning needed since glow/grid/spinners are all positioned.
+  .print-section-num {
+    display: block;
+    font-size: var(--print-caption-size);
+    letter-spacing: 0.3em;
+    color: color-mix(in srgb, var(--print-paper) 60%, transparent);
+  }
+
+  .print-section-title {
+    display: block;
+    margin: var(--space-sm) 0;
+    font-size: var(--space-4xl);
+    line-height: 1.1;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    overflow-wrap: break-word;
+    color: var(--print-paper);
+  }
+
+  .print-section-count {
+    display: block;
+    font-size: var(--space-lg);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--print-paper) 60%, transparent);
+  }
+
+  // Back cover — the scan code centres in the free column space
+  // (margin-block:auto splits the slack evenly above and below) while
+  // the copyright line drops to the sheet's bottom edge.
+  .print-back-qr {
+    display: block;
+    width: var(--print-qr-size);
+    margin: auto auto;
+    color: var(--print-paper);
+    break-inside: avoid;
+    page-break-inside: avoid;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  .print-back-copy,
+  .print-back-home {
+    display: block;
+    margin: 0;
+    padding-bottom: var(--space-md);
+    font-size: var(--print-caption-size);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .print-back-copy {
+    color: rgba($color-white, 0.6);
+  }
+
+  // The cover-only sheet's home line — the site's own address printed
+  // under the scan block, in sheet-paper ink so the destination reads.
+  .print-back-home {
+    color: var(--print-paper);
+  }
+}
+
+// ── Sheet-size ladder (see the :root rung above) ─────────────────────────────
+// Ascending min-width/min-height gates — the LAST matching rung wins, so each
+// axis floor-snaps to the largest standard dim the paper clears. The rung
+// values are the EXACT physical dims of every supported format — ISO A0–A6 +
+// B3–B5, US Letter/Legal/Junior-Legal/Half-Letter/Executive/Tabloid-Ledger —
+// while each GATE sits 0.5mm under its nominal: the mm→px rounding inside
+// the engine can land a true 215.9mm sheet a hair under a gate parked at
+// 215.9, and a half-millimetre of over-cover on an odd paper is harmless
+// (inside any bleed tolerance) where the same hair of under-coverage would
+// fragment a sheet-sized box. Widths and heights share one union ladder —
+// every format dim is some sheet's width and another's landscape height.
+
+@media print and (min-width: 126.5mm) {
+  :root {
+    --print-sheet-w: 127mm;
+  }
+}
+@media print and (min-width: 139.2mm) {
+  :root {
+    --print-sheet-w: 139.7mm;
+  }
+}
+@media print and (min-width: 147.5mm) {
+  :root {
+    --print-sheet-w: 148mm;
+  }
+}
+@media print and (min-width: 175.5mm) {
+  :root {
+    --print-sheet-w: 176mm;
+  }
+}
+@media print and (min-width: 183.7mm) {
+  :root {
+    --print-sheet-w: 184.2mm;
+  }
+}
+@media print and (min-width: 202.7mm) {
+  :root {
+    --print-sheet-w: 203.2mm;
+  }
+}
+@media print and (min-width: 209.5mm) {
+  :root {
+    --print-sheet-w: 210mm;
+  }
+}
+@media print and (min-width: 215.4mm) {
+  :root {
+    --print-sheet-w: 215.9mm;
+  }
+}
+@media print and (min-width: 249.5mm) {
+  :root {
+    --print-sheet-w: 250mm;
+  }
+}
+@media print and (min-width: 266.2mm) {
+  :root {
+    --print-sheet-w: 266.7mm;
+  }
+}
+@media print and (min-width: 278.9mm) {
+  :root {
+    --print-sheet-w: 279.4mm;
+  }
+}
+@media print and (min-width: 296.5mm) {
+  :root {
+    --print-sheet-w: 297mm;
+  }
+}
+@media print and (min-width: 352.5mm) {
+  :root {
+    --print-sheet-w: 353mm;
+  }
+}
+@media print and (min-width: 355.1mm) {
+  :root {
+    --print-sheet-w: 355.6mm;
+  }
+}
+@media print and (min-width: 419.5mm) {
+  :root {
+    --print-sheet-w: 420mm;
+  }
+}
+@media print and (min-width: 431.3mm) {
+  :root {
+    --print-sheet-w: 431.8mm;
+  }
+}
+@media print and (min-width: 499.5mm) {
+  :root {
+    --print-sheet-w: 500mm;
+  }
+}
+@media print and (min-width: 593.5mm) {
+  :root {
+    --print-sheet-w: 594mm;
+  }
+}
+@media print and (min-width: 840.5mm) {
+  :root {
+    --print-sheet-w: 841mm;
+  }
+}
+@media print and (min-width: 1188.5mm) {
+  :root {
+    --print-sheet-w: 1189mm;
+  }
+}
+
+@media print and (min-height: 126.5mm) {
+  :root {
+    --print-sheet-h: 127mm;
+  }
+}
+@media print and (min-height: 139.2mm) {
+  :root {
+    --print-sheet-h: 139.7mm;
+  }
+}
+@media print and (min-height: 147.5mm) {
+  :root {
+    --print-sheet-h: 148mm;
+  }
+}
+@media print and (min-height: 175.5mm) {
+  :root {
+    --print-sheet-h: 176mm;
+  }
+}
+@media print and (min-height: 183.7mm) {
+  :root {
+    --print-sheet-h: 184.2mm;
+  }
+}
+@media print and (min-height: 202.7mm) {
+  :root {
+    --print-sheet-h: 203.2mm;
+  }
+}
+@media print and (min-height: 209.5mm) {
+  :root {
+    --print-sheet-h: 210mm;
+  }
+}
+@media print and (min-height: 215.4mm) {
+  :root {
+    --print-sheet-h: 215.9mm;
+  }
+}
+@media print and (min-height: 249.5mm) {
+  :root {
+    --print-sheet-h: 250mm;
+  }
+}
+@media print and (min-height: 266.2mm) {
+  :root {
+    --print-sheet-h: 266.7mm;
+  }
+}
+@media print and (min-height: 278.9mm) {
+  :root {
+    --print-sheet-h: 279.4mm;
+  }
+}
+@media print and (min-height: 296.5mm) {
+  :root {
+    --print-sheet-h: 297mm;
+  }
+}
+@media print and (min-height: 352.5mm) {
+  :root {
+    --print-sheet-h: 353mm;
+  }
+}
+@media print and (min-height: 355.1mm) {
+  :root {
+    --print-sheet-h: 355.6mm;
+  }
+}
+@media print and (min-height: 419.5mm) {
+  :root {
+    --print-sheet-h: 420mm;
+  }
+}
+@media print and (min-height: 431.3mm) {
+  :root {
+    --print-sheet-h: 431.8mm;
+  }
+}
+@media print and (min-height: 499.5mm) {
+  :root {
+    --print-sheet-h: 500mm;
+  }
+}
+@media print and (min-height: 593.5mm) {
+  :root {
+    --print-sheet-h: 594mm;
+  }
+}
+@media print and (min-height: 840.5mm) {
+  :root {
+    --print-sheet-h: 841mm;
+  }
+}
+@media print and (min-height: 1188.5mm) {
+  :root {
+    --print-sheet-h: 1189mm;
+  }
+}
+
+// Small sheets tighten the margins — a fixed 14/12.7/20mm frame on A5-A6
+// leaves a sliver of content column, so the frame shrinks with the format.
+@media print and (max-width: 160mm) {
+  :root {
+    --print-margin-top: 9mm;
+    --print-margin-h: 9mm;
+    --print-margin-bottom: 13mm;
   }
 }

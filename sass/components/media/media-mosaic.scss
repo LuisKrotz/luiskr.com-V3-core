@@ -67,3 +67,97 @@
     }
   }
 }
+
+@media print {
+  :host {
+    background-color: transparent;
+    padding-top: var(--space-md);
+    padding-bottom: var(--space-md);
+    overflow: visible;
+  }
+
+  // Paper-size column rungs — print media queries resolve against the
+  // page box (paper minus the @page margin: A5≈463px, A4≈698px,
+  // A3≈1027px), so 540/960 map A5→one column, A4→two, A3 and larger→three.
+  .media-mosaic {
+    // flex-wrap, not grid — Chromium's grid fragmentation in paged media
+    // emits a run of empty fragmentainers after the last painted box
+    // (each deferred row re-lay-out leaves a phantom page). Flex rows
+    // fragment cleanly and still give the tile wall its columns.
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-lg);
+    align-items: flex-start;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+
+    &-item {
+      position: static;
+      width: 100%;
+      flex: 0 1 100%;
+      height: auto;
+      overflow: visible;
+      break-inside: avoid;
+      page-break-inside: avoid;
+
+      // Paper-size column rungs — print media queries resolve against the
+      // page box (paper minus the @page margin: A5≈463px, A4≈698px,
+      // A3≈1027px), so 540/960 map A5→one column, A4→two, A3 and larger→three.
+      @include layout-540() {
+        flex-basis: calc(50% - var(--space-lg));
+      }
+
+      @include layout-960() {
+        flex-basis: calc(33.333% - var(--space-lg));
+      }
+
+      &:has(.landscape),
+      &:has(.media-figure--tall),
+      &:only-child {
+        flex-basis: 100%;
+
+        media-figure {
+          // Full-width spanners are the wall's feature plates — they keep
+          // the plate cap instead of the tile rung.
+          max-height: var(--print-media-max-h);
+        }
+      }
+
+      media-figure {
+        --mf-w: 100%;
+        --mf-h: auto;
+        --mf-max-w: 100%;
+        width: 100%;
+        height: auto;
+        // Contact-sheet cell: the host box is the tile cap; the figure's
+        // surviving layer inside paints at natural size so a taller
+        // capture crops its top band through the host's clip (screenshots
+        // carry their legible head first). The caption sits outside the
+        // host, so the clip never eats it.
+        max-height: var(--print-mosaic-tile-h);
+        overflow: hidden;
+      }
+    }
+  }
+
+  // Source/date/author line print.ts seats after each figure inside the
+  // mosaic items — the document sheet can't reach this shadow root.
+  .print-caption {
+    display: block;
+    max-width: 100%;
+    margin: var(--space-2xs) auto var(--space-md);
+    font-size: var(--print-caption-size);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-align: center;
+    overflow-wrap: break-word;
+    break-inside: avoid;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+}

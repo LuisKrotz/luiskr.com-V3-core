@@ -17,6 +17,15 @@ export const STATE_CLASSES = Object.freeze({
   IS_FALLBACK: 'is-fallback',
   HAS_FALLBACK: 'has-fallback',
   IS_SAFARI: 'is-safari',
+  /** Document-level live-scroll marker — set by utils/motion/scroll-state
+   *  on the first scroll event of a gesture, removed when the settle
+   *  debounce expires (scrollend only re-arms it — atomic programmatic
+   *  scrolls emit scroll+scrollend in one task, so an immediate settle
+   *  would flicker the marker mid-gesture).
+   *  Surfaces whose idle animations can't composite (the masked tile
+   *  border-sheens) pause on `html.is-scrolling` so a gesture never pays
+   *  their per-frame raster. */
+  IS_SCROLLING: 'is-scrolling',
   REDUCED_MOTION: 'reduced-motion',
   HIGH_CONTRAST: 'high-contrast',
   DARK_MODE: 'dark-mode',

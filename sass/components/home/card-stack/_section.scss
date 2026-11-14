@@ -51,11 +51,51 @@
   // pad plus the device safe-area inset (iOS home bar / Android gesture
   // strip), matching the site-toast clearance contract.
   padding-bottom: calc(var(--space-2xl) + env(safe-area-inset-bottom));
-  background-image: var(--filament-glow);
+  // The stage's static wash: the cyan filament under the key light's
+  // counter-shade (the deep-left + floor penumbra the reference's
+  // right-side key throws into relief). The key light itself lives on
+  // the animated ::before below — a moving layer, not a painted image,
+  // so the drift never repaints.
+  background-image: var(--filament-glow), var(--deck-shade);
   // Side cards intentionally overflow the %MAXAREA gutter on the stacked
   // layout (the mock's "peek in from the edges" hint) — clip the x-axis so
   // the bleed never becomes a horizontal scrollbar.
   overflow-x: clip;
+
+  // The KEY LIGHT — the reference's studio sweep: a broad soft lobe
+  // parked just off the section's RIGHT edge, drifting in and out on a
+  // slow breathe so the coverflow field reads lit from the right
+  // rather than flat black. It rides a ::before layer because the
+  // animation is transform + opacity only (compositor-driven — a
+  // painted background-image would re-raster every frame). No z-index:
+  // as the first positioned child it paints below every later sibling
+  // (header, deck, info, foot), and HC pins --deck-glow to none.
+  &::before {
+    content: '';
+    position: absolute;
+    // 8% overscan on X only — horizontal overscan is what the X-drift
+    // needs, and vertical overscan is forbidden: a transformed layer's
+    // bounds feed the ancestor scrollable area, so any Y bleed re-arms
+    // body's latch slack every frame and eats wheel scroll.
+    inset: 0 -8%;
+    background-image: var(--deck-glow);
+    background-repeat: no-repeat;
+    pointer-events: none;
+    // Anchor at the right edge — scaleX swells the lobe INTO the stage,
+    // the same direction the key light enters from.
+    transform-origin: 100% 50%;
+    animation: #{$_B_CARD_STACK}-keylight 18s ease-in-out infinite alternate;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  // The GL backdrop carries this light in float — the empty animated
+  // layer dies while the shader paints it.
+  :host-context(html.has-gl-backdrop) &::before {
+    content: none;
+  }
 
   // 768–1279 landscape — the short band tightens only its BOTTOM pad so
   // the card pile and the foot controls share the viewport; the top pad
@@ -104,29 +144,44 @@
     line-height: 1.05;
     color: var(--text-primary);
     margin: 0;
-    // Stepped heading — the %TTL_XL ramp scaled to the brief: 24px on
-    // phones, 55px on desktop, 89px at ultrawide and 110px on 4K so the
-    // title keeps pace with the max area instead of shrinking into it.
+    // Stepped heading — the %TTL_XL ramp scaled to the reference's
+    // editorial proportion (~6vw caps): 29px on phones, 55px on laptop
+    // landscape, then one rung per density step (63px at 1680, 68px at
+    // 1920, 89px ultrawide, 144px on 4K). Each rung stays under the
+    // width the longest localized word ("SELECIONADOS"/"GESELECTEERD",
+    // ~12 caps) needs in its column — the cap is the column track, not
+    // the viewport. Tracking is tight like the mock's caps instead of
+    // the old letterspaced spread.
     font-size: to-rem($space-xl + $space-xs);
     letter-spacing: var(--space-2xs);
 
     @include layout-768() {
-      letter-spacing: to-rem($space-md);
+      letter-spacing: to-rem($space-xs);
     }
 
     @include layout-1024() {
       font-size: to-rem($space-3xl);
-      letter-spacing: to-rem($space-lg);
+      letter-spacing: to-rem($space-sm);
+    }
+
+    @include layout-1680() {
+      font-size: to-rem($space-3xl + $space-md);
+      letter-spacing: to-rem($space-sm);
+    }
+
+    @include layout-1920() {
+      font-size: to-rem($space-3xl + $space-lg);
+      letter-spacing: to-rem($space-sm);
     }
 
     @include layout-2560() {
       font-size: to-rem($space-4xl);
-      letter-spacing: to-rem($space-lg + $space-sm);
+      letter-spacing: to-rem($space-md);
     }
 
     @include layout-3840() {
-      font-size: to-rem($space-3xl * 2);
-      letter-spacing: to-rem($space-xl);
+      font-size: to-rem($space-5xl);
+      letter-spacing: to-rem($space-md);
     }
   }
 
@@ -224,5 +279,23 @@
     min-height: auto;
     padding-top: var(--space-5xl);
     padding-bottom: var(--space-4xl);
+  }
+}
+
+// Keylight drift — the right-side lobe slides a few percent in and out
+// of the stage's right edge while it breathes (gentle scale + opacity),
+// so the field reads as a slow studio light moving rather than a static
+// wash. Transform/opacity only — compositor-driven, zero layout and no
+// re-raster. The gradient's feathered transparent edge covers the
+// travel, so no lobe outline ever shows mid-drift.
+@keyframes #{$_B_CARD_STACK}-keylight {
+  0% {
+    transform: translate3d(-4%, 0, 0) scaleX(1);
+    opacity: 0.72;
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scaleX(1.07);
+    opacity: 1;
   }
 }

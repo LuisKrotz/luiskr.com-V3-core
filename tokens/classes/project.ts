@@ -74,6 +74,9 @@ export const INTERNAL_CLASSES = Object.freeze({
   INTERNAL_FOOTER_ITEMS_NOTE_TEXT: `${_B_INTERNAL_FOOTER_ITEMS}-note-text`,
   INTERNAL_FOOTER_ITEMS_CREDIT: `${_B_INTERNAL_FOOTER_ITEMS}-credit`,
   INTERNAL_FOOTER_ITEMS_RIGHTS: `${_B_INTERNAL_FOOTER_ITEMS}-rights`,
+  /** Release stamp under the copyright line — package version + rolling
+   *  build id baked in by stamp-version.mjs at build time. */
+  INTERNAL_FOOTER_ITEMS_VERSION: `${_B_INTERNAL_FOOTER_ITEMS}-version`,
   INTERNAL_FOOTER_ITEMS_HOME: `${_B_INTERNAL_FOOTER_ITEMS}-home`,
   /** RSS row under the legal links — wraps the locale feed anchor. */
   INTERNAL_FOOTER_ITEMS_FEED: `${_B_INTERNAL_FOOTER_ITEMS}-feed`,

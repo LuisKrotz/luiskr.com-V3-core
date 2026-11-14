@@ -40,3 +40,22 @@ lang-dialog.is-open {
   z-index: 10000;
   pointer-events: auto;
 }
+
+@media print {
+  app-nav,
+  cookie-banner,
+  preferences-modal,
+  lang-dialog,
+  search-modal,
+  stats-hud,
+  .progress-bar,
+  .skip-link {
+    display: none;
+  }
+
+  main,
+  #main {
+    min-height: 0;
+    padding-bottom: 0;
+  }
+}

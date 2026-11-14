@@ -22,6 +22,8 @@ import {
 import { parsePath, normalizeProjectKey } from '@core/router/parse-path.js'
 import { LANG_SLUGS } from '@core/i18n.js'
 import { LOCALES } from '@core/tokens/locales.js'
+import { MEDIA_QUERIES } from '@core/tokens/primitives.js'
+import { DOM_STRINGS } from '@core/tokens/strings/dom.js'
 import { QUERY_STRINGS } from '@core/tokens/strings/queries.js'
 import { SCHEMA_STRINGS } from '@core/tokens/strings/schema.js'
 import { updateRobotsMeta, resolveProjectSlug } from '@website/views/project/data.js'
@@ -310,6 +312,40 @@ describe('route tails', () => {
     expect(q(QUERY_STRINGS.META_TW_URL)).toBe('https://luiskr.com/portfolio/cicb')
     expect(document.head.querySelector(QUERY_STRINGS.LINK_CANONICAL).href).toBe(
       'https://luiskr.com/portfolio/cicb'
+    )
+
+    // Print alternate — drop any link an earlier test created so this
+    // sync deterministically exercises the !printEl create arm, then a
+    // second sync covers the update arm on the active canonical.
+    document.head.querySelector(QUERY_STRINGS.LINK_PRINT)?.remove()
+
+    syncDocumentHead({
+      name: 'x',
+      view: 'v',
+      lang: 'en',
+      path: '/portfolio/brazilian-leather',
+      meta: { title: 'T', canonical: '/portfolio/cicb' },
+      params: {},
+    })
+
+    const print = document.head.querySelector(QUERY_STRINGS.LINK_PRINT)
+
+    expect(print).toBeTruthy()
+    expect(print.href).toBe('https://luiskr.com/portfolio/cicb')
+    expect(print.media).toBe(MEDIA_QUERIES.PRINT)
+    expect(print.rel).toBe(DOM_STRINGS.REL_ALTERNATE)
+
+    syncDocumentHead({
+      name: 'x',
+      view: 'v',
+      lang: 'en',
+      path: '/about',
+      meta: { title: 'T2' },
+      params: {},
+    })
+
+    expect(document.head.querySelector(QUERY_STRINGS.LINK_PRINT).href).toBe(
+      'https://luiskr.com/about'
     )
 
     document.head.innerHTML = prevHead

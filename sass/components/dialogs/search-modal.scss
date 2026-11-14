@@ -34,6 +34,10 @@ $_B_SM: 'search-modal';
     inset: 0;
 
     background: var(--backdrop);
+    // Same glass veil as the preferences/lang backdrops — the page
+    // behind blurs under the tint so the dialog reads as a layer.
+    -webkit-backdrop-filter: blur(to-rem($space-xs));
+    backdrop-filter: blur(to-rem($space-xs));
 
     transition: opacity 0.55s ease;
 

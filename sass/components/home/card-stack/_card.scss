@@ -1,0 +1,193 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  card-stack/_card.scss — the card body band under the inset cover image:
+//  the title row the burn canvas mounts over, the concise summary line, the
+//  corner-bracket CTA, and the burn rewrite slot.
+//  Imported by card-stack.scss (manifest) — not compiled standalone.
+// ════════════════════════════════════════════════════════════════════════════
+
+.#{$_B_CARD_STACK} {
+  // Card body band — fills the card below the 58% inset media region on
+  // the same charcoal card surface. Cards fanned to the right of the
+  // front card indent their body copy into the exposed right strip so
+  // neighbor titles ("METCHA", "MELISSA") read clearly instead of tucking
+  // under the card to their left.
+  &-card-bottom {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+    border-top: var(--space-hairline) solid var(--border-color-on-dark);
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+    background: transparent;
+    transition: padding-left 0.35s ease;
+
+    .#{$_B_CARD_STACK}-card--right & {
+      padding-left: calc(var(--space-4xl) + var(--space-xl));
+
+      @media (max-width: 960px) {
+        padding-left: 0;
+      }
+    }
+  }
+
+  // Title row — the burn canvas mounts absolutely over the h2, so the row
+  // stays position:relative.
+  &-card-title-overlay {
+    position: relative;
+    display: block;
+    padding: var(--space-md) var(--space-sm) 0;
+    forced-color-adjust: none;
+    pointer-events: none;
+  }
+
+  &-card-title {
+    @extend %TTL_SM;
+
+    font-family: var(--font-primary);
+    font-weight: calc(400 + var(--fw-lift));
+    text-transform: uppercase;
+    letter-spacing: var(--space-2xs);
+    line-height: 1.2;
+    color: var(--color-white-raw);
+    margin: 0;
+    font-size: var(--space-xl); // fallback: Safari < 16 / iOS < 16
+    font-size: clamp(var(--space-lg), 6.2cqw, var(--space-xl));
+  }
+
+  // Burning-ink state — the canvas owns the pixels; DOM glyphs stay for
+  // layout/a11y but paint nothing.
+  &-card-title--burning {
+    color: transparent;
+    text-shadow: none;
+  }
+
+  // Combustion canvas — positioned over the title box by JS.
+  &-card-title-burn {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  // Details column — summary + CTA under the title row.
+  &-card-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: var(--space-sm) var(--space-sm) var(--space-xs);
+    box-sizing: border-box;
+  }
+
+  // Burn rewrite slot — the spacer holds the title's box while the
+  // animated clone draws in on top.
+  &-card-title-slot {
+    position: relative;
+    display: block;
+    width: 100%;
+    margin: 0 0 var(--space-2xs);
+  }
+
+  &-card-title-dup,
+  &-card-title-rewrite {
+    @extend %TTL_SM;
+
+    display: block;
+    font-family: var(--font-primary);
+    font-weight: calc(400 + var(--fw-lift));
+    text-transform: uppercase;
+    letter-spacing: var(--space-2xs);
+    line-height: 1.2;
+    color: var(--color-white-raw);
+    font-size: var(--space-xl); // fallback: Safari < 16 / iOS < 16
+    font-size: clamp(var(--space-lg), 6.2cqw, var(--space-xl));
+  }
+
+  &-card-title-dup {
+    visibility: hidden;
+  }
+
+  &-card-title-rewrite {
+    position: absolute;
+    inset: 0;
+  }
+
+  // Lead summary — clamped to 2 lines under the title.
+  &-card-desc {
+    @extend %TXT_SM;
+
+    font-family: var(--font-primary);
+    font-weight: calc(200 + var(--fw-lift));
+    line-height: 1.45;
+    color: var(--text-muted-on-dark);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // Corner-bracket CTA anchored at the bottom-left of the card body.
+  &-card-cta {
+    @extend %RESETBTN;
+    @extend %TTL_XS;
+
+    position: relative;
+    display: inline-block;
+    text-align: center;
+    text-transform: uppercase;
+    padding: var(--space-2xs) var(--space-md);
+    color: var(--color-white-raw);
+    font-weight: calc(600 + var(--fw-lift));
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+    margin-top: auto;
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      width: var(--space-xs);
+      height: var(--space-xs);
+      transition:
+        width 0.25s ease,
+        height 0.25s ease;
+    }
+
+    &::before {
+      top: 0;
+      left: 0;
+      border-top: var(--space-hairline) solid
+        color-mix(in srgb, var(--color-white-raw) 65%, transparent);
+      border-left: var(--space-hairline) solid
+        color-mix(in srgb, var(--color-white-raw) 65%, transparent);
+    }
+
+    &::after {
+      bottom: 0;
+      right: 0;
+      border-bottom: var(--space-hairline) solid
+        color-mix(in srgb, var(--color-white-raw) 65%, transparent);
+      border-right: var(--space-hairline) solid
+        color-mix(in srgb, var(--color-white-raw) 65%, transparent);
+    }
+
+    &:hover,
+    &:focus {
+      opacity: 0.8;
+
+      &::before,
+      &::after {
+        width: calc(100% - var(--space-2xs));
+        height: calc(100% - var(--space-2xs));
+      }
+    }
+  }
+}

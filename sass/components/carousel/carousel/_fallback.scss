@@ -22,10 +22,13 @@
       display: inline-block;
     }
 
-    // Two items that fit without carousel controls form one intrinsic-width
-    // group centered in the available row. Without this modifier the generic
-    // nowrap fallback starts at the left edge (visible on Nathalia Bond's two
-    // tall homepage captures).
+    // Items that fit without carousel controls (any count — measureFit's
+    // projection runs for every set) form one intrinsic-width group
+    // centered in the available row. Without this modifier the generic
+    // nowrap fallback starts at the left edge (visible on Nathalia Bond's
+    // two tall homepage captures). Always a tight centred cluster — the
+    // old 3+ `space-between` spread left items stranded at the column
+    // edges with dead bands between them.
     &--side {
       display: flex;
       align-items: flex-start;
@@ -38,19 +41,6 @@
         display: block;
         flex: 0 1 auto;
       }
-
-      // 3+ items only ever reach --side via the ≥3840 multi-fit — a
-      // centred cluster leaves a dead band at both strip edges. Spread
-      // them across the max-area column instead; the gutter padding
-      // keeps first/last items on the content edges, and engines
-      // without :has() keep the centred cluster.
-      &:has(> :nth-child(3)) {
-        justify-content: space-between;
-
-        @include grid-steps() using ($step, $gap, $cols) {
-          padding-inline: to-rem($gap);
-        }
-      }
     }
   }
 }
@@ -59,3 +49,105 @@
 // doesn't import _structure (which emits it globally), so include the
 // shared scope explicitly.
 @include focus-ring-scope;
+
+@media print {
+  .#{$_B_CAROUSEL} {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    overflow: visible;
+    background: transparent;
+    height: auto;
+
+    &-controls,
+    &-indicators,
+    &-btn {
+      display: none;
+    }
+
+    // Chained with the slide class — a flat modifier would tie the later
+    // &-slide { display:block } reset and lose to it on source order.
+    .#{$_B_CAROUSEL}-slide.#{$_B_CAROUSEL}-slide--clone {
+      display: none;
+    }
+
+    // Paper-size column rungs — print media queries resolve against the
+    // page box (A5≈463px, A4≈698px, A3≈1027px): 540/960 map A5→one
+    // column, A4→two, A3 and larger→three.
+    &-track,
+    &-fallback,
+    &-fallback--side {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-lg);
+      align-items: start;
+      width: 100%;
+      height: auto;
+      padding: var(--space-md) var(--grid-gutter);
+      margin: 0 auto;
+      box-sizing: border-box;
+      overflow: visible;
+      white-space: normal;
+      background: transparent;
+      transform: none;
+      transition: none;
+
+      @include layout-540() {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      @include layout-960() {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      > .landscape,
+      > :only-child {
+        grid-column: 1 / -1;
+      }
+    }
+
+    &-slide {
+      display: block;
+      width: 100%;
+      height: auto;
+      min-height: 0;
+      padding: 0;
+      margin: 0;
+      break-inside: avoid;
+      page-break-inside: avoid;
+
+      &:has(.landscape) {
+        grid-column: 1 / -1;
+      }
+    }
+
+    &-track:not(
+        :has(
+          .#{$_B_CAROUSEL}-slide:not(.#{$_B_CAROUSEL}-slide--clone)
+            ~ .#{$_B_CAROUSEL}-slide:not(.#{$_B_CAROUSEL}-slide--clone)
+        )
+      )
+      .#{$_B_CAROUSEL}-slide:not(.#{$_B_CAROUSEL}-slide--clone) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  // Source/date/author line print.ts seats after each figure/img inside
+  // the slides — the document sheet can't reach this shadow root.
+  .print-caption {
+    display: block;
+    max-width: 100%;
+    margin: var(--space-2xs) auto var(--space-md);
+    font-size: var(--print-caption-size);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-align: center;
+    overflow-wrap: break-word;
+    break-inside: avoid;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+}

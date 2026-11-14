@@ -70,11 +70,11 @@ export const CLOSE_PAINT_GLSL = `
 
           if (pRel.y <= surfaceY && u_liquid > 0.01) {
             float depth = clamp((surfaceY - pRel.y) / (radius * 2.0), 0.0, 1.0);
-            vec3 deepTurquoise = ${PAINT.TURQUOISE_DEEP};
-            vec3 topTurquoise  = ${PAINT.TURQUOISE_TOP};
-            vec3 liquidColor = mix(topTurquoise, deepTurquoise, depth);
+            vec3 deepSilver = ${PAINT.SILVER_DEEP};
+            vec3 topSilver  = ${PAINT.SILVER_TOP};
+            vec3 liquidColor = mix(topSilver, deepSilver, depth);
 
-            // HC: the pour becomes a flat ink-pole flood — the turquoise
+            // HC: the pour becomes a flat ink-pole flood — the silver
             // ramp and its crest/bubble highlights are decorative shades.
             liquidColor = mix(liquidColor, inkPole, u_hc);
 
@@ -132,13 +132,13 @@ export const CLOSE_PAINT_GLSL = `
 
           col = mix(col, mix(${PAINT.INK_WHITE}, inkPole, u_hc), totalX * borderAA);
 
-          // Click shockwave — the turquoise ripple is a decorative tint,
+          // Click shockwave — the silver ripple is a decorative tint,
           // dropped under HC.
           float clickElapsed = u_time - u_click_time;
           if (clickElapsed >= 0.0 && clickElapsed < 0.4) {
             float waveRad = clickElapsed * 45.0;
             float waveShock = (1.0 - smoothstep(0.0, 2.5, abs(d - waveRad))) * (1.0 - clickElapsed / 0.4);
-            col += ${PAINT.TURQUOISE_TOP} * waveShock * 0.8 * (1.0 - u_hc);
+            col += ${PAINT.SILVER_TOP} * waveShock * 0.8 * (1.0 - u_hc);
           }
 
           return vec4(col, borderAA);

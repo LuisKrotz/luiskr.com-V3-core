@@ -30,3 +30,11 @@ $_B_NAV: 'nav';
 // a real <button>, and menu links real <a>s; document-level focus rules
 // never cross the shadow boundary, so the ring is emitted here.
 @include focus-ring-scope;
+
+@media print {
+  :host,
+  .#{$_B_NAV},
+  .#{$_B_NAV}-menu {
+    display: none;
+  }
+}

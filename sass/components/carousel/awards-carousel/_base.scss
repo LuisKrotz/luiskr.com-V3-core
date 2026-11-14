@@ -105,3 +105,105 @@ $awc-peek: 10vw;
     transform: translateY(0);
   }
 }
+
+// ── Print ───────────────────────────────────────────────────────────────────
+// The scroll strip flattens into a static mosaic: the track's vw slide
+// widths, peek flex-basis and scrollLeft state don't exist on paper, so
+// slides reflow in DOM order. Paper-size rungs reuse the breakpoint map
+// (print resolves media queries against the page box: A5→one column,
+// A4→two, A3 and larger→three). Clone slides and the control strip are
+// screen chrome — gone.
+@media print {
+  .#{$_B_AWC} {
+    // The screen contract keeps the container transparent until the IO
+    // stamps --in-view; a mounted-but-never-entered carousel (demo
+    // stages, a printed page that never scrolled to the footer) would
+    // otherwise emit a fully blank strip on paper.
+    opacity: 1;
+    transform: none;
+    transition: none;
+
+    // The card/label corner actions are interactive expand affordances
+    // ("click to open") — screen chrome that never prints.
+    &-controls,
+    &-card-action,
+    &-label-action,
+    &-action-canvas {
+      display: none;
+    }
+
+    &-track {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-lg);
+      align-items: start;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+      transform: none;
+
+      @include layout-540() {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      @include layout-960() {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    &-slide {
+      width: 100%;
+      flex: none;
+      height: auto;
+      overflow: visible;
+      break-inside: avoid;
+      page-break-inside: avoid;
+      opacity: 1;
+      transform: none;
+      transition: none;
+
+      &--clone {
+        display: none;
+      }
+    }
+
+    // The description's a11y-only tail — who presented the award and
+    // why — rides .sr-only for screen readers on screen, but it IS the
+    // award's editorial citation: on paper it unclips into a smaller
+    // line under the title. Scoped inside -award-text so the slide's
+    // own sr-only heading stays hidden.
+    &-award-text .sr-only {
+      display: block;
+      position: static;
+      width: auto;
+      height: auto;
+      padding: 0;
+      margin: var(--space-2xs) 0 0;
+      overflow: visible;
+      clip-path: none;
+      white-space: normal;
+      font-size: var(--print-caption-size);
+      font-style: italic;
+      color: var(--text-secondary);
+    }
+  }
+
+  // Source/date/author line print.ts seats after each figure/img inside
+  // the slides — the document sheet can't reach this shadow root.
+  .print-caption {
+    display: block;
+    max-width: 100%;
+    margin: var(--space-2xs) auto var(--space-md);
+    font-size: var(--print-caption-size);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-align: center;
+    overflow-wrap: break-word;
+    break-inside: avoid;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+}

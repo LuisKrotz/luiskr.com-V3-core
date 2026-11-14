@@ -48,4 +48,13 @@ export const MEDIA = Object.freeze({
   WEBP_EXT: '.webp',
   /** Compressed video extension — webm sibling of every .mp4 asset */
   WEBM_EXT: '.webm',
+  /** WebVTT descriptions track extension — `<stem>.vtt` is the canonical
+   *  (English) descriptions file; localized variants insert the locale
+   *  code before it (`<stem>.<locale>.vtt`). Co-located with the video. */
+  VTT_EXT: '.vtt',
+  /** Image long-description marker appended to the media stem — the
+   *  `<stem>_longdesc.txt` sibling that <img longdesc> links to. */
+  LONGDESC_SUFFIX: '_longdesc',
+  /** Long-description file extension — raw UTF-8 text per the a11y spec. */
+  LONGDESC_EXT: '.txt',
 })

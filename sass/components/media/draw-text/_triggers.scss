@@ -11,23 +11,68 @@
 // in visible clumps). The browser promotes only the chars whose animation
 // is actually running — see _mobile.scss for the same rationale.
 
+// Generated quote marks (<q>::before/::after) animate on the same
+// char-draw keyframes but on their own delay vars — emitted on the <q>
+// tag by the renderer (--q-open-delay syncs to the first inner char's
+// slot, --q-close-delay to the last's). Every trigger needs a matching
+// pair so the marks join the stagger instead of flashing instantly.
+
 // ── Section titles: animate on mount (replayed via :key re-mount) ──────────
-.home-section-title .draw-text__char {
+.home-section-title .draw-text__char,
+.home-section-title q::before,
+.home-section-title q::after {
   animation: char-draw 0.8s $ease-out forwards;
+}
+
+.home-section-title .draw-text__char {
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
 }
 
+.home-section-title q::before {
+  animation-delay: var(--q-open-delay, 0ms);
+}
+
+.home-section-title q::after {
+  animation-delay: var(--q-close-delay, 0ms);
+}
+
 // ── Inside slides: animate only when the slide becomes active ──────────────
-.aw-c-slide--active .draw-text__char {
+.aw-c-slide--active .draw-text__char,
+.aw-c-slide--active q::before,
+.aw-c-slide--active q::after {
   animation: char-draw 0.8s $ease-out forwards;
+}
+
+.aw-c-slide--active .draw-text__char {
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
+}
+
+.aw-c-slide--active q::before {
+  animation-delay: var(--q-open-delay, 0ms);
+}
+
+.aw-c-slide--active q::after {
+  animation-delay: var(--q-close-delay, 0ms);
 }
 
 // ── Viewport trigger: animate when scrolled into view ──────────────────────
 // .draw-text--visible is added by IntersectionObserver in the component
-.draw-text--visible .draw-text__char {
+.draw-text--visible .draw-text__char,
+.draw-text--visible q::before,
+.draw-text--visible q::after {
   animation: char-draw 0.8s $ease-out forwards;
+}
+
+.draw-text--visible .draw-text__char {
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 100ms));
+}
+
+.draw-text--visible q::before {
+  animation-delay: var(--q-open-delay, 0ms);
+}
+
+.draw-text--visible q::after {
+  animation-delay: var(--q-close-delay, 0ms);
 }
 
 // Waiting for the viewport trigger: words rendered as plain nodes, kept invisible
@@ -44,6 +89,33 @@
   will-change: auto; // release GPU layer after animation is done
 }
 
+// Quote marks land in the same frozen state once the reveal completes.
+.draw-text--done q::before,
+.draw-text--done q::after {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  animation: none;
+}
+
+// Tag decorations suppressed during the reveal (_core.scss) return
+// with the text — `revert` rolls each back to the UA rule (u/ins →
+// underline, s/del/strike → line-through, only abbr[title] → dotted,
+// mark → highlight), so untitled abbreviations stay undecorated.
+.draw-text--done u,
+.draw-text--done ins,
+.draw-text--done s,
+.draw-text--done del,
+.draw-text--done strike,
+.draw-text--done abbr {
+  text-decoration: revert;
+}
+
+.draw-text--done mark {
+  background: revert;
+  color: revert;
+}
+
 // Done state restores the resting underline — the muted --grey line fades in
 // via the border-bottom-color transition only after the whole text is drawn,
 // and the ::after stays a hover sweep, never a resting line.
@@ -52,9 +124,22 @@
 }
 
 // ── Related List: animate write effect ─────────────────────────────────────
-.related-list-desc .draw-text__char {
+.related-list-desc .draw-text__char,
+.related-list-desc q::before,
+.related-list-desc q::after {
   animation: char-draw 0.5s $ease-out forwards;
+}
+
+.related-list-desc .draw-text__char {
   animation-delay: calc(var(--offset, 0ms) + var(--i, 0) * var(--char-delay, 15ms));
+}
+
+.related-list-desc q::before {
+  animation-delay: var(--q-open-delay, 0ms);
+}
+
+.related-list-desc q::after {
+  animation-delay: var(--q-close-delay, 0ms);
 }
 
 // ── WebGPU overlay (rust/text-draw) ─────────────────────────────────────────

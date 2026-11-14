@@ -42,9 +42,7 @@ describe('burger liquid icon', () => {
     // only three squares ever painted. Each mix() must seed a unique
     // sign pair — the 2x2 grid the CSS fallback mirrors.
     const centers = [
-      ...BURGER_FS_BODY.matchAll(
-        /vec2 c[1-4] = mix\(vec2\(\s*(-?)cell,\s*(-?)cell\)/g
-      ),
+      ...BURGER_FS_BODY.matchAll(/vec2 c[1-4] = mix\(vec2\(\s*(-?)cell,\s*(-?)cell\)/g),
     ].map((m) => `${m[1]}|${m[2]}`)
 
     expect(centers).toHaveLength(4)
@@ -137,17 +135,17 @@ describe('burger liquid icon', () => {
     canvas.remove()
   })
 
-  test('focus/blur drive the same convergence target as the pointer', async () => {
+  test('focusin/focusout drive the same convergence target as the pointer', async () => {
     const BurgerButtonWebGL = await loadClass()
     const canvas = makeCanvas()
 
     const burger = new BurgerButtonWebGL(canvas)
 
-    canvas.dispatchEvent(new Event(FOCUS_EVENTS.FOCUS))
+    canvas.dispatchEvent(new Event(FOCUS_EVENTS.FOCUSIN))
 
     expect(burger._hoverTarget).toBe(1)
 
-    canvas.dispatchEvent(new Event(FOCUS_EVENTS.BLUR))
+    canvas.dispatchEvent(new Event(FOCUS_EVENTS.FOCUSOUT))
 
     expect(burger._hoverTarget).toBe(0)
 

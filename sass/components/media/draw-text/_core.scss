@@ -44,6 +44,38 @@
     // and destroys mobile scroll performance. Only promote during the actual animation.
   }
 
+  // Generated quote marks on <q> — they live OUTSIDE the char spans
+  // (generated content), so they mirror the char contract exactly:
+  // opacity:0 until their own stagger slot animates them in via
+  // --q-open-delay/--q-close-delay (emitted on the <q> tag itself —
+  // _triggers.scss consumes them under every reveal trigger).
+  // inline-block so the translateY in char-draw applies to the mark.
+  q::before,
+  q::after {
+    display: inline-block;
+    opacity: 0;
+  }
+
+  // Tag decorations that paint outside the char stagger: UA
+  // text-decoration (u/ins/s/del/strike/abbr) does not propagate into
+  // the inline-block word spans — it only paints beneath the whitespace
+  // gaps, reading as stray dashes ahead of the text. mark's highlight
+  // box is the same premature-decorator shape. Suppressed while the
+  // reveal runs; _triggers.scss restores them at --done.
+  u,
+  ins,
+  s,
+  del,
+  strike,
+  abbr {
+    text-decoration: none;
+  }
+
+  mark {
+    background: none;
+    color: inherit;
+  }
+
   // Inline links (color:inherit keeps :visited from going browser-purple —
   // color is the only link ink :visited is allowed to change). A parent
   // pseudo-element draws the underline because native text-decoration skips

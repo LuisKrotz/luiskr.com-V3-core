@@ -69,3 +69,29 @@ dialog.modal-above,
     justify-content: space-between;
   }
 }
+
+@media print {
+  dialog.modal-above:not([open]),
+  .modal-above:not([open]) {
+    display: none;
+  }
+
+  dialog.modal-above[open],
+  .modal-above[open] {
+    position: static;
+    inset: auto;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modal-open body {
+    overflow: visible;
+  }
+}

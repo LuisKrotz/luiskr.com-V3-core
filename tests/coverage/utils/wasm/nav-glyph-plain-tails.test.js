@@ -16,8 +16,8 @@ import { NAV_GLYPH } from '@core/tokens/data/nav-glyph.js'
 import { NAV_SEARCH_CSS_PROPS } from '@core/tokens/css/nav.js'
 import { POINTER_EVENTS } from '@core/tokens/events/dom.js'
 
-/** Two neon palette vars — enough to cover the multi-color arm. */
-const COLORS = [NAV_SEARCH_CSS_PROPS.NEON_TEAL, NAV_SEARCH_CSS_PROPS.NEON_GREEN]
+/** Two metal palette vars — enough to cover the multi-color arm. */
+const COLORS = [NAV_SEARCH_CSS_PROPS.METAL_SILVER, NAV_SEARCH_CSS_PROPS.METAL_STEEL]
 
 /** Host with a shadow root + canvas whose getContext returns `ctxResult`. */
 const makeHost = (ctxResult) => {

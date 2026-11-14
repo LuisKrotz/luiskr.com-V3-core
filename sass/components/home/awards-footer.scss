@@ -12,6 +12,8 @@
 @import '../../base/placeholders';
 @import '../../base/structure';
 
+$_B_AWARDS: 'awards-footer';
+
 // Shadow host — footer band surface, theme-flipping like .contact.
 :host {
   display: block;
@@ -25,17 +27,52 @@
 
 // ── Awards footer ─────────────────────────────────────────────────────────────
 // The legal band under the contact section — --bg-secondary surface
-// (same as .contact), %MAXAREA column.
-.awards-footer {
+// (same as .contact), %MAXAREA column. The band joins the studio stage:
+// the filament + counter-shade wash and the same animated right-side
+// key light the card-stack/about/internals stages run, so the
+// footer reads as the light pooling at the bottom of the lit field.
+.#{$_B_AWARDS} {
   @extend %MAXAREA;
 
-  background: var(--bg-secondary-glass, var(--bg-secondary));
+  background-color: var(--bg-secondary-glass, var(--bg-secondary));
+  background-image: var(--filament-glow), var(--deck-shade);
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  // The overscanned keylight must not grow a horizontal scrollbar.
+  overflow-x: clip;
   padding-top: to-rem($space-2xl);
   padding-bottom: to-rem($space-3xl);
+
+  // The KEY LIGHT — same rig as the card-stack/about/internals stages:
+  // a broad silver lobe parked just off the band's RIGHT edge, drifting
+  // on a slow breathe (transform + opacity only). No z-index — first
+  // positioned
+  // child; HC pins the deck tokens to none.
+  &::before {
+    content: '';
+    position: absolute;
+    // X-only overscan — a transformed layer's bounds feed the ancestor
+    // scrollable area, so vertical overscan re-arms body's wheel-latch
+    // slack every frame and the document stops scrolling.
+    inset: 0 -8%;
+    background-image: var(--deck-glow);
+    background-repeat: no-repeat;
+    pointer-events: none;
+    // Right-edge anchor — the scaleX swell enters from the key side.
+    transform-origin: 100% 50%;
+    animation: #{$_B_AWARDS}-keylight 18s ease-in-out infinite alternate;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  // The GL backdrop carries this light — the empty animated layer dies.
+  :host-context(html.has-gl-backdrop) &::before {
+    content: none;
+  }
 
   @include layout-768() {
     padding-top: to-rem($space-3xl);
@@ -106,7 +143,10 @@
       // flex item), so margin-block never applied historically; inside
       // the inline-flex pairs it would inflate the row above the sep's
       // line-height and reintroduce the uneven 768/1024 link rhythm.
-      line-height: to-rem($space-xl);
+      // line-height doubles as the tap-target height — the WCAG 24px
+      // floor (Lighthouse target-size) keeps adjacent footer links
+      // tappable, so the box rides one step above the $space-xl text.
+      line-height: to-rem($space-xl + $space-xs);
       opacity: 0.9;
       transition:
         opacity 0.2s,
@@ -222,6 +262,22 @@
 
   50% {
     opacity: 0.3;
+  }
+}
+
+// Keylight drift — the right-side lobe slides a few percent in and out
+// of the band's right edge while it breathes (gentle scale + opacity),
+// the same rig the other stages run. Transform/opacity only —
+// compositor-driven, zero layout and no re-raster.
+@keyframes #{$_B_AWARDS}-keylight {
+  0% {
+    transform: translate3d(-4%, 0, 0) scaleX(1);
+    opacity: 0.72;
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scaleX(1.07);
+    opacity: 1;
   }
 }
 
@@ -513,6 +569,31 @@ $_B_FS: 'footer-source';
     }
   }
 
+  // Release stamp — build provenance under the copyright line: the mono
+  // face at the smallest text step in the scale ($space-md is the
+  // smallest font-size in use) in the AAA-bound muted ink — faint, but
+  // it always clears the contrast gate. Ordered after the rights line
+  // so the mobile re-stack never lifts it above its own caption.
+  &-version {
+    @extend %TTL_BASE;
+
+    order: 7;
+    width: 100%;
+    margin: to-rem($space-sm) auto 0;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: to-rem($space-md);
+    line-height: to-rem($space-lg);
+    font-weight: calc(300 + var(--fw-lift));
+    text-transform: uppercase;
+    letter-spacing: to-rem($space-2xs);
+    color: var(--text-muted);
+
+    @include layout-768() {
+      order: 0;
+    }
+  }
+
   // Desktop scroll parallax — every band row drifts as ONE glued unit
   // (the divider hairline and its WebGPU overlay canvas ride along so
   // no seam opens between chrome and copy) inside the painted host.
@@ -521,8 +602,140 @@ $_B_FS: 'footer-source';
     &-divider,
     &-divider-canvas,
     &-credit,
-    &-rights {
+    &-rights,
+    &-version {
       transform: translate3d(0, var(--awards-parallax-y), 0);
+    }
+  }
+}
+
+// ── Print ────────────────────────────────────────────────────────────────────
+// Small scan codes print.ts seats under each footer link — the document
+// sheet can't reach this shadow root, so the rule is re-declared here.
+@media print {
+  // Colophon treatment — the band flattens to paper with an ink rule
+  // over it; legal links, docs entry and credit read as one masthead
+  // block. The keylight layer is ambient light, never ink on paper.
+  .#{$_B_AWARDS} {
+    background: var(--print-paper);
+    background-image: none;
+    border-image: none;
+
+    &::before {
+      content: none;
+    }
+  }
+
+  // The top row stacks for paper — the source pill flows under the
+  // legal directory instead of floating in the screen's right column.
+  .#{$_B_AWARDS}-top {
+    display: block;
+  }
+
+  // Ruled masthead directory — the dot-separated link cloud re-flows
+  // into a two-column grid: every label lands column one, every scan
+  // code column two, so the QRs share one right edge. Pairs dissolve
+  // (display:contents) so their anchor + injected code join the grid
+  // directly; the leading dot separators are screen rhythm, never ink.
+  .#{$_B_AWARDS}-links {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: var(--space-lg);
+    align-items: end;
+
+    .sr-only {
+      display: none;
+    }
+  }
+
+  .#{$_B_AWARDS}-links-sep {
+    display: none;
+  }
+
+  .#{$_B_AWARDS}-links-pair {
+    display: contents;
+  }
+
+  .#{$_B_AWARDS}-links-item,
+  .print-qr-link {
+    padding: var(--space-xs) 0;
+    border-bottom: to-rem($space-hairline) solid
+      color-mix(in srgb, var(--print-ink) 22%, transparent);
+    text-decoration: none;
+  }
+
+  // The source-code pill un-pills for paper — the bordered chip becomes
+  // the same ruled row the links get: label + link left, code right.
+  .footer-source {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--space-lg);
+    padding: var(--space-xs) 0;
+    margin: 0;
+    border: 0;
+    border-bottom: to-rem($space-hairline) solid
+      color-mix(in srgb, var(--print-ink) 22%, transparent);
+    border-radius: 0;
+    background: transparent;
+
+    .print-qr-link {
+      margin-left: auto;
+      border-bottom: 0;
+      padding: 0;
+    }
+  }
+
+  // Docs entry — a wide editorial row: oversized title left, its
+  // localized descriptor mid-line, scan code at the right edge.
+  .footer-source-docs {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--space-lg);
+    border-bottom: to-rem($space-hairline) solid
+      color-mix(in srgb, var(--print-ink) 22%, transparent);
+    padding: var(--space-sm) 0;
+
+    .print-qr-link {
+      order: 3;
+      border-bottom: 0;
+      padding: 0;
+    }
+  }
+
+  .footer-source-docs-desc {
+    flex: 1 1 auto;
+  }
+
+  // Authorship tail — the credit line and the copyright always ride
+  // with the colophon above them; a lone rights line must never open
+  // a sheet of its own.
+  .footer-source-credit,
+  .footer-source-rights,
+  .footer-source-version {
+    break-before: avoid;
+    page-break-before: avoid;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  // Scan codes seat inside the ruled rows — small, right-edge aligned,
+  // printed in ink.
+  .print-qr-link {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: var(--print-qr-link-size);
+    vertical-align: middle;
+    margin: 0;
+    color: var(--print-ink);
+    break-inside: avoid;
+    page-break-inside: avoid;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
     }
   }
 }

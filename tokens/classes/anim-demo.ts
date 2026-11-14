@@ -126,17 +126,16 @@ export const ANIM_DEMO_CLASSES = Object.freeze({
   /** Completion state (sweep to 100% + fade). */
   BAR_DONE: `${_B_ANIM_DEMO}-bar--done`,
 
-  /* ── Genie modal demo (satisfies utils/motion GenieClasses) ── */
-  /** The trigger origin dot the dialog zooms from. */
-  ORIGIN: `${_B_ANIM_DEMO}-origin`,
-  /** Backdrop carrying the enter/leave modifiers. */
-  BACKDROP: `${_B_ANIM_DEMO}-backdrop`,
-  /** Enter modifier — collapsed start state. */
-  BACKDROP_ENTER: `${_B_ANIM_DEMO}-backdrop--enter`,
-  /** Leave modifier — collapse-back state. */
-  BACKDROP_LEAVE: `${_B_ANIM_DEMO}-backdrop--leave`,
-  /** Dialog panel the genie transforms. */
-  DIALOG: `${_B_ANIM_DEMO}-dialog`,
+  /* ── Genie lightbox-warp demo (the real expanded/genie 2D renderer) ── */
+  /** The origin card the funnel flies out of / sucks back into — the
+   *  clicked-figure twin on the page chrome. */
+  GENIE_FIGURE: `${_B_ANIM_DEMO}-genie-figure`,
+  /** The mini lightbox content — also carries the real
+   *  `expand-modal-content` token (buildGenieSheet resolves it); this
+   *  class only frames the box on the stage. */
+  GENIE_MODAL: `${_B_ANIM_DEMO}-genie-modal`,
+  /** The media box inside the mini lightbox — the sheet's warp rect. */
+  GENIE_MODAL_FIGURE: `${_B_ANIM_DEMO}-genie-modal-figure`,
 
   /* ── Skeleton demo ── */
   /** Content block holding the skeleton placeholders. */
@@ -145,18 +144,31 @@ export const ANIM_DEMO_CLASSES = Object.freeze({
   /* ── Widget canvas variants ── */
   /** Flag widget canvas (waving flag, natural aspect). */
   FLAG: `${_B_ANIM_DEMO}-flag`,
+  /** Flex row listing every locale's flag — the record's "list them all"
+   *  contract (one `.anim-demo-flag` canvas per LANG_OPTIONS entry). */
+  FLAGS: `${_B_ANIM_DEMO}-flags`,
+  /** One flag slot — pairs the canvas with its `flag-img`/`flag-split`
+   *  <img> fallback twin (the lang dialog's own no-GL contract, so a
+   *  dead surface still lists every flag). */
+  FLAG_CELL: `${_B_ANIM_DEMO}-flag-cell`,
   /** Switch slider widget canvas (54×28 pill). */
   SWITCH: `${_B_ANIM_DEMO}-switch`,
   /** Theme slider widget canvas (280×64 track). */
   THEME: `${_B_ANIM_DEMO}-theme`,
+  /** Menu-background canvas variant — distinguishes the fullscreen
+   *  contour field from the scene-3d canvas pair when `:has()` scopes
+   *  the CSS fallback paint. */
+  MENUBG: `${_B_ANIM_DEMO}-menubg`,
+  /** Burger icon canvas mark — scopes the CSS-drawn fallback squares
+   *  on the shared icon wrapper. */
+  ICON_BURGER: `${_B_ANIM_DEMO}-icon--burger`,
+  /** Close icon canvas mark — scopes the CSS-drawn fallback X on the
+   *  shared icon wrapper. */
+  ICON_CLOSE: `${_B_ANIM_DEMO}-icon--close`,
 
   /* ── Tile inner content ── */
   /** Inner face of a demo tile (the sheen masks sit on the tile itself). */
   TILE_INNER: `${_B_ANIM_DEMO}-tile-inner`,
-
-  /* ── Genie dialog body text ── */
-  /** Placeholder line inside the genie dialog panel. */
-  DIALOG_TEXT: `${_B_ANIM_DEMO}-dialog-text`,
 
   /* ── DrawText demo ── */
   /** The <draw-text> replay element inside a demo stage. */

@@ -71,7 +71,7 @@ describe('schema generators', () => {
 
     const entities = generateProjectArticleSchema(project, TEST_PROJECTS.CICB)
 
-    expect(entities[0]['@type']).toBe('Article')
+    expect(entities[0]['@type']).toBe(SCHEMA_STRINGS.SCHEMA_ARTICLE_TYPE)
     expect(entities[0].datePublished).toBeUndefined()
     expect(entities[0].dateModified).toBeUndefined()
     // A video cover resolves the Article image to the real poster asset —
@@ -84,6 +84,23 @@ describe('schema generators', () => {
     expect(entities[1].uploadDate).toBeUndefined()
     expect(entities[1].duration).toBeUndefined()
     expect(entities[1].embedUrl).toBeUndefined()
+  })
+
+  test('generateProjectArticleSchema emits the git-derived stamps + org publisher', () => {
+    const project = {
+      title: TEST_TEXT.HEADING,
+      date: '2026-08-11T14:35:01-03:00',
+      modified: '2026-10-27T00:58:59-03:00',
+    }
+
+    const entities = generateProjectArticleSchema(project, TEST_PROJECTS.CICB)
+
+    expect(entities[0].datePublished).toBe(project.date)
+    expect(entities[0].dateModified).toBe(project.modified)
+    // NewsArticle publishers resolve to the Organization entity — the
+    // Google News/Discover contract — while author stays the Person.
+    expect(entities[0].publisher['@id']).toBe(`${NET_STRINGS.SITE_URL}#organization`)
+    expect(entities[0].author['@id']).toBe(`${NET_STRINGS.SITE_URL}#person`)
   })
 
   test('generateProjectArticleSchema uses the uncompressed mozjpg for image covers', () => {
@@ -231,7 +248,7 @@ describe('schema generators', () => {
     expect(types).toContain('WebSite')
     expect(types).toContain('WebPage')
     expect(types).toContain('BreadcrumbList')
-    expect(types).toContain('Article')
+    expect(types).toContain(SCHEMA_STRINGS.SCHEMA_ARTICLE_TYPE)
     expect(types).toContain('ItemList')
     expect(types.filter((t) => t === 'VideoObject')).toHaveLength(2) // cover + section
 
@@ -356,7 +373,7 @@ describe('schema generators', () => {
     )
 
     const webPage = graph.find((e) => e['@type'] === 'WebPage')
-    const article = graph.find((e) => e['@type'] === 'Article')
+    const article = graph.find((e) => e['@type'] === SCHEMA_STRINGS.SCHEMA_ARTICLE_TYPE)
 
     expect(webPage.name).toBe(TEST_PROJECTS.CICB)
     expect(webPage.primaryImageOfPage.url).toBe(

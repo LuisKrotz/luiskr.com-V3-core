@@ -30,17 +30,31 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
 }
 
 // ── Ratio modifiers for landscape carousels on mobile ─────────────────────────
+// The formula is a mobile-only pre-publish estimate: max-width queries stay
+// in the base sheet (the ?tiers splitter only buckets pure min-width blocks),
+// so it applies synchronously at mount below 769px and NEVER exists at ≥768 —
+// where it used to pin ~column×9/16 (~685px at 1400vw) on the inner .carousel
+// element, outranking the host's published strip height for the whole
+// lazy-tier window and blowing every slide to a giant letterbox until the
+// tablet tier's `revert` landed. Unpublished at ≥768 → the var inherits the
+// host's JS-published strip height, or stays unset → natural sizing.
 .#{$_B_CAROUSEL} {
   &--ratio-16-9 {
-    --carousel-media-height: calc((90vw - #{calc(var(--space-xl) * 2)}) * 9 / 16);
+    @media (max-width: #{$vw-768}) {
+      --carousel-media-height: calc((90vw - #{calc(var(--space-xl) * 2)}) * 9 / 16);
+    }
   }
 
   &--ratio-21-9 {
-    --carousel-media-height: calc((90vw - #{calc(var(--space-xl) * 2)}) * 9 / 21);
+    @media (max-width: #{$vw-768}) {
+      --carousel-media-height: calc((90vw - #{calc(var(--space-xl) * 2)}) * 9 / 21);
+    }
   }
 
   &--ratio-32-9 {
-    --carousel-media-height: calc((90vw - #{calc(var(--space-xl) * 2)}) * 9 / 32);
+    @media (max-width: #{$vw-768}) {
+      --carousel-media-height: calc((90vw - #{calc(var(--space-xl) * 2)}) * 9 / 32);
+    }
   }
 
   &--mixed {
@@ -77,20 +91,6 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
         contain: none;
         clip-path: none;
       }
-    }
-  }
-
-  @include layout-768() {
-    &--ratio-16-9,
-    &--ratio-21-9,
-    &--ratio-32-9 {
-      // `revert`, not `initial`: an `initial` custom property is the
-      // guaranteed-invalid value — it would SEVER inheritance from the
-      // host's published strip height and leave --mf-h unset (the
-      // ragged-heights bug at ≥768). `revert` drops this declaration
-      // so the published --carousel-media-height inherits down to the
-      // slides; unpublished stays unset → natural sizing fallback.
-      --carousel-media-height: revert;
     }
   }
 }
@@ -172,7 +172,15 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
   // <media-figure> is inside <custom-carousel>'s Shadow Root, the light DOM
   // rules can't reach it. We must redeclare the same vars here, inside the
   // carousel Shadow Root, where they can reach nested <media-figure> elements.
-  media-figure {
+  // `:host` prefix: internals.scss is ALSO adopted by this shadow root and
+  // carries the same `.internal-extra-item media-figure` ladder (fixed
+  // --mf-h: --space-7xl/8xl/9xl). Its breakpoint rungs live in the lazily
+  // appended tier sheets, which cascade after this base sheet — at equal
+  // specificity the fixed ladder won and pinned every slide to the 610px
+  // rung, blowing the width:auto × aspect box ~3× past the published
+  // half-natural strip. The extra pseudo-class makes the JS-published
+  // strip height authoritative regardless of sheet order.
+  :host & media-figure {
     --mf-w: calc(90vw - #{calc(var(--space-xl) * 2)});
     // No height fallback: when --carousel-media-height is unpublished
     // (no item.size data yet) --mf-h stays unset and the slide sizes
@@ -224,6 +232,40 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
     }
   }
 
+  // The internals VARIANT rungs (.internal-extra-item.landscape
+  // media-figure, …small) carry the same specificity as the rule above
+  // and ship in the later tier sheets — they pinned --mf-h to the fixed
+  // --space-Nxl ladder, which is how landscape slides rendered ~786px
+  // tall instead of the published strip height. Only --mf-h needs the
+  // outrank: --mf-w keeps each variant's own width contract (the
+  // landscape column cap, the small rungs); the strip's uniform height
+  // is the one value that must never vary by variant.
+  :host &.landscape media-figure,
+  :host &.small media-figure {
+    --mf-h: var(--carousel-media-height);
+  }
+
+  // The lone .carousel-fallback item is page media, not a track slide —
+  // the published strip height exists for the scroll track's
+  // uniform-height slides (and the measured --side pair) only. Pinning
+  // it here used to letterbox a lone landscape video to column-width ×
+  // strip-height (~8:1 band, the "too small" sliver). `revert` clears
+  // this sheet's pin, so the figure falls back to its intrinsic aspect
+  // under the usual placeholder caps — the same contract an in-page
+  // extra-item figure has.
+  // `align-self: center` un-stretches the figure inside the item's
+  // column flex: the lone landscape item is deliberately full-column
+  // (width:100%), and cross-axis stretch used to blow the figure box
+  // to ~1412px while the media's honest box is only 960 — the absolute
+  // video layer then letterboxed into the extra space with blurred
+  // bands. Centering hugs the media box (960×504 = the /2 contract:
+  // centred, undistorted, band-free) — the same render the slide's
+  // aspect-exact box gives, minus the strip.
+  :host .#{$_B_CAROUSEL}-fallback:not(.#{$_B_CAROUSEL}-fallback--side) & media-figure {
+    --mf-h: revert;
+    align-self: center;
+  }
+
   // landscape variant: --mf-w carries the column cap (consumed as the
   // placeholder's max-width) — it tracks %MAXAREA's gutter math
   // (100vw − 2·$gap) and is floored by the step's fixed max-area, so
@@ -270,3 +312,108 @@ $_B_INTERNAL_EXTRA: 'internal-extra-item';
 // doesn't import _structure (which emits it globally), so include the
 // shared scope explicitly.
 @include focus-ring-scope;
+
+@media print {
+  :host {
+    overflow: visible;
+    container-type: normal;
+    min-height: 0;
+    height: auto;
+  }
+
+  // The scroll track flattens to a static grid — the screen contract is a
+  // single-row flex scroller with 50% run-out padding, which on paper
+  // would clip every slide past the viewport window. Loop clones print
+  // duplicate media, so they drop.
+  .#{$_B_CAROUSEL}-track {
+    // flex-wrap, not grid — Chromium's grid fragmentation in paged media
+    // strands empty fragmentainers; flex rows paginate cleanly.
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .#{$_B_CAROUSEL_SLIDE}--clone {
+    display: none;
+  }
+
+  .#{$_B_CAROUSEL}--mixed {
+    .#{$_B_CAROUSEL_SLIDE},
+    .#{$_B_INTERNAL_EXTRA} {
+      height: auto;
+      overflow: visible;
+      contain: none;
+      clip-path: none;
+    }
+  }
+
+  .#{$_B_CAROUSEL_SLIDE} {
+    display: block;
+    width: 100%;
+    flex: 0 1 calc(50% - var(--space-md));
+    height: auto;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .#{$_B_INTERNAL_EXTRA},
+  .#{$_B_CAROUSEL} .#{$_B_INTERNAL_EXTRA}:first-of-type,
+  .#{$_B_CAROUSEL} .#{$_B_INTERNAL_EXTRA}:last-of-type {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    color: var(--text-primary);
+    break-inside: avoid;
+    page-break-inside: avoid;
+
+    label {
+      color: var(--text-primary);
+      white-space: normal;
+      padding-top: var(--space-xs);
+    }
+  }
+
+  // Contact-sheet cell, same contract as the media-mosaic tile — the
+  // flattened strip is a thumbnail wall, so each slide's host clips its
+  // surviving layer at the shared tile rung (natural size inside →
+  // top-band crop) instead of printing a page-tall natural figure.
+  :host .#{$_B_INTERNAL_EXTRA} media-figure,
+  .#{$_B_INTERNAL_EXTRA}.landscape media-figure,
+  .#{$_B_INTERNAL_EXTRA}.small media-figure,
+  .#{$_B_CAROUSEL_SLIDE} media-figure {
+    --mf-w: 100%;
+    --mf-h: auto;
+    --mf-max-w: 100%;
+    width: 100%;
+    height: auto;
+    max-height: var(--print-mosaic-tile-h);
+    overflow: hidden;
+  }
+
+  // Source/date/author line print.ts seats after each figure/img inside
+  // the slides — the document sheet can't reach this shadow root.
+  .print-caption {
+    display: block;
+    max-width: 100%;
+    margin: var(--space-2xs) auto var(--space-md);
+    font-size: var(--print-caption-size);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-align: center;
+    overflow-wrap: break-word;
+    break-inside: avoid;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+}

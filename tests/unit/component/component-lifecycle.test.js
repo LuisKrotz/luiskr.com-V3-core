@@ -13,6 +13,7 @@ import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 import { COMMON_SELECTORS } from '@core/tokens/selectors/common.js'
 import { MOUSE_EVENTS, WINDOW_EVENTS } from '@core/tokens/events/dom.js'
 import { PREF_MUTATIONS } from '@core/tokens/events/mutations.js'
+import { MEDIA_QUERIES } from '@core/tokens/primitives.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 
 // Create a minimal test component for lifecycle testing
@@ -370,6 +371,28 @@ describe('BaseComponent Lifecycle & Architecture', () => {
       store.commit(PREF_MUTATIONS.SET_THEME, THEME.DARK)
       // storeUpdateCount should not increase after disconnect
       expect(el.storeUpdateCount).toBe(before)
+    })
+
+    test('onStoreUpdate() is skipped while print media matches', () => {
+      document.body.appendChild(el)
+      el.subscribe(store)
+
+      const realMM = window.matchMedia
+      window.matchMedia = (query) => ({
+        media: query,
+        matches: query === MEDIA_QUERIES.PRINT,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      })
+
+      try {
+        const before = el.storeUpdateCount
+        store.commit(PREF_MUTATIONS.SET_THEME, THEME.DARK)
+        // The print adapter's injected DOM must survive a mid-print push.
+        expect(el.storeUpdateCount).toBe(before)
+      } finally {
+        window.matchMedia = realMM
+      }
     })
   })
 

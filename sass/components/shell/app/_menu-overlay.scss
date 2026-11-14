@@ -15,7 +15,7 @@
   position: fixed;
   inset: 0;
   z-index: 1000;
-  // Layer order: the aurora wash rides ON TOP of the flat menu field —
+  // Layer order: the paper wash rides ON TOP of the flat menu field —
   // --menu-bg stays a solid colour because the contour shader samples
   // it as a canvas ink. Dark/high-contrast pin --menu-glow to `none`,
   // a valid <bg-image> that drops the wash layer entirely.
@@ -123,7 +123,7 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
 // Entrance mirrors the shader's reveal: pure opacity fade, no transform —
 // the background field must stay stable while the modal animates around it.
 // The 0.32 resting opacity matches the WebGL contour field's ink alpha —
-// the aurora wash underneath needs a touch more thread than the old flat
+// the paper wash underneath needs a touch more thread than the old flat
 // field did for the isolines to stay legible.
 @keyframes #{$_B_NAV}-membrane-in {
   from {
@@ -179,7 +179,7 @@ $_TURB-B: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 widt
     --menu-bg: var(--bg-darkest);
     --menu-ink: var(--color-white-raw);
     --menu-ink-2: var(--color-white-raw);
-    // The light theme's aurora wash stays off — the playground pins the
+    // The light theme's paper wash stays off — the playground pins the
     // flat dark variant regardless of the global theme.
     --menu-glow: none;
   }

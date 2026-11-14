@@ -74,8 +74,8 @@ describe('canvas paint-color tokens', () => {
   })
 
   test('accent + divider tokens land on documented values', () => {
-    expect(CANVAS_PAINT_GLSL.TURQUOISE_TOP).toBe('vec3(0.40, 0.988, 0.945)')
+    expect(CANVAS_PAINT_GLSL.SILVER_TOP).toBe('vec3(0.91, 0.94, 0.97)')
     expect(CANVAS_PAINT_GLSL.FLAG_DIVIDER).toBe('vec4(0.1, 0.1, 0.1, 1.0)')
-    expect(CANVAS_PAINT_CSS.NEON_TEAL).toBe('#66fcf1')
+    expect(CANVAS_PAINT_CSS.METAL_STEEL).toBe('#96a5b8')
   })
 })

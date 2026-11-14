@@ -57,7 +57,7 @@
     // same light-physics language as the prev/next canvas buttons
     // (--bg-primary glass flips white→black dots per theme, dark index
     // ink on the light disc via --text-primary, --color-accent-contrast
-    // arc — the neon --color-accent would vanish on light fields). The
+    // arc — the silver --color-accent would vanish on light fields). The
     // rim is an inset shadow, not a border, so the 16px geometry stays
     // exact through the pill morph; the number renders on top.
     &::after {
@@ -91,7 +91,7 @@
       }
 
       // Active index takes the surface-safe accent ink — the pill reads
-      // "lit" without painting the neon signature cyan on light fields.
+      // "lit" without painting the silver signature sheen on light fields.
       .#{$B}-dot-num {
         color: var(--color-accent-contrast);
       }

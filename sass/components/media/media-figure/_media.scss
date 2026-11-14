@@ -11,6 +11,14 @@
 $_THUMB-BLUR: $space-lg - $space-3xs; // 12
 $_THUMB-ZOOM: 1.05;
 
+/// Figure modifier block — mirrors MEDIA_CLASSES.MEDIA_FIGURE_* (base.ts).
+$_B_MEDIA_FIGURE: 'media-figure';
+
+/// Expand-modal trigger block — mirrors EXPAND_MODAL_CLASSES.EXPAND_MODAL_OPEN_*
+/// (modal.ts): open-1 is the styled corner trigger, open-2 the invisible
+/// full-figure overlay.
+$_B_EXPAND_MODAL: 'expand-modal';
+
 // ── Media layers ──────────────────────────────────────────────────────────────
 // Two-layer progressive cross-fade:
 //   Layer 1 (--thumb): blurred thumbnail visible immediately
@@ -53,12 +61,16 @@ $_THUMB-ZOOM: 1.05;
 // ── Video element ─────────────────────────────────────────────────────────────
 // Carousel / extra-item context: videos fill their slide container.
 // The :host(.internal-main-item) block above overrides this for cover media.
+// z-index must be explicit: the poster thumb layer sits at z-index 1,
+// and a positive stack paints above z-index:auto siblings no matter the
+// DOM order — without it the blurred poster would cover the stream.
 video.render-media {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
+  z-index: 2;
   object-fit: cover;
   object-position: top center;
 
@@ -92,16 +104,250 @@ video.render-media {
 // ratio-matched box it paints identically to cover — honest-ratio
 // slides are unchanged.
 @supports selector(:host-context(*)) {
+  // Videos follow the same contract: a cover-cropped landscape frame in
+  // a reshaped box reads as a zoomed distortion; scale-down shows the
+  // whole frame with the blurred poster layer filling the bands.
   :host-context(.carousel-slide) .render-media--high,
-  :host-context(.carousel-fallback) .render-media--high {
+  :host-context(.carousel-slide) video.render-media,
+  :host-context(.carousel-fallback) .render-media--high,
+  :host-context(.carousel-fallback) video.render-media {
     object-fit: scale-down;
     object-position: center;
+  }
+
+  // Full-page captures (natural height past TALL_ITEM_H — the figure
+  // carries --tall) are the one exception: scale-down renders a 6000px
+  // file as a hairline sliver inside the strip box, so these fill the
+  // box with a top-anchored cover crop — the capture's top band is a
+  // legible preview; the honest aspect is the modal's job.
+  :host-context(.carousel-slide) .#{$_B_MEDIA_FIGURE}--tall .render-media--high,
+  :host-context(.carousel-slide) .#{$_B_MEDIA_FIGURE}--tall video.render-media,
+  :host-context(.carousel-fallback) .#{$_B_MEDIA_FIGURE}--tall .render-media--high,
+  :host-context(.carousel-fallback) .#{$_B_MEDIA_FIGURE}--tall video.render-media {
+    object-fit: cover;
+    object-position: top center;
   }
 }
 
 // ── Expand modal trigger buttons ──────────────────────────────────────────────
-// exp-md-open-1: styled in modal.scss with animated corner borders
-// exp-md-open-2: invisible overlay for full-figure click area
-.exp-md-open-2 {
+// expand-modal-open-1: styled in modal.scss with animated corner borders
+// expand-modal-open-2: invisible overlay for full-figure click area
+.#{$_B_EXPAND_MODAL}-open-2 {
   display: none;
+}
+
+@media print {
+  :host,
+  :host(.internal-extra-item),
+  :host([classes*='internal-extra-item']) {
+    content-visibility: visible;
+    contain-intrinsic-size: none;
+    contain: none;
+    width: 100%;
+    height: auto;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  // The slide-context layer skips from _host.scss survive into paged
+  // media as blank reserved bands — every layer renders for the snapshot.
+  // The host-qualified arms match the slide opt-out's 0,3,0 specificity —
+  // this partial compiles later in the manifest, so the equal-weight
+  // override lands.
+  .render-placeholder,
+  .render-media,
+  :host-context(.internal-extra-item) .render-placeholder,
+  :host-context(.internal-extra-item) .render-media,
+  :host(.internal-extra-item) .render-placeholder,
+  :host(.internal-extra-item) .render-media,
+  :host([classes*='internal-extra-item']) .render-placeholder,
+  :host([classes*='internal-extra-item']) .render-media {
+    content-visibility: visible;
+    contain-intrinsic-size: none;
+  }
+
+  figure,
+  :host(.internal-main-item) figure,
+  :host([classes*='internal-main-item']) figure,
+  :host(.ztf-video) figure,
+  :host([classes*='ztf-video']) figure,
+  :host(.internal-extra-item) figure,
+  :host([classes*='internal-extra-item']) figure,
+  :host-context(.internal-extra-item) figure {
+    display: block;
+    width: 100%;
+    height: auto;
+    // The host contracts cap the figure at 70dvh/175dvh and clip — on
+    // paper the in-flow img below governs the bound instead.
+    max-width: 100%;
+    max-height: none;
+    overflow: visible;
+    background: transparent;
+    box-shadow: none;
+    break-inside: avoid;
+    page-break-inside: avoid;
+
+    &::before {
+      display: none;
+    }
+  }
+
+  // The svg placeholder is only the on-screen height box — on paper the
+  // media layer itself carries the figure, so the gray box never prints.
+  .render-placeholder,
+  :host(.internal-main-item) .render-placeholder,
+  :host([classes*='internal-main-item']) .render-placeholder,
+  :host(.internal-extra-item) .render-placeholder,
+  :host([classes*='internal-extra-item']) .render-placeholder,
+  :host(.internal-extra-item.landscape) .render-placeholder,
+  :host([classes*='internal-extra-item'][classes*='landscape']) .render-placeholder,
+  :host-context(.internal-extra-item) .render-placeholder,
+  :host-context(.carousel-slide) .render-placeholder,
+  :host-context(.carousel-fallback) .render-placeholder {
+    display: none;
+  }
+
+  // Media layers go in-flow on paper: every retired layer is tagged
+  // .print-src (display:none), so the single surviving layer's static box
+  // IS the figure's printed height — absolute positioning would collapse
+  // the figure to zero and paint nothing. The host-qualified arms match
+  // _host.scss's :host(.internal-main-item)/:host(.ztf-video) contracts —
+  // this partial compiles later, so equal specificity resolves in print.
+  .render-media--thumb,
+  .render-media--high[src],
+  :host(.internal-main-item) .render-media--thumb,
+  :host(.internal-main-item) .render-media--high[src],
+  :host([classes*='internal-main-item']) .render-media--thumb,
+  :host([classes*='internal-main-item']) .render-media--high[src],
+  :host(.ztf-video) .render-media--thumb,
+  :host(.ztf-video) .render-media--high[src],
+  :host([classes*='ztf-video']) .render-media--thumb,
+  :host([classes*='ztf-video']) .render-media--high[src],
+  :host(.ztf-video.internal-main-item) .render-media--thumb,
+  :host(.ztf-video.internal-main-item) .render-media--high[src],
+  :host([classes*='ztf-video'][classes*='internal-main-item']) .render-media--thumb,
+  :host([classes*='ztf-video'][classes*='internal-main-item']) .render-media--high[src] {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    filter: none;
+    transform: none;
+    transition: none;
+    object-fit: contain;
+    object-position: center;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: var(--print-media-max-h);
+    margin: 0 auto;
+    // Editorial mount — the padding ring + ink-tinted ground + hairline
+    // rule present the still as a mounted plate, not a bare paste; the
+    // :host(.print-bleed) arm below resets it for the full-bleed plate.
+    padding: var(--space-xs);
+    background: color-mix(in srgb, var(--print-ink) 4%, var(--print-paper));
+    border: var(--space-hairline) solid color-mix(in srgb, var(--print-ink) 28%, transparent);
+  }
+
+  // Mosaic-tile and slide-strip contexts — the host box above is the
+  // bounded contact-sheet cell (--print-mosaic-tile-h); the surviving
+  // layer inside paints at natural size so a taller capture crops its
+  // top band through the host's clip. The :host-context arms out-rank
+  // both the plain print arms and the fill-the-packed-box screen
+  // contract in _host.scss (:host-context(.media-mosaic-item) /
+  // :host(.internal-extra-item) set height/max-height 100%), which would
+  // otherwise either shrink the layer to the cell or leave it unbounded.
+  :host-context(.media-mosaic-item) .render-media,
+  :host-context(.media-mosaic-item) .render-media--thumb,
+  :host-context(.media-mosaic-item) .render-media--high[src],
+  :host-context(.carousel-slide) .render-media,
+  :host-context(.carousel-slide) .render-media--thumb,
+  :host-context(.carousel-slide) .render-media--high[src],
+  // The sitemap media wall's card figure is the same bounded cell — the
+  // card host owns a fixed strip height and clips, so the surviving
+  // layer paints its natural width scale inside and the top band shows.
+  :host-context(.sitemap-card) .render-media,
+  :host-context(.sitemap-card) .render-media--thumb,
+  :host-context(.sitemap-card) .render-media--high[src],
+  :host(.internal-extra-item) .render-media,
+  :host(.internal-extra-item) .render-media--thumb,
+  :host(.internal-extra-item) .render-media--high[src],
+  :host([classes*='internal-extra-item']) .render-media,
+  :host([classes*='internal-extra-item']) .render-media--thumb,
+  :host([classes*='internal-extra-item']) .render-media--high[src] {
+    position: static;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: none;
+    object-fit: cover;
+    object-position: top center;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+  }
+
+  // Full-bleed editorial spread — the print adapter's .print-bleed tag
+  // rides inside a `.print-plate` wrapper that owns the host's box
+  // (position/size/rotation live on the light-DOM plate rules); this
+  // arm only covers the shadow's inner layers so the surviving rung
+  // fills the host edge-to-edge (object-fit: cover crops — the
+  // editorial intent). The still (.print-copy) a video hero swaps in
+  // needs the same rung — a capped editorial mat inside the rotated
+  // host is how the spread printed the image inset from the trim.
+  :host(.print-bleed) {
+    figure {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .render-media--thumb,
+    .render-media--high[src],
+    .print-copy {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      margin: 0;
+      // A bleed plate owns its edges — the editorial mat opts out here.
+      padding: 0;
+      background: none;
+      border: 0;
+      object-fit: cover;
+    }
+  }
+
+  // Landscape hero in a hoisted internal plate — the light-DOM plate
+  // rules quarter-turn the host inside the portrait sheet, so the
+  // frame's wide axis reads full-bleed across the turned spread; the
+  // surviving layer keeps a centered cover crop inside the turned box.
+  :host(.print-bleed--landscape) {
+    .render-media--thumb,
+    .render-media--high[src],
+    .print-copy {
+      object-position: center center;
+    }
+  }
+
+  // print.ts tags the LQIP/thumb layers `.print-src` once the high layer
+  // carries a real-resolution src — the global rule can't reach this
+  // shadow root, so the hide is re-declared here. The host-qualified
+  // arms out-rank the :host(.internal-main-item) .render-placeholder
+  // contract in _host.scss for the hero figure (equal 0,3,0 — this
+  // partial compiles later, so the order wins).
+  .print-src,
+  :host(.internal-main-item) .print-src,
+  :host([classes*='internal-main-item']) .print-src {
+    display: none;
+  }
+
+  video.render-media,
+  .#{$_B_EXPAND_MODAL}-open-1,
+  .#{$_B_EXPAND_MODAL}-open-2 {
+    display: none;
+  }
 }

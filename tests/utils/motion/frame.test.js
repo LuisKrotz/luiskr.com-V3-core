@@ -150,7 +150,7 @@ describe('framePool', () => {
     expect(() => timers[0]()).toThrow('boom')
   })
 
-  test('the pump freezes while a scroll gesture owns the budget, resuming on settle', () => {
+  test('the pump freezes while a scroll gesture owns the budget, resuming on settle', async () => {
     let ran = 0
 
     framePool.request(() => ran++)
@@ -171,8 +171,14 @@ describe('framePool', () => {
     expect(ran).toBe(0)
     expect(framePool.size()).toBe(1)
 
-    // Settle: the queued callback resumes on the next pump.
+    // scrollend only re-arms the settle debounce (atomic programmatic
+    // scrolls emit scroll+scrollend in one task) — the gesture ends when
+    // the quiet window expires, then the queued callback resumes.
     window.dispatchEvent(new Event(WINDOW_EVENTS.SCROLLEND))
+
+    await new Promise((resolve) => setTimeout(resolve, 160))
+
+    expect(isScrolling()).toBe(false)
 
     flushFrame()
 

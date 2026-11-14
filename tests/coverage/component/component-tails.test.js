@@ -119,6 +119,14 @@ describe('Component tails', () => {
     expect(BaseComponent.prototype.$.call(bare, 'div')).toBeNull()
   })
 
+  test('_renderInitial returns early when shadowRoot is absent', () => {
+    // Same bare-host shape as the $$ guard — no style/content work may run
+    // before the shadow root exists.
+    const bare = { shadowRoot: null }
+
+    expect(BaseComponent.prototype._renderInitial.call(bare)).toBeUndefined()
+  })
+
   test('addScopedListener disposers run on disconnect', async () => {
     const el = document.createElement(COMPONENT_TAGS.COOKIE_BANNER)
 

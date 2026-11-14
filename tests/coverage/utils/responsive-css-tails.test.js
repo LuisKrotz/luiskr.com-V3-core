@@ -285,4 +285,42 @@ describe('mergeTiered', () => {
     expect(await sparse.tiers.mobile()).toBe('S-m')
     expect(await sparse.tiers.desktop()).toBe('S-d')
   })
+
+  test('each merged tier falls back per sheet to its highest defined lower tier', async () => {
+    // Sheet A only ships a tablet tier (the splitter omits classes whose
+    // cumulative text repeats the previous tier); sheet B ships desktop.
+    // At desktop BOTH sheets must contribute — A's tablet css is its own
+    // cumulative best. Keying merged loaders by exact class orphans A.
+    const a = { base: 'A', tiers: { tablet: () => Promise.resolve('A-t') } }
+    const b = { base: 'B', tiers: { desktop: () => Promise.resolve('B-d') } }
+    const merged = mergeTiered(a, b)
+
+    expect(await merged.tiers.tablet()).toBe('A-t')
+    expect(await merged.tiers.desktop()).toBe('A-t\nB-d')
+    expect(merged.tiers.wide).toBeUndefined()
+
+    // Dedup: two sheets whose every class resolves to their mobile tier
+    // emit only the mobile key — wider classes would be byte-identical.
+    const m1 = { base: 'M', tiers: { mobile: () => Promise.resolve('M1') } }
+    const m2 = { base: 'N', tiers: { mobile: () => Promise.resolve('M2') } }
+
+    expect(Object.keys(mergeTiered(m1, m2).tiers)).toEqual(['mobile'])
+  })
+
+  test('print loaders merge into one lazy loader in part order', async () => {
+    const a = { base: 'A', tiers: {}, print: () => Promise.resolve({ default: 'A-p' }) }
+    const c = { base: 'C', tiers: {} }
+    const b = { base: 'B', tiers: {}, print: () => Promise.resolve('B-p') }
+    const merged = mergeTiered(a, c, b)
+
+    // Parts without a print bucket contribute nothing; the merged loader
+    // resolves every contribution in source order like the width tiers.
+    expect(await merged.print()).toBe('A-p\nB-p')
+  })
+
+  test('no print loaders anywhere — the merged module carries no print key', () => {
+    const merged = mergeTiered({ base: 'A', tiers: {} }, 'plain')
+
+    expect(merged.print).toBeUndefined()
+  })
 })

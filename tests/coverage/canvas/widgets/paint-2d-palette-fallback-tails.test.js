@@ -1,7 +1,7 @@
 /**
  * @file paint-2d-palette-fallback-tails.test.js
  * @description Coverage tail for carousel-controls/paint-2d.ts — the
- * arrowPalette `|| [0,0,0]` arm: the sampled accent AND the NEON_TEAL
+ * arrowPalette `|| [0,0,0]` arm: the sampled accent AND the METAL_STEEL
  * constant must both fail parsing, so css-color is mocked to return null
  * for every input before the painter module loads.
  */

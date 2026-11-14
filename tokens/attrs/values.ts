@@ -29,4 +29,13 @@ export const ATTR_VALUES = Object.freeze({
   LAZY: 'lazy',
   /** `off` — autocomplete/spellcheck disable value. */
   OFF: 'off',
+  /** `horizontal` — aria-orientation value for left/right sliders. */
+  HORIZONTAL: 'horizontal',
+  /** `currentColor` — SVG fill/stroke keyword inheriting the document ink. */
+  CURRENT_COLOR: 'currentColor',
+  /** `cover` — object-fit keyword: the layer fills its box, cropping overflow. */
+  COVER: 'cover',
+  /** `scale-down` — object-fit keyword: letterboxes the layer (contain, never
+   * upscale) so its box can keep transparent bands. */
+  SCALE_DOWN: 'scale-down',
 })

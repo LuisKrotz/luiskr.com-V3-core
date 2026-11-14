@@ -6,8 +6,7 @@
  * interpolated straight into shader templates (the token-injection
  * pattern SKELETON_GLYPH already uses); CSS entries are hex strings for
  * ctx.strokeStyle/fillStyle sites. Where a value matches a SCSS token
- * the doc names it — TURQUOISE_TOP is `$neon-teal`/`$cms-accent`
- * (#66fcf1).
+ * the doc names it — SILVER_TOP is the metal palette's specular pole.
  */
 
 /** GLSL `vec3(...)` source strings — interpolate into shader templates. */
@@ -15,14 +14,14 @@ export const CANVAS_PAINT_GLSL = Object.freeze({
   // ── Close/burger liquid disc ─────────────────────────────────────
   /** Neutral disc background (non-HC). */
   DISC_BG: 'vec3(0.22, 0.23, 0.27)',
-  /** Liquid body — the deep end of the turquoise pour ramp. */
-  TURQUOISE_DEEP: 'vec3(0.18, 0.65, 0.62)',
-  /** Liquid surface — `$neon-teal` #66fcf1, the awards-bar accent. */
-  TURQUOISE_TOP: 'vec3(0.40, 0.988, 0.945)',
+  /** Liquid body — the deep end of the mercury pour ramp. */
+  SILVER_DEEP: 'vec3(0.42, 0.49, 0.58)',
+  /** Liquid surface — the metal palette's specular pole. */
+  SILVER_TOP: 'vec3(0.91, 0.94, 0.97)',
   /** Foam-crest glow riding the liquid surface. */
-  FOAM_CREST: 'vec3(0.75, 1.0, 0.98)',
+  FOAM_CREST: 'vec3(0.88, 0.92, 0.97)',
   /** Rising-bubble highlight inside the liquid. */
-  BUBBLE_HI: 'vec3(0.85, 1.0, 0.98)',
+  BUBBLE_HI: 'vec3(0.95, 0.97, 1.0)',
   /** Pure-white ink/stroke pole. */
   INK_WHITE: 'vec3(1.0, 1.0, 1.0)',
 
@@ -134,8 +133,8 @@ export const CANVAS_PAINT_GLSL = Object.freeze({
 
 /** CSS hex strings — 2D-context fallbacks (ctx.strokeStyle/fillStyle). */
 export const CANVAS_PAINT_CSS = Object.freeze({
-  /** `$neon-teal`/`$cms-accent` — the site accent (TURQUOISE_TOP's hex). */
-  NEON_TEAL: '#66fcf1',
+  /** `$metal-steel` — the site accent (SILVER_TOP's fallback cut). */
+  METAL_STEEL: '#96a5b8',
   /** About-mesh dot lattice — quiet neutral used only when the themed
    * `--text-muted` ink cannot resolve (its pre-theme value). */
   MESH_GREY: '#bebebe',

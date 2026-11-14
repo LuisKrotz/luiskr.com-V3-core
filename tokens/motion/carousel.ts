@@ -15,10 +15,12 @@ export const CAROUSEL_TIMING = Object.freeze({
   /**
    * Clone→real teleport watchdog (ms). The scroll spring's settle
    * callback normally fires the invisible clone→twin jump; this timer
-   * only covers rAF starvation (hidden tab) — sized past the spring's
-   * typical settle so a slow frame cadence can't pop mid-flight.
+   * is the last-resort cover for a dead rAF loop (hidden tab) — sized
+   * past CAROUSEL_SPRING.MAX_MS so a merely-slow frame cadence lets the
+   * spring's own force-settle fire the teleport instead of cutting the
+   * flight mid-travel (a visible snap across the strip).
    */
-  TELEPORT_DELAY: 1100,
+  TELEPORT_DELAY: 1600,
   /** Watchdog (ms) for the isNavigating suppression window — releases if the spring's settle callback somehow never runs */
   NAVIGATION_SETTLE_DELAY: 1400,
   /** Scroll-event debounce (ms) before the clone-teleport detector runs — scroll fires per pixel, the check only matters at rest */
@@ -92,15 +94,16 @@ export const CAROUSEL_LAYOUT = Object.freeze({
   /** px delta below which ResizeObserver width reports are ignored — sub-pixel RO noise must not trigger a re-fit storm */
   FIT_EPS_PX: 4,
 
-  /** Desktop downscale ladder for carousel items — steps compound on the
-   *  running width while each result still clears DESKTOP_SCALE_MIN_W;
-   *  the first step that would drop it under the floor stops the walk
-   *  (smaller render = denser pixels). Mobile (≤ CAROUSEL_MAX_W) is
-   *  untouched. */
-  DESKTOP_SCALE_STEPS: [2, 1.5, 1.75],
+  /** Desktop downscale ladder for carousel items — ÷2 always applies
+   *  (retina density), then ÷3 → ÷4 → ÷5 compound on the running width
+   *  only while the slide is still at least viewport-wide; the first
+   *  step that would drop it under DESKTOP_SCALE_MIN_W also stops the
+   *  walk. A 3840px source lands ~640 wide at 1920px viewport, a 1920px
+   *  source ~960. Mobile (≤ CAROUSEL_MAX_W) is untouched. */
+  DESKTOP_SCALE_STEPS: [2, 3, 4, 5],
   /** Width floor (px) the compounding ladder never crosses — the last
    *  step whose result stays above it is the one applied to height. */
-  DESKTOP_SCALE_MIN_W: 320,
+  DESKTOP_SCALE_MIN_W: 280,
   /** Approx flex gap (px) added per item in the side-by-side width projection */
   ITEM_GAP_PX: 32,
   /** Minimum slide media width (px) — tall media floor so a fixed strip height never yields slivers; mirrors min-width in media-figure.scss */
@@ -128,14 +131,6 @@ export const CAROUSEL_LAYOUT = Object.freeze({
   HALF_NATURAL_MAX_VW: 1024,
   /** Scale applied to source dims when projecting the half-capped strip height */
   HALF_NATURAL_SCALE: 0.5,
-  /**
-   * Minimum viewport (px) at which >2-item groups may also settle into
-   * the centered side-by-side row — on ≥3840 ultrawide a handful of
-   * slides can't fill the track, so when the whole set projects inside
-   * the host the controls-free row wins ("fewer items than the
-   * viewport" case).
-   */
-  MULTI_FIT_MIN_VW: 3840,
   /** String token key for 16:9 */
   ASPECT_RATIO_16_9: '16:9',
   /** String token key for 21:9 */

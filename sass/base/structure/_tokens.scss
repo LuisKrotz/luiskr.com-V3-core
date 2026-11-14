@@ -14,22 +14,22 @@
 
   // CMS brand tokens — exposed as CSS vars so component SCSS files can use them
   // without referencing $cms-* SCSS variables (which are _structure.scss-only).
-  --color-accent: #{$cms-accent};
-  --color-accent-hover: #{$cms-accent-hover};
-  // Light theme pins the aurora accent (deep teal-cyan, ≥3:1 on the dusky
-  // field); html.dark-mode re-pins the signature bright cyan.
-  --color-accent-contrast: #{$aurora-accent};
-  // Nav icon neon palette — consumed by the search/preferences glyphs.
+  --color-accent: #{$metal-silver-light};
+  --color-accent-hover: #{$metal-steel-light};
+  // Light theme pins the gunmetal accent (≥3:1 on the dusky field);
+  // html.dark-mode re-pins the bright chrome silver.
+  --color-accent-contrast: #{$metal-silver-light};
+  // Nav icon metal palette — consumed by the search/preferences glyphs.
   // Light theme publishes the deepened re-cut (≥3:1 on the light chip
   // disc); html.dark-mode re-pins the bright set in _dark-mode.scss.
-  --nav-neon-teal: #{$neon-teal-light};
-  --nav-neon-green: #{$neon-green-light};
-  --nav-neon-violet: #{$neon-violet-light};
-  --nav-neon-magenta: #{$neon-magenta-light};
-  --nav-neon-orange: #{$neon-orange-light};
-  --nav-neon-chrome: #{$neon-chrome-light};
+  --nav-metal-silver: #{$metal-silver-light};
+  --nav-metal-steel: #{$metal-steel-light};
+  --nav-metal-platinum: #{$metal-platinum-light};
+  --nav-metal-pearl: #{$metal-pearl-light};
+  --nav-metal-titanium: #{$metal-titanium-light};
+  --nav-metal-chrome: #{$metal-chrome-light};
   // Keyboard focus ring ink — tracks the theme-aware control accent
-  // (deep aurora teal in light mode, signature cyan in dark via the
+  // (gunmetal steel in light mode, chrome silver in dark via the
   // override below), so Tab affordance matches the palette in both themes.
   --focus-ring: var(--color-accent-contrast);
   // Extra band emitted around the outline by the HC boost in _focus.scss —
@@ -38,125 +38,131 @@
   --focus-ring-halo: none;
   --bg-darkest: #{$cms-bg-darkest};
 
-  // Aurora-boreal palette — the signature hues of the light theme,
-  // published so component sheets can tint aurora details (glow washes,
-  // plasma accents, shadow/fill tints via color-mix) without re-declaring
-  // the hexes. Emerald greens lead like the real curtains; violet/magenta
-  // fringe the edges; indigo is the deep sky behind.
-  --aurora-green: #{$aurora-green};
-  --aurora-teal: #{$aurora-teal};
-  --aurora-cyan: #{$aurora-cyan};
-  --aurora-violet: #{$aurora-violet};
-  --aurora-violet-deep: #{$aurora-violet-deep};
-  --aurora-magenta: #{$aurora-magenta};
-  --aurora-indigo: #{$aurora-indigo};
-  --aurora-ink: #{$aurora-ink};
+  // Journal-paper palette — the signature material ramp of the light
+  // theme, published so component sheets can tint paper details (glow
+  // washes, burn accents, shadow/fill tints via color-mix) without
+  // re-declaring the hexes. Cream and bone lead like fresh newsprint;
+  // sand, parchment and canvas fill the warm mid-tones; ochre and umber
+  // edge the field like aged stock. Dark mode re-pins the same slots to
+  // dim metal tones in _dark-mode.scss.
+  --field-cream: #{$field-cream};
+  --field-sand: #{$field-sand};
+  --field-bone: #{$field-bone};
+  --field-parchment: #{$field-parchment};
+  --field-ochre: #{$field-ochre};
+  --field-canvas: #{$field-canvas};
+  --field-umber: #{$field-umber};
+  --field-ink: #{$field-ink};
 
-  // Mosaic title burn palette — light theme: a polar plasma-fire (ice
-  // core → aurora emerald → violet edge) with an indigo char band, so
-  // the combustion reads as the same aurora the page field carries
-  // instead of a warm paper-fire on a cool field.
+  // Mosaic title burn palette — light theme: a candle-fire (ice core →
+  // ember → ochre edge) with a warm char band, so the combustion reads
+  // like flame licking newsprint instead of a cold arc on the paper.
   --burn-core: #dcf3ff;
   --burn-mid: #27996a;
-  --burn-edge: #{$aurora-violet-deep};
-  --burn-scorch: rgba(22, 18, 60, 0.6);
-  // Ion haze — cool violet-grey that stays readable over the periwinkle
-  // card surface without reading as soot.
-  --burn-smoke: rgba(86, 84, 128, 0.5);
+  --burn-edge: #{$field-ochre};
+  --burn-scorch: rgba(34, 26, 14, 0.6);
+  // Soot haze — warm sepia-grey that stays readable over the cream card
+  // surface without reading as mud.
+  --burn-smoke: rgba(96, 84, 58, 0.45);
 
-  // Light theme default tokens — a twilight aurora field: the surfaces
-  // sit just under white in a pale steel-sky band (light enough that the
-  // saturated emerald/violet curtains read as glowing bands rather than
-  // tinting the page), and the inks collapse to the near-black indigo
-  // pole so every audited pair keeps WCAG AAA.
-  --bg-primary: #dde5f1;
-  --bg-secondary: #ccd6e8;
+  // Light theme default tokens — a newsprint field: the surfaces sit
+  // just under white in a warm cream band (light enough that the paper
+  // tints read as page texture rather than tinting the page), and the
+  // inks collapse to the near-black sepia pole so every audited pair
+  // keeps WCAG AAA.
+  --bg-primary: #f6f0e2;
+  --bg-secondary: #ece3cf;
   // Translucent secondary surface — full-bleed secondary bands let the
-  // animated aurora backdrop bleed through at 82% surface weight while
+  // animated paper backdrop bleed through at 82% surface weight while
   // text keeps the near-solid composite. --bg-secondary itself stays
   // solid for the contrast audit; high-contrast re-pins this to solid.
   --bg-secondary-glass: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
-  --bg-dark: #211a3a; // Always-dark areas in light mode (mosaic cards, contact band)
-  --bg-darker: #130e28; // Deepest indigo blocks in light mode
-  --text-primary: #{$aurora-ink}; // Main text — the aurora ink pole
-  --text-secondary: #20204a; // Muted text
-  --text-muted: #232348; // 10.03:1 on --bg-secondary — the binding pair (WCAG AAA)
+  --bg-dark: #2a2318; // Always-dark areas in light mode (mosaic cards, contact band)
+  --bg-darker: #1c1610; // Deepest ink blocks in light mode
+  --text-primary: #{$field-ink}; // Main text — the newsprint ink pole
+  --text-secondary: #3a3323; // Muted text
+  --text-muted: #443b29; // ≥7:1 on --bg-secondary — the binding pair (WCAG AAA)
   // Muted ink for always-dark surfaces (contact band, modals, photo
-  // overlays, loaders): 9.60:1 on --bg-dark in the light theme.
-  --text-muted-on-dark: #c2c4dc;
+  // overlays, loaders): ≥9:1 on --bg-dark in the light theme.
+  --text-muted-on-dark: #d9cdb4;
   // Hairline surface tone for controls pinned on always-dark surfaces
   // (nav burger disc over playground canvases, contact band): mirrors
   // the dark-theme --border-color so --on-dark variants match across
   // themes.
   --border-color-on-dark: color-mix(in srgb, var(--color-white-raw) 14%, transparent);
-  --border-color: #9dabce;
+  --border-color: #c4b393;
   // Chip hover step — discs deepen one visible shade on hover/focus;
   // components read var(--border-color-hover, var(--border-color)).
-  --border-color-hover: #8490b8;
+  --border-color-hover: #a08c67;
+  // Nav icon chips — lifted paper, one step above the field. The field
+  // hairline tan (--border-color) is too heavy to double as a chip fill
+  // on newsprint, so the discs ride their own surface; hover deepens a
+  // shade like the dark discs do.
+  --nav-chip-bg: #faf6ea;
+  --nav-chip-bg-hover: #efe6d1;
   --border-item: transparent;
   --border-item-hover: rgba(255, 255, 255, 0.22);
   --border-item-featured: rgba(255, 255, 255, 0.16);
-  --btn-accent-fill: color-mix(in srgb, var(--aurora-ink) 9%, transparent);
-  --glass-bg: rgba(221, 229, 241, 0.8);
+  --btn-accent-fill: color-mix(in srgb, var(--field-ink) 9%, transparent);
+  --glass-bg: rgba(246, 240, 226, 0.8);
 
-  // Fullscreen menu — light mode reads as the aurora sky: a pale
-  // steel-blue twilight field with deep indigo inks feeding the
-  // contour-field shader and items (the second ink is the dimmer
-  // contour band).
-  --menu-bg: #d0d9ea;
-  --menu-ink: #161440; // 12.22:1 on --menu-bg — AAA for the small menu labels too
-  --menu-ink-2: #362d8e; // 7.48:1 — group title + second shader contour band
-  // Static aurora wash layered OVER --menu-bg on the menu surface (the
+  // Fullscreen menu — light mode reads as a paper sheet: a warm cream
+  // field with deep sepia inks feeding the contour-field shader and
+  // items (the second ink is the dimmer contour band).
+  --menu-bg: #efe7d5;
+  --menu-ink: #241d10; // ≥12:1 on --menu-bg — AAA for the small menu labels too
+  --menu-ink-2: #5c4a28; // ≥7:1 — group title + second shader contour band
+  // Static paper wash layered OVER --menu-bg on the menu surface (the
   // shader reads --menu-bg as a flat field colour, so the wash must be a
   // separate background layer, not a gradient in --menu-bg itself).
   // The lobes stay corner-parked and moderate so the contour field's
-  // hairlines keep a readable field — green-family holds ≥7.3:1 under
-  // --menu-ink, azure and violet-family lobes ≥6.3:1 at their centres. Dark
+  // hairlines keep a readable field — cream-family holds ≥7:1 under
+  // --menu-ink, bone and parchment-family lobes ≥6:1 at their centres. Dark
   // mode and high-contrast pin the layer to `none`.
   --menu-glow:
     radial-gradient(
       ellipse 105% 71% at 14% 8%,
-      color-mix(in srgb, var(--aurora-green) 32%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-green) 20%, transparent) 16%,
-      color-mix(in srgb, var(--aurora-green) 11%, transparent) 33%,
-      color-mix(in srgb, var(--aurora-green) 6%, transparent) 44%,
-      color-mix(in srgb, var(--aurora-green) 4%, transparent) 53%,
-      color-mix(in srgb, var(--aurora-green) 2%, transparent) 61%,
+      color-mix(in srgb, var(--field-cream) 32%, transparent) 0%,
+      color-mix(in srgb, var(--field-cream) 20%, transparent) 16%,
+      color-mix(in srgb, var(--field-cream) 11%, transparent) 33%,
+      color-mix(in srgb, var(--field-cream) 6%, transparent) 44%,
+      color-mix(in srgb, var(--field-cream) 4%, transparent) 53%,
+      color-mix(in srgb, var(--field-cream) 2%, transparent) 61%,
       transparent 70%
     ),
     radial-gradient(
       ellipse 84% 62% at 86% 12%,
-      color-mix(in srgb, var(--aurora-cyan) 25%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-cyan) 16%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-cyan) 9%, transparent) 33%,
-      color-mix(in srgb, var(--aurora-cyan) 5%, transparent) 46%,
-      color-mix(in srgb, var(--aurora-cyan) 3%, transparent) 55%,
-      color-mix(in srgb, var(--aurora-cyan) 1%, transparent) 62%,
+      color-mix(in srgb, var(--field-bone) 25%, transparent) 0%,
+      color-mix(in srgb, var(--field-bone) 16%, transparent) 17%,
+      color-mix(in srgb, var(--field-bone) 9%, transparent) 33%,
+      color-mix(in srgb, var(--field-bone) 5%, transparent) 46%,
+      color-mix(in srgb, var(--field-bone) 3%, transparent) 55%,
+      color-mix(in srgb, var(--field-bone) 1%, transparent) 62%,
       transparent 70%
     ),
     radial-gradient(
       ellipse 93% 78% at 84% 90%,
-      color-mix(in srgb, var(--aurora-magenta) 21%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-magenta) 13%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-magenta) 7%, transparent) 33%,
-      color-mix(in srgb, var(--aurora-magenta) 4%, transparent) 46%,
-      color-mix(in srgb, var(--aurora-magenta) 2%, transparent) 55%,
-      color-mix(in srgb, var(--aurora-magenta) 1%, transparent) 62%,
+      color-mix(in srgb, var(--field-canvas) 21%, transparent) 0%,
+      color-mix(in srgb, var(--field-canvas) 13%, transparent) 17%,
+      color-mix(in srgb, var(--field-canvas) 7%, transparent) 33%,
+      color-mix(in srgb, var(--field-canvas) 4%, transparent) 46%,
+      color-mix(in srgb, var(--field-canvas) 2%, transparent) 55%,
+      color-mix(in srgb, var(--field-canvas) 1%, transparent) 62%,
       transparent 70%
     ),
     radial-gradient(
       ellipse 71% 84% at 16% 88%,
-      color-mix(in srgb, var(--aurora-violet) 19%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-violet) 12%, transparent) 16%,
-      color-mix(in srgb, var(--aurora-violet) 7%, transparent) 33%,
-      color-mix(in srgb, var(--aurora-violet) 4%, transparent) 44%,
-      color-mix(in srgb, var(--aurora-violet) 2%, transparent) 53%,
-      color-mix(in srgb, var(--aurora-violet) 1%, transparent) 61%,
+      color-mix(in srgb, var(--field-parchment) 19%, transparent) 0%,
+      color-mix(in srgb, var(--field-parchment) 12%, transparent) 16%,
+      color-mix(in srgb, var(--field-parchment) 7%, transparent) 33%,
+      color-mix(in srgb, var(--field-parchment) 4%, transparent) 44%,
+      color-mix(in srgb, var(--field-parchment) 2%, transparent) 53%,
+      color-mix(in srgb, var(--field-parchment) 1%, transparent) 61%,
       transparent 68%
     );
 
   // Animated page backdrop (light theme) — three counter-drifting
-  // lobe fields composed like a real aurora's colour ZONES rather than
+  // lobe fields composed like real paper-tone ZONES rather than
   // bands: body::before carries the emerald family (green core top-left,
   // teal low-left, azure top-right); body::after carries the
   // violet/magenta fringe zone; #app::before is a faint counter-drifting
@@ -173,93 +179,93 @@
   --bg-glow:
     radial-gradient(
       ellipse 96% 78% at 14% 8%,
-      color-mix(in srgb, var(--aurora-green) 29%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-green) 18%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-green) 10%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-green) 6%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-green) 3%, transparent) 56%,
-      color-mix(in srgb, var(--aurora-green) 2%, transparent) 64%,
+      color-mix(in srgb, var(--field-cream) 29%, transparent) 0%,
+      color-mix(in srgb, var(--field-cream) 18%, transparent) 17%,
+      color-mix(in srgb, var(--field-cream) 10%, transparent) 34%,
+      color-mix(in srgb, var(--field-cream) 6%, transparent) 47%,
+      color-mix(in srgb, var(--field-cream) 3%, transparent) 56%,
+      color-mix(in srgb, var(--field-cream) 2%, transparent) 64%,
       transparent 80%
     ),
     radial-gradient(
       ellipse 84% 68% at 84% 10%,
-      color-mix(in srgb, var(--aurora-cyan) 22%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-cyan) 14%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-cyan) 8%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-cyan) 4%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-cyan) 2%, transparent) 56%,
-      color-mix(in srgb, var(--aurora-cyan) 1%, transparent) 64%,
+      color-mix(in srgb, var(--field-bone) 22%, transparent) 0%,
+      color-mix(in srgb, var(--field-bone) 14%, transparent) 17%,
+      color-mix(in srgb, var(--field-bone) 8%, transparent) 34%,
+      color-mix(in srgb, var(--field-bone) 4%, transparent) 47%,
+      color-mix(in srgb, var(--field-bone) 2%, transparent) 56%,
+      color-mix(in srgb, var(--field-bone) 1%, transparent) 64%,
       transparent 80%
     ),
     radial-gradient(
       ellipse 81% 71% at 8% 86%,
-      color-mix(in srgb, var(--aurora-teal) 23%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-teal) 15%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-teal) 8%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-teal) 4%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-teal) 3%, transparent) 56%,
-      color-mix(in srgb, var(--aurora-teal) 1%, transparent) 64%,
+      color-mix(in srgb, var(--field-sand) 23%, transparent) 0%,
+      color-mix(in srgb, var(--field-sand) 15%, transparent) 17%,
+      color-mix(in srgb, var(--field-sand) 8%, transparent) 34%,
+      color-mix(in srgb, var(--field-sand) 4%, transparent) 47%,
+      color-mix(in srgb, var(--field-sand) 3%, transparent) 56%,
+      color-mix(in srgb, var(--field-sand) 1%, transparent) 64%,
       transparent 80%
     ),
     radial-gradient(
       ellipse 71% 59% at 88% 84%,
-      color-mix(in srgb, var(--aurora-violet) 20%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-violet) 13%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-violet) 7%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-violet) 4%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-violet) 2%, transparent) 56%,
-      color-mix(in srgb, var(--aurora-violet) 1%, transparent) 64%,
+      color-mix(in srgb, var(--field-parchment) 20%, transparent) 0%,
+      color-mix(in srgb, var(--field-parchment) 13%, transparent) 17%,
+      color-mix(in srgb, var(--field-parchment) 7%, transparent) 34%,
+      color-mix(in srgb, var(--field-parchment) 4%, transparent) 47%,
+      color-mix(in srgb, var(--field-parchment) 2%, transparent) 56%,
+      color-mix(in srgb, var(--field-parchment) 1%, transparent) 64%,
       transparent 80%
     );
   --bg-glow-2:
     radial-gradient(
       ellipse 93% 65% at 50% 98%,
-      color-mix(in srgb, var(--aurora-violet-deep) 18%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-violet-deep) 11%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-violet-deep) 6%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-violet-deep) 3%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-violet-deep) 2%, transparent) 56%,
-      color-mix(in srgb, var(--aurora-violet-deep) 1%, transparent) 64%,
+      color-mix(in srgb, var(--field-ochre) 18%, transparent) 0%,
+      color-mix(in srgb, var(--field-ochre) 11%, transparent) 17%,
+      color-mix(in srgb, var(--field-ochre) 6%, transparent) 34%,
+      color-mix(in srgb, var(--field-ochre) 3%, transparent) 47%,
+      color-mix(in srgb, var(--field-ochre) 2%, transparent) 56%,
+      color-mix(in srgb, var(--field-ochre) 1%, transparent) 64%,
       transparent 80%
     ),
     radial-gradient(
       ellipse 65% 50% at 70% 16%,
-      color-mix(in srgb, var(--aurora-magenta) 16%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-magenta) 10%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-magenta) 6%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-magenta) 3%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-magenta) 2%, transparent) 56%,
-      color-mix(in srgb, var(--aurora-magenta) 1%, transparent) 64%,
+      color-mix(in srgb, var(--field-canvas) 16%, transparent) 0%,
+      color-mix(in srgb, var(--field-canvas) 10%, transparent) 17%,
+      color-mix(in srgb, var(--field-canvas) 6%, transparent) 34%,
+      color-mix(in srgb, var(--field-canvas) 3%, transparent) 47%,
+      color-mix(in srgb, var(--field-canvas) 2%, transparent) 56%,
+      color-mix(in srgb, var(--field-canvas) 1%, transparent) 64%,
       transparent 80%
     ),
     radial-gradient(
       ellipse 56% 65% at 4% 54%,
-      color-mix(in srgb, var(--aurora-violet-deep) 14%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-violet-deep) 9%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-violet-deep) 5%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-violet-deep) 3%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-violet-deep) 2%, transparent) 56%,
-      color-mix(in srgb, var(--aurora-violet-deep) 1%, transparent) 64%,
+      color-mix(in srgb, var(--field-ochre) 14%, transparent) 0%,
+      color-mix(in srgb, var(--field-ochre) 9%, transparent) 17%,
+      color-mix(in srgb, var(--field-ochre) 5%, transparent) 34%,
+      color-mix(in srgb, var(--field-ochre) 3%, transparent) 47%,
+      color-mix(in srgb, var(--field-ochre) 2%, transparent) 56%,
+      color-mix(in srgb, var(--field-ochre) 1%, transparent) 64%,
       transparent 80%
     ),
     radial-gradient(
       ellipse 59% 50% at 92% 56%,
-      color-mix(in srgb, var(--aurora-indigo) 14%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-indigo) 9%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-indigo) 5%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-indigo) 3%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-indigo) 2%, transparent) 56%,
-      color-mix(in srgb, var(--aurora-indigo) 1%, transparent) 64%,
+      color-mix(in srgb, var(--field-umber) 14%, transparent) 0%,
+      color-mix(in srgb, var(--field-umber) 9%, transparent) 17%,
+      color-mix(in srgb, var(--field-umber) 5%, transparent) 34%,
+      color-mix(in srgb, var(--field-umber) 3%, transparent) 47%,
+      color-mix(in srgb, var(--field-umber) 2%, transparent) 56%,
+      color-mix(in srgb, var(--field-umber) 1%, transparent) 64%,
       transparent 80%
     ),
     radial-gradient(
       ellipse 74% 56% at 42% 64%,
-      color-mix(in srgb, var(--aurora-green) 20%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-green) 13%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-green) 7%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-green) 4%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-green) 2%, transparent) 56%,
-      color-mix(in srgb, var(--aurora-green) 1%, transparent) 64%,
+      color-mix(in srgb, var(--field-cream) 20%, transparent) 0%,
+      color-mix(in srgb, var(--field-cream) 13%, transparent) 17%,
+      color-mix(in srgb, var(--field-cream) 7%, transparent) 34%,
+      color-mix(in srgb, var(--field-cream) 4%, transparent) 47%,
+      color-mix(in srgb, var(--field-cream) 2%, transparent) 56%,
+      color-mix(in srgb, var(--field-cream) 1%, transparent) 64%,
       transparent 80%
     );
   // Third layer — a faint counter-drifting colour veil over both wash
@@ -268,30 +274,30 @@
   --bg-glow-3:
     radial-gradient(
       ellipse 90% 68% at 70% 60%,
-      color-mix(in srgb, var(--aurora-green) 14%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-green) 9%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-green) 5%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-green) 3%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-green) 2%, transparent) 56%,
-      color-mix(in srgb, var(--aurora-green) 1%, transparent) 64%,
+      color-mix(in srgb, var(--field-cream) 14%, transparent) 0%,
+      color-mix(in srgb, var(--field-cream) 9%, transparent) 17%,
+      color-mix(in srgb, var(--field-cream) 5%, transparent) 34%,
+      color-mix(in srgb, var(--field-cream) 3%, transparent) 47%,
+      color-mix(in srgb, var(--field-cream) 2%, transparent) 56%,
+      color-mix(in srgb, var(--field-cream) 1%, transparent) 64%,
       transparent 80%
     ),
     radial-gradient(
       ellipse 74% 59% at 28% 32%,
-      color-mix(in srgb, var(--aurora-cyan) 12%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-cyan) 8%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-cyan) 4%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-cyan) 2%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-cyan) 1%, transparent) 56%,
+      color-mix(in srgb, var(--field-bone) 12%, transparent) 0%,
+      color-mix(in srgb, var(--field-bone) 8%, transparent) 17%,
+      color-mix(in srgb, var(--field-bone) 4%, transparent) 34%,
+      color-mix(in srgb, var(--field-bone) 2%, transparent) 47%,
+      color-mix(in srgb, var(--field-bone) 1%, transparent) 56%,
       transparent 72%
     ),
     radial-gradient(
       ellipse 65% 56% at 60% 22%,
-      color-mix(in srgb, var(--aurora-violet) 11%, transparent) 0%,
-      color-mix(in srgb, var(--aurora-violet) 7%, transparent) 17%,
-      color-mix(in srgb, var(--aurora-violet) 4%, transparent) 34%,
-      color-mix(in srgb, var(--aurora-violet) 2%, transparent) 47%,
-      color-mix(in srgb, var(--aurora-violet) 1%, transparent) 56%,
+      color-mix(in srgb, var(--field-parchment) 11%, transparent) 0%,
+      color-mix(in srgb, var(--field-parchment) 7%, transparent) 17%,
+      color-mix(in srgb, var(--field-parchment) 4%, transparent) 34%,
+      color-mix(in srgb, var(--field-parchment) 2%, transparent) 47%,
+      color-mix(in srgb, var(--field-parchment) 1%, transparent) 56%,
       transparent 72%
     );
 
@@ -313,16 +319,31 @@
   --bg-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.45' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.04'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
 
   // Card shadow tokens — light theme: indigo-tinted elevation shadows
-  // (color-mix off the aurora ink pole) with a subtle hairline ring.
+  // (color-mix off the sepia ink pole) with a subtle hairline ring.
   --shadow-card:
-    0 0 0 0.0625rem color-mix(in srgb, var(--aurora-ink) 9%, transparent),
-    0 0.125rem 0.75rem color-mix(in srgb, var(--aurora-ink) 13%, transparent);
+    0 0 0 0.0625rem color-mix(in srgb, var(--field-ink) 10%, transparent),
+    0 0.25rem 0.875rem color-mix(in srgb, var(--field-ink) 16%, transparent),
+    0 1rem 2.5rem color-mix(in srgb, var(--field-ink) 12%, transparent);
   --shadow-card-featured:
-    0 0 0 0.0625rem color-mix(in srgb, var(--aurora-ink) 15%, transparent),
-    0 0.5rem 1.75rem color-mix(in srgb, var(--aurora-ink) 26%, transparent);
+    0 0 0 0.0625rem color-mix(in srgb, var(--field-ink) 15%, transparent),
+    0 0.5rem 1.75rem color-mix(in srgb, var(--field-ink) 26%, transparent),
+    0 1.75rem 4rem color-mix(in srgb, var(--field-ink) 16%, transparent);
   --shadow-card-hover:
-    0 0 0 0.0625rem color-mix(in srgb, var(--aurora-ink) 18%, transparent),
-    0 1.25rem 3.125rem color-mix(in srgb, var(--aurora-ink) 30%, transparent);
+    0 0 0 0.0625rem color-mix(in srgb, var(--field-ink) 18%, transparent),
+    0 1.25rem 3.125rem color-mix(in srgb, var(--field-ink) 30%, transparent),
+    0 2.5rem 5.5rem color-mix(in srgb, var(--field-ink) 20%, transparent);
+  // Card-stack display shadows — the home coverflow's studio depth: one
+  // rung deeper than --shadow-card so the framed cover pile floats over
+  // the key-lit field (the featured front display throws a long pooled
+  // shadow beneath itself like the reference mock).
+  --shadow-card-stack:
+    0 0 0 0.0625rem color-mix(in srgb, var(--field-ink) 10%, transparent),
+    0 0.75rem 1.5rem color-mix(in srgb, var(--field-ink) 17%, transparent),
+    0 1.75rem 3.75rem color-mix(in srgb, var(--field-ink) 16%, transparent);
+  --shadow-card-stack-featured:
+    0 0 0 0.0625rem color-mix(in srgb, var(--field-ink) 16%, transparent),
+    0 1.25rem 2.5rem color-mix(in srgb, var(--field-ink) 26%, transparent),
+    0 2.75rem 5.5rem color-mix(in srgb, var(--field-ink) 20%, transparent);
 
   // Light-mode font-weight lift — every numeric font-weight is authored
   // as calc(N + var(--fw-lift)) so light mode renders one step heavier
@@ -330,7 +351,7 @@
   --fw-lift: 100;
 
   --white: #ffffff;
-  --black: #{$aurora-ink};
+  --black: #{$field-ink};
   --grey: #8289a3;
   --grey-2: #d6dbea;
   --grey-3: #403a66;
@@ -388,11 +409,87 @@
   --z-cookies: #{$z-cookies};
   --z-nav: #{$z-nav};
   --z-top: #{$z-top};
+  --z-print-veil: #{$z-print-veil};
 
   // Consent-banner live height — CookieBanner writes the real px value on
   // documentElement while visible and removes it when dismissed; the 0px
   // default keeps `main` unpadded when no banner is up.
   --cookie-banner-h: 0px;
+
+  // Print geometry — only read inside @media print. The page margin is a
+  // physical unit in traditional book ratio — top margin tightest, side
+  // margins mid, bottom margin largest to anchor the page (Chrome
+  // paginates with a single sheet spec, so the inner/outer gutter split
+  // can't alternate per side; the three-value shorthand applies to every
+  // named page).
+  // Sheet box — A4 imposed at @page so the paper size is part of the
+  // job's layout contract. Viewport units are unusable on paper: vh/vw
+  // resolve against the SCREEN viewport in paged media (the headless
+  // default is 800×600, a laptop window whatever its size), never the
+  // sheet — every vh-sized plate lands a different box per machine, the
+  // nondeterminism the magazine layout cannot afford. Sheet-relative
+  // lengths are therefore authored in mm against these rungs; the
+  // content area subtracts the declared margins, and bleed spreads
+  // reach the trim by pulling the negative margin insets back out.
+  --print-sheet-w: 210mm;
+  --print-sheet-h: 297mm;
+  --print-content-w: calc(var(--print-sheet-w) - var(--print-margin-h) * 2);
+  --print-content-h: calc(
+    var(--print-sheet-h) - var(--print-margin-top) - var(--print-margin-bottom)
+  );
+  // Page-margin components — the shorthand composes from them so
+  // bleed spreads can pull a block back into the margin area with
+  // calc(negatives) without repeating the lengths.
+  --print-margin-top: 14mm;
+  --print-margin-h: 12.7mm;
+  --print-margin-bottom: 20mm;
+  --print-page-margin: var(--print-margin-top) var(--print-margin-h) var(--print-margin-bottom);
+  // Single-value sheet inset for bleed-spread chrome — captions and
+  // scan codes pinned off a full-bleed edge can't reuse the shorthand
+  // above (a 3-value margin token is invalid as an inset property).
+  --print-bleed-inset: var(--print-margin-top);
+  --print-qr-size: var(--space-5xl);
+  --print-qr-link-size: var(--space-3xl);
+  // --print-media-max-h caps one media surface under the sheet so the
+  // caption + QR still seat beneath it — 78% of the content area, the
+  // gallery-plate share the sheet allows; smaller surfaces were never
+  // the cap anyway. Cover-photo rungs are sheet fractions for the same
+  // reason — the masthead band keeps ~7% at the head, the portrait
+  // plate ~78% under it.
+  --print-media-max-h: calc(var(--print-content-h) * 0.78);
+  // Contact-sheet tile rung for gallery walls — media-mosaic items and
+  // flattened carousel slides print as uniform cropped thumbnails, so a
+  // hundred-figure gallery is a dense grid of matched cells instead of a
+  // column of natural-height screenshots. 30% of the content height puts
+  // roughly three tile rows plus captions on one portrait sheet.
+  --print-mosaic-tile-h: calc(var(--print-content-h) * 0.3);
+  // Cover-star band as fractions of the cover box itself — the cover is
+  // the full page box (100% height), so percentages stay sheet-true on
+  // every paper without the media-query ladder.
+  --print-cover-photo-top: 7%;
+  --print-cover-photo-h: 78%;
+  --print-caption-size: var(--space-lg);
+
+  // Editorial body copy — magazine 10pt class for the justified column
+  // run; physical pt since paper has no rem scale.
+  --print-body-size: 10.5pt;
+
+  // Print ink/paper — CMYK-oriented: the sheet re-pins --bg-primary to
+  // raw white inside @media print so no tinted surface burns toner as a
+  // page-flood background, and text reads on the raw near-black ink.
+  // --print-ink-press is the rich-black composite (C60 M40 Y40 K100)
+  // covers stack over --print-ink as a progressive enhancement —
+  // the print sheet gates it behind @supports because an unsupported
+  // var() value invalidates the declaration and would sink the
+  // plain-ink rung with it.
+  --print-paper: var(--color-white-raw);
+  --print-ink: var(--color-black-raw);
+  --print-ink-press: device-cmyk(60% 40% 40% 100%);
+  --print-gold: #{$print-gold};
+  // Cover masthead metal — the bright specular-silver cut from the nav
+  // glyph palette; on the ink-black cover it reads as foil-stamped
+  // type, warmer than raw white and lighter than the gold it replaces.
+  --print-silver: #{$metal-silver};
 
   // Font stacks
   --font-mono: #{$font-mono};
@@ -441,48 +538,71 @@
   /* --radius-md -> --r-md */
   --r-md: var(--radius-md);
   --filament-glow: none;
+  // Card-stack stage lighting — the home coverflow's studio rig. --deck-glow
+  // is the KEY light: a broad soft lobe parked just off the section's RIGHT
+  // edge so the field reads lit from the right (the reference mock's studio
+  // sweep); card-stack's ::before layer drifts/breathes it. --deck-shade is
+  // the static counter-vignette opposite the key — the deep-left + floor
+  // penumbra that makes the key read as light rather than a white patch.
+  // HC pins both to none.
+  --deck-glow: radial-gradient(
+    ellipse 56% 74% at 106% 42%,
+    color-mix(in srgb, var(--color-white-raw) 46%, transparent) 0%,
+    color-mix(in srgb, var(--color-white-raw) 30%, transparent) 22%,
+    color-mix(in srgb, var(--color-white-raw) 17%, transparent) 40%,
+    color-mix(in srgb, var(--color-white-raw) 8%, transparent) 56%,
+    color-mix(in srgb, var(--color-white-raw) 3%, transparent) 68%,
+    transparent 78%
+  );
+  --deck-shade: radial-gradient(
+    ellipse 50% 64% at -8% 60%,
+    color-mix(in srgb, var(--field-ink) 10%, transparent) 0%,
+    color-mix(in srgb, var(--field-ink) 5%, transparent) 44%,
+    transparent 72%
+  );
   --metallic-hairline: linear-gradient(
     90deg,
     transparent 0%,
     rgba(255, 255, 255, 0.25) 20%,
-    rgba(55, 167, 212, 0.45) 50%,
+    rgba(196, 206, 220, 0.45) 50%,
     rgba(255, 255, 255, 0.25) 80%,
     transparent 100%
   );
 
-  // Plasma-fire underline (nav logo) — an electric-blue filament band with
-  // a white-hot discharge core riding the filament palette; identical on
-  // both themes so it is declared once here rather than per theme.
+  // Silver-filament underline (nav logo) — a polished-metal band with a
+  // white-hot specular core riding the metal palette; identical on both
+  // themes so it is declared once here rather than per theme.
   // --plasma-line: the sharp core band — transparent tails let the travel
-  // keyframe loop seamlessly; the tight white/cyan spike is the discharge.
+  // keyframe loop seamlessly; the tight white/silver spike is the
+  // specular strike.
   --plasma-line: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(55, 167, 212, 0.1) 14%,
-    rgba(95, 218, 255, 0.75) 30%,
-    rgba(190, 235, 255, 0.95) 40%,
+    rgba(150, 165, 184, 0.1) 14%,
+    rgba(190, 200, 214, 0.75) 30%,
+    rgba(220, 228, 238, 0.95) 40%,
     rgba(255, 255, 255, 1) 45%,
-    rgba(190, 235, 255, 0.95) 50%,
-    rgba(40, 244, 255, 0.7) 62%,
-    rgba(55, 167, 212, 0.1) 82%,
+    rgba(220, 228, 238, 0.95) 50%,
+    rgba(205, 215, 228, 0.7) 62%,
+    rgba(150, 165, 184, 0.1) 82%,
     transparent 100%
   );
   // --plasma-halo: the same band at lower alpha + wider feet — blurred
-  // behind the core it reads as the discharge's ionized sheath.
+  // behind the core it reads as the specular bloom around the strike.
   --plasma-halo: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(55, 167, 212, 0.08) 10%,
-    rgba(95, 218, 255, 0.4) 28%,
-    rgba(140, 220, 255, 0.55) 42%,
-    rgba(95, 218, 255, 0.45) 58%,
-    rgba(40, 244, 255, 0.35) 70%,
-    rgba(55, 167, 212, 0.08) 88%,
+    rgba(150, 165, 184, 0.08) 10%,
+    rgba(190, 200, 214, 0.4) 28%,
+    rgba(214, 224, 236, 0.55) 42%,
+    rgba(190, 200, 214, 0.45) 58%,
+    rgba(205, 215, 228, 0.35) 70%,
+    rgba(150, 165, 184, 0.08) 88%,
     transparent 100%
   );
-  // Discharge glow cast around the line — paired box-shadow stops.
-  --plasma-glow-near: rgba(95, 218, 255, 0.55);
-  --plasma-glow-far: rgba(55, 167, 212, 0.3);
+  // Specular glow cast around the line — paired box-shadow stops.
+  --plasma-glow-near: rgba(190, 200, 214, 0.55);
+  --plasma-glow-far: rgba(150, 165, 184, 0.3);
 
   // Coverage-report palette (light theme) — sanitized istanbul payloads in
   // the docs portal re-map their baked colors onto these, so the report

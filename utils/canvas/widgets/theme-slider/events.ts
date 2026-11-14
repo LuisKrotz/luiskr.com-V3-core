@@ -107,35 +107,46 @@ export function bindThemeSliderEvents(s: ThemeSliderWebGL): void {
     }
   }
 
+  /**
+   * Keyboard stepping: ←/↓ step left (toward dark), →/↑ step right
+   * (toward light), Home/End jump to the ends. Keys jump straight to
+   * the snapped stop — the spring then animates the thumb into place.
+   * The canvas carries `role="slider"` + a real `tabindex` in the
+   * preferences render, so it is the actual focus target.
+   */
   s.onKeyDown = (e: KeyboardEvent) => {
+    /**
+     * Snaps the track to an integer stop and commits the theme change —
+     * shared by the arrow steps and the Home/End boundary jumps.
+     */
+    const snap = (snapP: number) => {
+      s.targetP = snapP
+
+      const newTheme = s._pToTheme(snapP)
+
+      if (newTheme !== s.currentTheme) {
+        s.currentTheme = newTheme
+
+        s.onThemeChange?.(newTheme)
+      }
+    }
+
     if (e.key === KEYS.ARROW_LEFT || e.key === KEYS.ARROW_DOWN) {
       e.preventDefault()
 
-      const snapP = Math.max(0, Math.round(s.targetP) - 1)
-
-      s.targetP = snapP
-
-      const newTheme = s._pToTheme(snapP)
-
-      if (newTheme !== s.currentTheme) {
-        s.currentTheme = newTheme
-
-        s.onThemeChange?.(newTheme)
-      }
+      snap(Math.max(0, Math.round(s.targetP) - 1))
     } else if (e.key === KEYS.ARROW_RIGHT || e.key === KEYS.ARROW_UP) {
       e.preventDefault()
 
-      const snapP = Math.min(2, Math.round(s.targetP) + 1)
+      snap(Math.min(2, Math.round(s.targetP) + 1))
+    } else if (e.key === KEYS.HOME) {
+      e.preventDefault()
 
-      s.targetP = snapP
+      snap(0)
+    } else if (e.key === KEYS.END) {
+      e.preventDefault()
 
-      const newTheme = s._pToTheme(snapP)
-
-      if (newTheme !== s.currentTheme) {
-        s.currentTheme = newTheme
-
-        s.onThemeChange?.(newTheme)
-      }
+      snap(2)
     }
   }
 

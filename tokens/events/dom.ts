@@ -183,6 +183,8 @@ export const PRINT_EVENTS = Object.freeze({
   CAPTURE: 'printcapture',
   /** Dispatched on window before the print walk — views sync printable DOM first. */
   PREPARE: 'printprepare',
+  /** Dispatched on window when the committed print DOM becomes final — snapshot-ready. */
+  COMMIT: 'printcommit',
 })
 
 /**

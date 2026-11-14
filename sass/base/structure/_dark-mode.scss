@@ -8,7 +8,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 /// Emits the full dark-theme token override set — --bg-*/--text-*/--menu-*/
-/// --skel-*/*-neon-*/burn/shadow palette plus `color-scheme: dark` and the
+/// --skel-*/*-metal-*/burn/shadow palette plus `color-scheme: dark` and the
 /// zeroed light-mode font-weight lift. Applied under `html.dark-mode` for
 /// the app and under `prefers-color-scheme` by surfaces that cannot carry
 /// the class.
@@ -32,18 +32,39 @@
   // Chip hover step — the translucent white veil brightens one shade;
   // mirrors the light theme's published --border-color-hover contract.
   --border-color-hover: color-mix(in srgb, var(--color-white-raw) 22%, transparent);
-  --color-accent-contrast: #{$cms-accent};
+  // Dark chips stay the translucent glass discs — the light-only paper
+  // lift doesn't apply here.
+  --nav-chip-bg: var(--border-color);
+  --nav-chip-bg-hover: var(--border-color-hover);
+  // Interactive chrome accent — bright silver fill with a steel hover
+  // step and the chrome contrast ink (replaces the old signature cyan;
+  // the metals set shares the nav glyph palette below).
+  --color-accent: #{$metal-silver};
+  --color-accent-hover: #{$metal-steel};
+  --color-accent-contrast: #{$metal-chrome};
   --btn-accent-fill: rgba(255, 255, 255, 0.08);
   --glass-bg: rgba(11, 12, 16, 0.92);
 
-  // Nav icon neon palette — the bright set authored for dark surfaces;
-  // :root carries the deepened light-theme re-cut.
-  --nav-neon-teal: #{$neon-teal};
-  --nav-neon-green: #{$neon-green};
-  --nav-neon-violet: #{$neon-violet};
-  --nav-neon-magenta: #{$neon-magenta};
-  --nav-neon-orange: #{$neon-orange};
-  --nav-neon-chrome: #{$neon-chrome};
+  // Nav icon metal palette — the bright set authored for dark surfaces;
+  // :root carries the deepened light-theme re-cut. (Prop names keep the
+  --nav-metal-silver: #{$metal-silver};
+  --nav-metal-steel: #{$metal-steel};
+  --nav-metal-platinum: #{$metal-platinum};
+  --nav-metal-pearl: #{$metal-pearl};
+  --nav-metal-titanium: #{$metal-titanium};
+  --nav-metal-chrome: #{$metal-chrome};
+
+  // Field slots — dark mode re-pins the seven lobe hues to dim metal
+  // tones: the same slots the light theme fills with paper tints here
+  // carry cool steel/silver washes so the studio field stays neutral
+  // under the right-side key light instead of importing paper colours.
+  --field-cream: #9fb0c4;
+  --field-sand: #8b9db4;
+  --field-bone: #b6c4d6;
+  --field-parchment: #7f93aa;
+  --field-ochre: #c8d4e4;
+  --field-canvas: #94a7be;
+  --field-umber: #6c7f96;
 
   // Mosaic title burn palette — dark theme: a blue-white plasma fire on
   // the accent ramp (near-white core → signature cyan → deep teal edge)
@@ -60,44 +81,74 @@
   --menu-bg: var(--bg-darkest);
   --menu-ink: var(--text-primary);
   --menu-ink-2: var(--text-primary);
-  // The light theme's static aurora wash over the menu field — dark
+  // The light theme's static paper wash over the menu field — dark
   // mode keeps the flat monochrome surface.
   --menu-glow: none;
 
   --filament-glow: radial-gradient(
     circle at 50% 30%,
-    rgba(95, 218, 255, 0.05) 0%,
-    rgba(95, 218, 255, 0.031) 18%,
-    rgba(40, 244, 255, 0.016) 35%,
-    rgba(40, 244, 255, 0.008) 48%,
-    rgba(40, 244, 255, 0.004) 58%,
-    rgba(40, 244, 255, 0.002) 66%,
+    rgba(206, 214, 226, 0.05) 0%,
+    rgba(206, 214, 226, 0.031) 18%,
+    rgba(196, 206, 220, 0.016) 35%,
+    rgba(196, 206, 220, 0.008) 48%,
+    rgba(196, 206, 220, 0.004) 58%,
+    rgba(196, 206, 220, 0.002) 66%,
     transparent 72%
   );
 
-  // Dark variant of the animated page backdrop — deep-water glows matching
-  // the filament palette, kept just above --bg-primary so the field shifts
-  // without lighting the canvas. Same quadratic-taper lobes as the light
-  // theme: many alpha stops easing to zero so no lobe draws an outline.
+  // Card-stack stage lighting — dark theme carries the reference's full
+  // contrast: a broad neutral-white key flooding in from off the RIGHT
+  // edge (feathered to the field so the lobe never draws its own outline),
+  // countered by a deep penumbra pooling along the left edge and the
+  // floor. card-stack's ::before drifts the key; the shade layer stays
+  // static under it.
+  --deck-glow: radial-gradient(
+    ellipse 56% 74% at 106% 42%,
+    color-mix(in srgb, var(--color-white-raw) 16%, transparent) 0%,
+    color-mix(in srgb, var(--color-white-raw) 11%, transparent) 22%,
+    color-mix(in srgb, var(--color-white-raw) 6%, transparent) 40%,
+    color-mix(in srgb, var(--color-white-raw) 3%, transparent) 56%,
+    color-mix(in srgb, var(--color-white-raw) 1%, transparent) 68%,
+    transparent 78%
+  );
+  --deck-shade:
+    radial-gradient(
+      ellipse 52% 66% at -8% 60%,
+      color-mix(in srgb, var(--color-black-raw) 62%, transparent) 0%,
+      color-mix(in srgb, var(--color-black-raw) 38%, transparent) 40%,
+      color-mix(in srgb, var(--color-black-raw) 14%, transparent) 58%,
+      transparent 74%
+    ),
+    linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--color-black-raw) 52%, transparent) 0%,
+      color-mix(in srgb, var(--color-black-raw) 18%, transparent) 14%,
+      transparent 34%
+    );
+
+  // Dark variant of the animated page backdrop — neutral silver lobes
+  // matching the metal palette, kept just above --bg-primary so the field
+  // shifts without lighting the canvas. Same quadratic-taper lobes as the
+  // light theme: many alpha stops easing to zero so no lobe draws an outline.
   --bg-glow:
     radial-gradient(
       ellipse 85% 70% at 18% 22%,
-      rgba(95, 218, 255, 0.04) 0%,
-      rgba(95, 218, 255, 0.025) 17%,
-      rgba(95, 218, 255, 0.013) 34%,
-      rgba(95, 218, 255, 0.006) 47%,
-      rgba(95, 218, 255, 0.003) 56%,
-      rgba(95, 218, 255, 0.001) 64%,
+      rgba(206, 214, 226, 0.04) 0%,
+      rgba(206, 214, 226, 0.025) 17%,
+      rgba(206, 214, 226, 0.013) 34%,
+      rgba(206, 214, 226, 0.006) 47%,
+      rgba(206, 214, 226, 0.003) 56%,
+      rgba(206, 214, 226, 0.001) 64%,
       transparent 72%
     ),
     radial-gradient(
       ellipse 78% 62% at 82% 78%,
-      rgba(40, 244, 255, 0.025) 0%,
-      rgba(40, 244, 255, 0.015) 17%,
-      rgba(40, 244, 255, 0.008) 34%,
-      rgba(40, 244, 255, 0.004) 47%,
-      rgba(40, 244, 255, 0.002) 56%,
-      rgba(40, 244, 255, 0.001) 64%,
+      rgba(196, 206, 220, 0.025) 0%,
+      rgba(196, 206, 220, 0.015) 17%,
+      rgba(196, 206, 220, 0.008) 34%,
+      rgba(196, 206, 220, 0.004) 47%,
+      rgba(196, 206, 220, 0.002) 56%,
+      rgba(196, 206, 220, 0.001) 64%,
       transparent 72%
     );
   // Second counter-drift layer (body::after) — a faint violet curtain so
@@ -113,26 +164,27 @@
     transparent 72%
   );
   // Third layer (#app::before counter-veil) — wide ember lobes only,
-  // kept just above --bg-primary like the other washes.
+  // kept just above --bg-primary like the other washes; the two metal
+  // lobes carry the silver palette, the violet fringe is kept.
   --bg-glow-3:
     radial-gradient(
       ellipse 78% 56% at 70% 56%,
-      rgba(64, 220, 190, 0.03) 0%,
-      rgba(64, 220, 190, 0.018) 17%,
-      rgba(64, 220, 190, 0.01) 34%,
-      rgba(64, 220, 190, 0.005) 47%,
-      rgba(64, 220, 190, 0.002) 56%,
-      rgba(64, 220, 190, 0.001) 64%,
+      rgba(196, 206, 220, 0.03) 0%,
+      rgba(196, 206, 220, 0.018) 17%,
+      rgba(196, 206, 220, 0.01) 34%,
+      rgba(196, 206, 220, 0.005) 47%,
+      rgba(196, 206, 220, 0.002) 56%,
+      rgba(196, 206, 220, 0.001) 64%,
       transparent 72%
     ),
     radial-gradient(
       ellipse 68% 53% at 26% 74%,
-      rgba(95, 218, 255, 0.024) 0%,
-      rgba(95, 218, 255, 0.015) 17%,
-      rgba(95, 218, 255, 0.008) 34%,
-      rgba(95, 218, 255, 0.004) 47%,
-      rgba(95, 218, 255, 0.002) 56%,
-      rgba(95, 218, 255, 0.001) 64%,
+      rgba(206, 214, 226, 0.024) 0%,
+      rgba(206, 214, 226, 0.015) 17%,
+      rgba(206, 214, 226, 0.008) 34%,
+      rgba(206, 214, 226, 0.004) 47%,
+      rgba(206, 214, 226, 0.002) 56%,
+      rgba(206, 214, 226, 0.001) 64%,
       transparent 72%
     ),
     radial-gradient(
@@ -149,17 +201,34 @@
     90deg,
     transparent 0%,
     rgba(255, 255, 255, 0.25) 20%,
-    rgba(55, 167, 212, 0.45) 50%,
+    rgba(196, 206, 220, 0.45) 50%,
     rgba(255, 255, 255, 0.25) 80%,
     transparent 100%
   );
 
-  // Dark mode: subtle shadow border highlights card and cover boundaries on pitch black
-  --shadow-card: 0 0 0 0.0625rem rgba(255, 255, 255, 0.12), 0 0.125rem 1rem rgba(0, 0, 0, 0.45);
+  // Dark mode: hairline sheen ring + contact sheet + pooled floor shadow —
+  // the studio key-lit field needs real elevation so cards, mentions and
+  // covers lift off the near-black surface instead of floating flat.
+  --shadow-card:
+    0 0 0 0.0625rem rgba(255, 255, 255, 0.16), 0 0.375rem 1.25rem rgba(0, 0, 0, 0.6),
+    0 1.25rem 2.75rem rgba(0, 0, 0, 0.4);
   --shadow-card-featured:
-    0 0 0 0.0625rem rgba(255, 255, 255, 0.18), 0 0.5rem 2rem rgba(0, 0, 0, 0.65);
+    0 0 0 0.0625rem rgba(255, 255, 255, 0.24), 0 0.75rem 2.25rem rgba(0, 0, 0, 0.75),
+    0 2rem 4.5rem rgba(0, 0, 0, 0.5);
   --shadow-card-hover:
-    0 0 0 0.0625rem rgba(255, 255, 255, 0.28), 0 1.25rem 3.125rem rgba(0, 0, 0, 0.85);
+    0 0 0 0.0625rem rgba(255, 255, 255, 0.34), 0 1rem 2.5rem rgba(0, 0, 0, 0.85),
+    0 2.75rem 6rem rgba(0, 0, 0, 0.55);
+
+  // Card-stack display shadows — the studio depth the key-lit stage
+  // needs: side cards carry a tighter ambient sheet, the front display
+  // throws the long pooled floor shadow of the reference (hairline ring
+  // + mid ambient + wide pool).
+  --shadow-card-stack:
+    0 0 0 0.0625rem rgba(255, 255, 255, 0.16), 0 0.875rem 1.75rem rgba(0, 0, 0, 0.65),
+    0 2.25rem 4.5rem rgba(0, 0, 0, 0.5);
+  --shadow-card-stack-featured:
+    0 0 0 0.0625rem rgba(255, 255, 255, 0.26), 0 1.5rem 3rem rgba(0, 0, 0, 0.8),
+    0 3.75rem 7.5rem rgba(0, 0, 0, 0.6);
 
   --white: #0a0b10;
   --black: #ffffff;

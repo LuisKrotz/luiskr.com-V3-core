@@ -154,4 +154,14 @@
       }
     }
   }
+
+  // The banner is a fixed overlay — on paper it would re-stamp on every
+  // sheet. The host lives inside app-root's shadow, so the document
+  // print sheet's `cookie-banner{display:none}` can't reach it; the
+  // component's own adopted sheet hides the surface from inside (this
+  // file also emits into the document sheet, where `.cookies` matches
+  // nothing — the light-DOM element rule already covers that path).
+  @media print {
+    display: none;
+  }
 }

@@ -1,7 +1,7 @@
 /**
  * @file tokens/css/nav.js
  * @description Nav strip glyph paint CSS custom-property names — the
- * search magnifier's glass/rim ramp and the neon palette the globe, grid,
+ * search magnifier's glass/rim ramp and the silver palette the globe, grid,
  * brush and search glyphs reference; declared by the nav-controls SCSS and
  * the token sheet. Grouped subset of CSS_PROPS.
  */
@@ -24,11 +24,11 @@ export const NAV_SEARCH_CSS_PROPS = Object.freeze({
   SEARCH_EDGE_LO: '--nav-search-edge-lo',
   /** Specular glint — the orbiting lens flare. */
   SEARCH_GLINT: '--nav-search-glint',
-  /** Neon palette — published from the token sheet. */
-  NEON_TEAL: '--nav-neon-teal',
-  NEON_GREEN: '--nav-neon-green',
-  NEON_VIOLET: '--nav-neon-violet',
-  NEON_MAGENTA: '--nav-neon-magenta',
-  NEON_ORANGE: '--nav-neon-orange',
-  NEON_CHROME: '--nav-neon-chrome',
+  /** Silver palette — published from the token sheet. */
+  METAL_SILVER: '--nav-metal-silver',
+  METAL_STEEL: '--nav-metal-steel',
+  METAL_PLATINUM: '--nav-metal-platinum',
+  METAL_PEARL: '--nav-metal-pearl',
+  METAL_TITANIUM: '--nav-metal-titanium',
+  METAL_CHROME: '--nav-metal-chrome',
 })

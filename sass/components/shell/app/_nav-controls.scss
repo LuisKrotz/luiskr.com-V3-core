@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════════════════════
 //  app/_nav-controls.scss — nav right-side controls: the round chips (menu,
-//  search, preferences, language), their shared expand reveal and neon
+//  search, preferences, language), their shared expand reveal and metal
 //  border draw, the WebGL burger canvas + CSS four-squares fallback, the
 //  mobile strip, and the language-dialog variant shared with preferences.
 //  Imported by app.scss (manifest) — uses $_B_NAV defined there.
@@ -37,7 +37,7 @@ $_B_JOUST: 'joust';
   min-width: var(--space-2xl);
   padding: 0 var(--space-sm) 0 var(--space-sm);
   border-radius: var(--radius-round);
-  background: var(--border-color);
+  background: var(--nav-chip-bg);
   cursor: pointer;
   transition:
     background 0.2s ease,
@@ -46,7 +46,7 @@ $_B_JOUST: 'joust';
   &:hover,
   &:focus-visible,
   &.#{$_B_JOUST}--open {
-    background: var(--border-color-hover, var(--border-color));
+    background: var(--nav-chip-bg-hover, var(--nav-chip-bg));
     padding-right: var(--space-md);
   }
 
@@ -167,6 +167,25 @@ $_B_JOUST: 'joust';
 
   .#{$_B_NAV}-menu-label {
     @extend %nav-chip-label;
+  }
+
+  // Keyboard focus lives on the inner button while the canvas is a
+  // presentational pointer overlay — but the CHIP is the affordance
+  // being announced, so the ring hugs the whole pill and rides the
+  // pour-in animation instead of boxing the icon disc alone. The inner
+  // controls' own rings are suppressed so only this one paints.
+  &:has(:focus-visible) {
+    @include focus-ring;
+  }
+
+  :host-context(html.high-contrast) &:has(:focus-visible) {
+    outline-width: to-rem($space-xs);
+    box-shadow: var(--focus-ring-halo);
+  }
+
+  .#{$_B_NAV}-burger-canvas:focus-visible,
+  .#{$_B_NAV}-burger-fallback:focus-visible {
+    outline: none;
   }
 }
 
@@ -326,9 +345,13 @@ $_B_JOUST: 'joust';
 
   gap: 0;
 
+  // aria-expanded is the modal's open flag — the chip keeps its label
+  // poured + the icon lit while its dialog owns the screen, the same
+  // reveal the hover/focus and joust-pin arms already share.
   &:hover,
   &:focus-visible,
-  &.#{$_B_JOUST}--open {
+  &.#{$_B_JOUST}--open,
+  &[aria-expanded='true'] {
     .#{$_B_NAV}-search-label {
       @extend %nav-chip-open;
     }
@@ -376,7 +399,8 @@ $_B_JOUST: 'joust';
 
 .#{$_B_NAV}-search-btn {
   &:hover,
-  &:focus-visible {
+  &:focus-visible,
+  &[aria-expanded='true'] {
     .#{$_B_NAV}-search-svg {
       filter: brightness(1.15);
     }

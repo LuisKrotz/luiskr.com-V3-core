@@ -5,10 +5,15 @@
 //  Imported by draw-text.scss (manifest) — not compiled standalone.
 // ════════════════════════════════════════════════════════════════════════════
 
+// <q>::before/::after ride every restore list — generated marks share
+// the char contract (opacity:0 base in _core), so a restore that names
+// only chars/words would strand quote marks invisible forever.
 :host-context(html.reduced-motion) .draw-text__char,
 :host-context(html.reduced-motion) .draw-text a:hover .draw-text__word,
 :host-context(html.reduced-motion) .draw-text a:focus-visible .draw-text__word,
 :host-context(html.reduced-motion) .draw-text a:active .draw-text__word,
+:host-context(html.reduced-motion) .draw-text q::before,
+:host-context(html.reduced-motion) .draw-text q::after,
 :host-context(html.reduced-motion) .draw-text__word {
   opacity: 1;
   transform: none;
@@ -30,6 +35,8 @@
   .draw-text a:hover .draw-text__word,
   .draw-text a:focus-visible .draw-text__word,
   .draw-text a:active .draw-text__word,
+  .draw-text q::before,
+  .draw-text q::after,
   :host-context(button:hover) .draw-text__word,
   :host-context(button:focus-visible) .draw-text__word,
   :host-context(button:active) .draw-text__word {
@@ -52,3 +59,21 @@
 // doesn't import _structure (which emits it globally), so include the
 // shared scope explicitly.
 @include focus-ring-scope;
+
+@media print {
+  .draw-text--pending,
+  .draw-text__char,
+  .draw-text q::before,
+  .draw-text q::after,
+  .draw-text__word {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    filter: none;
+    animation: none;
+  }
+
+  .draw-text__canvas {
+    display: none;
+  }
+}

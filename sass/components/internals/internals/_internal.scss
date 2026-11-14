@@ -7,6 +7,47 @@
 
 // ── Internals chrome — project detail + legal pages: title, content column, media contracts, footer panel.
 .internal {
+  position: relative;
+  // The stage wash — same silver studio language as the home deck: the
+  // filament under the counter-shade, the key light on the animated
+  // ::before below (light floods the page from the right like the home
+  // stage; the opaque -main/-extra bands still sit under the wash
+  // because the pseudo paints above every non-positioned child).
+  background-image: var(--filament-glow), var(--deck-shade);
+  // The overscanned keylight must not grow a horizontal scrollbar.
+  overflow-x: clip;
+
+  // The KEY LIGHT — one studio rig shared with the home card-stack and
+  // about stages: a broad silver lobe parked just off the RIGHT edge,
+  // drifting on a slow breathe (transform + opacity only). No z-index —
+  // first positioned
+  // child, so it reads as light falling over the page's flat surfaces;
+  // HC pins the deck tokens to none.
+  &::before {
+    content: '';
+    position: absolute;
+    // X-only overscan — a transformed layer's bounds feed the ancestor
+    // scrollable area, so vertical overscan re-arms body's wheel-latch
+    // slack every frame and the document stops scrolling.
+    inset: 0 -8%;
+    background-image: var(--deck-glow);
+    background-repeat: no-repeat;
+    pointer-events: none;
+    // Right-edge anchor — the scaleX swell enters from the key side.
+    transform-origin: 100% 50%;
+    animation: #{$_B_INTERNAL}-keylight 18s ease-in-out infinite alternate;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  // The GL backdrop carries this light in float — the empty animated
+  // layer dies while the shader paints it.
+  :host-context(html.has-gl-backdrop) &::before {
+    content: none;
+  }
+
   &-title {
     @extend %TTL_BASE;
     @extend %TTL_LG;
@@ -36,6 +77,24 @@
 
       font-family: var(--font-ui);
       font-weight: calc(500 + var(--fw-lift));
+
+      // Ticker display ramp — the strip runs its own Fibonacci step-up on
+      // top of %TTL_LG: ~34px on phones, ~55px on tablet, ~89px across
+      // the desktop band, and ~144px from 2K/ultrawide up (2560 and 4K
+      // share the rung — the spec caps the marquee at ~150px).
+      font-size: var(--space-2xl);
+
+      @include layout-768() {
+        font-size: var(--space-3xl);
+      }
+
+      @include layout-1024() {
+        font-size: var(--space-4xl);
+      }
+
+      @include layout-2560() {
+        font-size: var(--space-5xl);
+      }
 
       // The ticker's bottom pad rides the ≥1920 all-5xl shorthand — far
       // too much air for a heading strip parked directly above the
@@ -638,10 +697,42 @@
   }
 
   &-footer {
+    position: relative;
     // Same off-screen skip as the other sections — the related-cards
     // strip renders nothing until it nears the viewport.
     content-visibility: auto;
     contain-intrinsic-size: auto 80vh;
+    // The stage wash — same studio rig as the page body above; this
+    // panel also renders standalone inside <legal-footer>'s shadow root
+    // (where no .internal parent carries the light), so the footer
+    // carries its own key light.
+    background-image: var(--filament-glow), var(--deck-shade);
+    overflow-x: clip;
+
+    // The KEY LIGHT — identical rig to .internal::before: the silver
+    // lobe off the RIGHT edge on a slow breathe. Both consumers share
+    // the one #{$_B_INTERNAL}-keylight sheet-local loop.
+    &::before {
+      content: '';
+      position: absolute;
+      // X-only overscan — transformed bounds feed the ancestor scrollable
+      // area; any Y bleed re-arms body's wheel-latch slack per frame.
+      inset: 0 -8%;
+      background-image: var(--deck-glow);
+      background-repeat: no-repeat;
+      pointer-events: none;
+      transform-origin: 100% 50%;
+      animation: #{$_B_INTERNAL}-keylight 18s ease-in-out infinite alternate;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
+
+    // The GL backdrop carries this light — the empty animated layer dies.
+    :host-context(html.has-gl-backdrop) &::before {
+      content: none;
+    }
 
     &-title {
       @extend %TTL_BASE;
@@ -1015,7 +1106,8 @@
       // the second divider, followed by the small-caps copyright line.
       // Both are muted via theme-aware inks (AAA-safe on --bg-secondary).
       &-credit,
-      &-rights {
+      &-rights,
+      &-version {
         width: 100%;
         margin: 0 auto;
         text-align: center;
@@ -1044,6 +1136,23 @@
 
         font-size: var(--space-lg);
         line-height: var(--space-xl);
+        font-weight: calc(300 + var(--fw-lift));
+        text-transform: uppercase;
+        letter-spacing: var(--space-2xs);
+        color: var(--text-muted);
+      }
+
+      // Release stamp — build provenance whispered under the copyright
+      // line: the mono face at the smallest text step in the scale
+      // (--space-md is the smallest font-size in use) in the AAA-bound
+      // muted ink — faint, but it always clears the contrast gate.
+      &-version {
+        @extend %TTL_BASE;
+
+        margin-top: var(--space-sm);
+        font-family: var(--font-mono);
+        font-size: var(--space-md);
+        line-height: var(--space-lg);
         font-weight: calc(300 + var(--fw-lift));
         text-transform: uppercase;
         letter-spacing: var(--space-2xs);
@@ -1244,5 +1353,539 @@
 @keyframes internal-title-marquee {
   to {
     transform: translateX(-50%);
+  }
+}
+
+// Keylight drift — the right-side lobe slides a few percent in and out
+// of the stage's right edge while it breathes (gentle scale + opacity),
+// the same rig the home card-stack and about sections run so internals
+// and the footer read as one lit field. Transform/opacity only —
+// compositor-driven, zero layout and no re-raster.
+@keyframes #{$_B_INTERNAL}-keylight {
+  0% {
+    transform: translate3d(-4%, 0, 0) scaleX(1);
+    opacity: 0.72;
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scaleX(1.07);
+    opacity: 1;
+  }
+}
+
+@media print {
+  .modal-below[inert],
+  .modal-below[aria-hidden='true'],
+  :host-context(html.modal-open) .modal-below {
+    display: none;
+  }
+
+  // `.internal` only — legal pages share the `internal-*` class names
+  // but adopt their own legal.scss, so their editorial grammar lives in
+  // the view stylesheet, not here.
+  .internal {
+    background-color: transparent;
+    background-image: none;
+    color: var(--text-primary);
+    overflow: visible;
+    // The numbered-article folio counter — h2.internal-description-text
+    // increments it.
+    counter-reset: internal-sec;
+
+    // Screen-only stage dressing — the keylight layer is ambient light,
+    // never ink on paper (`.legal::before` is the same rig).
+    &::before,
+    &-footer::before {
+      content: none;
+    }
+
+    &-header {
+      background: transparent;
+      color: var(--text-primary);
+      padding-top: var(--space-md);
+      margin-bottom: var(--space-md);
+    }
+
+    &-title,
+    &-title--marquee {
+      color: var(--text-primary);
+      -webkit-mask-image: none;
+      mask-image: none;
+      overflow: visible;
+      white-space: normal;
+      text-align: center;
+      // The screen title parks ~144px of hero padding around the glyph —
+      // on paper that dead band pushes the caption off the sheet. The
+      // hairline under it is the magazine's masthead rule.
+      padding: var(--space-2xs) 0 var(--space-sm);
+      margin-bottom: var(--space-md);
+      border-bottom: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 30%, transparent);
+      letter-spacing: 0.04em;
+    }
+
+    // The translating strip is the marquee mechanism — paper keeps one
+    // static title. It re-blocks so the surviving half-copy becomes an
+    // atomic inline box the h1's text-align can center; killing the
+    // animation lands the strip at translateX(0) (print freezes whatever
+    // frame the loop happened to be on — mid-flight it paints the title
+    // half out of the clip).
+    &-title-marquee {
+      display: block;
+      width: 100%;
+      animation: none;
+      transform: none;
+      text-align: center;
+      white-space: normal;
+      will-change: auto;
+    }
+
+    &-title-copy + &-title-copy,
+    &-title-unit + &-title-unit,
+    &-title-sep {
+      display: none;
+    }
+
+    // Landscape sheets are short — the wide-screen 5xl title rung plus
+    // the header padding would push hero + caption past the page box
+    // and strand the caption on the next sheet. Compact rungs keep
+    // title + media + caption together.
+    @media (orientation: landscape) {
+      &-header {
+        padding-top: var(--space-2xs);
+        margin-bottom: var(--space-2xs);
+      }
+
+      &-title,
+      &-title--marquee {
+        font-size: var(--space-2xl);
+        margin-bottom: var(--space-2xs);
+      }
+
+      &-main {
+        padding-top: 0;
+      }
+    }
+
+    &-hero {
+      margin: 0 auto var(--space-xl);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    &-main,
+    &-description,
+    &-extra,
+    &-footer {
+      content-visibility: visible;
+      contain-intrinsic-size: none;
+      contain: none;
+      background-color: transparent;
+      background-image: none;
+      color: var(--text-primary);
+      min-height: 0;
+      height: auto;
+      overflow: visible;
+    }
+
+    // Screen padding rides the viewport ramp all the way to --space-6xl —
+    // on paper those rungs park ~230px of dead sheet around the figure.
+    // The @page margin owns the sheet inset; the section keeps only a
+    // thin breathing rung so title/media/caption stay visually grouped.
+    &-main {
+      // Block flow under print: the screen flex row would park the
+      // print-injected caption beside the figure (off-sheet on narrow
+      // paper), and a shrinkable flex item lets the figure collapse to
+      // its thumb min-content because the cyclic max-width:100% layer
+      // inside defeats % host sizing. Block + a pinned width gives the
+      // full column to the media, then the caption seats below.
+      display: block;
+      padding: var(--space-md) 0;
+
+      media-figure,
+      figure.internal-main-item {
+        // The screen --mf-* contract reserves a viewport-sized box
+        // (70dvh heroes) — on paper that dead band strands the figure
+        // mid-sheet with the caption pushed a page over. Freeing the
+        // tokens lets the image's own measure govern inside the sheet
+        // cap; the :has(.print-bleed) branch overrides anyway.
+        --mf-w: 100%;
+        --mf-h: auto;
+        --mf-max-w: 100%;
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+
+    // Editorial full-bleed spreads no longer live here — the print
+    // adapter reparents each internal-main figure into a light-DOM
+    // `.print-plate` node (styled in base/structure/_print.scss) because
+    // a shadow-nested abs/transformed box inside a margined
+    // fragmentainer paints clipped in Chromium, while the top-level
+    // plate contract paints edge-to-edge.
+
+    // The extra strip is a nowrap overflow-x scroller — on paper it would
+    // run past the sheet edge and clip every item after the first. It
+    // re-flows vertically: the scroll container unwraps, each item
+    // becomes a centered row, and --mf-* frees the figure box from its
+    // viewport-sized token so the image's own measure governs (bounded
+    // by the same --print-media-max-h sheet cap inside the shadow).
+    &-extra {
+      overflow: visible;
+      padding: 0;
+
+      &-scroll {
+        display: block;
+        white-space: normal;
+        width: auto;
+        padding: 0;
+
+        // Two-across editorial gallery — on ~A4 and wider the stills
+        // pair up contact-sheet style instead of each owning a centered
+        // row, and items keep break-inside:avoid so no frame splits at
+        // the column seam. .landscape items span the full measure like
+        // a runaround feature.
+        @media (min-width: 170mm) {
+          column-count: 2;
+          column-gap: var(--space-xl);
+        }
+      }
+
+      &-item {
+        display: block;
+        width: auto;
+        min-height: 0;
+        padding: 0;
+        margin: 0 0 var(--space-md);
+        text-align: center;
+        overflow: visible;
+        break-inside: avoid;
+        page-break-inside: avoid;
+
+        &.landscape {
+          column-span: all;
+        }
+
+        media-figure,
+        figure {
+          --mf-w: 100%;
+          --mf-h: auto;
+          --mf-max-w: 100%;
+          width: 100%;
+          height: auto;
+        }
+      }
+    }
+
+    &-description {
+      // Block, not the screen flex column — column-count ignores flex
+      // containers, so the magazine columns never formed and the copy
+      // stayed a single centered lane. The @page margin owns the sheet
+      // inset — the 12.5%/25% viewport indents are dead air on paper.
+      display: block;
+      padding: var(--space-lg) 0;
+      margin: 0;
+      orphans: 3;
+      widows: 3;
+      border-top: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 28%, transparent);
+
+      // Columnar magazine typesetting — the sheet's measure picks the
+      // column count: ~A4 and wider run two text columns, A3+ three.
+      // The hairline column rule is the delicate gutter rule the
+      // editorial references run between measures.
+      @media (min-width: 170mm) {
+        column-count: 2;
+        column-gap: var(--space-2xl);
+        column-rule: to-rem($space-hairline) solid
+          color-mix(in srgb, var(--print-ink) 16%, transparent);
+      }
+
+      @media (min-width: 260mm) {
+        column-count: 3;
+      }
+
+      // Section heads — the numbered-article convention: a hairline
+      // over each head, a small decimal-leading-zero folio in the
+      // gutter, then the title. h2 re-pins the rungs the shared &-text
+      // body rule would otherwise flatten into body copy.
+      h2.#{$_B_INTERNAL}-description-text {
+        margin: var(--space-xl) 0 var(--space-sm);
+        padding-top: var(--space-sm);
+        border-top: to-rem($space-hairline) solid
+          color-mix(in srgb, var(--print-ink) 28%, transparent);
+        font-size: var(--space-xl);
+        line-height: 1.25;
+        font-weight: 500;
+        text-align: left;
+        hyphens: none;
+        column-span: all;
+        break-inside: avoid;
+        break-after: avoid;
+
+        &::before {
+          counter-increment: internal-sec;
+          content: counter(internal-sec, decimal-leading-zero);
+          margin-right: var(--space-sm);
+          font-size: var(--print-caption-size);
+          letter-spacing: 0.2em;
+          color: color-mix(in srgb, var(--print-ink) 55%, transparent);
+        }
+      }
+
+      // -description-text IS the <p> — the old `p` descendant selector
+      // never matched, so paragraphs kept the screen's left-aligned
+      // body face instead of the press voice.
+      &-text {
+        margin: 0 0 var(--space-sm);
+        padding: 0;
+        font-size: var(--print-body-size);
+        line-height: 1.5;
+        text-align: justify;
+        hyphens: auto;
+      }
+
+      // The lead paragraph of each copy block reads as a standfirst —
+      // the magazine's larger-lead move (draw-text's letter spans keep
+      // ::first-letter from reaching the text, so a true drop cap can't
+      // ride the pseudo; the raised lead line carries the same rhythm).
+      &-text:first-of-type {
+        font-size: var(--space-lg);
+        line-height: 1.4;
+        font-weight: 500;
+        text-align: left;
+        hyphens: none;
+      }
+    }
+
+    &-dark-block {
+      background-color: transparent;
+      color: var(--text-primary);
+
+      .internal-description-item,
+      h1,
+      h2,
+      h3,
+      p,
+      a,
+      span {
+        color: var(--text-primary);
+      }
+    }
+
+    &-carousel,
+    &-mosaic {
+      min-height: 0;
+      height: auto;
+      overflow: visible;
+    }
+
+    &-footer-items {
+      background: transparent;
+      padding-block: var(--space-lg);
+      break-inside: avoid;
+      page-break-inside: avoid;
+
+      &-divider::after,
+      &-divider-canvas {
+        display: none;
+      }
+
+      &-divider:has(+ .internal-footer-items-divider-canvas:not(.is-fallback)) {
+        visibility: visible;
+      }
+    }
+  }
+
+  // The related conveyor is navigation chrome — paper keeps the article
+  // and the footer, not the strip.
+  portfolio-related {
+    display: none;
+  }
+
+  // Footer colophon — the legal nav's dot-separated cloud re-flows into
+  // a two-column directory: every label lands column one, every scan
+  // code column two. Pairs (and the feed wrapper inside the last pair)
+  // dissolve so their anchor + injected code join the grid directly;
+  // the leading dots are screen rhythm, never ink.
+  .internal-footer-items,
+  .internal-footer-top,
+  .internal-footer-side {
+    text-align: left;
+  }
+
+  .internal-footer-top {
+    display: block;
+  }
+
+  .internal-footer-side {
+    display: block;
+  }
+
+  .internal-footer-legal {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: var(--space-lg);
+    align-items: end;
+    text-align: left;
+
+    .sr-only {
+      display: none;
+    }
+  }
+
+  .internal-footer-items-separator {
+    display: none;
+  }
+
+  .internal-footer-items-pair,
+  .internal-footer-items-feed {
+    display: contents;
+  }
+
+  .internal-footer-legal .internal-footer-items-link,
+  .internal-footer-legal .print-qr-link {
+    padding: var(--space-xs) 0;
+    border-bottom: to-rem($space-hairline) solid
+      color-mix(in srgb, var(--print-ink) 22%, transparent);
+    text-decoration: none;
+  }
+
+  // Screen centers each label (fit-content + auto margins); on paper
+  // the directory rows pin their labels to the left edge.
+  .internal-footer-legal .internal-footer-items-link,
+  .internal-footer-socials .internal-footer-items-link {
+    width: auto;
+    margin-inline: 0;
+    margin-block: 0;
+    text-align: left;
+  }
+
+  // Right column joins the directory — source pill un-pills into a
+  // ruled row (label + link left, code right); the socials row becomes
+  // the same label/code grid the legal nav gets.
+  .internal-footer-source {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: var(--space-lg);
+    width: 100%;
+    padding: var(--space-xs) 0;
+    margin: var(--space-sm) 0 0;
+    border: 0;
+    border-bottom: to-rem($space-hairline) solid
+      color-mix(in srgb, var(--print-ink) 22%, transparent);
+    border-radius: 0;
+    background: transparent;
+    text-align: left;
+
+    .print-qr-link {
+      margin: 0 0 0 auto;
+      border-bottom: 0;
+      padding: 0;
+    }
+  }
+
+  .internal-footer-socials {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: var(--space-lg);
+    align-items: end;
+
+    .sr-only {
+      display: none;
+    }
+
+    .internal-footer-items-link,
+    .print-qr-link {
+      padding: var(--space-xs) 0;
+      border-bottom: to-rem($space-hairline) solid
+        color-mix(in srgb, var(--print-ink) 22%, transparent);
+      text-decoration: none;
+    }
+  }
+
+  // Docs entry — a wide editorial row: oversized title left, localized
+  // descriptor mid-line, scan code at the right edge.
+  .internal-footer-docs {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--space-lg);
+    border-bottom: to-rem($space-hairline) solid
+      color-mix(in srgb, var(--print-ink) 22%, transparent);
+    padding: var(--space-sm) 0;
+
+    .print-qr-link {
+      order: 3;
+      border-bottom: 0;
+      padding: 0;
+      margin: 0;
+    }
+  }
+
+  .internal-footer-docs-desc {
+    flex: 1 1 auto;
+  }
+
+  // Colophon fine print — the hairline display face reads too thin on
+  // paper; the colophon body switches to the serif book face at 400.
+  .internal-footer-items-note,
+  .internal-footer-items-note-text,
+  .internal-footer-items-credit,
+  .internal-footer-items-rights {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    font-style: normal;
+    letter-spacing: normal;
+  }
+
+  // In grid cells the code hugs the right edge — the generic rule's
+  // auto margins would center it inside the column.
+  .internal-footer-legal .print-qr-link,
+  .internal-footer-socials .print-qr-link,
+  .internal-footer-docs .print-qr-link {
+    margin: 0;
+    justify-self: end;
+    display: inline-block;
+  }
+
+  // Source/date/author line print.ts injects under every printed media
+  // surface — matches the document sheet's rule for the light-DOM copy.
+  .print-caption {
+    display: block;
+    max-width: 100%;
+    margin: var(--space-2xs) auto var(--space-md);
+    font-size: var(--print-caption-size);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-align: center;
+    overflow-wrap: break-word;
+    break-inside: avoid;
+    break-before: avoid;
+    page-break-before: avoid;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+
+  // Small scan code print.ts seats under each footer link — block inside
+  // the link's inline-block pair lands it below the link text.
+  .print-qr-link {
+    display: block;
+    width: var(--print-qr-link-size);
+    margin: var(--space-2xs) auto var(--space-sm);
+    color: var(--text-primary);
+    break-inside: avoid;
+    page-break-inside: avoid;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
   }
 }

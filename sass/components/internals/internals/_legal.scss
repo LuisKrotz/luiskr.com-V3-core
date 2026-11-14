@@ -13,6 +13,36 @@
   @extend %MAXAREA;
 
   box-sizing: border-box;
+  // The stage wash — same studio rig as .internal: filament under the
+  // counter-shade, the key light on the ::before below. Legal routes
+  // mount .legal rather than .internal, so the stage must mount here or
+  // legal pages render flat.
+  background-image: var(--filament-glow), var(--deck-shade);
+  overflow-x: clip;
+
+  // The KEY LIGHT — identical rig to .internal::before: the silver lobe
+  // parked off the RIGHT edge on a slow breathe, transform/opacity only.
+  &::before {
+    content: '';
+    position: absolute;
+    // X-only overscan — transformed bounds feed the ancestor scrollable
+    // area; any Y bleed re-arms body's wheel-latch slack per frame.
+    inset: 0 -8%;
+    background-image: var(--deck-glow);
+    background-repeat: no-repeat;
+    pointer-events: none;
+    transform-origin: 100% 50%;
+    animation: #{$_B_INTERNAL}-keylight 18s ease-in-out infinite alternate;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  // The GL backdrop carries this light — the empty animated layer dies.
+  :host-context(html.has-gl-backdrop) &::before {
+    content: none;
+  }
   // Reset all MAXAREA horizontal padding — .internal-description provides
   // the 12.5% / 25% column-indent itself, so no outer indent is needed here.
   padding-left: 0;

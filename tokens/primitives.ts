@@ -61,11 +61,17 @@ export const KEYS = Object.freeze({
   ARROW_RIGHT: 'ArrowRight',
   ARROW_UP: 'ArrowUp',
   ARROW_DOWN: 'ArrowDown',
+  /** List boundaries — first/last item jumps in roving-focus widgets. */
+  HOME: 'Home',
+  END: 'End',
   /** Printable single-key shortcuts — matched case-folded, never with
    *  Ctrl/Meta/Alt held so browser/system chords pass through. */
   SLASH: '/',
   KEY_I: 'i',
   KEY_N: 'n',
   KEY_O: 'o',
+  /** 'p' — the Ctrl/Cmd chord the print gate intercepts on
+   *  print-ineligible routes (matched case-folded). */
+  KEY_P: 'p',
   KEY_S: 's',
 })

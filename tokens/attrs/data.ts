@@ -78,4 +78,61 @@ export const DATA_ATTRS = Object.freeze({
    * marker doubles as the element's animation identity).
    */
   DATA_ANIM_DESC: `${_DATA}anim-desc`,
+  /**
+   * `data-print-capture` — opt-in marker on a canvas that must print its
+   * painted frame even though it is aria-hidden/role-button (animation
+   * demos, playground scenes). The print adapter still requests a fresh
+   * frame via `printcapture` before the preserved-buffer read.
+   */
+  PRINT_CAPTURE: `${_DATA}print-capture`,
+  /**
+   * `data-print-skip` — opt-out marker on a canvas that must never print
+   * (docs landing background scene): the adapter retires the element and
+   * injects no still.
+   */
+  PRINT_SKIP: `${_DATA}print-skip`,
+  /**
+   * `data-print-link` — marks an anchor that earns a `.print-qr-link`
+   * code beside itself in print (sitemap route rows — every printed
+   * route scans open). Locale/leaf chips stay QR-free: the marker is
+   * per-anchor, not per-region.
+   */
+  PRINT_LINK: `${_DATA}print-link`,
+  /**
+   * `data-print-doc` — marks the `article.reader-content` mirror a route
+   * populated for the print pass (docs renders the selected page into
+   * it): the print sheet unparks the article and drops #app regardless
+   * of the mirror's child shape — unlike the `> div` heuristic, which
+   * only recognises unprepared prerendered mirrors.
+   */
+  PRINT_DOC: `${_DATA}print-doc`,
+  /**
+   * `data-print-landscape` — marker on a surface whose print output must
+   * paginate landscape (the Earth scene is wider than tall): the adapter
+   * stamps `html.print-landscape` and the print sheet's named `@page`
+   * flips the whole job to landscape sheets.
+   */
+  PRINT_LANDSCAPE: `${_DATA}print-landscape`,
+  /**
+   * `data-print-no-caption` — opt-out marker on a media surface that must
+   * print WITHOUT its `.print-caption` source line (the about portrait —
+   * a personal photo needs no asset attribution on paper). The element
+   * itself still prints; only the credit line is suppressed.
+   */
+  PRINT_NO_CAPTION: `${_DATA}print-no-caption`,
+  /**
+   * `data-mermaid-src` — the raw diagram source stashed on a rendered
+   * `.docs-mermaid` block at render time: the block's textContent is
+   * replaced by the SVG, so the print pass re-renders from this attr
+   * with the paper theme instead of inheriting the screen palette.
+   */
+  DOCS_MERMAID_SRC: `${_DATA}mermaid-src`,
+  /**
+   * `data-print-rotate` — stamped at print-render time on a docs
+   * diagram block whose drawn aspect is wider than the portrait content
+   * box: the print sheet quarter-turns the diagram inside a full-page
+   * slot instead of shrinking it to illegibility (the "turn the
+   * magazine" move the bleed plates use, applied to vector content).
+   */
+  PRINT_ROTATE: `${_DATA}print-rotate`,
 })

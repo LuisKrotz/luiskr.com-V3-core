@@ -11,7 +11,7 @@ import { NAV_SEARCH_CSS_PROPS } from '@core/tokens/css/nav.js'
 describe('NAV_SEARCH_CSS_PROPS', () => {
   test('every member is a --nav-* custom property', () => {
     for (const name of Object.values(NAV_SEARCH_CSS_PROPS)) {
-      expect(name).toMatch(/^--nav-(search|neon)-[a-z-]+$/)
+      expect(name).toMatch(/^--nav-(search|metal)-[a-z-]+$/)
     }
   })
 

@@ -1,0 +1,271 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  card-stack/_print.scss — the coverflow's print contract: the JS-posed
+//  deck flattens into a static project mosaic, interactive chrome drops,
+//  and print.ts's injected caption/link-QR surfaces get shadow-local rules
+//  (the document sheet can't reach inside this component's shadow root).
+//  Imported LAST by card-stack.scss so every equal-specificity override
+//  here beats the screen display rules in _controls/_index/_info.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Print ───────────────────────────────────────────────────────────────────
+// The coverflow flattens into an editorial run of feature blocks — each
+// project is its own spread: gallery-plate cover, serif title, full copy,
+// caption and route code. Card geometry (translate / tilt / size) lived
+// inline (print.ts strips style attributes), so the dealt pile reflows
+// in DOM order. The autoplay timer, burn canvas, and sheen rings are
+// screen chrome — gone.
+@media print {
+  .#{$_B_CARD_STACK} {
+    // Block flow over the screen's column tracks — every landscape
+    // breakpoint grid (34%/30%/px column + deck) collapses so header,
+    // deck mosaic and copy run the full sheet measure, and the 100dvh
+    // viewport reserve drops (it would tail a mostly-empty sheet).
+    display: block;
+    min-height: 0;
+
+    // Screen-only stage dressing — the keylight layer and the deck's
+    // floor pool are ambient light/shadow, never ink on paper.
+    &::before,
+    &-deck::after {
+      content: none;
+    }
+
+    // The section header keeps with the first spread — a page break
+    // between title and cards would strand it at a sheet's foot.
+    &-header,
+    &-title {
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    // Single-column editorial flow — one project feature per block, so
+    // the run paginates at magazine pacing instead of a web card grid.
+    &-deck {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin-inline: 0;
+      overflow: visible;
+      transform: none;
+      cursor: auto;
+    }
+
+    &-card {
+      position: static;
+      left: auto;
+      top: auto;
+      width: 100%;
+      height: auto;
+      transform: none;
+      opacity: 1;
+      visibility: visible;
+      break-inside: avoid;
+      page-break-inside: avoid;
+      box-shadow: none;
+      transition: none;
+      will-change: auto;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2xl);
+
+      &::before,
+      &::after {
+        content: none;
+      }
+
+      // Every card keeps its copy on paper — the draw-pile fade only
+      // belongs to the screen stack.
+      &:not(&--active) {
+        .#{$_B_CARD_STACK}-card-info {
+          position: static;
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+        }
+      }
+    }
+
+    // The svg placeholder only boxes the on-screen ratio — the surviving
+    // img layer goes in-flow and carries the card's height itself
+    // (absolute layers over a heightless box collapse to nothing on
+    // paper).
+    &-card-img--placeholder {
+      display: none;
+    }
+
+    // On wide landscape paper the fan-tier screen rule (`inset: 0`
+    // absolute over the whole card) still matches — pinning the media
+    // band in-flow keeps the copy column below the image instead of
+    // layered under it, and dropping the fixed ratio + clip lets a
+    // portrait cover print its full height.
+    &-card-media {
+      position: static;
+      inset: auto;
+      aspect-ratio: auto;
+      overflow: visible;
+      flex: none;
+    }
+
+    &-card-media img {
+      position: static;
+      inset: auto;
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: var(--print-media-max-h);
+      margin: 0 auto;
+      object-fit: contain;
+    }
+
+    // The fan-tier card-link goes block + absolute-media — in-flow on
+    // paper so media/copy/QR stack vertically.
+    &-card-link {
+      display: block;
+      height: auto;
+      min-height: 0;
+    }
+
+    // In-card copy stays visible on every paper size — the landscape
+    // `display: none` contract only applies on fan-tier screens where
+    // the -info column carries the copy (and -info is hidden here).
+    // Static positioning keeps it under the image — never layered.
+    &-card-info {
+      display: flex;
+      position: static;
+      color: var(--text-primary);
+    }
+
+    // Full CMS copy on paper — the 4-line / 2-line visual clamps are
+    // screen affordances; the printed card carries the whole
+    // description. Justified at a reading measure, not the full sheet.
+    &-card-info-desc,
+    &-card-desc {
+      display: block;
+      -webkit-line-clamp: unset;
+      line-clamp: unset;
+      overflow: visible;
+      max-width: 65ch;
+      color: var(--text-primary);
+      text-align: justify;
+      text-shadow: none;
+    }
+
+    // The screen writer typed the blurb for the active card — the
+    // .print-fill sibling is now the printable copy (the project's own
+    // sections text, or the blurb fallback), so the armed draw-text
+    // would double the lead on paper.
+    &-card-info-desc draw-text {
+      display: none;
+    }
+
+    // Feature headline — the project title runs at magazine masthead
+    // scale over the copy block, closed by a hairline rule the way a
+    // feature page decks its headline; the oversized rung is the
+    // spread's anchor, sized off the sheet's largest space token.
+    &-card-info-title {
+      font-size: var(--space-4xl);
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      line-height: 1.05;
+      color: var(--text-primary);
+      text-shadow: none;
+      padding-bottom: var(--space-sm);
+      border-bottom: var(--space-hairline) solid var(--text-primary);
+      margin-bottom: var(--space-md);
+    }
+
+    // Interactive chrome — the foot row (hint/nav/dots/autoplay), the
+    // view-all toggle, the closed index overlay, the countdown bar, the
+    // desktop info column (each card carries its own copy in print),
+    // and the "Check out" affordances (the QR beside each card already
+    // carries the route) are screen controls; paper keeps the cards
+    // and their copy.
+    // `.print-src` marks the stack layers print.ts retires once a card's
+    // uncompressed rung lands (the document sheet can't reach inside
+    // this shadow).
+    &-card-info-title-burn,
+    &-card-info-cta,
+    &-info-cta,
+    &-timer,
+    &-toggle,
+    &-foot,
+    &-info,
+    &-index,
+    .print-src {
+      display: none;
+    }
+  }
+
+  // Source/date/author line print.ts seats after each card img — the
+  // document sheet can't reach this shadow root.
+  .print-caption {
+    display: block;
+    max-width: 100%;
+    margin: var(--space-2xs) auto var(--space-md);
+    font-size: var(--print-caption-size);
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-align: center;
+    overflow-wrap: break-word;
+    break-inside: avoid;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+
+  // The description fill cardstack/print.ts seats inside each card's
+  // desc slot on printprepare — the <draw-text> writer stays empty for
+  // behind cards on screen, so the full project copy arrives as this
+  // hidden-attr span. The document sheet can't reach this shadow root.
+  .print-fill {
+    display: block;
+    color: var(--text-primary);
+
+    // Feature paragraphs — the project's own sections copy seats one
+    // span per paragraph. Magazine pacing: ruled paragraph gaps, a
+    // reading measure, and the lead paragraph's drop cap opening the
+    // spread the way the internal feature pages do.
+    &-para {
+      display: block;
+      max-width: 65ch;
+      text-align: justify;
+      hyphens: auto;
+      font-size: var(--print-body-size);
+      line-height: 1.45;
+
+      & + .print-fill-para {
+        margin-top: var(--space-sm);
+      }
+    }
+
+    // The lead paragraph opens the spread the way the internal feature
+    // pages do — a drop cap three lines tall at the copy measure.
+    > .print-fill-para:first-of-type::first-letter {
+      float: left;
+      font-size: 3.2em;
+      line-height: 0.8;
+      padding-right: var(--space-2xs);
+    }
+  }
+
+  // Small scan code into the card's own route — print.ts seats it after
+  // the card anchor (deduped per href, so the index twin never doubles
+  // it); the document sheet can't reach this shadow root.
+  .print-qr-link {
+    display: block;
+    width: var(--print-qr-link-size);
+    margin: var(--space-2xs) auto var(--space-sm);
+    color: var(--text-primary);
+    break-inside: avoid;
+    page-break-inside: avoid;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
+}

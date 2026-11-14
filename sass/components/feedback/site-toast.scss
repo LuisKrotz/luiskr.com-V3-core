@@ -132,3 +132,14 @@ $_B_TOAST: 'site-toast';
     animation: none;
   }
 }
+
+// ── Print ───────────────────────────────────────────────────────────────────
+// The toast stack is fixed-position chrome — it would repeat on every
+// sheet. The document print rule (`site-toast { display:none }`) can't
+// reach this host inside the app shell's shadow root, so the hide is
+// authored here where the adopted sheet can see it.
+@media print {
+  :host {
+    display: none;
+  }
+}

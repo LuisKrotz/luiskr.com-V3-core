@@ -146,10 +146,14 @@ export function drawParticles(s: BurnSession, dt: number, stage: number, jagAmp:
         continue
       }
 
+      // Sizes are authored in device px but must READ as CSS px — on
+      // dpr-2/3 phones an unscaled speck shrinks below visibility.
+      const ps = p.size * s.dpr
+
       ctx.globalCompositeOperation = CANVAS_STRINGS.COMPOSITE_LIGHTER
       ctx.globalAlpha = alpha
       ctx.fillStyle = k < 0.35 ? s.ink.core : k < 0.7 ? s.ink.mid : s.ink.edge
-      ctx.fillRect(p.x, p.y, p.size, p.size)
+      ctx.fillRect(p.x, p.y, ps, ps)
     } else {
       // Char fleck — heat lifts it, then gravity wins; it tumbles dark.
       // Rebuild flecks already fall — same gravity keeps them sinking.
@@ -163,13 +167,15 @@ export function drawParticles(s: BurnSession, dt: number, stage: number, jagAmp:
         continue
       }
 
+      const ps = p.size * s.dpr
+
       ctx.globalCompositeOperation = CANVAS_STRINGS.COMPOSITE_SOURCE_OVER
       ctx.globalAlpha = 1 - k
       ctx.fillStyle = s.ink.scorch
       ctx.save()
       ctx.translate(p.x, p.y)
       ctx.rotate(p.rot)
-      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7)
+      ctx.fillRect(-ps / 2, -ps / 2, ps, ps * 0.7)
       ctx.restore()
     }
   }

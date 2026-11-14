@@ -12,7 +12,7 @@
 //    strip        carousel viewport + translating track + progress rail
 //    glow         drifting ambient wash (mirrors the document body glow)
 //    bar          route progress bar (active crawl → done sweep/fade)
-//    genie        backdrop + dialog + origin (--genie-x/y transform origin)
+//    genie        lightbox strip-warp (expand-modal media → card funnel)
 //    skel         skeleton placeholder stack (shared skeleton-utils import)
 //    figure       media-figure sizing
 //    fan          card-stack deal-through (data-index slot ladder)
@@ -48,10 +48,18 @@ $_B: 'anim-demo';
 $_STAGE-H: $space-md * ($space-xl - $space-3xs); // 160
 $_ICON-BOX: $space-3xl + $space-3xs; // 56
 $_FLAG-H: $space-md * $space-md; // 64
-$_SWITCH-W: $space-md * ($space-lg - $space-3xs); // 96
-$_SWITCH-H: $space-3xl - $space-sm; // 50
+$_FLAG-ROW-H: $space-2xl + $space-md + $space-2xs; // 44 — the dialog rung
+$_SWITCH-W: $space-3xl - $space-3xs; // 54 — the widget pins its own
+// inline box (canvas.style width/height), so the stage can't rescale it;
+// the class dims size the CSS-fallback track to the same rung.
+$_SWITCH-H: $space-xl + $space-sm + $space-2xs; // 28
+$_SW-KNOB: $space-xl + $space-3xs; // 22 — fallback thumb inside the pill
 $_THEME-W: $space-md * ($space-2xl + $space-3xs); // 280
 $_THEME-H: $space-md * $space-md; // 64
+$_THEME-KNOB: $_THEME-H - $space-md; // 56 — fallback orbital disc
+$_BURGER-CELL: $space-md; // 8 — one fallback metaball square
+$_BURGER-STEP: $space-md + $space-xs; // 11 — fallback square pitch
+$_BURGER-SPAN: $_BURGER-CELL + $_BURGER-STEP; // 19 — 2×2 squares footprint
 $_LOADER-OUT: $space-md * ($space-md + $space-3xs); // 72
 $_LOADER-IN: $space-3xl - $space-xs; // 52
 $_BAR-H: $space-md * ($space-md + $space-3xs); // 72
@@ -79,6 +87,8 @@ $_STRIP-W: $space-md * ($space-lg - $space-3xs); // 96
 $_STRIP-H: $space-md * $space-md; // 64
 $_MODAL-W: $space-6xl + $space-sm + $space-2xs; // 240
 $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
+$_GENIE-FIG-W: $space-5xl + $space-md; // 112 — origin-card rung
+$_GENIE-FIG-H: $space-3xl + $space-md; // 60 — ≈16:9 media-card aspect
 
 // Mini-card face chrome shared by the staged card replicas — a media
 // block up top and a title bar at the bottom so the surface reads as a
@@ -103,7 +113,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     right: 30%;
     bottom: to-rem($space-2xs);
     height: to-rem($space-2xs);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-round);
     background: var(--text-muted);
   }
 }
@@ -138,8 +148,10 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
 
     // Overlay canvases the GPU mounts leave behind when they can't paint
     // (no WebGPU / artifact failure) — the CSS fallback surface underneath
-    // stays the live paint, so the empty overlay itself hides.
-    &.is-fallback {
+    // stays the live paint, so the empty overlay itself hides. The print
+    // adapter's `print-fallback` twin freezes the same contract on paper.
+    &.is-fallback,
+    &.print-fallback {
       display: none;
     }
   }
@@ -174,26 +186,201 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     border-radius: var(--radius-hairline);
   }
 
-  // Switch canvas — the pill geometry scaled up from the 54×28 chrome rung
-  // so the liquid thumb travel reads at stage size.
+  // Flag row — every locale's canvas listed in a wrapping row (the
+  // record's "list all flags" contract). The flags shrink to the
+  // preferences-dialog rung so the whole LANG_OPTIONS set fits.
+  &-flags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: to-rem($space-sm);
+    max-width: 100%;
+  }
+
+  &-flags &-flag {
+    flex: 0 0 auto;
+    height: to-rem($_FLAG-ROW-H);
+  }
+
+  // Switch canvas — the preferences toggle's own 54×28 geometry (the
+  // widget writes it inline, so the class only shapes the box before
+  // mount). --radius-round keeps the pill a stadium — radius-full's 50%
+  // would squeeze the non-square box into an ellipse.
   &-switch {
     position: relative;
     inset: auto;
     width: to-rem($_SWITCH-W);
     height: to-rem($_SWITCH-H);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-round);
   }
 
   // Theme-slider canvas — the preferences track's own geometry (the
   // widget measures its CSS box; a fluid-width canvas stretched the
-  // orbital pill into an ellipse).
+  // orbital pill into an ellipse). --radius-round, same ellipse guard.
   &-theme {
     position: relative;
     inset: auto;
     width: to-rem($_THEME-W);
     height: to-rem($_THEME-H);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-round);
     box-shadow: var(--shadow-card);
+  }
+
+  // ── Widget CSS fallbacks ────────────────────────────────────────────
+  // Production contract: a widget canvas that can't paint marks
+  // .is-fallback and the SURFACE draws the control in CSS (the real
+  // chrome paints the same states when WebGL is unavailable). The demo
+  // stage mirrors each fallback so a no-WebGL / reduced-motion / purged
+  // environment still shows the control the record describes — never an
+  // empty box.
+
+  // Burger — the 2×2 metaball squares the production fallback button
+  // draws (one painted square + three box-shadow siblings). `.print-fallback`
+  // is the print adapter's frozen arm of the same contract.
+  &-icon-wrap:has(.#{$_B}-icon--burger:is(.is-fallback, .print-fallback))::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: to-rem($_BURGER-CELL);
+    height: to-rem($_BURGER-CELL);
+    margin: -#{to-rem($_BURGER-SPAN * 0.5)} 0 0 -#{to-rem($_BURGER-SPAN * 0.5)};
+    border-radius: var(--radius-hairline);
+    background: var(--text-primary);
+    box-shadow:
+      to-rem($_BURGER-STEP) 0 0 var(--text-primary),
+      0 to-rem($_BURGER-STEP) 0 var(--text-primary),
+      to-rem($_BURGER-STEP) to-rem($_BURGER-STEP) 0 var(--text-primary);
+  }
+
+  // Close — the two crossing strokes the pref-close button paints.
+  &-icon-wrap:has(.#{$_B}-icon--close:is(.is-fallback, .print-fallback)) {
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: to-rem($space-xl);
+      height: to-rem($space-2xs);
+      margin: -#{to-rem($space-2xs * 0.5)} 0 0 -#{to-rem($space-xl * 0.5)};
+      border-radius: var(--radius-round);
+      background: var(--text-secondary);
+    }
+
+    &::before {
+      transform: rotate(45deg);
+    }
+
+    &::after {
+      transform: rotate(-45deg);
+    }
+  }
+
+  // Switch — the track pill + knob at rest (production's wrapper CSS
+  // paints the same chrome when the canvas can't).
+  &:has(> .#{$_B}-switch:is(.is-fallback, .print-fallback)) {
+    &::before {
+      content: '';
+      width: to-rem($_SWITCH-W);
+      height: to-rem($_SWITCH-H);
+      border-radius: var(--radius-round);
+      background: var(--border-color);
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      width: to-rem($_SW-KNOB);
+      height: to-rem($_SW-KNOB);
+      top: calc(50% - #{to-rem($_SW-KNOB * 0.5)});
+      left: calc(50% - #{to-rem($_SWITCH-W * 0.5 - ($_SWITCH-H - $_SW-KNOB) * 0.5)});
+      border-radius: var(--radius-full);
+      background: var(--color-white-raw);
+      box-shadow: var(--shadow-card);
+    }
+  }
+
+  // Theme — the track bar + the resting day/night disc.
+  &:has(> .#{$_B}-theme:is(.is-fallback, .print-fallback)) {
+    &::before {
+      content: '';
+      width: to-rem($_THEME-W);
+      height: to-rem($_THEME-H);
+      border-radius: var(--radius-round);
+      background: var(--border-color);
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      width: to-rem($_THEME-KNOB);
+      height: to-rem($_THEME-KNOB);
+      top: calc(50% - #{to-rem($_THEME-KNOB * 0.5)});
+      left: calc(50% - #{to-rem($_THEME-W * 0.5 - ($_THEME-H - $_THEME-KNOB) * 0.5)});
+      border-radius: var(--radius-full);
+      background: var(--color-accent);
+    }
+  }
+
+  // Menu backdrop — two drifting ink veils suggesting the contour
+  // field (a simplified echo of the production membrane's turbulence
+  // masks — the demo keeps it to radial washes).
+  &:has(> .#{$_B}-menubg:is(.is-fallback, .print-fallback)) {
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      pointer-events: none;
+    }
+
+    &::before {
+      background: radial-gradient(closest-side, var(--menu-ink) 0%, transparent 100%);
+      opacity: 0.22;
+      animation: #{$_B}-glow-drift 9s ease-in-out infinite alternate;
+    }
+
+    &::after {
+      background: radial-gradient(closest-side, var(--menu-ink-2) 0%, transparent 100%);
+      opacity: 0.16;
+      animation: #{$_B}-glow-drift 13s ease-in-out infinite alternate-reverse;
+    }
+  }
+
+  // Flag cell — pairs each canvas with the <img> fallback twin the lang
+  // dialog uses (production contract: the img paints by default and is
+  // hidden only while a live canvas shares its cell, so a no-GL row
+  // still lists every flag instead of empty slots).
+  &-flag-cell {
+    display: inline-flex;
+    align-items: center;
+
+    .flag-img,
+    .flag-split {
+      height: to-rem($_FLAG-ROW-H);
+      width: auto;
+      border-radius: var(--radius-hairline);
+    }
+
+    // Split halves butt up square — the wrapper's radius crops the pair.
+    .flag-split {
+      overflow: hidden;
+
+      .flag-img {
+        border-radius: 0;
+      }
+    }
+  }
+
+  // Live canvas in the cell → the img twin yields (same rule the nav's
+  // flag-wrapper :has() applies in production).
+  &-flag-cell:has(.#{$_B}-flag:not(.is-fallback):not(.print-fallback)) {
+    .flag-img,
+    .flag-split {
+      display: none;
+    }
   }
 
   // ── Nav menu stagger demo ────────────────────────────────────────────────
@@ -271,7 +458,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     align-items: center;
     justify-content: center;
     font-variant-numeric: tabular-nums;
-    font-size: to-rem($space-md);
+    font-size: to-rem($space-xl);
     color: var(--text-secondary);
   }
 
@@ -314,7 +501,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     border-radius: var(--radius-sm);
     background: var(--bg-dark);
     color: var(--color-white-raw);
-    font-size: to-rem($space-sm);
+    font-size: to-rem($space-lg);
     box-shadow: var(--shadow-card);
     opacity: 0;
     transform: translate(to-rem($space-sm), to-rem($space-sm));
@@ -328,7 +515,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     }
 
     strong {
-      font-size: to-rem($space-xs);
+      font-size: to-rem($space-lg);
       text-transform: uppercase;
       letter-spacing: to-rem($space-3xs * 0.6);
       opacity: 0.7;
@@ -389,7 +576,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     padding: to-rem($space-sm) to-rem($space-md);
     background: var(--bg-primary);
     color: var(--text-secondary);
-    font-size: to-rem($space-sm);
+    font-size: to-rem($space-lg);
 
     p {
       margin: 0;
@@ -452,7 +639,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
       right: 30%;
       bottom: to-rem($space-sm);
       height: to-rem($space-2xs);
-      border-radius: var(--radius-full);
+      border-radius: var(--radius-round);
       background: var(--text-muted);
     }
   }
@@ -492,7 +679,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     color: var(--text-primary);
     border: none;
     font: inherit;
-    font-size: to-rem($space-md);
+    font-size: to-rem($space-lg);
 
     &::before,
     &::after {
@@ -540,8 +727,8 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
 
     // GPU overlay live → the canvas owns the paint, CSS brackets hide.
     // A fallback overlay (no GPU) leaves the CSS brackets as the paint.
-    &:has(.#{$_B}-canvas:not(.is-fallback))::before,
-    &:has(.#{$_B}-canvas:not(.is-fallback))::after {
+    &:has(.#{$_B}-canvas:not(.is-fallback):not(.print-fallback))::before,
+    &:has(.#{$_B}-canvas:not(.is-fallback):not(.print-fallback))::after {
       opacity: 0;
     }
   }
@@ -651,68 +838,73 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     inset: 0;
   }
 
-  // The trigger dot the dialog genies from/to (bottom-left, like a
-  // control sitting on the page chrome).
-  &-origin {
+  // The clicked-figure twin — the card the lightbox opens from and
+  // sucks back into (bottom-left, like a gallery cell on the page
+  // chrome). The warp funnel lands exactly on this box.
+  &-genie-figure {
     position: absolute;
     left: to-rem($space-md);
     bottom: to-rem($space-md);
-    width: to-rem($space-md);
-    height: to-rem($space-md);
-    border-radius: var(--radius-full);
-    background: var(--color-accent);
+    width: to-rem($_GENIE-FIG-W);
+    height: to-rem($_GENIE-FIG-H);
+    margin: 0;
+    border: var(--border-item-hover);
+    border-radius: var(--radius-sm);
+    background: var(--bg-darker);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
   }
 
-  // Mini backdrop — the genie helper toggles --enter/--leave on it.
-  &-backdrop {
+  // Mini lightbox content — carries the REAL expand-modal-content token
+  // (the sheet bake + veil query resolve on it like production); this
+  // class only frames the centered card the media box lives inside.
+  &-genie-modal {
     position: absolute;
-    inset: 0;
+    inset: to-rem($space-md + $space-sm) 18%;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    background: color-mix(in srgb, var(--color-black-raw) 28%, transparent);
-    transition: opacity 0.55s ease;
-
-    &--enter,
-    &--leave {
-      opacity: 0;
-    }
-
-    &--enter .#{$_B}-dialog,
-    &--leave .#{$_B}-dialog {
-      transform: scale(0.04) translateY(to-rem($space-xl));
-      opacity: 0;
-      filter: blur(to-rem($space-xs));
-    }
-
-    &--leave,
-    &--leave .#{$_B}-dialog {
-      pointer-events: none;
-    }
-  }
-
-  // Mini dialog — scales from the recorded origin via --genie-x/--genie-y
-  // (the helper writes both inline on each cycle).
-  &-dialog {
-    width: 62%;
-    padding: to-rem($space-lg);
-    background: var(--bg-primary);
+    margin: 0;
+    padding: to-rem($space-sm);
     border: var(--border-item-hover);
     border-radius: var(--radius-md);
+    background: var(--bg-primary);
     box-shadow: var(--shadow-card);
-    transform-origin: var(--genie-x, 50%) var(--genie-y, 50%);
-    will-change: transform, opacity;
-    transition:
-      transform 0.72s cubic-bezier(0.32, 0.72, 0, 1),
-      opacity 0.48s cubic-bezier(0.32, 0.72, 0, 1),
-      filter 0.6s ease;
   }
 
-  &-dialog-text {
+  // The media box inside the mini lightbox — carries the real
+  // expand-modal-media-figure token; it is the sheet's warp rect.
+  &-genie-modal-figure {
+    position: relative;
+    flex: 1;
     margin: 0;
-    color: var(--text-secondary);
-    font-size: to-rem($space-sm);
-    text-align: center;
+    border-radius: var(--radius-sm);
+    background: var(--bg-darker);
+    overflow: hidden;
+
+    img {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  // The real veil token — only the media figure hard-hides while the
+  // overlay canvas owns the transition surface; the lightbox chrome
+  // stays painted (production contract — the funnel flies over the
+  // live card, exactly like the modal's own glass).
+  .expand-modal-genie-veil {
+    .expand-modal-media-figure {
+      visibility: hidden;
+    }
   }
 
   // ── Skeleton demo ────────────────────────────────────────────────────────
@@ -726,7 +918,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
 
   // ── DrawText demo ────────────────────────────────────────────────────────
   &-draw {
-    font-size: to-rem($space-lg);
+    font-size: to-rem($space-xl);
     color: var(--text-primary);
     text-align: center;
   }
@@ -825,7 +1017,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     position: relative;
     width: to-rem($_CHIP-W);
     height: to-rem($_CHIP-H);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-round);
     background: var(--bg-darker);
     overflow: hidden;
 
@@ -833,7 +1025,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
       content: '';
       position: absolute;
       inset: to-rem($space-2xs);
-      border-radius: var(--radius-full);
+      border-radius: var(--radius-round);
       background: var(--bg-secondary);
       z-index: 1;
     }
@@ -885,7 +1077,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
       left: to-rem($space-sm);
       width: 34%;
       height: to-rem($space-xs);
-      border-radius: var(--radius-full);
+      border-radius: var(--radius-round);
       background: var(--text-muted);
     }
 
@@ -923,7 +1115,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     width: to-rem($_SEARCH-W);
     height: to-rem($_SEARCH-H);
     padding: 0 to-rem($space-md);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-round);
     border: var(--border-item-hover);
     background: var(--bg-darker);
   }
@@ -943,7 +1135,7 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
     flex: 1;
     height: to-rem($space-2xs);
     margin: 0 to-rem($space-md);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-round);
     background: var(--border-color);
   }
 
@@ -1268,6 +1460,186 @@ $_MODAL-H: $space-5xl - $space-2xs * 2; // 140
 
     &-divider::after {
       display: none;
+    }
+  }
+}
+
+// ── Print contract ──────────────────────────────────────────────────────────
+// Two print faces for the stage: a stage whose only surface was a captured
+// canvas retires outright — the adapter's .print-copy still seats after the
+// host and an empty bordered frame beside it would print as a tinted blank.
+// Staged DOM replicas keep printing (they ARE the demo) but shrink-wrap to
+// content and flatten every absolute pose — the replicas' staged offsets
+// assume the fixed lane height, and a floating item would drift across the
+// sheet. Settled states mirror the reduced-motion contract.
+@media print {
+  .#{$_B} {
+    min-height: 0;
+    // A stage taller than one sheet (the mounted card-stack's full-size
+    // project card) can't honor break-inside — it fragments and the
+    // continuation paints as a bare tinted box. The media cap keeps the
+    // stage inside one fragmentainer; the cropped tail reads like any
+    // matted figure.
+    max-height: var(--print-media-max-h);
+    break-inside: avoid;
+
+    // A stage whose paintable surface was retired to a captured still has
+    // no live paint left — the still seats after the component host, so
+    // the whole stage yields instead of framing an empty box.
+    &:has(.print-src) {
+      display: none;
+    }
+
+    .print-src {
+      display: none;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation: none;
+      transition: none;
+    }
+
+    // Uncaptured canvases (unmounted widgets, the aria-hidden genie
+    // overlay, fallback surfaces) read as blank boxes on paper — the
+    // captured still or the authored CSS fallback owns the paint.
+    &-canvas {
+      display: none;
+    }
+
+    // Corner brackets — a live GPU overlay canvas suppresses the CSS
+    // paint behind opacity:0; on paper the overlay is gone, so the
+    // authored brackets carry the button. The :has arm matches the
+    // screen rule's weight so the equal-specificity override lands.
+    &-button:has(.#{$_B}-canvas:not(.is-fallback):not(.print-fallback))::before,
+    &-button:has(.#{$_B}-canvas:not(.is-fallback):not(.print-fallback))::after {
+      opacity: 1;
+    }
+
+    &-menu-item {
+      opacity: 1;
+      transform: none;
+    }
+
+    &-loader-fill {
+      transform: scaleX(1);
+    }
+
+    &-toast-item {
+      opacity: 1;
+      transform: none;
+    }
+
+    &-divider::after {
+      display: none;
+    }
+
+    // Route progress bar — settled into the full-width paint (the
+    // --active crawl and --done fade are motion states paper can't
+    // read; the bar at rest IS the reference frame).
+    &-bar,
+    &-bar--active,
+    &-bar--done {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+
+    // Real mounted elements (awards carousel, card-stack, about section)
+    // grow to full component height inside the stage — the flex-centering
+    // then windows the element's dead middle, which prints as pages of
+    // bare tinted track. Capped and top-anchored, the clipped slice shows
+    // the component's actual start (the first cards), like a matted
+    // figure's top crop.
+    &-element {
+      align-self: flex-start;
+      max-height: var(--print-media-max-h);
+    }
+
+    // View-transition panes — the --gone fade is the outgoing state.
+    // On paper they sit side by side as the transition's before/after;
+    // keeping them absolute-inset inside a multicol record instead
+    // strands an empty fragmentainer (Chromium paints the pane on a
+    // later sheet than its anchored box).
+    &-panes {
+      display: flex;
+      gap: var(--space-sm);
+      height: auto;
+    }
+
+    &-pane {
+      // Fully in-flow in print: absolutely anchored descendants — even
+      // ::before/::after chrome anchored to a relative pane — strand an
+      // empty fragmentainer when the flex item paginates. The chrome
+      // lines recompose identically as static flex items.
+      position: static;
+      inset: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: to-rem($space-md);
+      height: to-rem($_PANE-H);
+      padding: to-rem($space-sm);
+      opacity: 1;
+
+      &::before,
+      &::after {
+        position: static;
+        inset: auto;
+        flex: none;
+      }
+
+      &::after {
+        flex: 1;
+      }
+    }
+
+    // Deck/fan ladders — the slot transforms read as a fanned pile on
+    // screen; flattened into the flow they list as separate cards.
+    &-deck-card,
+    &-fan-card {
+      transform: none;
+      opacity: 1;
+
+      &[data-index],
+      &--gone {
+        transform: none;
+        opacity: 1;
+      }
+    }
+
+    // Burn card — the transparent title was the combustion canvas's
+    // cue; with the canvas retired the title re-inks itself.
+    &-title--burning {
+      color: var(--color-white-raw);
+    }
+
+    // Aura chips — the conic comet at rest reads as the ring paint the
+    // WebGPU trail replaces.
+    &-chip::after {
+      opacity: 1;
+    }
+
+    // Ready modal — the sheen's parked -100% pose would print an empty
+    // panel; the static band reads as the finished sweep.
+    &-modal--ready &-modal-sheen {
+      transform: none;
+      opacity: 0.5;
+    }
+
+    // Search row — the found dots stay readable without the bounce.
+    &-search-dots {
+      opacity: 1;
+    }
+
+    // Flag cells — the img twins yield to a live canvas on screen; on
+    // paper the canvas is gone, so the authored image twin carries
+    // every flag (same :has weight as the screen hide, later wins).
+    &-flag-cell:has(.#{$_B}-flag:not(.is-fallback):not(.print-fallback)) {
+      .flag-img,
+      .flag-split {
+        display: inline;
+      }
     }
   }
 }

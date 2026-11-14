@@ -23,6 +23,8 @@ export const DOM_STRINGS = Object.freeze({
   VALUE: 'value',
   REL: 'rel',
   REL_CANONICAL: 'canonical',
+  /** `alternate` — rel value for feed/hreflang/print alternate links. */
+  REL_ALTERNATE: 'alternate',
   REL_PREFETCH: 'prefetch',
   REL_PRELOAD: 'preload',
   REL_STYLESHEET: 'stylesheet',

@@ -12,8 +12,8 @@ import { NAV_CLASSES } from '@core/tokens/classes/nav.js'
 import { NAV_GLYPH } from '@core/tokens/data/nav-glyph.js'
 import { NAV_SEARCH_CSS_PROPS } from '@core/tokens/css/nav.js'
 
-/** Two neon palette vars — enough to cover the multi-color arm. */
-const COLORS = [NAV_SEARCH_CSS_PROPS.NEON_TEAL, NAV_SEARCH_CSS_PROPS.NEON_GREEN]
+/** Two metal palette vars — enough to cover the multi-color arm. */
+const COLORS = [NAV_SEARCH_CSS_PROPS.METAL_SILVER, NAV_SEARCH_CSS_PROPS.METAL_STEEL]
 
 /** Spy-backed 2d context — every call the painter makes. */
 const fakeCtx = () => ({

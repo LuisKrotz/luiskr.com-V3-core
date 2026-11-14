@@ -15,6 +15,8 @@
 @import '../../base/placeholders';
 @import '../../base/structure';
 
+$_B_INTERNAL: 'internal';
+
 @import 'internals/internal';
 @import 'internals/related';
 @import 'internals/carousel-overrides';

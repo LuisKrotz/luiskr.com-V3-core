@@ -255,6 +255,18 @@
   }
 }
 
+// The WebGL shimmer overlay is loading chrome — under print its frozen
+// frame would band over the whole well, and the document-level canvas
+// hide can't reach inside shadow roots. The placeholders keep their
+// reserved boxes untouched (already transparent while the layer covers
+// them; under the CSS-shimmer fallback they print as flat stand-in
+// wells, which is the honest unloaded-media marker).
+@media print {
+  .skeleton-layer {
+    display: none;
+  }
+}
+
 @keyframes skeleton-content-in {
   from {
     opacity: 0;

@@ -45,9 +45,10 @@
   // Project title — plain text the paper-burn consumes and re-knits on
   // every nav (burn-out → swap → burn-in); ~24px uppercase display cut,
   // stepped up at ultrawide so it holds presence beside the bigger cards.
+  // The 600 cut matches the reference's bold condensed project name.
   &-info-title {
     font-family: var(--font-ui);
-    font-weight: calc(500 + var(--fw-lift));
+    font-weight: calc(600 + var(--fw-lift));
     text-transform: uppercase;
     letter-spacing: var(--space-3xs);
     line-height: 1.12;
@@ -110,10 +111,13 @@
     }
   }
 
-  // "Check out →" — the project's text-link CTA.
+  // "Check out →" — the project's text-link CTA. The extra top margin
+  // parks it a clear step below the description like the reference's
+  // separated link (the flex gap alone read as one continuous block).
   &-info-cta {
     @extend %LK_LINK;
 
+    margin-top: var(--space-xl);
     width: fit-content;
     font-family: var(--font-ui);
     font-weight: calc(500 + var(--fw-lift));

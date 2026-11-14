@@ -91,6 +91,29 @@ describe('safariLoadHighRes tails', () => {
     container.remove()
   })
 
+  test('a letterboxed successor keeps the thumb — the wash owns the bands', () => {
+    const container = document.createElement(HTML_TAGS.DIV)
+
+    document.body.appendChild(container)
+
+    const el = makeEl(container)
+
+    safariLoadHighRes(el)
+
+    const successor = el.highEl.nextElementSibling
+
+    // Carousel slide context resolves object-fit to scale-down — inline
+    // style stands in for the adopted sheet happy-dom never compiles.
+    successor.style.objectFit = ATTR_VALUES.SCALE_DOWN
+
+    successor.onload()
+
+    expect(el.isLoaded).toBe(true)
+    expect(el.thumb.style.display).not.toBe(ATTR_VALUES.NONE)
+
+    container.remove()
+  })
+
   test('safariLoadHighRes falls back to _updateDom on a mounted el with no high layer', () => {
     const container = document.createElement(HTML_TAGS.DIV)
     const el = makeEl(container)

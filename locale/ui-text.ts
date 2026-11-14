@@ -138,3 +138,21 @@ export const rightsParts = (): {
     post: text.slice(yearIdx + year.length),
   }
 }
+
+/**
+ * Release stamp for the site footers — the Vite-baked app version and
+ * build identifier read from `import.meta.env` (dev serves the committed
+ * .env; `yarn build` stamps it via shared/scripts/build/stamp-version.mjs;
+ * Jest maps `import.meta.env` onto the test-populated `__VITE_ENV__`).
+ * The stamp exists only when BOTH halves are present — a half-set env
+ * (one var without the other) collapses to '' so the footers hide the
+ * line instead of whispering a malformed value.
+ * @returns e.g. 'v5.0.0 / build rc-1.0.0', or '' when the env is unset.
+ */
+export const versionStamp = (): string => {
+  const version = import.meta.env?.VITE_APP_VERSION ?? CHAR_STRINGS.EMPTY
+
+  const buildId = import.meta.env?.VITE_BUILD_ID ?? CHAR_STRINGS.EMPTY
+
+  return version && buildId ? `v${version} / build ${buildId}` : CHAR_STRINGS.EMPTY
+}

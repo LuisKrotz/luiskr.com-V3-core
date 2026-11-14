@@ -19,7 +19,7 @@ interface ArrowPalette {
   disc: string
   /** Arrow glyph ink — `--text-primary` (dark on light disc, white on dark). */
   ink: string
-  /** Ring/glow accent — `--color-accent-contrast` (deep teal on light discs, the neon signature on dark). */
+  /** Ring/glow accent — `--color-accent-contrast` (deep gunmetal on light discs, the silver signature on dark). */
   accent: string
   /** Accent as a precomposed `r,g,b` channel string for rgba() alpha variants. */
   accentRgb: string
@@ -34,8 +34,8 @@ let _pal: ArrowPalette | null = null
 /**
  * Samples `--bg-primary`/`--text-primary`/`--color-accent-contrast` once per
  * theme so the disc, arrow and progress ring flip with the site palette —
- * light mode paints the deep-teal accent (the neon signature is unreadable
- * on light glass), dark mode keeps the neon (the contrast token re-pins it).
+ * light mode paints the deep-gunmetal accent (the bright silver signature is
+ * unreadable on light glass), dark mode keeps the silver (the contrast token re-pins it).
  * Re-samples on a theme flip.
  * @returns The resolved disc + glyph inks.
  */
@@ -48,12 +48,12 @@ const arrowPalette = (): ArrowPalette => {
 
   const accent = cs.getPropertyValue(CSS_PROPS.COLOR_ACCENT_CONTRAST).trim()
 
-  const tri = parseCssColor(accent) || parseCssColor(CANVAS_PAINT_CSS.NEON_TEAL) || [0, 0, 0]
+  const tri = parseCssColor(accent) || parseCssColor(CANVAS_PAINT_CSS.METAL_STEEL) || [0, 0, 0]
 
   _pal = {
     disc: cs.getPropertyValue(CSS_PROPS.BG_PRIMARY).trim(),
     ink: cs.getPropertyValue(CSS_PROPS.TEXT_PRIMARY).trim(),
-    accent: accent || CANVAS_PAINT_CSS.NEON_TEAL,
+    accent: accent || CANVAS_PAINT_CSS.METAL_STEEL,
     accentRgb: tri.map((n) => Math.round(n * 255)).join(','),
   }
 

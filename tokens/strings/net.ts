@@ -17,6 +17,8 @@ export const NET_STRINGS = Object.freeze({
   GRAVATAR_HOSTNAME_SUFFIX: '.gravatar.com',
   HTTP_LOCALHOST: 'http://localhost',
   BLOB_COLON: 'blob:',
+  /** `data:` URI scheme prefix — inline svg placeholders, canvas stills. */
+  DATA_COLON: 'data:',
   /** URI scheme prefixes on contact-channel hrefs — the mail block is the
    *  row whose link carries the mailto scheme. */
   SCHEME_MAILTO: 'mailto:',

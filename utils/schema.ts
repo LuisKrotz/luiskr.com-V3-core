@@ -93,12 +93,21 @@ interface ProjectSchemaSource {
   folder?: string
   cover?: { src?: string; isVideo?: boolean; label?: string; size?: Array<number | string> }
   sections?: unknown
+  /** ISO publication stamp (git-derived) — NewsArticle datePublished. */
+  date?: string
+  /** ISO last-modified stamp — NewsArticle dateModified. */
+  modified?: string
   /** Content-derived localized query vocabulary for Article/WebPage keywords. */
   [SEARCH_THEMES_KEY]?: string[]
 }
 
-/** Cross-reference to the site's Person entity — author/publisher/uploader/creator all resolve to the single `#person` node so Google's entity graph consolidates on one stable identity. */
+/** Cross-reference to the site's Person entity — author/uploader/creator all resolve to the single `#person` node so Google's entity graph consolidates on one stable identity. */
 const PERSON_REF: Record<string, unknown> = { '@id': `${NET_STRINGS.SITE_URL}#person` }
+
+/** Cross-reference to the site's Organization entity — Article.publisher resolves to it so Google News/Discover reads a publisher org rather than a person. */
+const ORGANIZATION_REF: Record<string, unknown> = {
+  '@id': `${NET_STRINGS.SITE_URL}#organization`,
+}
 
 /**
  * Absolute license-page URL for a locale — ImageObject.license /
@@ -340,11 +349,14 @@ const videoObjectFor = (
 }
 
 /**
- * Generates an Article and cover VideoObject graph for a project detail
- * page. The Article `image` carries the real CDN asset — the full
- * uncompressed mozjpg for image covers, the video poster for video
+ * Generates a NewsArticle and cover VideoObject graph for a project
+ * detail page. The NewsArticle `image` carries the real CDN asset — the
+ * full uncompressed mozjpg for image covers, the video poster for video
  * covers — since the hypothetical aspect-ratio variants (-16x9/-4x3/
- * -1x1) never existed on the bucket and 404'd for crawlers.
+ * -1x1) never existed on the bucket and 404'd for crawlers. The
+ * NewsArticle type plus the git-derived `date`/`modified` stamps on the
+ * project node are what Google News and Discover index off; legacy
+ * nodes without stamps stay undated rather than inventing one.
  * @param project - Project translation data
  * @param slug - Project URL slug
  * @param locale - Page locale (defaults to LOCALES.EN)
@@ -384,7 +396,7 @@ export const generateProjectArticleSchema = (
 
   const article: Record<string, unknown> = {
     '@context': SCHEMA_STRINGS.SCHEMA_CONTEXT,
-    '@type': 'Article',
+    '@type': SCHEMA_STRINGS.SCHEMA_ARTICLE_TYPE,
     '@id': `${canonicalUrl}#article`,
     isPartOf: {
       '@type': 'WebPage',
@@ -399,9 +411,11 @@ export const generateProjectArticleSchema = (
     articleSection: SCHEMA_STRINGS.SCHEMA_ARTICLE_SECTION,
     isAccessibleForFree: true,
     author: PERSON_REF,
-    publisher: PERSON_REF,
+    publisher: ORGANIZATION_REF,
     image: images,
     description,
+    ...(project.date ? { datePublished: project.date } : {}),
+    ...(project.modified ? { dateModified: project.modified } : {}),
     ...(themes.length ? { keywords: themes.join(', ') } : {}),
   }
 
@@ -489,7 +503,7 @@ export const generateRouteSchema = (options: RouteSchemaOptions): Record<string,
     description: description || SCHEMA_STRINGS.SCHEMA_SITE_DESCRIPTION,
     inLanguage: bcp,
     isPartOf: { '@id': `${NET_STRINGS.SITE_URL}#website` },
-    publisher: { '@id': `${NET_STRINGS.SITE_URL}#organization` },
+    publisher: ORGANIZATION_REF,
     primaryImageOfPage: {
       '@type': 'ImageObject',
       url: pageImage,
@@ -1098,9 +1112,7 @@ export const generateDocsSchema = (
       url: NET_STRINGS.SITE_URL,
       name: 'Luis Krötz',
     },
-    publisher: {
-      '@id': `${NET_STRINGS.SITE_URL}#organization`,
-    },
+    publisher: ORGANIZATION_REF,
     description: isFile
       ? `${String(node?.name)} — published as part of the luiskr.com documentation portal.`
       : DOCS_STRINGS.SCHEMA_DESCRIPTION,

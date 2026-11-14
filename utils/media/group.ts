@@ -6,7 +6,9 @@
  * section renders as the masonry wall instead of a carousel strip.
  */
 
+import { INTERNAL_CLASSES } from '@core/tokens/classes/project.js'
 import { INTERNAL_MOSAIC } from '@core/tokens/layout/masonry.js'
+import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
 import { STATE_STRINGS } from '@core/tokens/strings/state.js'
 
 /** Loose media-item shape — both the view's ProjectMediaItem and the
@@ -47,6 +49,30 @@ export const isAllLandscapeGroup = (group: unknown): boolean =>
   Array.isArray(group) &&
   group.length >= 1 &&
   group.every((i) => (i as MediaGroupItem)?.class === STATE_STRINGS.LANDSCAPE)
+
+/** Hero-slot class tokens — `internal-main-item` and `ztf-video` are
+ *  view-stamped contracts for the project cover only. */
+const HERO_SLOT_CLASSES: ReadonlySet<string> = new Set([
+  INTERNAL_CLASSES.INTERNAL_MAIN_ITEM,
+  INTERNAL_CLASSES.ZTF_VIDEO,
+])
+
+/**
+ * The CMS `class` list minus the hero-slot tokens. A slide or mosaic tile
+ * built from the cover media inherits the item's raw class string
+ * unchanged — forwarded onto its <media-figure>, `internal-main-item` /
+ * `ztf-video` re-trigger the 0,3,0 hero selectors (they outrank every
+ * slide rule, inflating the laddered box to the 70dvh/175dvh hero caps —
+ * the blown-out landscape slide bug). The slide WRAPPER keeps the full
+ * class list for context/variant selectors; only the figure is scrubbed.
+ * @param itemClass The item's raw CMS class string.
+ * @returns The class string safe to forward onto a slide/tile figure.
+ */
+export const stripHeroSlotClasses = (itemClass: string): string =>
+  itemClass
+    .split(CHAR_STRINGS.SPACE_CHAR)
+    .filter((cls) => cls !== CHAR_STRINGS.EMPTY && !HERO_SLOT_CLASSES.has(cls))
+    .join(CHAR_STRINGS.SPACE_CHAR)
 
 /**
  * Irregular-heights detector: reports "mosaic" on the spread signal —

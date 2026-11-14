@@ -21,8 +21,10 @@ import { DATA_ATTRS } from '@core/tokens/attrs/data.js'
 import { HTML_TAGS } from '@core/tokens/elements/html.js'
 import { COMMON_SELECTORS } from '@core/tokens/selectors/common.js'
 import { CHAR_STRINGS } from '@core/tokens/strings/chars.js'
+import { MEDIA_QUERIES } from '@core/tokens/primitives.js'
 import { TYPE_STRINGS } from '@core/tokens/strings/types.js'
 import { BASE_HOST_STYLES } from '@core/tokens/styles.js'
+import { PREFETCH_CONFIG } from '@core/tokens/motion/prefetch.js'
 import type { WidthClass } from '@core/tokens/layout/css-classes.js'
 import {
   currentWidthClass,
@@ -33,6 +35,7 @@ import {
   type TieredStyles,
 } from '@core/utils/responsive-css.js'
 import { devWarn } from '@core/devlog.js'
+import { bindPrintWarm } from '@core/utils/print/warm-bridge.js'
 import {
   syncSkeletonLayer,
   destroySkeletonLayer,
@@ -48,6 +51,21 @@ import type { SkeletonWebGL } from '@core/utils/canvas/loaders/skeleton-webgl.js
  * also makes re-mounts free: the same key hits the same cached sheet.
  */
 const _sharedSheets = new Map<string, CSSStyleSheet>()
+
+/**
+ * Runs `cb` at the next idle slice — requestIdleCallback bounded by the
+ * shared prefetch timeout when available, a short setTimeout fallback
+ * otherwise. Mirrors the route-warmer/predictive-loader schedule contract
+ * so print-tier fetches never compete with mount-time frame work.
+ * @param cb work to run in the next idle gap.
+ */
+const _scheduleIdle = (cb: () => void): void => {
+  if (typeof window.requestIdleCallback === TYPE_STRINGS.FUNCTION) {
+    window.requestIdleCallback(cb, { timeout: PREFETCH_CONFIG.IDLE_TIMEOUT })
+  } else {
+    setTimeout(cb, PREFETCH_CONFIG.FALLBACK_DELAY)
+  }
+}
 
 /**
  * Component state bag — keys are declared per-component and narrowed by
@@ -109,6 +127,17 @@ export class BaseComponent extends HTMLElement {
   /** Tier css text currently appended to the legacy <style> node. */
   private _tierText: string = CHAR_STRINGS.EMPTY
 
+  /**
+   * Resolved print-tier css — adopted onto the root as soon as the lazy
+   * `rcss-print` chunk lands (the rules only match under print media, so
+   * the sheet is inert on screen and stays adopted permanently). Also
+   * stashes the text for legacy <style> rebuilds and re-mount re-adopts.
+   */
+  private _printText: string = CHAR_STRINGS.EMPTY
+
+  /** Print-tier load in flight — dedupes mount/idle re-entry. */
+  private _printPending = false
+
   /** Shared grow-watcher unsubscribe — set while mounted with tiers. */
   private _tierGrowOff: (() => void) | null = null
 
@@ -157,7 +186,16 @@ export class BaseComponent extends HTMLElement {
   onMounted?(): void
   onUpdated?(): void
   onStoreUpdate?(_store: ScopedStore): void
-  onDestroy?(): void
+
+  /**
+   * Teardown hook — invoked once per disconnect by the base
+   * `disconnectedCallback`. Declared as a concrete no-op (unlike the
+   * mount hooks above) so the callback can call it unconditionally:
+   * subclasses override for engine/audio/observer cleanup, and
+   * `el.onDestroy = fn` own-property patches still shadow the prototype
+   * method.
+   */
+  onDestroy(): void {}
 
   /**
    * Attach an open shadow root and stash the component's `?inline` CSS text.
@@ -170,6 +208,11 @@ export class BaseComponent extends HTMLElement {
     super()
 
     this.attachShadow({ mode: COMMON_ATTRS.OPEN as ShadowRootMode })
+
+    // `load` never crosses a shadow boundary — register this root so the
+    // print module's img warm-up can see its layers resolving on screen.
+    bindPrintWarm(this.shadowRoot)
+
     this._componentStyles = styles
   }
 
@@ -229,7 +272,7 @@ export class BaseComponent extends HTMLElement {
       this._tierGrowOff = null
     }
 
-    this.onDestroy?.()
+    this.onDestroy()
   }
 
   /**
@@ -289,9 +332,22 @@ export class BaseComponent extends HTMLElement {
     if (!store || typeof store.subscribe !== TYPE_STRINGS.FUNCTION) return
 
     const unsub = store.subscribe(() => {
-      if (this._isMounted) {
-        this.onStoreUpdate?.(store)
+      if (!this._isMounted) return
+
+      // A store push landing mid-print must not re-render — _updateDom's
+      // replaceChildren would wipe the print adapter's injected DOM
+      // (captions, QR links, text fills) between beforeprint and the
+      // snapshot. Tokens keep the themed output correct (css vars flip
+      // with html.dark-mode), so skipping the rebuild loses nothing on
+      // paper; engines without matchMedia never see print media anyway.
+      if (
+        typeof window.matchMedia === TYPE_STRINGS.FUNCTION &&
+        window.matchMedia(MEDIA_QUERIES.PRINT).matches
+      ) {
+        return
       }
+
+      this.onStoreUpdate?.(store)
     })
 
     this._storeUnsubscribers.push(unsub)
@@ -368,6 +424,8 @@ export class BaseComponent extends HTMLElement {
       if (!this._tierGrowOff) {
         this._tierGrowOff = watchWidthClassGrow((cls) => this._adoptWidthTier(cls, tiered))
       }
+
+      this._adoptPrintTier(tiered)
     }
 
     const existingContent = sr.querySelector(COMMON_SELECTORS.DATA_CONTENT)
@@ -465,10 +523,89 @@ export class BaseComponent extends HTMLElement {
       this._tierSheet = sheet
     } else {
       // Legacy path — _renderInitial always creates the <style> node before
-      // any tier adopt can reach here.
+      // any tier adopt can reach here. The composition keeps _printText
+      // appended so whichever tier lands last never drops the other.
       this._tierText = css
       ;(this._styleNode as HTMLStyleElement).textContent =
-        `${BASE_HOST_STYLES}\n${this._componentBase}\n${css}`
+        `${BASE_HOST_STYLES}\n${this._componentBase}\n${css}\n${this._printText}`
+    }
+  }
+
+  /**
+   * Schedules the component's print-tier adoption. `?tiers` sheets keep
+   * their `@media print`/`@page` blocks out of `base` behind a lazy
+   * `rcss-print` chunk — importing during idle keeps paper rules off the
+   * mount path while landing them long before a real print snapshot. The
+   * adopted sheet is permanent: print rules match nothing on screen, so
+   * neither unmount nor tier growth ever removes them.
+   * @param tiered the component's `?tiers` module.
+   */
+  private _adoptPrintTier(tiered: TieredStyles): void {
+    if (!tiered.print) return
+
+    // Text already resolved — re-adopt synchronously after a re-mount
+    // reset the adopted-sheets array.
+    if (this._printText) {
+      this._adoptPrintText(this._printText)
+      return
+    }
+
+    if (this._printPending) return
+
+    this._printPending = true
+
+    _scheduleIdle(() => {
+      // resolveTierKey guarantees the width loaders; `print` checked above.
+      ;(tiered.print as TierLoader)()
+        .then((mod) => {
+          this._printPending = false
+          this._printText =
+            typeof mod === TYPE_STRINGS.STRING
+              ? (mod as string)
+              : (mod as { default: string }).default
+
+          if (this._isMounted) this._adoptPrintText(this._printText)
+        })
+        .catch((err: unknown) => {
+          this._printPending = false
+          devWarn('[component] print-tier stylesheet load failed', err)
+        })
+    })
+  }
+
+  /**
+   * Adopts resolved print css — constructable path shares one parsed sheet
+   * per text via `_sharedSheets` and appends it after every adopted sheet,
+   * matching the source order where print blocks sat at file end; the
+   * legacy path re-appends the text to the rebuilt `<style>` composition.
+   * @param css print-tier css text from the resolved module.
+   */
+  private _adoptPrintText(css: string): void {
+    if (!css) return
+
+    const sr = this.shadowRoot as ShadowRoot
+
+    if (
+      typeof CSSStyleSheet !== TYPE_STRINGS.UNDEFINED &&
+      'replaceSync' in CSSStyleSheet.prototype
+    ) {
+      let sheet = _sharedSheets.get(css)
+
+      if (!sheet) {
+        sheet = new CSSStyleSheet()
+        sheet.replaceSync(css)
+        _sharedSheets.set(css, sheet)
+      }
+
+      const sheets = Array.from(sr.adoptedStyleSheets)
+
+      if (!sheets.includes(sheet)) {
+        sheets.push(sheet)
+        sr.adoptedStyleSheets = sheets
+      }
+    } else {
+      ;(this._styleNode as HTMLStyleElement).textContent =
+        `${BASE_HOST_STYLES}\n${this._componentBase}\n${this._tierText}\n${css}`
     }
   }
 

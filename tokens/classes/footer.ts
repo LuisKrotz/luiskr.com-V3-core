@@ -26,4 +26,6 @@ export const FOOTER_CLASSES = Object.freeze({
   FOOTER_DIVIDER_CANVAS: `${_B_FOOTER_SOURCE}-divider-canvas`,
   FOOTER_CREDIT: `${_B_FOOTER_SOURCE}-credit`,
   FOOTER_RIGHTS: `${_B_FOOTER_SOURCE}-rights`,
+  /** Baked release stamp — 'v{version} / build {id}' under the rights line. */
+  FOOTER_VERSION: `${_B_FOOTER_SOURCE}-version`,
 })

@@ -75,10 +75,10 @@ const loadRuntime = (load: () => Promise<GlyphModule>): Promise<GlyphRuntime | n
  * Mounts the animated glyph on an icon element: finds its canvas in the
  * shadow root, wakes the emitter on the owning chip's pointer/focus, and
  * paints the wasm particle records each frame in the two palette colors read
- * from the icon's own computed neon tokens.
+ * from the icon's own computed metal tokens.
  * @param host the <nav-*-icon> element that owns the canvas
  * @param kind NAV_GLYPH.KIND_STREAK or NAV_GLYPH.KIND_SWOOSH
- * @param colorProps the two --nav-neon-* custom properties to paint with
+ * @param colorProps the two --nav-metal-* custom properties to paint with
  * @param loadModule Injectable glue importer — tests substitute a stub
  *   so the whole bridge runs without the wasm artifact (the default
  *   latches `loadRuntime`, same contract as wasm-diagram's loader).

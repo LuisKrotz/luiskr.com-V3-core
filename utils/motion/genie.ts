@@ -61,6 +61,12 @@ export const genieEnter = (
 
   if (!backdrop || !dialog) return
 
+  // Enter/leave are terminal opposites — a re-enter while the leave
+  // modifier is still on (replay surfaces, or a host that reopens the
+  // same dialog node instead of unmounting it) would stack the two and
+  // keep the backdrop pinned at the collapsed/hidden state forever.
+  backdrop.classList.remove(classes.backdropLeave)
+
   if (store.getters.getReducedMotion()) return
 
   const origin = store.getters.getModalOrigin() as { x: number; y: number } | null
@@ -117,6 +123,11 @@ export const genieLeave = (
 
     return
   }
+
+  // Mirror of the enter guard — a leave landing mid-enter (the double
+  // rAF removal still pending) drops the stale enter modifier so the
+  // collapse is the only state the backdrop carries.
+  backdrop.classList.remove(classes.backdropEnter)
 
   backdrop.classList.add(classes.backdropLeave)
 

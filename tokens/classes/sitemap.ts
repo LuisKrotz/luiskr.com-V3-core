@@ -53,6 +53,9 @@ export const SITEMAP_CLASSES = Object.freeze({
   SITEMAP_CARD_TITLE: `${_B_SITEMAP}-card-title`,
   /** Card locale-chip row — the bottom caption overlay. */
   SITEMAP_CARD_LOCALES: `${_B_SITEMAP}-card-locales`,
+  /** Card description — the media caption text; `hidden` on screen and
+   *  revealed as the under-media description line on paper. */
+  SITEMAP_CARD_DESC: `${_B_SITEMAP}-card-desc`,
   /** <media-figure> host class inside a card (classes attr passthrough). */
   SITEMAP_CARD_FIGURE: `${_B_SITEMAP}-card-figure`,
   /** Plain capture <img> inside a card — playground share images have no

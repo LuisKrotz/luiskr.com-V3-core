@@ -1,8 +1,9 @@
 /**
  * @file nav-icons.scss
  * @description Styles for the <nav-search-icon> and <nav-brush-icon>
- * neon glyphs. Lives inside each icon's own shadow root: glyph sizing,
- * the neon glow (drop-shadow in the neon tokens), and the idle motion
+ * metal glyphs. Lives inside each icon's own shadow root: glyph sizing,
+ * the silver glow (drop-shadow in the --nav-metal-* tokens), and the
+ * idle motion
  * loops — speed streaks and echo chevron for the prompt, the looping
  * paint swoosh, twinkling sparks and droplets for the brush. Reduced
  * motion freezes every loop.
@@ -19,6 +20,7 @@ $_B_NAV: 'nav';
   display: inline-flex;
   width: var(--space-xl);
   height: var(--space-xl);
+  transition: filter 0.3s ease;
 }
 
 // Glyph host — the svg and the wasm canvas share it; the canvas is three
@@ -53,16 +55,31 @@ $_B_NAV: 'nav';
 .#{$_B_NAV}-search-svg,
 .#{$_B_NAV}-globe-svg,
 .#{$_B_NAV}-grid-svg {
-  filter: drop-shadow(0 0 var(--space-xs) var(--nav-neon-teal));
+  filter: drop-shadow(0 0 var(--space-xs) var(--nav-metal-silver));
 }
 
 .#{$_B_NAV}-brush-svg {
-  filter: drop-shadow(0 0 var(--space-xs) var(--nav-neon-violet));
+  filter: drop-shadow(0 0 var(--space-xs) var(--nav-metal-platinum));
+}
+
+// The lit emphasis — same trigger set as the motion gate below, but as
+// a brightness lift on the host so the whole glyph reads "lit" while
+// the chip is hovered, focused, or pinned open by its dialog.
+:host-context(button:hover),
+:host-context(button:focus-visible),
+:host-context(a:hover),
+:host-context(a:focus-visible),
+:host-context([aria-expanded='true']),
+:host(:hover) {
+  filter: brightness(1.15);
 }
 
 .#{$_B_NAV}-icon-streak {
-  animation: #{$_B_NAV}-icon-streak 1.2s ease-in-out infinite;
-
+  // Motion is a hover affordance, not idle furniture — the loops arm
+  // only while the carrying chip is hovered or keyboard-focused, so a
+  // static glyph reads on the bar at rest. Negative delays stay on the
+  // base rules: on trigger each lane starts mid-cycle instead of
+  // sweeping in lockstep.
   &:nth-child(2) {
     animation-delay: -0.4s;
   }
@@ -76,15 +93,10 @@ $_B_NAV: 'nav';
   opacity: 0.3;
 }
 
-.#{$_B_NAV}-icon-prompt {
-  animation: #{$_B_NAV}-icon-pulse 2.4s ease-in-out infinite;
-}
-
 .#{$_B_NAV}-icon-spark,
 .#{$_B_NAV}-icon-drop {
   transform-box: fill-box;
   transform-origin: center;
-  animation: #{$_B_NAV}-icon-twinkle 1.6s ease-in-out infinite;
 
   &:nth-child(3n + 2) {
     animation-delay: -0.5s;
@@ -97,13 +109,50 @@ $_B_NAV: 'nav';
 
 .#{$_B_NAV}-icon-swoosh {
   stroke-dasharray: 40 128;
-  animation: #{$_B_NAV}-icon-draw 2.4s linear infinite;
 }
 
 .#{$_B_NAV}-icon-swoosh-alt {
   stroke-dasharray: 24 80;
   opacity: 0.6;
-  animation: #{$_B_NAV}-icon-draw 3.2s linear infinite reverse;
+}
+
+// The hover gate — every loop arms while the carrying chip (button or
+// anchor) is hovered or focus-visible; the host itself covered works
+// as the fallback for pointerless mounts. The gate lives inside the
+// no-preference query so OS-level reduced-motion users can never reach
+// it — a plain .nav-icon-* { animation:none } rule would lose the
+// specificity race against the host-context compounds here.
+@media (prefers-reduced-motion: no-preference) {
+  :host-context(button:hover),
+  :host-context(button:focus-visible),
+  :host-context(a:hover),
+  :host-context(a:focus-visible),
+  // A chip whose dialog owns the screen (aria-expanded) keeps the loops
+  // armed even after the pointer leaves — the glyph reads "open" the
+  // way hover reads "pressable".
+  :host-context([aria-expanded='true']),
+  :host(:hover) {
+    .#{$_B_NAV}-icon-streak {
+      animation: #{$_B_NAV}-icon-streak 1.2s ease-in-out infinite;
+    }
+
+    .#{$_B_NAV}-icon-prompt {
+      animation: #{$_B_NAV}-icon-pulse 2.4s ease-in-out infinite;
+    }
+
+    .#{$_B_NAV}-icon-spark,
+    .#{$_B_NAV}-icon-drop {
+      animation: #{$_B_NAV}-icon-twinkle 1.6s ease-in-out infinite;
+    }
+
+    .#{$_B_NAV}-icon-swoosh {
+      animation: #{$_B_NAV}-icon-draw 2.4s linear infinite;
+    }
+
+    .#{$_B_NAV}-icon-swoosh-alt {
+      animation: #{$_B_NAV}-icon-draw 3.2s linear infinite reverse;
+    }
+  }
 }
 
 @keyframes #{$_B_NAV}-icon-streak {

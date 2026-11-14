@@ -20,6 +20,12 @@ $color-grey-3: #515151;
 /// Raw palette color — published as a --color-blue-raw CSS var by _structure.scss
 $color-blue: #006ca6;
 
+/// Print-only metallic gold — the title-cover masthead ink. Published as
+/// --print-gold and consumed only inside @media print rules; a warm
+/// single-pass yellow-black that home CMYK drivers render richly without
+/// the washed-out look of pure-Y process yellow.
+$print-gold: #c9a52a;
+
 // CMS Admin Palette tokens
 /// CMS admin-chrome token — compile-time only (dark panel theme)
 $cms-bg-darkest: #0b0c10;
@@ -40,66 +46,70 @@ $cms-text-subtle: #8892b0;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
 $cms-accent: #66fcf1;
 
-// Nav icon neon palette — search prompt (teal/green) and preferences brush (violet/magenta/orange).
-$neon-teal: #66fcf1;
-$neon-green: #5dff8a;
-$neon-violet: #a86bff;
-$neon-magenta: #ff4fd8;
-$neon-orange: #ff9a4d;
-$neon-chrome: #d5dde8;
+// Nav icon metal palette — every glyph gradient reads as polished
+// silver: a full ramp from bright specular silver through steel,
+// platinum, pearl, titanium, to mirror chrome so each icon keeps a
+// distinct facet while the family stays one metal.
+/// Nav glyph ink — bright specular silver (icon cores).
+$metal-silver: #e9eef5;
+/// Nav glyph ink — brushed steel mid-tone.
+$metal-steel: #96a5b8;
+/// Nav glyph ink — platinum sheen.
+$metal-platinum: #cdd7e4;
+/// Nav glyph ink — pearl-silver.
+$metal-pearl: #b8c4d4;
+/// Nav glyph ink — titanium grey.
+$metal-titanium: #8a99ad;
+/// Nav glyph ink — mirror chrome highlight.
+$metal-chrome: #d5dde8;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
 $cms-accent-hover: #45a29e;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
 $cms-accent-contrast: #0f8a84;
 
-// Light-theme re-cut of the neon palette — same hue families deepened to
-// jewel tones so every glyph ink clears the 3:1 non-text floor (WCAG SC
-// 1.4.11) on the aurora chip disc (--border-color #949fc0). Published at
-// :root by _tokens.scss; html.dark-mode re-pins the bright set above.
-/// Light theme — abyssal teal glyph ink (3.84:1 on the disc).
-$neon-teal-light: #084a46;
-/// Light theme — boreal forest-green glyph ink (3.63:1 on the disc).
-$neon-green-light: #0d5028;
-/// Light theme — deep aurora-violet glyph ink (3.99:1 on the disc).
-$neon-violet-light: #5017a4;
-/// Light theme — deep magenta glyph ink (3.82:1 on the disc).
-$neon-magenta-light: #7f0065;
-/// Light theme — burnt-sienna glyph ink (3.81:1 on the disc).
-$neon-orange-light: #712e00;
-/// Light theme — slate-indigo ferrule ink (3.74:1 on the disc).
-$neon-chrome-light: #404064;
+// Light-theme re-cut of the metal palette — the same metals deepened to
+// neutral gray/black cuts so every glyph ink clears the 3:1 non-text
+// floor (WCAG SC 1.4.11) on the lifted-paper chip disc and reads as ink
+// on newsprint. Published at :root by _tokens.scss; html.dark-mode
+// re-pins the bright set above.
+/// Light theme — gray-black silver glyph ink.
+$metal-silver-light: #3e3b37;
+/// Light theme — deep gray steel glyph ink.
+$metal-steel-light: #343230;
+/// Light theme — dark gray platinum glyph ink.
+$metal-platinum-light: #454341;
+/// Light theme — soft black pearl glyph ink.
+$metal-pearl-light: #494745;
+/// Light theme — carbon-black titanium glyph ink.
+$metal-titanium-light: #2e2c29;
+/// Light theme — gray-black chrome ferrule ink.
+$metal-chrome-light: #403e3b;
 
-// Aurora-boreal light theme — the signature hue ramp behind the re-cut
-// light surfaces. The full curtain spectrum kept as soft pastel-jewel
-// tones over the pale sky field: emerald greens lead (the classic 557nm
-// aurora line), an azure sky note supports, violet and magenta fringe
-// the edges,
-// indigo is the deep sky behind. Published at :root by _tokens.scss as
-// --aurora-*; the three page-glow wash layers compose them at partial
-// alpha, --burn-edge shares the deep violet, and shadows/fills tint them
-// via color-mix.
-/// Aurora hue — emerald curtain, the dominant band (upper-left glow lobe).
-$aurora-green: #4ad98a;
-/// Aurora hue — deep emerald note, the blue-green curtain edge (low washes).
-$aurora-teal: #2ab98a;
-/// Aurora hue — azure sky note, the blue band under a strong curtain
-/// (upper-right glow lobe, plasma accents).
-$aurora-cyan: #6b9fd8;
-/// Aurora hue — violet curtain wash (lower-right lobe, burn-edge family).
-$aurora-violet: #8a72e0;
-/// Aurora hue — deep violet for the dim washes and the burn edge.
-$aurora-violet-deep: #6b4fd4;
-/// Aurora hue — magenta-pink fringe (the rare lower border of a strong band).
-$aurora-magenta: #b058d4;
-/// Aurora hue — deep indigo, the night sky behind the curtains.
-$aurora-indigo: #5a60c0;
-/// Aurora ink — near-black indigo; the light theme's darkest text pole
-/// and the tint source for shadows/fills via color-mix.
-$aurora-ink: #12122c;
-/// Aurora accent — deep teal-green control ink (focus ring, link accents);
-/// 8.71:1 on --bg-primary, 7.43:1 on --bg-secondary — readable for text
-/// and ≥3:1 UI marks alike. html.dark-mode re-pins $cms-accent instead.
-$aurora-accent: #04443e;
+// Journal-paper light theme — the signature material ramp behind the
+// light surfaces: newsprint grays with a whisper of warmth instead of
+// a yellowed curtain. Bone and ash lead (fresh stock), mist, stone and
+// fog fill the neutral mid-tones, taupe and greige edge the field like
+// cold press paper and halftone ink. Published at :root by _tokens.scss
+// as --field-*; the page-glow washes compose them at partial alpha,
+// --burn-edge shares the taupe, and shadows/fills tint them via
+// color-mix. Dark mode re-pins the same slots to dim metal tones.
+/// Field hue — newsprint ash, the dominant paper band (upper-left lobe).
+$field-cream: #ecebe4;
+/// Field hue — cool mist edge (low washes).
+$field-sand: #e2dfd4;
+/// Field hue — bone-white sheet note (upper-right lobe).
+$field-bone: #f1f0ea;
+/// Field hue — newsprint mid-tone (lower-right lobe).
+$field-parchment: #dcdad0;
+/// Field hue — light taupe for the dim washes and the burn edge.
+$field-ochre: #cfcabb;
+/// Field hue — press-paper fog fringe.
+$field-canvas: #e9e7de;
+/// Field hue — cold greige, the deepest paper tone in the ramp.
+$field-umber: #bfbbae;
+/// Field ink — neutral near-black newsprint ink; the light theme's darkest
+/// text pole and the tint source for shadows/fills via color-mix.
+$field-ink: #1f1e1a;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
 $cms-badge-warn: #f39c12;
 /// CMS admin-chrome token — compile-time only (dark panel theme)
@@ -539,6 +549,9 @@ $z-cookies: 1000;
 $z-nav: 1100;
 /// Top-level elements (dialogs)
 $z-top: 9999;
+/// Print gate veil — above the intro loader (100000) so the cover holds
+/// even when a print fires mid-boot
+$z-print-veil: 100001;
 
 /// Primary sans stack — Poiret One (Google Fonts, hand-rolled @font-face +
 /// preloads in index.html), with system sans fallbacks so text paints

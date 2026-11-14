@@ -65,12 +65,18 @@ $_B_MENTIONS_DECK: 'mentions-deck';
   // touch-action: pan-y keeps vertical page scroll native while
   // horizontal drags reach the passive pointermove stream; user-select
   // is off so a swipe can't start a text selection mid-gesture.
+  // overflow:clip + overflow-clip-margin keep the no-scrollbox clip the
+  // deck needs while letting each card's box-shadow paint past the
+  // strip's top/bottom edges — overflow:hidden alone cropped the
+  // ambient shadow to the deck box, which read as a hard floor under
+  // the front card.
   &-deck {
     --mentions-deck-fade: #{to-rem($space-5xl)};
 
     position: relative;
     width: 100%;
-    overflow: hidden;
+    overflow: clip;
+    overflow-clip-margin: var(--space-xl);
     touch-action: pan-y;
     user-select: none;
     cursor: grab;
@@ -287,8 +293,8 @@ $_B_MENTIONS_DECK: 'mentions-deck';
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: calc(#{to-rem($space-lg)} + #{to-rem($space-md)});
-    min-width: calc(#{to-rem($space-lg)} + #{to-rem($space-md)});
+    min-height: calc(#{to-rem($space-xl)} + #{to-rem($space-xs)});
+    min-width: calc(#{to-rem($space-xl)} + #{to-rem($space-xs)});
     border-radius: var(--radius-round);
     background: transparent;
     cursor: pointer;
@@ -360,5 +366,140 @@ $_B_MENTIONS_DECK: 'mentions-deck';
 @media (prefers-reduced-motion: reduce) {
   .#{$_B_MENTIONS_DECK}-hint-icon {
     animation: none;
+  }
+}
+
+// ── Print ───────────────────────────────────────────────────────────────────
+// The drag fan flattens into the paper's mentions index — every card one
+// ruled row: outlet icon and the full description text left, the media
+// still as a small right-edge thumb. The poser-written inline geometry
+// (absolute left/width/transform/opacity) is stripped by the adapter's
+// `[style]` walk and frozen by the `_printing` gate for the job, so the
+// only declarations that survive are these. The deck heading survives
+// as the section title; dots, the drag hint, and the foot stay screen.
+@media print {
+  .#{$_B_MENTIONS_DECK}-deck {
+    // The screen dissolve lane fades the fan's left/right edges — on
+    // paper it would wash out whatever lands near the sheet edges.
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .#{$_B_MENTIONS_DECK}-deck,
+  .#{$_B_MENTIONS_DECK}-card {
+    display: block;
+    position: static;
+    inset: auto;
+    width: auto;
+    height: auto;
+    opacity: 1;
+    transform: none;
+    transition: none;
+    visibility: visible;
+    overflow: visible;
+  }
+
+  // One ruled row per mention — icon + justified description on the
+  // left, the media still pinned to a dedicated right column that the
+  // scan code shares, so code and badge edges align exactly. The card
+  // grid claims the anchor's children via display:contents — wherever
+  // the adapter seats caption/QR (inside the link or the card), they
+  // land in named columns instead of anonymous flex flow. The dark
+  // card surface, hairline and shadow are screen materials — paper
+  // keeps the text on the sheet's own ground.
+  .#{$_B_MENTIONS_DECK}-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    display: grid;
+    grid-template-columns:
+      var(--space-xl) minmax(0, 1fr)
+      var(--print-qr-link-size);
+    column-gap: var(--space-lg);
+    align-items: start;
+    padding: var(--space-xs) 0;
+    background: transparent;
+    color: var(--print-ink);
+    border: 0;
+    border-bottom: to-rem($space-hairline) solid
+      color-mix(in srgb, var(--print-ink) 22%, transparent);
+    border-radius: 0;
+    box-shadow: none;
+
+    &-link {
+      display: contents;
+      text-decoration: none;
+      color: var(--print-ink);
+    }
+
+    &-icon {
+      grid-column: 1;
+      grid-row: auto;
+      font-size: var(--print-caption-size);
+      letter-spacing: 0.2em;
+      color: var(--print-ink);
+      opacity: 1;
+    }
+
+    &-text {
+      grid-column: 2;
+      grid-row: auto;
+      font-size: var(--print-body-size);
+      line-height: 1.45;
+      color: var(--print-ink);
+      text-align: justify;
+
+      // The description's a11y-only tail — who presented the award and
+      // why — rides .sr-only for screen readers on screen, but it IS
+      // the award's editorial citation: on paper it unclips into a
+      // smaller line under the title. Scoped inside -text so the
+      // card's own sr-only heading stays hidden.
+      .sr-only {
+        display: block;
+        position: static;
+        width: auto;
+        height: auto;
+        padding: 0;
+        margin: var(--space-2xs) 0 0;
+        overflow: visible;
+        clip-path: none;
+        white-space: normal;
+        font-size: var(--print-caption-size);
+        font-style: italic;
+        color: var(--text-secondary);
+      }
+    }
+
+    // The screen `:has(img)` rule pins -text to column 1 at one higher
+    // specificity class — the print pin needs its own :has() arm so the
+    // copy keeps the wide column (col 1 is the icon gutter and would
+    // wrap the text one word per line).
+    &-link:has(&-img) {
+      .#{$_B_MENTIONS_DECK}-card-text {
+        grid-column: 2;
+      }
+    }
+
+    &-img {
+      grid-column: 3;
+      grid-row: auto;
+      width: var(--print-qr-link-size);
+      height: auto;
+    }
+
+    .print-caption {
+      grid-column: 1 / -1;
+    }
+
+    .print-qr-link {
+      grid-column: 3;
+      margin-right: 0;
+      margin-left: 0;
+    }
+  }
+
+  .#{$_B_MENTIONS_DECK}-foot,
+  .#{$_B_MENTIONS_DECK}-hint,
+  .#{$_B_MENTIONS_DECK}-dots {
+    display: none;
   }
 }

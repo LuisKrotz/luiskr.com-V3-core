@@ -165,6 +165,10 @@ export const NOTIFY_UI_KEYS = Object.freeze({
   NOTIFY_LOAD_FAILED: 'notify.loadFailed',
   NOTIFY_TITLE: 'notify.title',
   NOTIFY_DISMISS: 'notify.dismiss',
+  /** `notify.nothingToPrint` — the toast shown when a print-ineligible
+   *  route (/search, the 404) tries to print; carries the {route}
+   *  placeholder resolved to the localized page name. */
+  NOTHING_TO_PRINT: 'notify.nothingToPrint',
 })
 
 /**

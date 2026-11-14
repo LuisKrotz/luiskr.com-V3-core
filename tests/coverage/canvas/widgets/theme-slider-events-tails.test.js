@@ -259,5 +259,24 @@ describe('theme-slider events tail', () => {
     slider.onKeyDown(evt(KEYS.ESCAPE))
 
     expect(slider.targetP).toBe(1)
+
+    // Home/End jump straight to the track ends.
+    onThemeChange.mockClear()
+
+    const home = evt(KEYS.HOME)
+
+    slider.onKeyDown(home)
+
+    expect(home.preventDefault).toHaveBeenCalled()
+    expect(onThemeChange).toHaveBeenCalledWith(THEME.DARK)
+
+    onThemeChange.mockClear()
+
+    const end = evt(KEYS.END)
+
+    slider.onKeyDown(end)
+
+    expect(end.preventDefault).toHaveBeenCalled()
+    expect(onThemeChange).toHaveBeenCalledWith(THEME.LIGHT)
   })
 })

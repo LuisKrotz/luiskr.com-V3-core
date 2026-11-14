@@ -18,4 +18,6 @@ export const LINK_ATTRS = Object.freeze({
   TARGET: 'target',
   /** `rel` — link relationship (`noopener`/`noreferrer` on external links per MDN: window.opener exposure otherwise). */
   REL: 'rel',
+  /** `media` — target medium on <link> (e.g. `media="print"` on rel=alternate). */
+  MEDIA: 'media',
 })

@@ -37,6 +37,7 @@ export const HTML_TAGS = Object.freeze({
   H3: 'h3',
   NAV: _B_NAV,
   ASIDE: 'aside',
+  FOOTER: 'footer',
   HEADER: 'header',
   MAIN: 'main',
   DIALOG: _K_DIALOG,

@@ -49,6 +49,81 @@ export function readBurnInk(): BurnInk {
 }
 
 /**
+ * The title's anchor + box in the overlay's local LAYOUT space —
+ * transform-immune by construction. `getBoundingClientRect` reports the
+ * transformed box, and hosts that animate the overlay's ancestor
+ * transform during the session (the card-stack deck eases every card's
+ * translate3d/rotateY/scale on each deal; the mosaic card scales on
+ * hover) would otherwise feed projected deltas into
+ * `canvas.style.top/left`: the raster then slid in Y as the transform
+ * eased and caught the card's scale on top of its own (the "burn drifts
+ * vertically and loses its shape on mobile" defect). The offsetParent
+ * chain walks the same coordinate space the canvas's absolute position
+ * writes into, so the raster rides the host's transform exactly like the
+ * hidden DOM title does.
+ * @param titleEl The title element being burned.
+ * @param overlayEl The overlay the session canvas is positioned inside.
+ * @returns Layout-space anchor + dims, or null when the overlay isn't on
+ *   the title's offsetParent chain (unpositioned overlay) or the layout
+ *   metrics are degenerate — the caller then falls back to rect deltas,
+ *   which are exact on transform-free hosts.
+ */
+interface LayoutBox {
+  /** Title's left edge inside the overlay's border box, layout px. */
+  x: number
+  /** Title's top edge inside the overlay's border box, layout px. */
+  y: number
+  /** Title box width in layout px. */
+  w: number
+  /** Title box height in layout px. */
+  h: number
+  /** Overlay box width in layout px — the degenerate-overlay guard. */
+  ow: number
+}
+
+/**
+ * Accumulates `offsetTop`/`offsetLeft` from the title up to the overlay.
+ * `offsetParent` never sees ancestor transforms, so the sum is the
+ * title's layout offset inside the overlay's padding box. Each
+ * `offsetTop` step counts from the parent's PADDING edge, so every
+ * positioned ancestor's `clientTop`/`clientLeft` (border widths) is
+ * added back — the result equals the border-box delta
+ * `box.top - oBox.top` the rect path produced.
+ * @param titleEl The title element being burned.
+ * @param overlayEl The overlay the session canvas is positioned inside.
+ * @returns The layout-space geometry, or null for the rect fallback.
+ */
+function layoutBox(titleEl: HTMLElement, overlayEl: HTMLElement): LayoutBox | null {
+  let x = 0
+  let y = 0
+  let node: HTMLElement | null = titleEl
+
+  while (node && node !== overlayEl) {
+    x += node.offsetLeft
+    y += node.offsetTop
+    node = node.offsetParent as HTMLElement | null
+
+    // Intermediate ancestors undercount by their own border width —
+    // offsetTop measures from their padding edge, the rect delta from
+    // their border edge.
+    if (node && node !== overlayEl) {
+      x += node.clientLeft
+      y += node.clientTop
+    }
+  }
+
+  const w = titleEl.offsetWidth
+  const h = titleEl.offsetHeight
+  const ow = overlayEl.offsetWidth
+
+  // `!(x > 0)` instead of `x < 1` — a DOM that reports offsets without
+  // sizes yields NaN, which must take the rect fallback too.
+  if (node !== overlayEl || !(w > 0) || !(h > 0) || !(ow > 0)) return null
+
+  return { x: x + overlayEl.clientLeft, y: y + overlayEl.clientTop, w, h, ow }
+}
+
+/**
  * Word box for DOM-faithful rasterization — the word's position inside the
  * title element in CSS px (`y` is the word fragment's bottom edge; the
  * caller subtracts the descent to land on the baseline).
@@ -85,6 +160,15 @@ function titleWordBoxes(title: HTMLElement): TitleWordBox[] | null {
   }
 
   const box = title.getBoundingClientRect()
+
+  // Range rects live in the same transformed space as the title's rect —
+  // under a host transform (the dealt card's scale/rotate eases while the
+  // burn knits) each fragment delta carries that scale on top of the
+  // local geometry. Dividing by the title's transformed:layout ratio
+  // lands the words in layout px, matching the paper's layout-space box;
+  // the ratio is 1 whenever layout metrics are unavailable.
+  const kx = title.offsetWidth > 0 ? box.width / title.offsetWidth : 1
+  const ky = title.offsetHeight > 0 ? box.height / title.offsetHeight : 1
   const out: TitleWordBox[] = []
 
   for (const node of title.childNodes) {
@@ -102,7 +186,11 @@ function titleWordBoxes(title: HTMLElement): TitleWordBox[] | null {
       const rect = range.getClientRects()[0]
 
       if (rect) {
-        out.push({ text: m[0], x: rect.left - box.left, y: rect.bottom - box.top })
+        out.push({
+          text: m[0],
+          x: (rect.left - box.left) / kx,
+          y: (rect.bottom - box.top) / ky,
+        })
       }
     }
   }
@@ -337,14 +425,24 @@ function fontSignature(el: HTMLElement): string {
 }
 
 /**
- * Anchors the canvas once at arm size, then tracks POSITION only. The
+ * Anchors the canvas once at arm size AND arm position — the raster
+ * burns exactly where the glyphs stood when they caught fire. The
  * card's expand ease animates the h2's `cqw` font-size for ~0.42s after
  * hover; re-measuring the box every step baked that shrink into the
- * raster, so the burning glyphs visibly collapsed with the DOM font (the
- * reported font-reduction bug). Freezing the raster keeps the title the
- * size it was when it caught fire — only the canvas slides along the
- * moving box. `lastBox`/`lastPos` signatures skip all work when nothing
- * moved.
+ * raster, so the burning glyphs visibly collapsed with the DOM font
+ * (the reported font-reduction bug). Freezing the raster keeps the
+ * title the size it was when it caught fire.
+ *
+ * Position stays frozen too: hosts ease layout during the session —
+ * the dealt pile's heights grow with the front card's typing and the
+ * bottom-anchored copy columns slide — and chasing those boxes made
+ * the raster visibly drift (the "burn moves in Y on mobile" defect).
+ * The DOM ink is hidden the whole session, so the only correct anchor
+ * is where the title stood at arm time. Hosts that publish
+ * `cls.ITEM_BURNED` opt into live position tracking — their CSS
+ * relocates the title box at the consume beat and the same session
+ * replays the consume front in reverse at the new anchor.
+ * `lastBox`/`lastPos` signatures skip all work when nothing moved.
  *
  * Knit sessions (dir −1) get one exception: the SAME font transition
  * means an arm-time raster freezes mid-transition letterforms, and the
@@ -356,12 +454,27 @@ function fontSignature(el: HTMLElement): string {
  * @param s The live session — owns the canvases and DOM elements.
  */
 export function syncPaper(s: BurnSession): void {
+  // Geometry is read in the overlay's LAYOUT space whenever the overlay
+  // sits on the title's offsetParent chain — getBoundingClientRect
+  // reports the transformed box, and hosts that ease a transform during
+  // the session (the dealt card's translate3d/rotateY/scale) fed
+  // projected deltas into style.top while the raster caught the card's
+  // scale on top of its own (the "burn drifts vertically and deforms on
+  // mobile" defect). Rect deltas remain as the fallback for overlays
+  // outside the offset chain — exact on transform-free hosts.
+  const lay = layoutBox(s.titleEl, s.overlayEl)
   const box = s.titleEl.getBoundingClientRect()
   const oBox = s.overlayEl.getBoundingClientRect()
 
-  if (box.width < 4 || box.height < 4 || oBox.width < 1) return
+  const x = lay ? lay.x : box.left - oBox.left
+  const y = lay ? lay.y : box.top - oBox.top
+  const titleW = lay ? lay.w : box.width
+  const titleH = lay ? lay.h : box.height
+  const overW = lay ? lay.ow : oBox.width
 
-  const posSig = `${box.left - oBox.left},${box.top - oBox.top}`
+  if (titleW < 4 || titleH < 4 || overW < 1) return
+
+  const posSig = `${x},${y}`
 
   // Paper already rasterized — position-only re-anchor, never re-measure.
   if (s.lastBox) {
@@ -379,12 +492,20 @@ export function syncPaper(s: BurnSession): void {
     }
 
     if (s.lastBox) {
-      if (posSig === s.lastPos) return
+      // Position-only re-anchor exists ONLY for the ITEM_BURNED
+      // relocation contract — a host that publishes it relocates the
+      // title box in CSS at the consume beat and the canvas must
+      // follow. Hosts without it anchor once at the arm-time box:
+      // chasing reflowed geometry (the dealt pile's heights growing
+      // with the front card's typing, bottom-anchored columns sliding)
+      // made the raster visibly drift — the DOM ink is hidden anyway,
+      // so the burn plays where the title stood when it caught fire.
+      if (!s.cls.ITEM_BURNED || posSig === s.lastPos) return
 
       s.lastPos = posSig
 
-      s.canvas.style.left = `${box.left - oBox.left - _PAD_X}px`
-      s.canvas.style.top = `${box.top - oBox.top - _PAD_TOP}px`
+      s.canvas.style.left = `${x - _PAD_X}px`
+      s.canvas.style.top = `${y - _PAD_TOP}px`
 
       // The GPU particle canvas rides the same re-anchor.
       mirrorBurnGpuCanvas(s)
@@ -395,25 +516,26 @@ export function syncPaper(s: BurnSession): void {
 
   const dpr = Math.min(_DPR_CAP, globalThis.devicePixelRatio || 1)
 
-  s.lastBox = `${box.width},${box.height},${dpr}`
+  s.lastBox = `${titleW},${titleH},${dpr}`
   s.lastPos = posSig
 
-  const cssW = box.width + _PAD_X * 2
-  const cssH = box.height + _PAD_TOP + _PAD_BOTTOM
+  const cssW = titleW + _PAD_X * 2
+  const cssH = titleH + _PAD_TOP + _PAD_BOTTOM
   const w = Math.max(2, Math.round(cssW * dpr))
   const h = Math.max(2, Math.round(cssH * dpr))
 
   s.w = w
   s.h = h
-  s.paperW = Math.max(2, Math.round(box.width * dpr))
-  s.paperH = Math.max(2, Math.round(box.height * dpr))
+  s.dpr = dpr
+  s.paperW = Math.max(2, Math.round(titleW * dpr))
+  s.paperH = Math.max(2, Math.round(titleH * dpr))
   s.paperX = _PAD_X * dpr
   s.paperY = _PAD_TOP * dpr
 
   s.canvas.width = w
   s.canvas.height = h
-  s.canvas.style.left = `${box.left - oBox.left - _PAD_X}px`
-  s.canvas.style.top = `${box.top - oBox.top - _PAD_TOP}px`
+  s.canvas.style.left = `${x - _PAD_X}px`
+  s.canvas.style.top = `${y - _PAD_TOP}px`
   s.canvas.style.width = `${cssW}px`
   s.canvas.style.height = `${cssH}px`
 
@@ -425,7 +547,7 @@ export function syncPaper(s: BurnSession): void {
   // index stops the mid-knit reshuffle from flickering columns in/out.
   const prevLetters = s.dir < 0 ? s.letters : null
 
-  rasterizeTitle(s.titleEl, s.paper, box.width, box.height, s.inkColor)
+  rasterizeTitle(s.titleEl, s.paper, titleW, titleH, s.inkColor)
   analyzePaper(s)
 
   if (prevLetters) {

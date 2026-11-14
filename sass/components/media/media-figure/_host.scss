@@ -46,9 +46,18 @@
   // absolute 100%×100% fill on thumb/high/video), so skipping defers
   // only their bitmap decode+paint — the figure's laid-out box keeps
   // the IO warm/climb and the nav-centering rect honest either way.
+  // The placeholder's box is intrinsic-driven, though: a skipped img
+  // reports 0×0 intrinsic and collapses to the min-width floor (280px)
+  // instead of keeping its aspect box — contain-intrinsic-size:auto
+  // remembers the last laid-out size so skipped slides keep their real
+  // box (rect-driven measurements stay honest).
   .render-placeholder,
   .render-media {
     content-visibility: auto;
+  }
+
+  .render-placeholder {
+    contain-intrinsic-size: auto;
   }
 }
 
@@ -164,10 +173,12 @@
 // When ztf-video is set alongside internal-main-item, the video is intentionally
 // full-bleed: it fills the frame and crops to top-center (e.g. hero backgrounds).
 // This overrides the contain default set in the :host(.internal-main-item) block.
+// The scope stays internal-main-item-only: the same CMS class travels with the
+// item into carousel slides and mosaic tiles, and the bare :host(.ztf-video)
+// selector used to force full-bleed cover there too — blowing the slide's own
+// laddered box out to the 175dvh cap (the blown-out ztf landscape bug).
 :host(.ztf-video.internal-main-item),
-:host([classes*='ztf-video'][classes*='internal-main-item']),
-:host(.ztf-video),
-:host([classes*='ztf-video']) {
+:host([classes*='ztf-video'][classes*='internal-main-item']) {
   .render-placeholder {
     // Fill full width in ztf mode so the container spans the section
     width: 100%;
